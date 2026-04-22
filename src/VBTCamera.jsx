@@ -11,18 +11,17 @@ export default function VBTCamera() {
   const [uploadedVideo, setUploadedVideo] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // إعدادات الفيديو والتحكم
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  // إعدادات الـ VBT و الـ Slow Motion
   const [cameraFps, setCameraFps] = useState(240); 
   const [videoFps, setVideoFps] = useState(30);    
   const [liftDistance, setLiftDistance] = useState(0.60); 
   const [isTracking, setIsTracking] = useState(false);
   const [vbtResults, setVbtResults] = useState(null);
 
-  // حالات المعايرة
+  // إعدادات المعايرة الديناميكية (Dynamic Calibration)
+  const [referenceLength, setReferenceLength] = useState(0.45); // الافتراضي 45 سم للطارة
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationStep, setCalibrationStep] = useState(0); 
 
@@ -36,7 +35,6 @@ export default function VBTCamera() {
     isTrackingRef.current = isTracking;
   }, [isTracking]);
 
-  // 1. تحميل المكتبات
   useEffect(() => {
     const loadScript = (src) => {
       return new Promise((resolve) => {
@@ -64,7 +62,6 @@ export default function VBTCamera() {
 
   const reqRef = useRef(null);
 
-  // 2. تشغيل الذكاء الاصطناعي
   useEffect(() => {
     if (!scriptsLoaded) return;
     const { Pose, POSE_CONNECTIONS, drawConnectors, drawLandmarks } = window;
@@ -102,16 +99,15 @@ export default function VBTCamera() {
         }
       }
 
-      // رسم نقط وخطوط المعايرة (بلون أصفر فاقع عشان تبان)
       const clicks = calibrationClicksRef.current;
       if (clicks.length > 0) {
-        canvasCtx.fillStyle = '#fbbf24'; // أصفر
+        canvasCtx.fillStyle = '#fbbf24'; 
         canvasCtx.strokeStyle = '#ffffff';
         canvasCtx.lineWidth = 3;
         
         clicks.forEach(click => {
           canvasCtx.beginPath();
-          canvasCtx.arc(click.x, click.y, 10, 0, 2 * Math.PI); // كبرنا النقطة
+          canvasCtx.arc(click.x, click.y, 10, 0, 2 * Math.PI); 
           canvasCtx.fill();
           canvasCtx.stroke();
         });
@@ -146,7 +142,6 @@ export default function VBTCamera() {
     return () => { cancelAnimationFrame(reqRef.current); pose.close(); };
   }, [scriptsLoaded]); 
 
-  // 3. التحكم في الكاميرا
   useEffect(() => {
     if (!scriptsLoaded) return;
     const video = videoRef.current;
@@ -165,7 +160,6 @@ export default function VBTCamera() {
     return () => { if (stream) stream.getTracks().forEach(track => track.stop()); };
   }, [mode, uploadedVideo, scriptsLoaded]);
 
-  // 4. وظائف الفيديو والتحكم
   const handleVideoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -183,23 +177,14 @@ export default function VBTCamera() {
     }
   };
 
-  const handleTimeUpdate = () => {
-    if (videoRef.current) setCurrentTime(videoRef.current.currentTime);
-  };
-
-  const handleLoadedMetadata = () => {
-    if (videoRef.current) setDuration(videoRef.current.duration);
-  };
+  const handleTimeUpdate = () => { if (videoRef.current) setCurrentTime(videoRef.current.currentTime); };
+  const handleLoadedMetadata = () => { if (videoRef.current) setDuration(videoRef.current.duration); };
 
   const handleSeek = async (e) => {
     const time = Number(e.target.value);
     if (videoRef.current) {
-      videoRef.current.currentTime = time;
-      setCurrentTime(time);
-      // تحديث الذكاء الاصطناعي عند تحريك الشريط وهو واقف
-      if (videoRef.current.paused && poseRef.current) {
-        await poseRef.current.send({ image: videoRef.current });
-      }
+      videoRef.current.currentTime = time; setCurrentTime(time);
+      if (videoRef.current.paused && poseRef.current) await poseRef.current.send({ image: videoRef.current });
     }
   };
 
@@ -209,14 +194,11 @@ export default function VBTCamera() {
       const timeStep = frames / (videoFps || 30);
       let newTime = videoRef.current.currentTime + timeStep;
       newTime = Math.max(0, Math.min(newTime, duration));
-      videoRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
-      // تحديث الهيكل العظمي مع الفريم الجديد
+      videoRef.current.currentTime = newTime; setCurrentTime(newTime);
       if (poseRef.current) await poseRef.current.send({ image: videoRef.current });
     }
   };
 
-  // 5. وظيفة كليك المعايرة
   const handleCanvasClick = (e) => {
     if (!isCalibrating) return;
     const rect = canvasRef.current.getBoundingClientRect();
@@ -229,20 +211,20 @@ export default function VBTCamera() {
     calibrationClicksRef.current = newClicks;
     setCalibrationStep(newClicks.length + 1); 
 
-    // إجبار الكانفاس على التحديث لرسم النقطة فوراً
-    if (videoRef.current && poseRef.current) {
-      poseRef.current.send({ image: videoRef.current });
-    }
+    if (videoRef.current && poseRef.current) poseRef.current.send({ image: videoRef.current });
 
     if (newClicks.length === 2) {
       const distInPixels = Math.hypot(newClicks[0].x - newClicks[1].x, newClicks[0].y - newClicks[1].y);
-      const ppm = distInPixels / 0.45; 
+      
+      // هنا السحر: بنقسم على الرقم اللي المدرب دخله بإيده (بدل 0.45 الثابتة)
+      const refLen = parseFloat(referenceLength) || 0.45;
+      const ppm = distInPixels / refLen; 
       
       pixelsPerMeterRef.current = ppm; 
       setIsCalibrating(false);
       setCalibrationStep(0);
       
-      alert("✅ تمت المعايرة بنجاح! تم تحديد قطر الطارة.");
+      alert(`✅ تمت المعايرة بنجاح بناءً على جسم مرجعي بطول ${refLen} متر!`);
       setTimeout(() => {
         calibrationClicksRef.current = [];
         if (videoRef.current && poseRef.current) poseRef.current.send({ image: videoRef.current });
@@ -255,7 +237,6 @@ export default function VBTCamera() {
     else { setIsTracking(false); }
   };
 
-  // 6. التحليل النهائي
   const handleAnalyzeVBT = () => {
     setIsTracking(false);
     const history = wristHistoryRef.current;
@@ -328,7 +309,7 @@ export default function VBTCamera() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-[#0f1423] p-4 rounded-2xl border border-gray-800 max-w-2xl mx-auto relative">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 bg-[#0f1423] p-4 rounded-2xl border border-gray-800 max-w-2xl mx-auto relative">
         <div>
           <label className="block text-xs text-gray-400 mb-1">FPS الكاميرا الأصلي</label>
           <input type="number" value={cameraFps} onChange={e => setCameraFps(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none focus:border-blue-500" />
@@ -338,30 +319,36 @@ export default function VBTCamera() {
           <input type="number" value={videoFps} onChange={e => setVideoFps(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none focus:border-blue-500" />
         </div>
         <div>
-          <label className="block text-xs text-gray-400 mb-1">مسافة الرفعة (بالمتر)</label>
-          <input type="number" step="0.01" value={liftDistance} onChange={e => setLiftDistance(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none focus:border-emerald-500" />
+          <label className="block text-xs text-gray-400 mb-1">مسافة الرفعة الحالية (m)</label>
+          <input type="number" step="0.01" value={liftDistance} readOnly className="w-full bg-[#0b0f19] border border-gray-700 p-2 text-emerald-400 font-bold rounded-xl text-center outline-none" />
         </div>
       </div>
 
-      <div className="mb-4">
+      {/* أداة المعايرة المتقدمة */}
+      <div className="mb-6 bg-[#0f1423] p-4 rounded-2xl border border-gray-800 inline-block w-full max-w-md">
+         <label className="block text-xs text-gray-400 mb-2">طول الجسم المرجعي للمعايرة (بالمتر) - الافتراضي 0.45</label>
+         <input 
+            type="number" 
+            step="0.01" 
+            value={referenceLength} 
+            onChange={e => setReferenceLength(e.target.value)} 
+            className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none focus:border-blue-500 mb-3" 
+         />
+         
          {!isCalibrating ? (
            <button 
               onClick={() => { 
-                setIsCalibrating(true); 
-                setCalibrationStep(1); 
-                calibrationClicksRef.current = []; 
-                pixelsPerMeterRef.current = null;
-                // إيقاف الفيديو إجبارياً لتسهيل المعايرة
+                setIsCalibrating(true); setCalibrationStep(1); calibrationClicksRef.current = []; pixelsPerMeterRef.current = null;
                 if(videoRef.current) { videoRef.current.pause(); setIsPlaying(false); }
               }} 
-              className="px-6 py-2 bg-[#1f2937] border border-blue-500/50 text-blue-400 hover:bg-gray-700 rounded-xl font-bold text-sm transition-all"
+              className="w-full px-6 py-2 bg-[#1f2937] border border-blue-500/50 text-blue-400 hover:bg-gray-700 rounded-xl font-bold text-sm transition-all"
            >
-              📏 معايرة الطارة بالذكاء الاصطناعي (أوتوماتيك)
+              📏 بدء معايرة الكاميرا على الشاشة
            </button>
          ) : (
-           <div className="bg-blue-900/30 border border-blue-500 p-3 rounded-xl inline-block animate-pulse">
-             {calibrationStep === 1 && <p className="text-blue-400 font-bold">1️⃣ اضغط على <span className="text-white">أعلى نقطة</span> في طارة الحديد</p>}
-             {calibrationStep === 2 && <p className="text-blue-400 font-bold">2️⃣ اضغط على <span className="text-white">أسفل نقطة</span> في طارة الحديد</p>}
+           <div className="w-full bg-blue-900/30 border border-blue-500 p-3 rounded-xl animate-pulse">
+             {calibrationStep === 1 && <p className="text-blue-400 font-bold">1️⃣ اضغط على <span className="text-white">أول نقطة</span> للمرجع</p>}
+             {calibrationStep === 2 && <p className="text-blue-400 font-bold">2️⃣ اضغط على <span className="text-white">ثاني نقطة</span> للمرجع</p>}
            </div>
          )}
       </div>
@@ -372,17 +359,11 @@ export default function VBTCamera() {
       <div className="relative flex flex-col items-center w-full max-w-md mx-auto mb-6">
         <div className="relative inline-block border-4 border-gray-700 rounded-xl overflow-hidden shadow-lg w-full mb-4">
           <video 
-            ref={videoRef} 
-            className="hidden" 
-            playsInline 
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={handleLoadedMetadata}
-            onEnded={() => setIsPlaying(false)}
+            ref={videoRef} className="hidden" playsInline onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)}
           ></video>
           <canvas ref={canvasRef} onClick={handleCanvasClick} className={`w-full h-auto bg-black ${isCalibrating ? 'cursor-crosshair' : ''}`}></canvas>
         </div>
 
-        {/* لوحة التحكم في الفيديو (Slider و Frames) */}
         {mode === 'video' && uploadedVideo && duration > 0 && (
           <div className="w-full bg-[#0f1423] p-4 rounded-2xl border border-gray-800">
             <div className="flex items-center gap-4 mb-4">
@@ -390,12 +371,9 @@ export default function VBTCamera() {
               <input type="range" min="0" max={duration} step="0.001" value={currentTime} onChange={handleSeek} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
               <span className="text-xs text-gray-400 font-mono bg-gray-800 px-2 py-1 rounded">{duration.toFixed(2)}s</span>
             </div>
-            
             <div className="flex flex-wrap justify-center gap-2">
               <button onClick={() => stepFrames(-1)} className="px-4 py-2 bg-[#1f2937] hover:bg-gray-700 rounded-xl text-white text-sm font-bold">-1 Frame</button>
-              <button onClick={togglePlayVideo} className="px-8 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold mx-2 shadow-lg">
-                {isPlaying ? '⏸ إيقاف' : '▶ تشغيل'}
-              </button>
+              <button onClick={togglePlayVideo} className="px-8 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold mx-2 shadow-lg">{isPlaying ? '⏸ إيقاف' : '▶ تشغيل'}</button>
               <button onClick={() => stepFrames(1)} className="px-4 py-2 bg-[#1f2937] hover:bg-gray-700 rounded-xl text-white text-sm font-bold">+1 Frame</button>
             </div>
           </div>
