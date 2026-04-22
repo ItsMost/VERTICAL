@@ -17,11 +17,12 @@ export default function VBTCamera() {
   const [cameraFps, setCameraFps] = useState(240); 
   const [videoFps, setVideoFps] = useState(30);    
   const [liftDistance, setLiftDistance] = useState(0.60); 
+  const [exerciseType, setExerciseType] = useState('olympic'); // 'olympic' | 'strength'
+  
   const [isTracking, setIsTracking] = useState(false);
   const [vbtResults, setVbtResults] = useState(null);
 
-  // إعدادات المعايرة الديناميكية (Dynamic Calibration)
-  const [referenceLength, setReferenceLength] = useState(0.45); // الافتراضي 45 سم للطارة
+  const [referenceLength, setReferenceLength] = useState(0.45); 
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationStep, setCalibrationStep] = useState(0); 
 
@@ -215,8 +216,6 @@ export default function VBTCamera() {
 
     if (newClicks.length === 2) {
       const distInPixels = Math.hypot(newClicks[0].x - newClicks[1].x, newClicks[0].y - newClicks[1].y);
-      
-      // هنا السحر: بنقسم على الرقم اللي المدرب دخله بإيده (بدل 0.45 الثابتة)
       const refLen = parseFloat(referenceLength) || 0.45;
       const ppm = distInPixels / refLen; 
       
@@ -235,6 +234,25 @@ export default function VBTCamera() {
   const handleToggleTracking = () => {
     if (!isTracking) { wristHistoryRef.current = []; setVbtResults(null); setIsTracking(true); } 
     else { setIsTracking(false); }
+  };
+
+  // تقييم المدرب بناءً على السرعة ونوع التمرين
+  const getCoachInsight = (meanV, type) => {
+    const v = parseFloat(meanV);
+    if (type === 'olympic') {
+      if (v >= 1.30) return { zone: 'السرعة المطلقة (Starting Speed)', desc: 'وزن خفيف جداً (<50%). ممتاز لتدريب الجهاز العصبي وسرعة رد الفعل.', color: 'text-cyan-400 border-cyan-500 bg-cyan-900/20' };
+      if (v >= 1.15) return { zone: 'قوة مميزة بالسرعة (Speed-Strength)', desc: 'وزن خفيف (50-65%). ممتاز لزيادة القوة الانفجارية للاعبي الوثب.', color: 'text-blue-400 border-blue-500 bg-blue-900/20' };
+      if (v >= 0.95) return { zone: 'سرعة مميزة بالقوة (Strength-Speed)', desc: 'وزن متوسط (65-80%). أفضل منطقة لتطوير القوة الانفجارية.', color: 'text-emerald-400 border-emerald-500 bg-emerald-900/20' };
+      if (v >= 0.80) return { zone: 'القوة القصوى (Maximal Power / Heavy)', desc: 'وزن ثقيل (80-95%). تدريب مخصص لتطوير القوة العضلية القصوى.', color: 'text-yellow-400 border-yellow-500 bg-yellow-900/20' };
+      return { zone: 'أقصى جهد (1RM Zone)', desc: 'وزن أقصى (100%). احذر من فشل الرفعة، السرعة بطيئة جداً.', color: 'text-red-400 border-red-500 bg-red-900/20' };
+    } else {
+      // Squat, Bench, Deadlift
+      if (v >= 1.0) return { zone: 'السرعة المطلقة (Speed)', desc: 'وزن خفيف. تركيز على السرعة البحتة.', color: 'text-cyan-400 border-cyan-500 bg-cyan-900/20' };
+      if (v >= 0.75) return { zone: 'قوة مميزة بالسرعة (Speed-Strength)', desc: 'تطوير القدرة على تحريك الأوزان بسرعة.', color: 'text-blue-400 border-blue-500 bg-blue-900/20' };
+      if (v >= 0.50) return { zone: 'سرعة مميزة بالقوة (Strength-Speed)', desc: 'تحسين إنتاج القوة (Power Output).', color: 'text-emerald-400 border-emerald-500 bg-emerald-900/20' };
+      if (v >= 0.30) return { zone: 'القوة القصوى (Maximal Strength)', desc: 'بناء قوة عضلية خالصة بأوزان ثقيلة.', color: 'text-yellow-400 border-yellow-500 bg-yellow-900/20' };
+      return { zone: 'أقصى جهد (1RM Zone - Grind)', desc: 'أقصى حمل ممكن. الرفعة قاسية (Grinding).', color: 'text-red-400 border-red-500 bg-red-900/20' };
+    }
   };
 
   const handleAnalyzeVBT = () => {
@@ -287,10 +305,13 @@ export default function VBTCamera() {
     const meanVelocity = velocities.reduce((a, b) => a + b, 0) / velocities.length;
     const timeTaken = (concentricPhase[concentricPhase.length - 1].time - concentricPhase[0].time) * timeScaleRatio;
 
+    const insight = getCoachInsight(meanVelocity, exerciseType);
+
     setVbtResults({
       peakVelocity: peakVelocity.toFixed(2),
       meanVelocity: meanVelocity.toFixed(2),
-      timeTaken: timeTaken.toFixed(2)
+      timeTaken: timeTaken.toFixed(2),
+      insight
     });
   };
 
@@ -300,6 +321,7 @@ export default function VBTCamera() {
         نظام التدريب المبني على السرعة (VBT AI)
       </h3>
 
+      {/* لوحة رفع الفيديو أو فتح الكاميرا */}
       <div className="flex flex-wrap justify-center gap-3 mb-6 bg-[#0f1423] p-4 rounded-2xl border border-gray-800">
         <button onClick={() => setMode('front')} className={`px-4 py-2 rounded-xl font-bold transition-all ${mode === 'front' ? 'bg-blue-600 text-white' : 'bg-[#1f2937] text-gray-400'}`}>كاميرا أمامية</button>
         <button onClick={() => setMode('back')} className={`px-4 py-2 rounded-xl font-bold transition-all ${mode === 'back' ? 'bg-emerald-600 text-white' : 'bg-[#1f2937] text-gray-400'}`}>كاميرا خلفية</button>
@@ -309,58 +331,51 @@ export default function VBTCamera() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 bg-[#0f1423] p-4 rounded-2xl border border-gray-800 max-w-2xl mx-auto relative">
+      {/* إعدادات السرعة والتمرين (تمت إضافة نوع التمرين) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 bg-[#0f1423] p-4 rounded-2xl border border-gray-800 mx-auto relative">
         <div>
-          <label className="block text-xs text-gray-400 mb-1">FPS الكاميرا الأصلي</label>
-          <input type="number" value={cameraFps} onChange={e => setCameraFps(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none focus:border-blue-500" />
+          <label className="block text-xs text-gray-400 mb-1">نوع التمرين (Zone)</label>
+          <select value={exerciseType} onChange={e => setExerciseType(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none focus:border-emerald-500">
+            <option value="olympic">كلين / خطف</option>
+            <option value="strength">سكوات / بنش</option>
+          </select>
         </div>
         <div>
-          <label className="block text-xs text-gray-400 mb-1">FPS تشغيل الملف</label>
-          <input type="number" value={videoFps} onChange={e => setVideoFps(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none focus:border-blue-500" />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-400 mb-1">مسافة الرفعة الحالية (m)</label>
+          <label className="block text-xs text-gray-400 mb-1">مسافة الرفعة الحالية</label>
           <input type="number" step="0.01" value={liftDistance} readOnly className="w-full bg-[#0b0f19] border border-gray-700 p-2 text-emerald-400 font-bold rounded-xl text-center outline-none" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">FPS الكاميرا</label>
+          <input type="number" value={cameraFps} onChange={e => setCameraFps(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">FPS التشغيل</label>
+          <input type="number" value={videoFps} onChange={e => setVideoFps(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none" />
         </div>
       </div>
 
-      {/* أداة المعايرة المتقدمة */}
+      {/* أداة المعايرة */}
       <div className="mb-6 bg-[#0f1423] p-4 rounded-2xl border border-gray-800 inline-block w-full max-w-md">
-         <label className="block text-xs text-gray-400 mb-2">طول الجسم المرجعي للمعايرة (بالمتر) - الافتراضي 0.45</label>
-         <input 
-            type="number" 
-            step="0.01" 
-            value={referenceLength} 
-            onChange={e => setReferenceLength(e.target.value)} 
-            className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none focus:border-blue-500 mb-3" 
-         />
-         
+         <label className="block text-xs text-gray-400 mb-2">طول الجسم المرجعي (مثال: طارة 0.45)</label>
+         <input type="number" step="0.01" value={referenceLength} onChange={e => setReferenceLength(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none focus:border-blue-500 mb-3" />
          {!isCalibrating ? (
-           <button 
-              onClick={() => { 
-                setIsCalibrating(true); setCalibrationStep(1); calibrationClicksRef.current = []; pixelsPerMeterRef.current = null;
-                if(videoRef.current) { videoRef.current.pause(); setIsPlaying(false); }
-              }} 
-              className="w-full px-6 py-2 bg-[#1f2937] border border-blue-500/50 text-blue-400 hover:bg-gray-700 rounded-xl font-bold text-sm transition-all"
-           >
+           <button onClick={() => { setIsCalibrating(true); setCalibrationStep(1); calibrationClicksRef.current = []; pixelsPerMeterRef.current = null; if(videoRef.current) { videoRef.current.pause(); setIsPlaying(false); } }} className="w-full px-6 py-2 bg-[#1f2937] border border-blue-500/50 text-blue-400 hover:bg-gray-700 rounded-xl font-bold text-sm transition-all">
               📏 بدء معايرة الكاميرا على الشاشة
            </button>
          ) : (
            <div className="w-full bg-blue-900/30 border border-blue-500 p-3 rounded-xl animate-pulse">
-             {calibrationStep === 1 && <p className="text-blue-400 font-bold">1️⃣ اضغط على <span className="text-white">أول نقطة</span> للمرجع</p>}
-             {calibrationStep === 2 && <p className="text-blue-400 font-bold">2️⃣ اضغط على <span className="text-white">ثاني نقطة</span> للمرجع</p>}
+             {calibrationStep === 1 && <p className="text-blue-400 font-bold">1️⃣ اضغط على <span className="text-white">أول نقطة</span></p>}
+             {calibrationStep === 2 && <p className="text-blue-400 font-bold">2️⃣ اضغط على <span className="text-white">ثاني نقطة</span></p>}
            </div>
          )}
       </div>
 
-      {!scriptsLoaded && <p className="text-gray-400 mb-4 font-bold">جاري تجهيز سيرفرات الذكاء الاصطناعي...</p>}
-      {isAiReady && <p className="text-emerald-400 font-bold mb-4">الذكاء الاصطناعي جاهز لتتبع البار! ✅</p>}
-
+      {!scriptsLoaded && <p className="text-gray-400 mb-4 font-bold">جاري تجهيز الذكاء الاصطناعي...</p>}
+      
+      {/* مشغل الفيديو */}
       <div className="relative flex flex-col items-center w-full max-w-md mx-auto mb-6">
         <div className="relative inline-block border-4 border-gray-700 rounded-xl overflow-hidden shadow-lg w-full mb-4">
-          <video 
-            ref={videoRef} className="hidden" playsInline onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)}
-          ></video>
+          <video ref={videoRef} className="hidden" playsInline onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)}></video>
           <canvas ref={canvasRef} onClick={handleCanvasClick} className={`w-full h-auto bg-black ${isCalibrating ? 'cursor-crosshair' : ''}`}></canvas>
         </div>
 
@@ -389,19 +404,32 @@ export default function VBTCamera() {
         </button>
       </div>
 
+      {/* النتائج ومنطقة المدرب (Coach's Zone) */}
       {vbtResults && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center animate-fade-in-down border-t border-gray-800 pt-6">
-          <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-emerald-500">
-            <span className="block text-xs text-gray-400 mb-2">متوسط السرعة (Mean)</span>
-            <span className="text-4xl font-black text-white">{vbtResults.meanVelocity} <span className="text-sm text-gray-500">m/s</span></span>
+        <div className="space-y-6 animate-fade-in-down border-t border-gray-800 pt-6">
+          
+          {/* الكارت الجديد: منطقة المدرب */}
+          <div className={`p-6 rounded-2xl border ${vbtResults.insight.color} shadow-lg text-center`}>
+             <p className="text-sm font-bold opacity-80 mb-2">منطقة التدريب الحالية (Training Zone)</p>
+             <h4 className="text-3xl font-black mb-3">{vbtResults.insight.zone}</h4>
+             <p className="text-sm opacity-90 max-w-lg mx-auto leading-relaxed">
+               💡 {vbtResults.insight.desc}
+             </p>
           </div>
-          <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-blue-500">
-            <span className="block text-xs text-gray-400 mb-2">أقصى سرعة (Peak)</span>
-            <span className="text-4xl font-black text-white">{vbtResults.peakVelocity} <span className="text-sm text-gray-500">m/s</span></span>
-          </div>
-          <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-purple-500">
-            <span className="block text-xs text-gray-400 mb-2">زمن الصعود الفعلي</span>
-            <span className="text-4xl font-black text-white">{vbtResults.timeTaken} <span className="text-sm text-gray-500">s</span></span>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-emerald-500">
+              <span className="block text-xs text-gray-400 mb-2">متوسط السرعة (Mean)</span>
+              <span className="text-4xl font-black text-white">{vbtResults.meanVelocity} <span className="text-sm text-gray-500">m/s</span></span>
+            </div>
+            <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-blue-500">
+              <span className="block text-xs text-gray-400 mb-2">أقصى سرعة (Peak)</span>
+              <span className="text-4xl font-black text-white">{vbtResults.peakVelocity} <span className="text-sm text-gray-500">m/s</span></span>
+            </div>
+            <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-purple-500">
+              <span className="block text-xs text-gray-400 mb-2">زمن الصعود الفعلي</span>
+              <span className="text-4xl font-black text-white">{vbtResults.timeTaken} <span className="text-sm text-gray-500">s</span></span>
+            </div>
           </div>
         </div>
       )}
