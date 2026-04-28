@@ -10,10 +10,8 @@ import VBTCamera from './VBTCamera';
 
 export default function JumpCalculator() {
   const [activeTab, setActiveTab] = useState('calculator'); 
-  
-  // === فصلنا الإضاءة عن القوالب ===
-  const [colorMode, setColorMode] = useState('dark'); // 'dark' | 'light'
-  const [themeStyle, setThemeStyle] = useState('default'); // 'default' | 'haikyuu' | 'gravity'
+  const [colorMode, setColorMode] = useState('dark'); 
+  const [themeStyle, setThemeStyle] = useState('default'); 
 
   const [players, setPlayers] = useState([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
@@ -26,8 +24,11 @@ export default function JumpCalculator() {
   const [isEditingPlayer, setIsEditingPlayer] = useState(false);
   const [editPlayerForm, setEditPlayerForm] = useState({ id: '', name: '', birthYear: '', weight: '', leg: '', gender: '' });
 
+  // === إعدادات الفيديو المتطورة ===
+  const [videoPreset, setVideoPreset] = useState('slow240');
   const [cameraFps, setCameraFps] = useState(240);
   const [videoFps, setVideoFps] = useState(30);
+
   const [takeoffTime, setTakeoffTime] = useState(0);
   const [landingTime, setLandingTime] = useState(0);
   const [bodyMass, setBodyMass] = useState(72);
@@ -113,6 +114,16 @@ export default function JumpCalculator() {
     }
   };
 
+  // وظيفة تغيير إعدادات الفيديو السريعة
+  const handlePresetChange = (e) => {
+    const val = e.target.value;
+    setVideoPreset(val);
+    if (val === 'slow240') { setCameraFps(240); setVideoFps(30); }
+    else if (val === 'slow120') { setCameraFps(120); setVideoFps(30); }
+    else if (val === 'normal30') { setCameraFps(30); setVideoFps(30); }
+    else if (val === 'normal60') { setCameraFps(60); setVideoFps(60); }
+  };
+
   const handleFileUpload = (e) => { const file = e.target.files[0]; if (file) { setVideoSrc(URL.createObjectURL(file)); setAiEnabled(false); flightDataRef.current = []; } };
   const clearVideo = () => { setVideoSrc(null); setTakeoffTime(0); setLandingTime(0); setCurrentTime(0); setIsPlaying(false); setShowResults(false); setAiEnabled(false); flightDataRef.current = []; };
   const togglePlay = () => { if (videoRef.current) { if (videoRef.current.paused) { videoRef.current.play(); setIsPlaying(true); } else { videoRef.current.pause(); setIsPlaying(false); } } };
@@ -135,17 +146,32 @@ export default function JumpCalculator() {
     const { Pose, POSE_CONNECTIONS, drawConnectors, drawLandmarks } = window;
     const pose = new Pose({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
     pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+    
     pose.onResults((results) => {
       const canvasCtx = canvasRef.current?.getContext('2d'); if (!canvasCtx || !canvasRef.current) return;
       if (results.image.width && canvasRef.current.width !== results.image.width) { canvasRef.current.width = results.image.width; canvasRef.current.height = results.image.height; }
       canvasCtx.save(); canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      
       if (results.poseLandmarks) {
-        drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#3b82f6', lineWidth: 3 }); drawLandmarks(canvasCtx, results.poseLandmarks, { color: '#ffffff', lineWidth: 1 });
-        const leftAnkle = results.poseLandmarks[27]; const rightAnkle = results.poseLandmarks[28];
-        if (leftAnkle && rightAnkle && videoRef.current && !videoRef.current.paused) { const avgFootY = (leftAnkle.y + rightAnkle.y) / 2; flightDataRef.current.push({ time: videoRef.current.currentTime, y: avgFootY }); }
+        drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#3b82f6', lineWidth: 3 }); 
+        drawLandmarks(canvasCtx, results.poseLandmarks, { color: '#ffffff', lineWidth: 1 });
+        
+        const lm = results.poseLandmarks;
+        // الاعتماد الأكبر على مشط القدم (Toes 31, 32)
+        const feetYPoints = [
+          lm[27]?.y || 0, lm[28]?.y || 0, // كاحل
+          lm[29]?.y || 0, lm[30]?.y || 0, // كعب
+          lm[31]?.y || 0, lm[32]?.y || 0  // مشط القدم (الأهم)
+        ].filter(y => y > 0);
+
+        if (feetYPoints.length > 0) {
+          const lowestY = Math.max(...feetYPoints); // أسفل نقطة لامسة للأرض
+          flightDataRef.current.push({ time: videoRef.current.currentTime, y: lowestY });
+        }
       }
       canvasCtx.restore();
     });
+    
     poseRef.current = pose;
     let isProcessing = false;
     const processFrame = async () => { const video = videoRef.current; if (video && !video.paused && !video.ended) { if (!isProcessing && video.readyState >= 2) { isProcessing = true; await pose.send({ image: video }); isProcessing = false; } } reqRef.current = requestAnimationFrame(processFrame); };
@@ -155,12 +181,36 @@ export default function JumpCalculator() {
 
   const autoDetectJump = () => {
     const data = flightDataRef.current;
-    if (data.length < 10) return alert("يرجى تشغيل الفيديو بالكامل أثناء تفعيل الذكاء الاصطناعي لجمع بيانات القفزة.");
-    const sortedByY = [...data].sort((a, b) => b.y - a.y); const groundY = sortedByY.slice(0, 10).reduce((sum, d) => sum + d.y, 0) / 10; const threshold = groundY - 0.02; 
-    let tStart = 0; let tEnd = 0;
-    for (let i = 0; i < data.length; i++) { if (data[i].y < threshold && tStart === 0) { tStart = data[i].time; } if (tStart > 0 && data[i].y >= threshold && data[i].time > tStart + 0.15) { tEnd = data[i].time; break; } }
-    if (tStart && tEnd) { setTakeoffTime(tStart); setLandingTime(tEnd); setShowResults(false); videoRef.current.currentTime = tStart; setCurrentTime(tStart); } 
-    else { alert("لم يتمكن الذكاء الاصطناعي من رؤية القفزة بوضوح، يرجى التحديد يدوياً."); }
+    if (data.length < 15) return alert("يرجى تشغيل الفيديو بالكامل أثناء تفعيل الذكاء الاصطناعي لجمع بيانات القفزة.");
+    
+    let smoothedData = [];
+    for(let i=0; i<data.length; i++) {
+      let start = Math.max(0, i-2); let end = Math.min(data.length, i+3); let window = data.slice(start, end);
+      let avgY = window.reduce((sum, d) => sum + d.y, 0) / window.length; smoothedData.push({ time: data[i].time, y: avgY });
+    }
+
+    const sortedY = [...smoothedData].sort((a, b) => b.y - a.y);
+    const groundY = sortedY.slice(0, Math.max(5, Math.floor(sortedY.length * 0.02))).reduce((a,b)=>a+b.y, 0) / Math.max(5, Math.floor(sortedY.length * 0.02));
+    
+    let peakIndex = 0; let peakY = smoothedData[0].y;
+    for(let i=1; i<smoothedData.length; i++) { if (smoothedData[i].y < peakY) { peakY = smoothedData[i].y; peakIndex = i; } }
+
+    const jumpHeightPixels = groundY - peakY;
+    if (jumpHeightPixels < 0.05) return alert("القفزة غير واضحة أو صغيرة جداً للاكتشاف التلقائي.");
+
+    // حد الإقلاع بقى دقيق جداً (3% بس من الارتفاع عشان يلقط مشط القدم)
+    const flightThreshold = groundY - (jumpHeightPixels * 0.03); 
+
+    let tStart = 0; for (let i = peakIndex; i >= 0; i--) { if (smoothedData[i].y >= flightThreshold) { tStart = smoothedData[i].time; break; } }
+    let tEnd = 0; for (let i = peakIndex; i < smoothedData.length; i++) { if (smoothedData[i].y >= flightThreshold) { tEnd = smoothedData[i].time; break; } }
+    
+    const camFps = parseFloat(cameraFps) || 240; const vidFps = parseFloat(videoFps) || 30;
+    const timeScaleRatio = vidFps / camFps; const minFlightTimeVideo = 0.15 * timeScaleRatio; 
+
+    if (tStart > 0 && tEnd > 0 && (tEnd - tStart) > minFlightTimeVideo) { 
+      setTakeoffTime(tStart); setLandingTime(tEnd); setShowResults(false); videoRef.current.currentTime = tStart; setCurrentTime(tStart); 
+      alert("✅ الذكاء الاصطناعي: تم التحديد بدقة (حتى مع الـ Slow-mo)!");
+    } else { alert("لم يتم التعرف على قفزة واضحة."); }
   };
 
   const handleAnalyze = () => { if (takeoffTime === 0 || landingTime === 0) return alert("حدد الإقلاع والهبوط أولاً."); setShowResults(true); };
@@ -183,55 +233,16 @@ export default function JumpCalculator() {
   ];
 
   return (
-    // دمج المتغيرين مع بعض (مثال: haikyuu-light أو default-dark)
     <div data-theme={`${themeStyle}-${colorMode}`} className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] p-4 md:p-8 transition-colors duration-500" style={{ fontFamily: "'Tajawal', sans-serif", direction: "rtl" }}>
       
-      {/* 🎨 Theme Engine Matrix 🎨 */}
       <style>{`
-        :root {
-          transition: background-color 0.5s ease, color 0.5s ease;
-        }
-        /* 1. Default (The Lab) */
-        [data-theme="default-dark"] {
-          --bg-base: #0b0f19; --bg-panel: #111827; --bg-surface: #1f2937; --bg-input: #374151;
-          --text-primary: #ffffff; --text-secondary: #9ca3af;
-          --border-color: #4b5563; --border-light: #374151;
-          --brand-main: #2563eb; --brand-hover: #3b82f6; --brand-text: #60a5fa;
-        }
-        [data-theme="default-light"] {
-          --bg-base: #f3f4f6; --bg-panel: #ffffff; --bg-surface: #f9fafb; --bg-input: #e5e7eb;
-          --text-primary: #111827; --text-secondary: #4b5563;
-          --border-color: #d1d5db; --border-light: #e5e7eb;
-          --brand-main: #2563eb; --brand-hover: #1d4ed8; --brand-text: #2563eb;
-        }
-        
-        /* 2. Haikyuu!! (Karasuno Fly!) */
-        [data-theme="haikyuu-dark"] {
-          --bg-base: #0a0a0a; --bg-panel: #171717; --bg-surface: #262626; --bg-input: #404040;
-          --text-primary: #f5f5f5; --text-secondary: #fbd38d;
-          --border-color: #c05621; --border-light: #7c2d12;
-          --brand-main: #ea580c; --brand-hover: #f97316; --brand-text: #fbd38d;
-        }
-        [data-theme="haikyuu-light"] {
-          --bg-base: #fff7ed; --bg-panel: #ffffff; --bg-surface: #ffedd5; --bg-input: #fed7aa;
-          --text-primary: #1c1917; --text-secondary: #9a3412;
-          --border-color: #fdba74; --border-light: #ffedd5;
-          --brand-main: #ea580c; --brand-hover: #c05621; --brand-text: #ea580c;
-        }
-
-        /* 3. Gravity (Air Time) */
-        [data-theme="gravity-dark"] {
-          --bg-base: #082f49; --bg-panel: #164e63; --bg-surface: #155e75; --bg-input: #0e7490;
-          --text-primary: #ecfeff; --text-secondary: #a5f3fc;
-          --border-color: #06b6d4; --border-light: #0891b2;
-          --brand-main: #0284c7; --brand-hover: #0ea5e9; --brand-text: #67e8f9;
-        }
-        [data-theme="gravity-light"] {
-          --bg-base: #f0f9ff; --bg-panel: #ffffff; --bg-surface: #e0f2fe; --bg-input: #bae6fd;
-          --text-primary: #082f49; --text-secondary: #0369a1;
-          --border-color: #7dd3fc; --border-light: #e0f2fe;
-          --brand-main: #0284c7; --brand-hover: #0369a1; --brand-text: #0284c7;
-        }
+        :root { transition: background-color 0.5s ease, color 0.5s ease; }
+        [data-theme="default-dark"] { --bg-base: #0b0f19; --bg-panel: #111827; --bg-surface: #1f2937; --bg-input: #374151; --text-primary: #ffffff; --text-secondary: #9ca3af; --border-color: #4b5563; --border-light: #374151; --brand-main: #2563eb; --brand-hover: #3b82f6; --brand-text: #60a5fa; }
+        [data-theme="default-light"] { --bg-base: #f3f4f6; --bg-panel: #ffffff; --bg-surface: #f9fafb; --bg-input: #e5e7eb; --text-primary: #111827; --text-secondary: #4b5563; --border-color: #d1d5db; --border-light: #e5e7eb; --brand-main: #2563eb; --brand-hover: #1d4ed8; --brand-text: #2563eb; }
+        [data-theme="haikyuu-dark"] { --bg-base: #0a0a0a; --bg-panel: #171717; --bg-surface: #262626; --bg-input: #404040; --text-primary: #f5f5f5; --text-secondary: #fbd38d; --border-color: #c05621; --border-light: #7c2d12; --brand-main: #ea580c; --brand-hover: #f97316; --brand-text: #fbd38d; }
+        [data-theme="haikyuu-light"] { --bg-base: #fff7ed; --bg-panel: #ffffff; --bg-surface: #ffedd5; --bg-input: #fed7aa; --text-primary: #1c1917; --text-secondary: #9a3412; --border-color: #fdba74; --border-light: #ffedd5; --brand-main: #ea580c; --brand-hover: #c05621; --brand-text: #ea580c; }
+        [data-theme="gravity-dark"] { --bg-base: #082f49; --bg-panel: #164e63; --bg-surface: #155e75; --bg-input: #0e7490; --text-primary: #ecfeff; --text-secondary: #a5f3fc; --border-color: #06b6d4; --border-light: #0891b2; --brand-main: #0284c7; --brand-hover: #0ea5e9; --brand-text: #67e8f9; }
+        [data-theme="gravity-light"] { --bg-base: #f0f9ff; --bg-panel: #ffffff; --bg-surface: #e0f2fe; --bg-input: #bae6fd; --text-primary: #082f49; --text-secondary: #0369a1; --border-color: #7dd3fc; --border-light: #e0f2fe; --brand-main: #0284c7; --brand-hover: #0369a1; --brand-text: #0284c7; }
       `}</style>
 
       <div className="w-full max-w-6xl mx-auto space-y-6">
@@ -248,17 +259,11 @@ export default function JumpCalculator() {
               </select>
             </div>
             
-            {/* 🎨 Theme Controls: فصل المود عن القالب 🎨 */}
             <div className="flex flex-wrap justify-center items-center gap-2 bg-[var(--bg-surface)] p-1.5 rounded-2xl border border-[var(--border-light)]">
-               
-               {/* زرار المود (شمس وقمر) */}
                <button onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} title="تبديل الإضاءة" className="p-2.5 rounded-xl bg-[var(--bg-input)] text-[var(--brand-text)] hover:text-[var(--brand-hover)] transition-all flex items-center shadow-sm">
                  {colorMode === 'dark' ? <Sun size={20}/> : <Moon size={20}/>}
                </button>
-               
                <div className="w-px h-6 bg-[var(--border-color)] mx-1 hidden sm:block"></div>
-               
-               {/* زراير القوالب */}
                <button onClick={() => setThemeStyle('default')} title="The Lab Theme" className={`p-2.5 rounded-xl transition-all ${themeStyle==='default' ? 'bg-[var(--brand-main)] text-white shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-input)]'}`}><Activity size={20}/></button>
                <button onClick={() => setThemeStyle('haikyuu')} title="Haikyuu!! Theme" className={`p-2.5 rounded-xl transition-all ${themeStyle==='haikyuu' ? 'bg-[var(--brand-main)] text-white shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-input)]'}`}><Flame size={20}/></button>
                <button onClick={() => setThemeStyle('gravity')} title="Gravity Theme" className={`p-2.5 rounded-xl transition-all ${themeStyle==='gravity' ? 'bg-[var(--brand-main)] text-white shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-input)]'}`}><Wind size={20}/></button>
@@ -304,7 +309,6 @@ export default function JumpCalculator() {
              </form>
           )}
 
-          {/* === إصلاح شكل التابات === */}
           {activePlayer && (
             <div className="flex bg-[var(--bg-surface)] p-2 rounded-2xl border border-[var(--border-light)] overflow-x-auto custom-scrollbar">
               {tabs.map((tab) => {
@@ -328,7 +332,6 @@ export default function JumpCalculator() {
           )}
         </motion.div>
 
-        {/* === محتوى التابات === */}
         <AnimatePresence mode="wait">
           {activePlayer ? (
             <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
@@ -387,13 +390,19 @@ export default function JumpCalculator() {
                     )}
                   </div>
 
+                  {/* === إعدادات الكاميرا والـ Slow-Mo === */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-color)] shadow-inner">
-                    <div><label className="block text-xs text-[var(--text-secondary)] mb-1">FPS الكاميرا</label><input type="number" value={cameraFps} onChange={(e) => setCameraFps(Number(e.target.value))} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 text-[var(--text-primary)] outline-none focus:border-[var(--brand-main)] transition-colors" /></div>
-                    <div><label className="block text-xs text-[var(--text-secondary)] mb-1">الوزن (kg)</label><input type="number" value={bodyMass} onChange={(e) => setBodyMass(Number(e.target.value))} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 text-[var(--text-primary)] outline-none focus:border-[var(--brand-main)] transition-colors" /></div>
-                    <div className="col-span-2 flex gap-3 text-center">
-                      <div className="flex-1"><label className="text-xs text-[var(--text-secondary)]">الإقلاع (ث)</label><p className="text-[var(--brand-text)] font-bold bg-[var(--bg-input)] p-3 rounded-xl border border-[var(--border-color)] mt-1">{takeoffTime.toFixed(3)}</p></div>
-                      <div className="flex-1"><label className="text-xs text-[var(--text-secondary)]">الهبوط (ث)</label><p className="text-purple-400 font-bold bg-[var(--bg-input)] p-3 rounded-xl border border-[var(--border-color)] mt-1">{landingTime.toFixed(3)}</p></div>
+                    <div className="col-span-2">
+                      <label className="block text-xs text-[var(--text-secondary)] mb-1">نوع الفيديو (اختيار سريع)</label>
+                      <select value={videoPreset} onChange={handlePresetChange} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 text-[var(--text-primary)] outline-none focus:border-[var(--brand-main)] transition-colors">
+                        <option value="slow240">Slow-Mo (240 FPS / 8x)</option>
+                        <option value="slow120">Slow-Mo (120 FPS / 4x)</option>
+                        <option value="normal30">عادي (30 FPS)</option>
+                        <option value="normal60">عادي (60 FPS)</option>
+                      </select>
                     </div>
+                    <div><label className="block text-xs text-[var(--text-secondary)] mb-1">FPS الكاميرا</label><input type="number" value={cameraFps} onChange={(e) => setCameraFps(Number(e.target.value))} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 text-[var(--text-primary)] outline-none focus:border-[var(--brand-main)] transition-colors" /></div>
+                    <div><label className="block text-xs text-[var(--text-secondary)] mb-1">FPS الملف</label><input type="number" value={videoFps} onChange={(e) => setVideoFps(Number(e.target.value))} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 text-[var(--text-primary)] outline-none focus:border-[var(--brand-main)] transition-colors" /></div>
                   </div>
 
                   <div className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-color)] mb-6">
@@ -436,7 +445,7 @@ export default function JumpCalculator() {
               {activeTab === 'profile' && <PlayerProfile activePlayer={activePlayer} playerHistory={playerHistory} />}
             </motion.div>
           ) : (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-[var(--bg-panel)] border border-[var(--border-light)] rounded-3xl p-16 text-center text-[var(--text-secondary)] shadow-2xl flex flex-col items-center justify-center transition-colors duration-500">
+            <motion.div key="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="bg-[var(--bg-panel)] border border-[var(--border-light)] rounded-3xl p-16 text-center text-[var(--text-secondary)] shadow-2xl flex flex-col items-center justify-center transition-colors duration-500">
               <ScanEye size={64} className="text-[var(--border-color)] mb-4 opacity-50" />
               <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">مرحباً بك في The Lab 🧪</h2>
               <p className="max-w-md mx-auto leading-relaxed">يرجى اختيار لاعب من القائمة بالأعلى أو تسجيل لاعب جديد لبدء جلسة التحليل والميكانيكا الحيوية.</p>
