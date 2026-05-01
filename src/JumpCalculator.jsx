@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, Moon, Sun, Flame, Wind } from 'lucide-react';
+import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, Moon, Sun, Flame, Wind } from 'lucide-react';
 import { useJumpMechanics } from './useJumpMechanics';
 import { supabase } from './supabaseClient'; 
 import PlayerProfile from './PlayerProfile'; 
@@ -24,7 +24,6 @@ export default function JumpCalculator() {
   const [isEditingPlayer, setIsEditingPlayer] = useState(false);
   const [editPlayerForm, setEditPlayerForm] = useState({ id: '', name: '', birthYear: '', weight: '', leg: '', gender: '' });
 
-  // === إعدادات الفيديو المتطورة ===
   const [videoPreset, setVideoPreset] = useState('slow240');
   const [cameraFps, setCameraFps] = useState(240);
   const [videoFps, setVideoFps] = useState(30);
@@ -56,7 +55,7 @@ export default function JumpCalculator() {
   useEffect(() => { fetchPlayers(); }, []);
 
   const fetchPlayers = async () => {
-    const { data, error } = await supabase.from('players').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('lab_players').select('*').order('created_at', { ascending: false });
     if (!error && data) setPlayers(data);
   };
 
@@ -64,7 +63,8 @@ export default function JumpCalculator() {
 
   const handlePlayerSelect = async (e) => {
     const id = e.target.value;
-    setSelectedPlayerId(id); setShowResults(false); setIsEditingPlayer(false); 
+    setSelectedPlayerId(id); 
+    setShowResults(false); setIsEditingPlayer(false); setTakeoffTime(0); setLandingTime(0); setVideoSrc(null); setAiEnabled(false);
     if (id) {
       const player = players.find(p => p.id === id);
       setActivePlayer(player); setBodyMass(player.weight_kg); setLegLength(player.leg_length_m); fetchPlayerHistory(id);
@@ -72,7 +72,7 @@ export default function JumpCalculator() {
   };
 
   const fetchPlayerHistory = async (id) => {
-    const { data, error } = await supabase.from('jump_measurements').select('*').eq('player_id', id).order('created_at', { ascending: true });
+    const { data, error } = await supabase.from('lab_jump_measurements').select('*').eq('player_id', id).order('created_at', { ascending: true });
     if (!error && data) setPlayerHistory(data);
   };
 
@@ -81,18 +81,19 @@ export default function JumpCalculator() {
     const weight = parseFloat(newPlayer.weight) || 0; const legLen = parseFloat(newPlayer.leg) || 0;
     if (weight <= 0 || legLen <= 0) return alert("برجاء إدخال الوزن وطول الرجل بشكل صحيح.");
     const formattedDate = `${newPlayer.birthYear}-01-01`;
-    const { data, error } = await supabase.from('players').insert([{ full_name: newPlayer.name, date_of_birth: formattedDate, weight_kg: weight, leg_length_m: legLen, gender: newPlayer.gender }]).select();
+    const { data, error } = await supabase.from('lab_players').insert([{ full_name: newPlayer.name, date_of_birth: formattedDate, weight_kg: weight, leg_length_m: legLen, gender: newPlayer.gender }]).select();
     if (!error && data) {
       setPlayers([data[0], ...players]); setSelectedPlayerId(data[0].id); setActivePlayer(data[0]);
       setBodyMass(data[0].weight_kg); setLegLength(data[0].leg_length_m);
+      setPlayerHistory([]); setShowResults(false); setTakeoffTime(0); setLandingTime(0); setVideoSrc(null); setAiEnabled(false);
       setShowNewPlayerForm(false); setNewPlayer({ name: '', birthYear: '', weight: '', leg: '', gender: 'male' });
-    }
+    } else if (error) { alert("خطأ في تسجيل اللاعب: " + error.message); }
   };
 
   const handleDeletePlayer = async () => {
     if (!activePlayer) return;
     if (window.confirm(`هل أنت متأكد من مسح اللاعب "${activePlayer.full_name}" وكل سجلاته؟`)) {
-      const { error } = await supabase.from('players').delete().eq('id', activePlayer.id);
+      const { error } = await supabase.from('lab_players').delete().eq('id', activePlayer.id);
       if (!error) { setPlayers(players.filter(p => p.id !== activePlayer.id)); setSelectedPlayerId(''); setActivePlayer(null); setPlayerHistory([]); setActiveTab('calculator'); }
     }
   };
@@ -107,14 +108,13 @@ export default function JumpCalculator() {
     const weight = parseFloat(editPlayerForm.weight) || 0; const legLen = parseFloat(editPlayerForm.leg) || 0;
     if (weight <= 0 || legLen <= 0) return alert("برجاء إدخال الأرقام بشكل صحيح.");
     const formattedDate = `${editPlayerForm.birthYear}-01-01`;
-    const { data, error } = await supabase.from('players').update({ full_name: editPlayerForm.name, date_of_birth: formattedDate, weight_kg: weight, leg_length_m: legLen, gender: editPlayerForm.gender }).eq('id', editPlayerForm.id).select();
+    const { data, error } = await supabase.from('lab_players').update({ full_name: editPlayerForm.name, date_of_birth: formattedDate, weight_kg: weight, leg_length_m: legLen, gender: editPlayerForm.gender }).eq('id', editPlayerForm.id).select();
     if (!error && data) {
       const updatedPlayer = data[0];
       setPlayers(players.map(p => p.id === updatedPlayer.id ? updatedPlayer : p)); setActivePlayer(updatedPlayer); setBodyMass(updatedPlayer.weight_kg); setLegLength(updatedPlayer.leg_length_m); setIsEditingPlayer(false);
     }
   };
 
-  // وظيفة تغيير إعدادات الفيديو السريعة
   const handlePresetChange = (e) => {
     const val = e.target.value;
     setVideoPreset(val);
@@ -130,7 +130,20 @@ export default function JumpCalculator() {
   const handleTimeUpdate = () => { if (videoRef.current) setCurrentTime(videoRef.current.currentTime); };
   const handleLoadedMetadata = () => { if (videoRef.current) setDuration(videoRef.current.duration); };
   const handleSeek = async (e) => { const time = Number(e.target.value); if (videoRef.current) { videoRef.current.currentTime = time; setCurrentTime(time); if (aiEnabled && poseRef.current) await poseRef.current.send({ image: videoRef.current }); } };
-  const stepFrames = async (frames) => { if (videoRef.current && duration > 0) { videoRef.current.pause(); setIsPlaying(false); const timeStep = frames / (videoFps || 30); let newTime = videoRef.current.currentTime + timeStep; newTime = Math.max(0, Math.min(newTime, duration)); videoRef.current.currentTime = newTime; setCurrentTime(newTime); if (aiEnabled && poseRef.current) await poseRef.current.send({ image: videoRef.current }); } };
+  
+  // === دالة التحكم في الإطارات (تم تحديثها لدعم القفزات الكبيرة) ===
+  const stepFrames = async (frames) => { 
+    if (videoRef.current && duration > 0) { 
+      videoRef.current.pause(); 
+      setIsPlaying(false); 
+      const timeStep = frames / (videoFps || 30); 
+      let newTime = videoRef.current.currentTime + timeStep; 
+      newTime = Math.max(0, Math.min(newTime, duration)); 
+      videoRef.current.currentTime = newTime; 
+      setCurrentTime(newTime); 
+      if (aiEnabled && poseRef.current) await poseRef.current.send({ image: videoRef.current }); 
+    } 
+  };
 
   useEffect(() => {
     if (!aiEnabled) return;
@@ -157,15 +170,14 @@ export default function JumpCalculator() {
         drawLandmarks(canvasCtx, results.poseLandmarks, { color: '#ffffff', lineWidth: 1 });
         
         const lm = results.poseLandmarks;
-        // الاعتماد الأكبر على مشط القدم (Toes 31, 32)
         const feetYPoints = [
-          lm[27]?.y || 0, lm[28]?.y || 0, // كاحل
-          lm[29]?.y || 0, lm[30]?.y || 0, // كعب
-          lm[31]?.y || 0, lm[32]?.y || 0  // مشط القدم (الأهم)
+          lm[27]?.y || 0, lm[28]?.y || 0, // Ankle
+          lm[29]?.y || 0, lm[30]?.y || 0, // Heel
+          lm[31]?.y || 0, lm[32]?.y || 0  // Toe (الأهم في تحديد الإقلاع)
         ].filter(y => y > 0);
 
         if (feetYPoints.length > 0) {
-          const lowestY = Math.max(...feetYPoints); // أسفل نقطة لامسة للأرض
+          const lowestY = Math.max(...feetYPoints); 
           flightDataRef.current.push({ time: videoRef.current.currentTime, y: lowestY });
         }
       }
@@ -179,38 +191,52 @@ export default function JumpCalculator() {
     return () => { cancelAnimationFrame(reqRef.current); pose.close(); };
   }, [scriptsLoaded, aiEnabled]);
 
+  // === الذكاء الاصطناعي القناص (تم التحديث لدقة متناهية) ===
   const autoDetectJump = () => {
     const data = flightDataRef.current;
     if (data.length < 15) return alert("يرجى تشغيل الفيديو بالكامل أثناء تفعيل الذكاء الاصطناعي لجمع بيانات القفزة.");
     
+    // 1. تنعيم الداتا (إزالة أي أخطاء من الكاميرا)
     let smoothedData = [];
     for(let i=0; i<data.length; i++) {
       let start = Math.max(0, i-2); let end = Math.min(data.length, i+3); let window = data.slice(start, end);
       let avgY = window.reduce((sum, d) => sum + d.y, 0) / window.length; smoothedData.push({ time: data[i].time, y: avgY });
     }
 
+    // 2. إيجاد مستوى الأرض (أول ما اللاعب كان واقف بثبات)
+    // هناخد أعلى قيم Y (لأن Y في الكانفاس بتبدأ من فوق لتحت، فالأرض هي أكبر رقم)
     const sortedY = [...smoothedData].sort((a, b) => b.y - a.y);
-    const groundY = sortedY.slice(0, Math.max(5, Math.floor(sortedY.length * 0.02))).reduce((a,b)=>a+b.y, 0) / Math.max(5, Math.floor(sortedY.length * 0.02));
+    const groundY = sortedY.slice(0, Math.max(5, Math.floor(sortedY.length * 0.05))).reduce((a,b)=>a+b.y, 0) / Math.max(5, Math.floor(sortedY.length * 0.05));
     
+    // 3. إيجاد القمة (أعلى قفزة = أقل رقم Y)
     let peakIndex = 0; let peakY = smoothedData[0].y;
     for(let i=1; i<smoothedData.length; i++) { if (smoothedData[i].y < peakY) { peakY = smoothedData[i].y; peakIndex = i; } }
 
-    const jumpHeightPixels = groundY - peakY;
-    if (jumpHeightPixels < 0.05) return alert("القفزة غير واضحة أو صغيرة جداً للاكتشاف التلقائي.");
+    // 4. حساسية الإقلاع: 1.2% فقط من ارتفاع الشاشة أعلى من الأرض (عشان يلقط مشط الرجل بالمللي)
+    const flightThreshold = groundY - 0.012; 
 
-    // حد الإقلاع بقى دقيق جداً (3% بس من الارتفاع عشان يلقط مشط القدم)
-    const flightThreshold = groundY - (jumpHeightPixels * 0.03); 
-
-    let tStart = 0; for (let i = peakIndex; i >= 0; i--) { if (smoothedData[i].y >= flightThreshold) { tStart = smoothedData[i].time; break; } }
-    let tEnd = 0; for (let i = peakIndex; i < smoothedData.length; i++) { if (smoothedData[i].y >= flightThreshold) { tEnd = smoothedData[i].time; break; } }
+    // 5. تتبع عكسي من القمة للوصول للحظة الإقلاع بالظبط
+    let tStart = 0; 
+    for (let i = peakIndex; i >= 0; i--) { 
+      if (smoothedData[i].y >= flightThreshold) { tStart = smoothedData[i].time; break; } 
+    }
     
+    // 6. تتبع للأمام من القمة للوصول للحظة الهبوط بالظبط
+    let tEnd = 0; 
+    for (let i = peakIndex; i < smoothedData.length; i++) { 
+      if (smoothedData[i].y >= flightThreshold) { tEnd = smoothedData[i].time; break; } 
+    }
+    
+    // التحقق إنها قفزة حقيقية مش هزة كاميرا
     const camFps = parseFloat(cameraFps) || 240; const vidFps = parseFloat(videoFps) || 30;
-    const timeScaleRatio = vidFps / camFps; const minFlightTimeVideo = 0.15 * timeScaleRatio; 
+    const timeScaleRatio = vidFps / camFps; const minFlightTimeVideo = 0.10 * timeScaleRatio; 
 
     if (tStart > 0 && tEnd > 0 && (tEnd - tStart) > minFlightTimeVideo) { 
       setTakeoffTime(tStart); setLandingTime(tEnd); setShowResults(false); videoRef.current.currentTime = tStart; setCurrentTime(tStart); 
-      alert("✅ الذكاء الاصطناعي: تم التحديد بدقة (حتى مع الـ Slow-mo)!");
-    } else { alert("لم يتم التعرف على قفزة واضحة."); }
+      alert("✅ الذكاء الاصطناعي: تم التقاط لحظة الإقلاع والهبوط بدقة متناهية!");
+    } else { 
+      alert("⚠️ لم يتمكن الذكاء الاصطناعي من تحديد القفزة بدقة. تأكد من ثبات الكاميرا وظهور القدمين بشكل كامل."); 
+    }
   };
 
   const handleAnalyze = () => { if (takeoffTime === 0 || landingTime === 0) return alert("حدد الإقلاع والهبوط أولاً."); setShowResults(true); };
@@ -219,7 +245,7 @@ export default function JumpCalculator() {
     if (!selectedPlayerId) return; setIsSaving(true);
     const mass = parseFloat(bodyMass); const g = 9.81; const h_push = parseFloat(legLength) * 0.45; const heightCm = parseFloat(stats?.heightCm || 0);
     const meanForce = mass * g * ((heightCm / 100) / h_push + 1); const peakPower = parseFloat(stats?.meanPower || 0) * 2.1;
-    const { data, error } = await supabase.from('jump_measurements').insert([ { player_id: selectedPlayerId, test_type: 'standard', jump_height_cm: stats.heightCm, flight_time_sec: stats.flightTime, takeoff_velocity_ms: stats.takeoffVelocity, mean_power_watts: stats.meanPower, peak_power_watts: peakPower.toFixed(2), mean_force_newtons: meanForce.toFixed(2), leg_used: legUsed } ]).select();
+    const { data, error } = await supabase.from('lab_jump_measurements').insert([ { player_id: selectedPlayerId, test_type: 'standard', jump_height_cm: stats.heightCm, flight_time_sec: stats.flightTime, takeoff_velocity_ms: stats.takeoffVelocity, mean_power_watts: stats.meanPower, peak_power_watts: peakPower.toFixed(2), mean_force_newtons: meanForce.toFixed(2), leg_used: legUsed } ]).select();
     if (!error && data) { setPlayerHistory([...playerHistory, data[0]]); setShowResults(false); }
     setIsSaving(false);
   };
@@ -351,37 +377,45 @@ export default function JumpCalculator() {
                         </label>
                       </div>
                     ) : (
+                      // === تم توسيع شاشة الفيديو وأدوات التحكم (max-w-2xl بدلاً من max-w-lg) ===
                       <div className="flex flex-col items-center w-full relative">
                         <button onClick={clearVideo} className="absolute top-2 right-2 bg-red-600 hover:bg-red-500 p-2.5 rounded-full text-white z-20 shadow-lg transition-transform hover:scale-110"><X size={18}/></button>
                         
-                        <div className="w-full max-w-lg mb-4 flex justify-between items-center bg-[var(--bg-input)] p-3 rounded-2xl border border-[var(--border-color)]">
+                        <div className="w-full max-w-2xl mb-4 flex justify-between items-center bg-[var(--bg-input)] p-3 rounded-2xl border border-[var(--border-color)]">
                            <span className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2"><ScanEye size={18} className="text-emerald-500"/> التتبع التلقائي</span>
                            <button onClick={() => setAiEnabled(!aiEnabled)} className={`px-5 py-2 rounded-xl font-bold text-sm transition-all ${aiEnabled ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'bg-[var(--bg-surface)] text-[var(--text-secondary)]'}`}>
                              {aiEnabled ? 'مفعل' : 'تفعيل الذكاء الاصطناعي'}
                            </button>
                         </div>
 
-                        <div className="relative inline-block border-4 border-[var(--border-light)] rounded-2xl overflow-hidden mb-5 shadow-2xl w-full max-w-lg bg-black">
-                          <video ref={videoRef} src={videoSrc} playsInline className="w-full h-auto" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)} />
+                        <div className="relative inline-block border-4 border-[var(--border-light)] rounded-2xl overflow-hidden mb-5 shadow-2xl w-full max-w-2xl bg-black">
+                          <video ref={videoRef} src={videoSrc} playsInline className="w-full h-auto max-h-[60vh] object-contain mx-auto" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)} />
                           {aiEnabled && <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none" />}
                         </div>
                         
-                        <div className="w-full max-w-lg bg-[var(--bg-surface)] p-5 rounded-3xl border border-[var(--border-color)] mb-5 shadow-xl">
+                        {/* === شريط التحكم المُحدث (أعرض، ويحتوي على +10 و -10) === */}
+                        <div className="w-full max-w-2xl bg-[var(--bg-surface)] p-5 rounded-3xl border border-[var(--border-color)] mb-5 shadow-xl">
                           <div className="flex items-center gap-4 mb-5">
-                            <span className="text-xs text-[var(--brand-text)] font-mono bg-[var(--bg-input)] px-3 py-1.5 rounded-lg border border-[var(--border-color)]">{currentTime.toFixed(2)}s</span>
-                            <input type="range" min="0" max={duration || 0} step="0.001" value={currentTime} onChange={handleSeek} className="w-full h-2 bg-[var(--border-color)] rounded-full appearance-none cursor-pointer accent-[var(--brand-main)]" />
-                            <span className="text-xs text-[var(--text-secondary)] font-mono bg-[var(--bg-input)] px-3 py-1.5 rounded-lg">{duration.toFixed(2)}s</span>
+                            <span className="text-xs text-[var(--brand-text)] font-mono bg-[var(--bg-input)] px-3 py-1.5 rounded-lg border border-[var(--border-color)] w-16 text-center">{currentTime.toFixed(2)}s</span>
+                            <input type="range" min="0" max={duration || 0} step="0.001" value={currentTime} onChange={handleSeek} className="w-full h-3 bg-[var(--border-color)] rounded-full appearance-none cursor-pointer accent-[var(--brand-main)]" />
+                            <span className="text-xs text-[var(--text-secondary)] font-mono bg-[var(--bg-input)] px-3 py-1.5 rounded-lg w-16 text-center">{duration.toFixed(2)}s</span>
                           </div>
-                          <div className="flex justify-center items-center gap-3">
-                            <button onClick={() => stepFrames(-1)} className="p-3 bg-[var(--bg-input)] hover:bg-[var(--border-color)] rounded-xl text-[var(--text-primary)] transition-colors"><ChevronRight size={20}/></button>
-                            <button onClick={togglePlay} className="px-10 py-3.5 bg-[var(--brand-main)] hover:bg-[var(--brand-hover)] rounded-2xl text-white font-bold shadow-lg flex items-center gap-2 transition-transform hover:scale-105">
+                          <div className="flex justify-center items-center gap-2 sm:gap-4">
+                            {/* في العربي (RTL)، اليمين يعني العودة للخلف في الزمن */}
+                            <button onClick={() => stepFrames(-10)} title="العودة 10 إطارات" className="p-3 bg-[var(--bg-input)] hover:bg-[var(--border-color)] rounded-xl text-[var(--text-primary)] transition-colors hidden sm:block"><ChevronsRight size={20}/></button>
+                            <button onClick={() => stepFrames(-1)} title="العودة إطار واحد" className="p-3 bg-[var(--bg-input)] hover:bg-[var(--border-color)] rounded-xl text-[var(--text-primary)] transition-colors"><ChevronRight size={20}/></button>
+                            
+                            <button onClick={togglePlay} className="px-10 py-3.5 bg-[var(--brand-main)] hover:bg-[var(--brand-hover)] rounded-2xl text-white font-bold shadow-lg flex items-center gap-2 transition-transform hover:scale-105 mx-2">
                               {isPlaying ? <Pause size={20}/> : <Play size={20}/>}
                             </button>
-                            <button onClick={() => stepFrames(1)} className="p-3 bg-[var(--bg-input)] hover:bg-[var(--border-color)] rounded-xl text-[var(--text-primary)] transition-colors"><ChevronLeft size={20}/></button>
+                            
+                            {/* في العربي (RTL)، اليسار يعني التقدم للأمام في الزمن */}
+                            <button onClick={() => stepFrames(1)} title="التقدم إطار واحد" className="p-3 bg-[var(--bg-input)] hover:bg-[var(--border-color)] rounded-xl text-[var(--text-primary)] transition-colors"><ChevronLeft size={20}/></button>
+                            <button onClick={() => stepFrames(10)} title="التقدم 10 إطارات" className="p-3 bg-[var(--bg-input)] hover:bg-[var(--border-color)] rounded-xl text-[var(--text-primary)] transition-colors hidden sm:block"><ChevronsLeft size={20}/></button>
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-3 w-full max-w-lg justify-center">
+                        <div className="flex flex-wrap gap-3 w-full max-w-2xl justify-center">
                           <button onClick={() => { setTakeoffTime(currentTime); setShowResults(false); }} className="flex-1 py-3 bg-[var(--bg-input)] hover:bg-[var(--brand-main)] text-[var(--text-primary)] hover:text-white border border-[var(--border-color)] rounded-2xl font-bold transition-all">تحديد كإقلاع</button>
                           <button onClick={() => { setLandingTime(currentTime); setShowResults(false); }} className="flex-1 py-3 bg-[var(--bg-input)] hover:bg-[var(--brand-main)] text-[var(--text-primary)] hover:text-white border border-[var(--border-color)] rounded-2xl font-bold transition-all">تحديد كهبوط</button>
                           {aiEnabled && ( <button onClick={autoDetectJump} className="w-full mt-2 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black shadow-lg transition-transform hover:scale-105">⚡ حساب أوتوماتيكي بالذكاء الاصطناعي</button> )}
