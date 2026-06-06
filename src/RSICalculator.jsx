@@ -75,8 +75,14 @@ export default function RSICalculator({
     const track = timelineTrackRef.current;
     if (!track || !duration) return;
 
+    if (videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    }
+
     const rect = track.getBoundingClientRect();
     const rtl = document.documentElement.dir === 'rtl' || window.getComputedStyle(track).direction === 'rtl';
+    let latestTime = currentTime;
 
     const handlePointerMove = (moveEvent) => {
       let clientX = moveEvent.clientX;
@@ -89,24 +95,33 @@ export default function RSICalculator({
       const pct = rtl ? (rect.right - clientX) / rect.width : (clientX - rect.left) / rect.width;
       const clampedPct = Math.max(0, Math.min(1, pct));
       const targetTime = clampedPct * duration;
+      latestTime = targetTime;
 
       if (type === 'touchdown') {
         setTouchdownTime(targetTime);
-        if (videoRef.current) videoRef.current.currentTime = targetTime;
+        if (videoRef.current && !videoRef.current.seeking) {
+          videoRef.current.currentTime = targetTime;
+        }
         setCurrentTime(targetTime);
         setShowResults(false);
       } else if (type === 'takeoff') {
         setTakeoffTime(targetTime);
-        if (videoRef.current) videoRef.current.currentTime = targetTime;
+        if (videoRef.current && !videoRef.current.seeking) {
+          videoRef.current.currentTime = targetTime;
+        }
         setCurrentTime(targetTime);
         setShowResults(false);
       } else if (type === 'landing') {
         setLandingTime(targetTime);
-        if (videoRef.current) videoRef.current.currentTime = targetTime;
+        if (videoRef.current && !videoRef.current.seeking) {
+          videoRef.current.currentTime = targetTime;
+        }
         setCurrentTime(targetTime);
         setShowResults(false);
       } else if (type === 'playhead') {
-        if (videoRef.current) videoRef.current.currentTime = targetTime;
+        if (videoRef.current && !videoRef.current.seeking) {
+          videoRef.current.currentTime = targetTime;
+        }
         setCurrentTime(targetTime);
       }
     };
@@ -116,6 +131,10 @@ export default function RSICalculator({
       window.removeEventListener('pointerup', handlePointerUp);
       window.removeEventListener('touchmove', handlePointerMove);
       window.removeEventListener('touchend', handlePointerUp);
+
+      if (videoRef.current) {
+        videoRef.current.currentTime = latestTime;
+      }
     };
 
     window.addEventListener('pointermove', handlePointerMove);
@@ -367,12 +386,16 @@ export default function RSICalculator({
 
   const stepFrames = (frames) => {
     if (videoRef.current && duration > 0) {
-      videoRef.current.pause();
+      const video = videoRef.current;
+      video.pause();
       setIsPlaying(false);
       const timeStep = frames / videoFps;
-      let newTime = videoRef.current.currentTime + timeStep;
+      let newTime = video.currentTime + timeStep;
       newTime = Math.max(0, Math.min(newTime, duration));
-      videoRef.current.currentTime = newTime;
+      setTimeout(() => {
+        video.currentTime = newTime;
+        setCurrentTime(newTime);
+      }, 0);
     }
   };
 
@@ -448,6 +471,8 @@ export default function RSICalculator({
                 ref={videoRef}
                 src={videoSrc}
                 playsInline
+                muted
+                preload="auto"
                 className="max-h-80 w-auto object-contain"
                 onLoadedMetadata={() => setDuration(videoRef.current.duration)}
                 onTimeUpdate={handleTimeUpdate}

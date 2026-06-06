@@ -96,8 +96,14 @@ export default function JumpCalculator() {
     const track = timelineTrackRef.current;
     if (!track || !duration) return;
 
+    if (videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    }
+
     const rect = track.getBoundingClientRect();
     const rtl = document.documentElement.dir === 'rtl' || window.getComputedStyle(track).direction === 'rtl';
+    let latestTime = currentTime;
 
     const handlePointerMove = (moveEvent) => {
       let clientX = moveEvent.clientX;
@@ -110,24 +116,33 @@ export default function JumpCalculator() {
       const pct = rtl ? (rect.right - clientX) / rect.width : (clientX - rect.left) / rect.width;
       const clampedPct = Math.max(0, Math.min(1, pct));
       const targetTime = clampedPct * duration;
+      latestTime = targetTime;
 
       if (type === 'takeoff') {
         setTakeoffTime(targetTime);
-        if (videoRef.current) videoRef.current.currentTime = targetTime;
+        if (videoRef.current && !videoRef.current.seeking) {
+          videoRef.current.currentTime = targetTime;
+        }
         setCurrentTime(targetTime);
         setShowResults(false);
       } else if (type === 'landing') {
         setLandingTime(targetTime);
-        if (videoRef.current) videoRef.current.currentTime = targetTime;
+        if (videoRef.current && !videoRef.current.seeking) {
+          videoRef.current.currentTime = targetTime;
+        }
         setCurrentTime(targetTime);
         setShowResults(false);
       } else if (type === 'touchdown') {
         setBoxTouchdownTime(targetTime);
-        if (videoRef.current) videoRef.current.currentTime = targetTime;
+        if (videoRef.current && !videoRef.current.seeking) {
+          videoRef.current.currentTime = targetTime;
+        }
         setCurrentTime(targetTime);
         setShowResults(false);
       } else if (type === 'playhead') {
-        if (videoRef.current) videoRef.current.currentTime = targetTime;
+        if (videoRef.current && !videoRef.current.seeking) {
+          videoRef.current.currentTime = targetTime;
+        }
         setCurrentTime(targetTime);
       }
     };
@@ -137,6 +152,10 @@ export default function JumpCalculator() {
       window.removeEventListener('pointerup', handlePointerUp);
       window.removeEventListener('touchmove', handlePointerMove);
       window.removeEventListener('touchend', handlePointerUp);
+
+      if (videoRef.current) {
+        videoRef.current.currentTime = latestTime;
+      }
     };
 
     window.addEventListener('pointermove', handlePointerMove);
@@ -471,14 +490,26 @@ export default function JumpCalculator() {
   
   const stepFrames = async (frames) => { 
     if (videoRef.current && duration > 0) { 
-      videoRef.current.pause(); 
+      const video = videoRef.current;
+      video.pause(); 
       setIsPlaying(false); 
+      
       const timeStep = frames / (videoFps || 30); 
-      let newTime = videoRef.current.currentTime + timeStep; 
+      let newTime = video.currentTime + timeStep; 
       newTime = Math.max(0, Math.min(newTime, duration)); 
-      videoRef.current.currentTime = newTime; 
-      setCurrentTime(newTime); 
-      if (aiEnabled && poseRef.current) await poseRef.current.send({ image: videoRef.current }); 
+      
+      setTimeout(() => {
+        video.currentTime = newTime; 
+        setCurrentTime(newTime); 
+      }, 0);
+      
+      if (aiEnabled && poseRef.current) {
+        const onSeeked = async () => {
+          video.removeEventListener('seeked', onSeeked);
+          await poseRef.current.send({ image: video });
+        };
+        video.addEventListener('seeked', onSeeked);
+      }
     } 
   };
 
@@ -1208,7 +1239,7 @@ export default function JumpCalculator() {
                             <button onClick={clearVideo} className="absolute top-2 right-2 bg-red-600 hover:bg-red-500 p-2 rounded-full text-white z-20 shadow-lg transition-transform hover:scale-110"><X size={16}/></button>
                             
                             <div className="relative inline-block border border-[var(--border-light)] rounded-2xl overflow-hidden mb-5 shadow-2xl w-full bg-black">
-                              <video ref={videoRef} src={videoSrc} playsInline className="w-full h-auto max-h-[48vh] object-contain mx-auto" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)} />
+                              <video ref={videoRef} src={videoSrc} playsInline muted preload="auto" className="w-full h-auto max-h-[48vh] object-contain mx-auto" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)} />
                               <canvas 
                                 ref={canvasRef} 
                                 onClick={handleCanvasClick} 
