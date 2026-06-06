@@ -54,6 +54,8 @@ export default function RSICalculator({
   const [timeCalculationMethod, setTimeCalculationMethod] = useState('fps');
   const [manualFrameDuration, setManualFrameDuration] = useState(0.033);
   const [isFrameDurationManual, setIsFrameDurationManual] = useState(false);
+  const [isFpsAutoDetected, setIsFpsAutoDetected] = useState(false);
+  const [aiDetectedFrameDuration, setAiDetectedFrameDuration] = useState(null);
 
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -228,9 +230,100 @@ export default function RSICalculator({
     setIsSaving(false);
   };
 
+  const detectVideoFps = (videoEl) => {
+    if (!videoEl || !videoEl.duration) return;
+    
+    // Use requestVideoFrameCallback with longer sampling and outlier removal
+    if (videoEl.requestVideoFrameCallback) {
+      let frameCount = 0;
+      let startTime = null;
+      let lastMediaTime = null;
+      const frameDiffs = [];
+      
+      const callback = (now, metadata) => {
+        if (startTime === null) {
+          startTime = now;
+          lastMediaTime = metadata.mediaTime;
+          frameCount++;
+          videoEl.requestVideoFrameCallback(callback);
+          return;
+        }
+        
+        if (lastMediaTime !== null && metadata.mediaTime > lastMediaTime) {
+          frameDiffs.push(metadata.mediaTime - lastMediaTime);
+        }
+        lastMediaTime = metadata.mediaTime;
+        frameCount++;
+        
+        // Collect at least 15 frame diffs over at least 300ms, timeout at 2s
+        if (frameDiffs.length < 15 && (now - startTime) < 2000) {
+          videoEl.requestVideoFrameCallback(callback);
+        } else {
+          videoEl.pause();
+          if (frameDiffs.length >= 5) {
+            // Remove outliers (top/bottom 20%)
+            const sorted = [...frameDiffs].sort((a, b) => a - b);
+            const trimCount = Math.floor(sorted.length * 0.2);
+            const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
+            const avgDiff = trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
+            
+            if (avgDiff > 0) {
+              const rawFps = 1 / avgDiff;
+              // Snap to common rates with 15% tolerance
+              const commonRates = [24, 25, 30, 50, 60, 120, 240];
+              let bestMatch = commonRates.reduce((prev, curr) => 
+                Math.abs(curr - rawFps) < Math.abs(prev - rawFps) ? curr : prev
+              );
+              const tolerance = bestMatch * 0.15;
+              if (Math.abs(bestMatch - rawFps) <= tolerance) {
+                setVideoFps(bestMatch);
+                setCameraFps(bestMatch);
+              } else {
+                setVideoFps(Math.round(rawFps));
+                setCameraFps(Math.round(rawFps));
+              }
+              setIsFpsAutoDetected(true);
+              setAiDetectedFrameDuration(parseFloat(avgDiff.toFixed(6)));
+            }
+          } else {
+            // Fallback: assume 30fps
+            setVideoFps(30);
+            setCameraFps(30);
+            setIsFpsAutoDetected(false);
+          }
+        }
+      };
+      
+      // Seek past potential black frames before sampling
+      videoEl.currentTime = 0.5;
+      setTimeout(() => {
+        videoEl.requestVideoFrameCallback(callback);
+        videoEl.play().catch(() => {
+          setVideoFps(30); setCameraFps(30); setIsFpsAutoDetected(false);
+        });
+      }, 200);
+    } else {
+      setVideoFps(30); setCameraFps(30); setIsFpsAutoDetected(false);
+    }
+  };
+
+  // Automated FPS Detection once video file loads
+  useEffect(() => {
+    if (videoSrc && videoRef.current) {
+      setIsFpsAutoDetected(false);
+      const timer = setTimeout(() => {
+        detectVideoFps(videoRef.current);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [videoSrc]);
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
-    if (file) setVideoSrc(URL.createObjectURL(file));
+    if (file) {
+      setVideoSrc(URL.createObjectURL(file));
+      setAiDetectedFrameDuration(null);
+    }
   };
 
   const clearVideo = () => {
@@ -241,6 +334,7 @@ export default function RSICalculator({
     setCurrentTime(0);
     setIsPlaying(false);
     setShowResults(false);
+    setAiDetectedFrameDuration(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
@@ -562,32 +656,77 @@ export default function RSICalculator({
 
         {/* Time Calculation Method & Custom Frame Duration */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-[var(--border-light)] pt-4 text-right" style={{ direction: 'rtl' }}>
-          <div>
-            <label className="block text-[10px] text-gray-400 mb-1">طريقة حساب الوقت (Time Calculation)</label>
-            <div className="grid grid-cols-2 gap-2 p-1 bg-black/30 rounded-xl border border-[var(--border-light)]">
-              {[
-                { id: 'fps', name: '⏱️ تلقائي من FPS' },
-                { id: 'manual', name: '✏️ زمن إطار مخصص' }
-              ].map(method => (
-                <button
-                  key={method.id}
-                  type="button"
-                  onClick={() => {
-                    setTimeCalculationMethod(method.id);
-                    if (method.id === 'fps') {
-                      setIsFrameDurationManual(false);
-                    }
-                  }}
-                  className={`py-1.5 px-1 text-[10px] font-bold rounded-lg transition-all ${timeCalculationMethod === method.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
-                >
-                  {method.name}
-                </button>
-              ))}
+          <div className="space-y-3">
+            <div>
+              <label className="block text-[10px] text-gray-400 mb-1">طريقة حساب الوقت (Time Calculation)</label>
+              <div className="grid grid-cols-2 gap-2 p-1 bg-black/30 rounded-xl border border-[var(--border-light)]">
+                {[
+                  { id: 'fps', name: '⏱️ تلقائي من FPS' },
+                  { id: 'manual', name: '✏️ زمن إطار مخصص' }
+                ].map(method => (
+                  <button
+                    key={method.id}
+                    type="button"
+                    onClick={() => {
+                      setTimeCalculationMethod(method.id);
+                      if (method.id === 'fps') {
+                        setIsFrameDurationManual(false);
+                      }
+                    }}
+                    className={`py-1.5 px-1 text-[10px] font-bold rounded-lg transition-all ${timeCalculationMethod === method.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
+                  >
+                    {method.name}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* AI Frame Duration Advisor in RSI */}
+            {aiDetectedFrameDuration && (
+              <div className="bg-emerald-950/15 border border-emerald-500/25 p-3 rounded-xl flex flex-col gap-1.5 text-right animate-fade-in">
+                <div className="flex items-center gap-1.5 text-emerald-400 justify-between">
+                  <div className="flex items-center gap-1.5 flex-row-reverse">
+                    <Sparkles size={14} className="animate-pulse" />
+                    <span className="text-[10px] font-extrabold">مستشار الإطارات الذكي (AI Analyzer)</span>
+                  </div>
+                  <span className="text-[8px] bg-emerald-500/20 text-emerald-400 px-1 rounded font-bold">نشط</span>
+                </div>
+                <div className="text-[9px] text-gray-400 leading-normal">
+                  تم قياس الفارق الفعلي بين الإطارات للفيديو تلقائياً بالذكاء الاصطناعي:
+                  <span className="text-white font-mono font-bold block mt-1 text-center bg-black/40 py-1 rounded border border-emerald-500/10">
+                    {aiDetectedFrameDuration} ثانية ({ (1 / aiDetectedFrameDuration).toFixed(2) } إطار/ثانية)
+                  </span>
+                </div>
+                {timeCalculationMethod !== 'manual' ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTimeCalculationMethod('manual');
+                      setManualFrameDuration(aiDetectedFrameDuration);
+                      setIsFrameDurationManual(true);
+                    }}
+                    className="w-full mt-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/35 py-1 px-2 rounded-xl text-[9px] font-bold transition-all"
+                  >
+                    ⚡ استخدام زمن الإطار الذكي وتعديله يدوياً
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setManualFrameDuration(aiDetectedFrameDuration);
+                      setIsFrameDurationManual(true);
+                    }}
+                    className="w-full mt-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/35 py-1 px-2 rounded-xl text-[9px] font-bold transition-all"
+                  >
+                    ↺ تعيين قيمة الإطار الذكي المقترحة
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           
           {timeCalculationMethod === 'manual' && (
-            <div className="bg-cyan-950/10 border border-cyan-500/20 p-3 rounded-xl animate-fade-in space-y-1">
+            <div className="bg-cyan-950/10 border border-cyan-500/20 p-3 rounded-xl animate-fade-in space-y-1 self-start">
               <div className="flex justify-between items-center text-[10px] text-gray-400">
                 <span className="font-bold">زمن الإطار الفعلي (ثانية):</span>
                 <button

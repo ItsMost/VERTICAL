@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, Moon, Sun, Award, Info, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, Moon, Sun, Award, Info, AlertTriangle, ShieldCheck, Sparkles } from 'lucide-react';
 import { useJumpMechanics } from './useJumpMechanics';
 import { supabase } from './supabaseClient'; 
 import PlayerProfile from './PlayerProfile'; 
@@ -63,6 +63,7 @@ export default function JumpCalculator() {
   const [cameraFps, setCameraFps] = useState(240);
   const [videoFps, setVideoFps] = useState(30);
   const [isFpsAutoDetected, setIsFpsAutoDetected] = useState(false);
+  const [aiDetectedFrameDuration, setAiDetectedFrameDuration] = useState(null);
 
   const [takeoffTime, setTakeoffTime] = useState(0);
   const [landingTime, setLandingTime] = useState(0);
@@ -348,6 +349,7 @@ export default function JumpCalculator() {
                 setCameraFps(Math.round(rawFps));
               }
               setIsFpsAutoDetected(true);
+              setAiDetectedFrameDuration(parseFloat(avgDiff.toFixed(6)));
             }
           } else {
             // Fallback: assume 30fps
@@ -459,8 +461,8 @@ export default function JumpCalculator() {
     else if (val === 'normal60') { setCameraFps(60); setVideoFps(60); }
   };
 
-  const handleFileUpload = (e) => { const file = e.target.files[0]; if (file) { setVideoSrc(URL.createObjectURL(file)); setAiEnabled(false); flightDataRef.current = []; } };
-  const clearVideo = () => { setVideoSrc(null); setTakeoffTime(0); setLandingTime(0); setCurrentTime(0); setIsPlaying(false); setShowResults(false); setAiEnabled(false); flightDataRef.current = []; };
+  const handleFileUpload = (e) => { const file = e.target.files[0]; if (file) { setVideoSrc(URL.createObjectURL(file)); setAiEnabled(false); flightDataRef.current = []; setAiDetectedFrameDuration(null); } };
+  const clearVideo = () => { setVideoSrc(null); setTakeoffTime(0); setLandingTime(0); setCurrentTime(0); setIsPlaying(false); setShowResults(false); setAiEnabled(false); flightDataRef.current = []; setAiDetectedFrameDuration(null); };
   const togglePlay = () => { if (videoRef.current) { if (videoRef.current.paused) { videoRef.current.play(); setIsPlaying(true); } else { videoRef.current.pause(); setIsPlaying(false); } } };
   const handleTimeUpdate = () => { if (videoRef.current) setCurrentTime(videoRef.current.currentTime); };
   const handleLoadedMetadata = () => { if (videoRef.current) setDuration(videoRef.current.duration); };
@@ -1537,6 +1539,49 @@ export default function JumpCalculator() {
                                 </p>
                               </div>
                             )}
+
+                            {/* AI Frame Duration Advisor */}
+                            {aiDetectedFrameDuration && (
+                              <div className="bg-emerald-950/15 border border-emerald-500/25 p-3 rounded-2xl animate-fade-in flex flex-col gap-1.5 text-right">
+                                <div className="flex items-center gap-1.5 text-emerald-400 justify-between">
+                                  <div className="flex items-center gap-1.5 flex-row-reverse">
+                                    <Sparkles size={14} className="animate-pulse" />
+                                    <span className="text-[10px] font-extrabold">مستشار الإطارات الذكي (AI Analyzer)</span>
+                                  </div>
+                                  <span className="text-[8px] bg-emerald-500/20 text-emerald-400 px-1 rounded font-bold">نشط</span>
+                                </div>
+                                <div className="text-[9px] text-gray-400 leading-normal">
+                                  تم قياس الفارق الفعلي بين الإطارات للفيديو تلقائياً بالذكاء الاصطناعي:
+                                  <span className="text-white font-mono font-bold block mt-1 text-center bg-black/40 py-1 rounded border border-emerald-500/10">
+                                    {aiDetectedFrameDuration} ثانية ({ (1 / aiDetectedFrameDuration).toFixed(2) } إطار/ثانية)
+                                  </span>
+                                </div>
+                                {timeCalculationMethod !== 'manual' ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setTimeCalculationMethod('manual');
+                                      setManualFrameDuration(aiDetectedFrameDuration);
+                                      setIsFrameDurationManual(true);
+                                    }}
+                                    className="w-full mt-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/35 py-1 px-2 rounded-xl text-[9px] font-bold transition-all"
+                                  >
+                                    ⚡ استخدام زمن الإطار الذكي وتعديله يدوياً
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setManualFrameDuration(aiDetectedFrameDuration);
+                                      setIsFrameDurationManual(true);
+                                    }}
+                                    className="w-full mt-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/35 py-1 px-2 rounded-xl text-[9px] font-bold transition-all"
+                                  >
+                                    ↺ تعيين قيمة الإطار الذكي المقترحة
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
 
                           {/* WhatsApp Compressed Video Warning Tooltip */}
@@ -1656,6 +1701,74 @@ export default function JumpCalculator() {
                                     className={`px-3 py-1 rounded-lg text-[9px] font-bold transition-all border ${Math.abs(legLength - l) < 0.01 ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' : 'bg-[var(--bg-input)] text-gray-400 border-[var(--border-light)] hover:text-white'}`}
                                   >
                                     {l.toFixed(2)} m
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Player Height Control */}
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-gray-400">طول اللاعب (Player Height):</span>
+                                <span className="font-mono font-black text-white bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/30">{playerHeight} cm</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <button type="button" onClick={() => { handleHeightChange(Math.max(130, playerHeight - 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] text-white font-black flex items-center justify-center">-</button>
+                                <input 
+                                  type="range" 
+                                  min="130" 
+                                  max="220" 
+                                  step="1" 
+                                  value={playerHeight} 
+                                  onChange={(e) => { handleHeightChange(Number(e.target.value)); setShowResults(false); }} 
+                                  className="flex-1 h-1.5 bg-[var(--bg-input)] rounded-lg appearance-none cursor-pointer accent-[var(--brand-main)]" 
+                                />
+                                <button type="button" onClick={() => { handleHeightChange(Math.min(220, playerHeight + 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] text-white font-black flex items-center justify-center">+</button>
+                              </div>
+                              {/* Height Quick Presets */}
+                              <div className="flex flex-wrap gap-1.5 justify-center">
+                                {[160, 170, 180, 190, 200].map(h => (
+                                  <button
+                                    key={h}
+                                    type="button"
+                                    onClick={() => { handleHeightChange(h); setShowResults(false); }}
+                                    className={`px-3 py-1 rounded-lg text-[9px] font-bold transition-all border ${playerHeight === h ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' : 'bg-[var(--bg-input)] text-gray-400 border-[var(--border-light)] hover:text-white'}`}
+                                  >
+                                    {h} cm
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Standing Reach Control */}
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-gray-400">الوصول من الثبات (Standing Reach):</span>
+                                <span className="font-mono font-black text-white bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/30">{standingReach} cm</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <button type="button" onClick={() => { handleStandingReachChange(Math.max(150, standingReach - 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] text-white font-black flex items-center justify-center">-</button>
+                                <input 
+                                  type="range" 
+                                  min="150" 
+                                  max="300" 
+                                  step="1" 
+                                  value={standingReach} 
+                                  onChange={(e) => { handleStandingReachChange(Number(e.target.value)); setShowResults(false); }} 
+                                  className="flex-1 h-1.5 bg-[var(--bg-input)] rounded-lg appearance-none cursor-pointer accent-[var(--brand-main)]" 
+                                />
+                                <button type="button" onClick={() => { handleStandingReachChange(Math.min(300, standingReach + 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] text-white font-black flex items-center justify-center">+</button>
+                              </div>
+                              {/* Standing Reach Quick Presets */}
+                              <div className="flex flex-wrap gap-1.5 justify-center">
+                                {[210, 225, 240, 255, 270].map(r => (
+                                  <button
+                                    key={r}
+                                    type="button"
+                                    onClick={() => { handleStandingReachChange(r); setShowResults(false); }}
+                                    className={`px-3 py-1 rounded-lg text-[9px] font-bold transition-all border ${standingReach === r ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' : 'bg-[var(--bg-input)] text-gray-400 border-[var(--border-light)] hover:text-white'}`}
+                                  >
+                                    {r} cm
                                   </button>
                                 ))}
                               </div>
@@ -1916,24 +2029,33 @@ export default function JumpCalculator() {
                                 <span className="block text-[10px] text-cyan-400 font-bold border-b border-cyan-500/25 pb-1 text-right">
                                   📐 أداة مقارنة ارتفاع اللمس (Reach Jump vs. Flight Time)
                                 </span>
-                                <div className="grid grid-cols-2 gap-3 text-right">
+                                <div className="grid grid-cols-3 gap-2 text-right">
                                   <div>
-                                    <label className="block text-[9px] text-gray-400 mb-1">الوصول من الثبات (cm)</label>
+                                    <label className="block text-[8px] text-gray-400 mb-1">طول اللاعب (cm)</label>
+                                    <input
+                                      type="number"
+                                      value={playerHeight || ''}
+                                      onChange={(e) => handleHeightChange(parseFloat(e.target.value) || 0)}
+                                      className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-1.5 px-2 text-xs text-white outline-none font-mono focus:border-[var(--brand-main)]"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[8px] text-gray-400 mb-1">الوصول من الثبات (cm)</label>
                                     <input
                                       type="number"
                                       value={standingReach || ''}
                                       onChange={(e) => handleStandingReachChange(parseFloat(e.target.value) || 0)}
-                                      className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-[var(--brand-main)]"
+                                      className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-1.5 px-2 text-xs text-white outline-none font-mono focus:border-[var(--brand-main)]"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-[9px] text-gray-400 mb-1">أقصى نقطة تلمسها بالقفز (cm)</label>
+                                    <label className="block text-[8px] text-gray-400 mb-1">أقصى لمس بالقفز (cm)</label>
                                     <input
                                       type="number"
                                       value={maxTouchHeight}
                                       onChange={(e) => setMaxTouchHeight(parseFloat(e.target.value) || '')}
                                       placeholder="مثال: 314"
-                                      className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-[var(--brand-main)]"
+                                      className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-1.5 px-2 text-xs text-white outline-none font-mono focus:border-[var(--brand-main)]"
                                     />
                                   </div>
                                 </div>
