@@ -461,8 +461,26 @@ export default function RSICalculator({
                 <span>خط الزمن السينمائي (Filmstrip Timeline)</span>
                 <span className="text-cyan-400">اسحب المؤشرات لتحديد اللحظات بدقة 🚀</span>
               </div>
-              <div className="flex items-center gap-3 relative mb-4">
-                <div className="flex flex-col text-xs text-[var(--brand-text)] font-mono bg-[var(--bg-input)] px-2.5 py-1.5 rounded-xl border border-[var(--border-light)] text-center shrink-0">
+              <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 relative mb-4">
+                {/* Badges row for mobile (hidden on desktop) */}
+                <div className="flex justify-between items-center w-full md:hidden mb-1">
+                  {/* Current Time Badge */}
+                  <div className="flex items-center gap-1.5 bg-[var(--bg-input)] px-2.5 py-1 rounded-xl border border-[var(--border-light)]">
+                    <span className="text-[10px] text-gray-400">الوقت الحالي:</span>
+                    <span className="text-xs text-[var(--brand-text)] font-mono font-bold">{currentTime.toFixed(3)}s</span>
+                    <span className="text-[9px] text-gray-500 font-mono">F {Math.round(currentTime * (videoFps || 30))}</span>
+                  </div>
+                  
+                  {/* Duration Time Badge */}
+                  <div className="flex items-center gap-1.5 bg-[var(--bg-input)] px-2.5 py-1 rounded-xl border border-[var(--border-light)]">
+                    <span className="text-[10px] text-gray-400">الإجمالي:</span>
+                    <span className="text-xs text-gray-300 font-mono font-bold">{duration.toFixed(3)}s</span>
+                    <span className="text-[9px] text-gray-500 font-mono">F {Math.round(duration * (videoFps || 30))}</span>
+                  </div>
+                </div>
+
+                {/* Current Time Badge for Desktop (hidden on mobile) */}
+                <div className="hidden md:flex flex-col text-xs text-[var(--brand-text)] font-mono bg-[var(--bg-input)] px-2.5 py-1.5 rounded-xl border border-[var(--border-light)] text-center shrink-0">
                   <span>{currentTime.toFixed(3)}s</span>
                   <span className="text-[9px] text-gray-500">F {Math.round(currentTime * (videoFps || 30))}</span>
                 </div>
@@ -470,27 +488,26 @@ export default function RSICalculator({
                 {/* Timeline Track */}
                 <div 
                   ref={timelineTrackRef}
-                  className="relative flex-1 h-12 bg-[#0d1627] border border-cyan-950/60 rounded-xl overflow-hidden cursor-pointer select-none"
+                  className="relative w-full md:flex-1 h-12 bg-[#070b13] border border-cyan-950/80 rounded-2xl select-none touch-none cursor-pointer"
                   onPointerDown={(e) => {
                     if (e.target.closest('[data-timeline-handle]')) return;
                     handleTimelineDragStart(e, 'playhead');
                   }}
-                  style={{
-                    backgroundImage: `
-                      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
-                      radial-gradient(circle at 10px 4px, #182640 2px, transparent 2px),
-                      radial-gradient(circle at 10px 44px, #182640 2px, transparent 2px)
-                    `,
-                    backgroundSize: '8px 100%, 20px 48px, 20px 48px, 20px 48px',
-                    backgroundPosition: '0 0, 0 0, 0 0'
-                  }}
+                  style={{ touchAction: 'none' }}
                 >
-                  {/* Filmstrip sprocket holes (top and bottom) */}
-                  <div className="absolute top-1 left-0 right-0 flex justify-between px-1 opacity-20 pointer-events-none">
-                    {Array.from({ length: 18 }).map((_, i) => <div key={i} className="w-2.5 h-1.5 bg-cyan-400 rounded-sm"></div>)}
-                  </div>
-                  <div className="absolute bottom-1 left-0 right-0 flex justify-between px-1 opacity-20 pointer-events-none">
-                    {Array.from({ length: 18 }).map((_, i) => <div key={i} className="w-2.5 h-1.5 bg-cyan-400 rounded-sm"></div>)}
+                  {/* Ruler-style ticks */}
+                  <div className="absolute inset-0 flex justify-between items-center px-4 pointer-events-none opacity-20">
+                    {Array.from({ length: 25 }).map((_, i) => {
+                      const isMajor = i % 5 === 0;
+                      return (
+                        <div 
+                          key={i} 
+                          className={`w-0.5 bg-cyan-500/80 rounded-full transition-all ${
+                            isMajor ? 'h-5 opacity-80' : 'h-2.5 opacity-40'
+                          }`}
+                        />
+                      );
+                    })}
                   </div>
 
                   {/* Range Highlight overlay */}
@@ -519,11 +536,14 @@ export default function RSICalculator({
                     <div 
                       data-timeline-handle="touchdown"
                       onPointerDown={(e) => handleTimelineDragStart(e, 'touchdown')}
-                      className="absolute top-0 bottom-0 w-1 bg-blue-500 z-20 cursor-ew-resize"
-                      style={{ right: `${(touchdownTime / duration) * 100}%` }}
+                      className="absolute top-0 bottom-0 w-8 -mr-4 z-20 cursor-ew-resize touch-none flex justify-center"
+                      style={{ right: `${(touchdownTime / duration) * 100}%`, touchAction: 'none' }}
                     >
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-blue-500 text-white text-[9px] font-black rounded border border-blue-300 shadow-[0_0_8px_rgba(59,130,246,0.6)] flex items-center gap-0.5 select-none whitespace-nowrap">
-                        📥 ملامسة
+                      {/* Visual handle line */}
+                      <div className="w-1 h-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)] relative">
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-blue-500 text-white text-[9px] font-black rounded border border-blue-300 shadow-[0_0_8px_rgba(59,130,246,0.6)] flex items-center gap-0.5 select-none whitespace-nowrap">
+                          📥 ملامسة
+                        </div>
                       </div>
                     </div>
                   )}
@@ -533,11 +553,14 @@ export default function RSICalculator({
                     <div 
                       data-timeline-handle="takeoff"
                       onPointerDown={(e) => handleTimelineDragStart(e, 'takeoff')}
-                      className="absolute top-0 bottom-0 w-1 bg-cyan-400 z-20 cursor-ew-resize"
-                      style={{ right: `${(takeoffTime / duration) * 100}%` }}
+                      className="absolute top-0 bottom-0 w-8 -mr-4 z-20 cursor-ew-resize touch-none flex justify-center"
+                      style={{ right: `${(takeoffTime / duration) * 100}%`, touchAction: 'none' }}
                     >
-                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-cyan-500 text-[#070a13] text-[9px] font-black rounded border border-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.6)] flex items-center gap-0.5 select-none whitespace-nowrap">
-                        🚀 إقلاع
+                      {/* Visual handle line */}
+                      <div className="w-1 h-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.6)] relative">
+                        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-cyan-500 text-[#070a13] text-[9px] font-black rounded border border-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.6)] flex items-center gap-0.5 select-none whitespace-nowrap">
+                          🚀 إقلاع
+                        </div>
                       </div>
                     </div>
                   )}
@@ -547,17 +570,21 @@ export default function RSICalculator({
                     <div 
                       data-timeline-handle="landing"
                       onPointerDown={(e) => handleTimelineDragStart(e, 'landing')}
-                      className="absolute top-0 bottom-0 w-1 bg-red-500 z-20 cursor-ew-resize"
-                      style={{ right: `${(landingTime / duration) * 100}%` }}
+                      className="absolute top-0 bottom-0 w-8 -mr-4 z-20 cursor-ew-resize touch-none flex justify-center"
+                      style={{ right: `${(landingTime / duration) * 100}%`, touchAction: 'none' }}
                     >
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-red-500 text-white text-[9px] font-black rounded border border-red-400 shadow-[0_0_8px_rgba(239,68,68,0.6)] flex items-center gap-0.5 select-none whitespace-nowrap">
-                        🛬 هبوط
+                      {/* Visual handle line */}
+                      <div className="w-1 h-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] relative">
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-red-500 text-white text-[9px] font-black rounded border border-red-400 shadow-[0_0_8px_rgba(239,68,68,0.6)] flex items-center gap-0.5 select-none whitespace-nowrap">
+                          🛬 هبوط
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div className="flex flex-col text-xs text-gray-400 font-mono bg-[var(--bg-input)] px-2.5 py-1.5 rounded-xl border border-[var(--border-light)] text-center shrink-0">
+                {/* Duration Time Badge for Desktop (hidden on mobile) */}
+                <div className="hidden md:flex flex-col text-xs text-gray-400 font-mono bg-[var(--bg-input)] px-2.5 py-1.5 rounded-xl border border-[var(--border-light)] text-center shrink-0">
                   <span>{duration.toFixed(3)}s</span>
                   <span className="text-[9px] text-gray-500">F {Math.round(duration * (videoFps || 30))}</span>
                 </div>
