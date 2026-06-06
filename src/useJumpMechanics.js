@@ -10,7 +10,9 @@ export function useJumpMechanics(
   boxTouchdownTime = 0,
   landingCorrectionMs = 0,
   jumpType = 'cmj',
-  boxHeight = 30
+  boxHeight = 30,
+  useManualFrameDuration = false,
+  manualFrameDuration = 0.033
 ) {
   const [stats, setStats] = useState({
     heightCm: '',
@@ -33,7 +35,13 @@ export function useJumpMechanics(
       const videoTime = landingTime - takeoffTime;
 
       // 2. Adjust for camera/video speed (slow-motion ratio) and apply landing correction
-      const rawFlightTime = videoTime * (videoFps / cameraFps);
+      let rawFlightTime;
+      if (useManualFrameDuration && manualFrameDuration > 0) {
+        const flightFrames = videoTime * videoFps;
+        rawFlightTime = flightFrames * manualFrameDuration;
+      } else {
+        rawFlightTime = videoTime * (videoFps / cameraFps);
+      }
       const realFlightTime = Math.max(0.01, rawFlightTime - (parseFloat(landingCorrectionMs) || 0) / 1000);
 
       // 3. Physical Constants & Parameters
@@ -73,7 +81,12 @@ export function useJumpMechanics(
       let contactTimeSec = 0;
       let rsiVal = 0;
       if (jumpType === 'dj' && boxTouchdownTime > 0 && takeoffTime > boxTouchdownTime) {
-        contactTimeSec = (takeoffTime - boxTouchdownTime) * (videoFps / cameraFps);
+        if (useManualFrameDuration && manualFrameDuration > 0) {
+          const contactFrames = (takeoffTime - boxTouchdownTime) * videoFps;
+          contactTimeSec = contactFrames * manualFrameDuration;
+        } else {
+          contactTimeSec = (takeoffTime - boxTouchdownTime) * (videoFps / cameraFps);
+        }
         if (contactTimeSec > 0) {
           rsiVal = (h_cm / 100) / contactTimeSec; // RSI = height (m) / contact time (s)
         }
@@ -109,7 +122,7 @@ export function useJumpMechanics(
         rsi: '',
       });
     }
-  }, [cameraFps, videoFps, takeoffTime, landingTime, bodyMass, legLength, boxTouchdownTime, landingCorrectionMs, jumpType, boxHeight]);
+  }, [cameraFps, videoFps, takeoffTime, landingTime, bodyMass, legLength, boxTouchdownTime, landingCorrectionMs, jumpType, boxHeight, useManualFrameDuration, manualFrameDuration]);
 
   return stats;
 }

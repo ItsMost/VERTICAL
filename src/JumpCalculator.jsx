@@ -42,11 +42,22 @@ export default function JumpCalculator() {
   const [activePlayer, setActivePlayer] = useState(null);
   const [playerHistory, setPlayerHistory] = useState([]);
   const [showNewPlayerForm, setShowNewPlayerForm] = useState(false);
-  const [newPlayer, setNewPlayer] = useState({ name: '', birthYear: '', weight: '', leg: '', gender: 'male' });
+  const [newPlayer, setNewPlayer] = useState({ name: '', birthYear: '', weight: '', leg: '', gender: 'male', height: '', standingReach: '' });
   const [isSaving, setIsSaving] = useState(false);
 
   const [isEditingPlayer, setIsEditingPlayer] = useState(false);
-  const [editPlayerForm, setEditPlayerForm] = useState({ id: '', name: '', birthYear: '', weight: '', leg: '', gender: '' });
+  const [editPlayerForm, setEditPlayerForm] = useState({ id: '', name: '', birthYear: '', weight: '', leg: '', gender: '', height: '', standingReach: '' });
+
+  // Custom states for Inches display and Manual Frame duration
+  const [displayUnit, setDisplayUnit] = useState('cm');
+  const [timeCalculationMethod, setTimeCalculationMethod] = useState('fps');
+  const [manualFrameDuration, setManualFrameDuration] = useState(0.033);
+  const [isFrameDurationManual, setIsFrameDurationManual] = useState(false);
+
+  // Anthropometrics for Reach Jump Comparison
+  const [playerHeight, setPlayerHeight] = useState(180);
+  const [standingReach, setStandingReach] = useState(230);
+  const [maxTouchHeight, setMaxTouchHeight] = useState('');
 
   const [videoPreset, setVideoPreset] = useState('slow240');
   const [cameraFps, setCameraFps] = useState(240);
@@ -141,7 +152,56 @@ export default function JumpCalculator() {
   };
   const activeCorrectionMs = getActiveCorrectionMs();
 
-  const stats = useJumpMechanics(cameraFps, videoFps, takeoffTime, landingTime, bodyMass, legLength, boxTouchdownTime, activeCorrectionMs, jumpType, boxHeight);
+  const stats = useJumpMechanics(
+    cameraFps,
+    videoFps,
+    takeoffTime,
+    landingTime,
+    bodyMass,
+    legLength,
+    boxTouchdownTime,
+    activeCorrectionMs,
+    jumpType,
+    boxHeight,
+    timeCalculationMethod === 'manual',
+    parseFloat(manualFrameDuration) || 0.033
+  );
+
+  // Sync manualFrameDuration with cameraFps when not manually overridden
+  useEffect(() => {
+    if (!isFrameDurationManual) {
+      setManualFrameDuration(parseFloat((1 / cameraFps).toFixed(6)));
+    }
+  }, [cameraFps, isFrameDurationManual]);
+
+  // Load playerHeight and standingReach from localStorage on selection
+  useEffect(() => {
+    if (selectedPlayerId) {
+      const storedHeight = localStorage.getItem(`player_height_${selectedPlayerId}`);
+      const storedReach = localStorage.getItem(`standing_reach_${selectedPlayerId}`);
+      setPlayerHeight(storedHeight ? parseFloat(storedHeight) : 180);
+      setStandingReach(storedReach ? parseFloat(storedReach) : 230);
+    } else {
+      setPlayerHeight(180);
+      setStandingReach(230);
+    }
+    setMaxTouchHeight('');
+  }, [selectedPlayerId, activePlayer]);
+
+  // Save updates to localStorage helper functions
+  const handleHeightChange = (val) => {
+    setPlayerHeight(val);
+    if (selectedPlayerId) {
+      localStorage.setItem(`player_height_${selectedPlayerId}`, val);
+    }
+  };
+
+  const handleStandingReachChange = (val) => {
+    setStandingReach(val);
+    if (selectedPlayerId) {
+      localStorage.setItem(`standing_reach_${selectedPlayerId}`, val);
+    }
+  };
 
   const canvasRef = useRef(null);
   const [aiEnabled, setAiEnabled] = useState(false);
@@ -340,10 +400,14 @@ export default function JumpCalculator() {
     const formattedDate = `${newPlayer.birthYear}-01-01`;
     const { data, error } = await supabase.from('lab_players').insert([{ full_name: newPlayer.name, date_of_birth: formattedDate, weight_kg: weight, leg_length_m: legLen, gender: newPlayer.gender }]).select();
     if (!error && data) {
-      setPlayers([data[0], ...players]); setSelectedPlayerId(data[0].id); setActivePlayer(data[0]);
-      setBodyMass(data[0].weight_kg); setLegLength(data[0].leg_length_m);
+      const createdPlayer = data[0];
+      if (newPlayer.height) localStorage.setItem(`player_height_${createdPlayer.id}`, newPlayer.height);
+      if (newPlayer.standingReach) localStorage.setItem(`standing_reach_${createdPlayer.id}`, newPlayer.standingReach);
+      
+      setPlayers([createdPlayer, ...players]); setSelectedPlayerId(createdPlayer.id); setActivePlayer(createdPlayer);
+      setBodyMass(createdPlayer.weight_kg); setLegLength(createdPlayer.leg_length_m);
       setPlayerHistory([]); setShowResults(false); setTakeoffTime(0); setLandingTime(0); setVideoSrc(null); setAiEnabled(false);
-      setShowNewPlayerForm(false); setNewPlayer({ name: '', birthYear: '', weight: '', leg: '', gender: 'male' });
+      setShowNewPlayerForm(false); setNewPlayer({ name: '', birthYear: '', weight: '', leg: '', gender: 'male', height: '', standingReach: '' });
     } else if (error) { alert("خطأ في تسجيل اللاعب: " + error.message); }
   };
 
@@ -356,7 +420,16 @@ export default function JumpCalculator() {
   };
 
   const handleEditClick = () => {
-    setEditPlayerForm({ id: activePlayer.id, name: activePlayer.full_name, birthYear: activePlayer.date_of_birth ? activePlayer.date_of_birth.substring(0, 4) : '', weight: activePlayer.weight_kg, leg: activePlayer.leg_length_m, gender: activePlayer.gender });
+    setEditPlayerForm({ 
+      id: activePlayer.id, 
+      name: activePlayer.full_name, 
+      birthYear: activePlayer.date_of_birth ? activePlayer.date_of_birth.substring(0, 4) : '', 
+      weight: activePlayer.weight_kg, 
+      leg: activePlayer.leg_length_m, 
+      gender: activePlayer.gender,
+      height: playerHeight,
+      standingReach: standingReach
+    });
     setIsEditingPlayer(true);
   };
 
@@ -368,6 +441,11 @@ export default function JumpCalculator() {
     const { data, error } = await supabase.from('lab_players').update({ full_name: editPlayerForm.name, date_of_birth: formattedDate, weight_kg: weight, leg_length_m: legLen, gender: editPlayerForm.gender }).eq('id', editPlayerForm.id).select();
     if (!error && data) {
       const updatedPlayer = data[0];
+      localStorage.setItem(`player_height_${updatedPlayer.id}`, editPlayerForm.height);
+      localStorage.setItem(`standing_reach_${updatedPlayer.id}`, editPlayerForm.standingReach);
+      setPlayerHeight(parseFloat(editPlayerForm.height) || 180);
+      setStandingReach(parseFloat(editPlayerForm.standingReach) || 230);
+      
       setPlayers(players.map(p => p.id === updatedPlayer.id ? updatedPlayer : p)); setActivePlayer(updatedPlayer); setBodyMass(updatedPlayer.weight_kg); setLegLength(updatedPlayer.leg_length_m); setIsEditingPlayer(false);
     }
   };
@@ -855,6 +933,16 @@ export default function JumpCalculator() {
                     <input required type="number" step="0.01" value={newPlayer.leg} onChange={e => setNewPlayer({...newPlayer, leg: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-[var(--text-primary)] rounded-lg outline-none focus:border-[var(--brand-main)]" />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-gray-400 block mb-0.5">طول اللاعب (cm)</label>
+                    <input type="number" value={newPlayer.height} onChange={e => setNewPlayer({...newPlayer, height: e.target.value})} placeholder="مثال: 182" className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-[var(--text-primary)] rounded-lg outline-none focus:border-[var(--brand-main)]" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-gray-400 block mb-0.5">الوصول من الثبات (cm)</label>
+                    <input type="number" value={newPlayer.standingReach} onChange={e => setNewPlayer({...newPlayer, standingReach: e.target.value})} placeholder="مثال: 235" className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-[var(--text-primary)] rounded-lg outline-none focus:border-[var(--brand-main)]" />
+                  </div>
+                </div>
                 <button type="submit" className="w-full btn-orange-gradient py-2 rounded-xl text-xs font-bold shadow-md flex justify-center items-center gap-1.5"><Save size={14}/> حفظ البيانات</button>
               </motion.form>
             )}
@@ -906,6 +994,16 @@ export default function JumpCalculator() {
                   <div>
                     <label className="text-[10px] text-gray-400 block mb-0.5">طول الرجل (متر)</label>
                     <input required type="number" step="0.01" value={editPlayerForm.leg} onChange={e => setEditPlayerForm({...editPlayerForm, leg: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-white rounded-lg outline-none focus:border-[var(--brand-main)]" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] text-gray-400 block mb-0.5">طول اللاعب (cm)</label>
+                      <input type="number" value={editPlayerForm.height} onChange={e => setEditPlayerForm({...editPlayerForm, height: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-white rounded-lg outline-none focus:border-[var(--brand-main)]" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-gray-400 block mb-0.5">الوصول من الثبات (cm)</label>
+                      <input type="number" value={editPlayerForm.standingReach} onChange={e => setEditPlayerForm({...editPlayerForm, standingReach: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-white rounded-lg outline-none focus:border-[var(--brand-main)]" />
+                    </div>
                   </div>
                   <div className="flex gap-2 pt-1">
                     <button type="submit" className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-xl text-xs font-bold">تأكيد</button>
@@ -1003,6 +1101,16 @@ export default function JumpCalculator() {
                     <input required type="number" step="0.01" value={newPlayer.leg} onChange={e => setNewPlayer({...newPlayer, leg: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-white rounded-lg outline-none focus:border-[var(--brand-main)]" />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-gray-400 block mb-0.5">طول اللاعب (cm)</label>
+                    <input type="number" value={newPlayer.height} onChange={e => setNewPlayer({...newPlayer, height: e.target.value})} placeholder="مثال: 182" className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-[var(--text-primary)] rounded-lg outline-none focus:border-[var(--brand-main)]" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-gray-400 block mb-0.5">الوصول من الثبات (cm)</label>
+                    <input type="number" value={newPlayer.standingReach} onChange={e => setNewPlayer({...newPlayer, standingReach: e.target.value})} placeholder="مثال: 235" className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-[var(--text-primary)] rounded-lg outline-none focus:border-[var(--brand-main)]" />
+                  </div>
+                </div>
                 <button type="submit" className="w-full btn-orange-gradient py-2 rounded-xl text-xs font-bold shadow-md flex justify-center items-center gap-1"><Save size={14}/> حفظ البيانات</button>
               </motion.form>
             )}
@@ -1039,6 +1147,16 @@ export default function JumpCalculator() {
                 <div>
                   <label className="text-[10px] text-gray-400 block mb-0.5">طول الرجل (م)</label>
                   <input required type="number" step="0.01" value={editPlayerForm.leg} onChange={e => setEditPlayerForm({...editPlayerForm, leg: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-white rounded-lg outline-none focus:border-[var(--brand-main)]" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-0.5">طول اللاعب (cm)</label>
+                  <input type="number" value={editPlayerForm.height} onChange={e => setEditPlayerForm({...editPlayerForm, height: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-white rounded-lg outline-none" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-0.5">الوصول من الثبات (cm)</label>
+                  <input type="number" value={editPlayerForm.standingReach} onChange={e => setEditPlayerForm({...editPlayerForm, standingReach: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-white rounded-lg outline-none" />
                 </div>
               </div>
               <div className="flex gap-2 pt-1">
@@ -1363,6 +1481,64 @@ export default function JumpCalculator() {
                             </div>
                           </div>
 
+                          {/* Time Calculation Method & Custom Frame Duration */}
+                          <div className="space-y-3 pt-1">
+                            <div>
+                              <label className="block text-[10px] text-gray-400 mb-1">طريقة حساب الوقت (Time Calculation)</label>
+                              <div className="grid grid-cols-2 gap-2 p-1 bg-black/30 rounded-2xl border border-[var(--border-light)]">
+                                {[
+                                  { id: 'fps', name: '⏱️ تلقائي من FPS' },
+                                  { id: 'manual', name: '✏️ زمن إطار مخصص' }
+                                ].map(method => (
+                                  <button
+                                    key={method.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setTimeCalculationMethod(method.id);
+                                      if (method.id === 'fps') {
+                                        setIsFrameDurationManual(false);
+                                      }
+                                    }}
+                                    className={`py-2 px-1 text-[10px] font-bold rounded-xl transition-all ${timeCalculationMethod === method.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
+                                  >
+                                    {method.name}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            
+                            {timeCalculationMethod === 'manual' && (
+                              <div className="bg-cyan-950/10 border border-cyan-500/20 p-3 rounded-2xl animate-fade-in space-y-2">
+                                <div className="flex justify-between items-center">
+                                  <label className="text-[10px] text-gray-400 font-bold">زمن الإطار الفعلي (ثانية):</label>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setIsFrameDurationManual(false);
+                                      setManualFrameDuration(parseFloat((1 / cameraFps).toFixed(6)));
+                                    }}
+                                    className="text-[8px] text-cyan-400 bg-cyan-950/50 border border-cyan-500/30 px-1.5 py-0.5 rounded font-bold hover:bg-cyan-900/30"
+                                  >
+                                    إعادة ضبط للتلقائي ↺
+                                  </button>
+                                </div>
+                                <input
+                                  type="number"
+                                  step="0.000001"
+                                  value={manualFrameDuration}
+                                  onChange={(e) => {
+                                    setManualFrameDuration(e.target.value);
+                                    setIsFrameDurationManual(true);
+                                  }}
+                                  className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-[var(--brand-main)]"
+                                />
+                                <p className="text-[8px] text-gray-500 leading-normal">
+                                  * لتعديل القفزة في الصورة (مثل 0.033ث بدلاً من 0.0333ث)، اكتب القيمة هنا مباشرة وسيتم تحديث الارتفاع والقوة تلقائياً.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
                           {/* WhatsApp Compressed Video Warning Tooltip */}
                           <div className="bg-cyan-950/15 border border-cyan-500/25 p-3 rounded-xl flex gap-2">
                              <AlertTriangle className="text-cyan-400 shrink-0" size={16} />
@@ -1500,8 +1676,26 @@ export default function JumpCalculator() {
                             </div>
                           ) : (
                             <div className="space-y-5 animate-fade-in text-right">
-                              <div className="text-center font-bold text-xs text-cyan-400 border-b border-cyan-500/25 pb-2">
-                                🚀 شاشة نتائج الـ Cockpit HUD البيوميكانيكية
+                              <div className="flex justify-between items-center border-b border-cyan-500/25 pb-2">
+                                <div className="text-xs font-bold text-cyan-400">
+                                  🚀 شاشة نتائج الـ Cockpit HUD البيوميكانيكية
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-lg border border-cyan-500/20">
+                                  <button
+                                    type="button"
+                                    onClick={() => setDisplayUnit('cm')}
+                                    className={`px-2 py-0.5 text-[9px] font-bold rounded transition-all duration-200 ${displayUnit === 'cm' ? 'bg-cyan-500 text-[#070a13] shadow shadow-cyan-500/30' : 'text-gray-400 hover:text-white bg-transparent'}`}
+                                  >
+                                    سم (Cm)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDisplayUnit('in')}
+                                    className={`px-2 py-0.5 text-[9px] font-bold rounded transition-all duration-200 ${displayUnit === 'in' ? 'bg-cyan-500 text-[#070a13] shadow shadow-cyan-500/30' : 'text-gray-400 hover:text-white bg-transparent'}`}
+                                  >
+                                    بوصة (Inches)
+                                  </button>
+                                </div>
                               </div>
                               
                               {/* Main Circular HUD Altometer */}
@@ -1539,11 +1733,11 @@ export default function JumpCalculator() {
                                       {jumpType === 'dj' ? (
                                         <AnimatedCounter value={stats.rsi || 0} decimals={2} />
                                       ) : (
-                                        <AnimatedCounter value={stats.heightCm} decimals={1} />
+                                        <AnimatedCounter value={displayUnit === 'in' ? stats.heightInches : stats.heightCm} decimals={1} />
                                       )}
                                     </span>
                                     <span className="text-xs text-cyan-400 font-bold">
-                                      {jumpType === 'dj' ? 'Score' : 'Cm'}
+                                      {jumpType === 'dj' ? 'Score' : (displayUnit === 'in' ? 'Inches' : 'Cm')}
                                     </span>
                                   </div>
                                 </div>
@@ -1716,6 +1910,78 @@ export default function JumpCalculator() {
                                   </div>
                                 </div>
                               )}
+
+                              {/* Reach Jump comparison tool */}
+                              <div className="bg-black/35 border border-[var(--border-light)] p-4 rounded-2xl space-y-3">
+                                <span className="block text-[10px] text-cyan-400 font-bold border-b border-cyan-500/25 pb-1 text-right">
+                                  📐 أداة مقارنة ارتفاع اللمس (Reach Jump vs. Flight Time)
+                                </span>
+                                <div className="grid grid-cols-2 gap-3 text-right">
+                                  <div>
+                                    <label className="block text-[9px] text-gray-400 mb-1">الوصول من الثبات (cm)</label>
+                                    <input
+                                      type="number"
+                                      value={standingReach || ''}
+                                      onChange={(e) => handleStandingReachChange(parseFloat(e.target.value) || 0)}
+                                      className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-[var(--brand-main)]"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[9px] text-gray-400 mb-1">أقصى نقطة تلمسها بالقفز (cm)</label>
+                                    <input
+                                      type="number"
+                                      value={maxTouchHeight}
+                                      onChange={(e) => setMaxTouchHeight(parseFloat(e.target.value) || '')}
+                                      placeholder="مثال: 314"
+                                      className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-[var(--brand-main)]"
+                                    />
+                                  </div>
+                                </div>
+
+                                {maxTouchHeight > standingReach && (
+                                  <div className="bg-cyan-950/20 border border-cyan-500/30 p-3 rounded-xl animate-fade-in space-y-2 text-right">
+                                    <div className="flex justify-between items-center text-xs">
+                                      <span className="text-gray-400">قفزة اللمس الفعلية (Reach Jump):</span>
+                                      <span className="font-extrabold text-cyan-400 font-mono text-sm">
+                                        {(maxTouchHeight - standingReach).toFixed(1)} سم
+                                        <span className="text-[10px] text-gray-400 mr-1">
+                                          ({((maxTouchHeight - standingReach) / 2.54).toFixed(1)} بوصة)
+                                        </span>
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-xs">
+                                      <span className="text-gray-400">ارتفاع طيران مركز الثقل (Flight Time):</span>
+                                      <span className="font-extrabold text-white font-mono text-sm">
+                                        {parseFloat(stats.heightCm).toFixed(1)} سم
+                                        <span className="text-[10px] text-gray-400 mr-1">
+                                          ({parseFloat(stats.heightInches).toFixed(1)} بوصة)
+                                        </span>
+                                      </span>
+                                    </div>
+                                    <div className="border-t border-cyan-950/50 pt-2 flex justify-between items-center text-xs">
+                                      <span className="text-gray-300 font-bold">الفارق بين القياسين:</span>
+                                      <span className="font-bold text-amber-400 font-mono">
+                                        {Math.abs((maxTouchHeight - standingReach) - parseFloat(stats.heightCm)).toFixed(1)} سم
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Biomechanical Explanation Box */}
+                                <div className="bg-amber-950/10 border border-amber-500/20 p-3.5 rounded-xl space-y-1.5 leading-relaxed text-right">
+                                  <span className="block text-[10px] text-amber-400 font-extrabold">
+                                    💡 إضاءة بيوميكانيكية: لماذا يختلف ارتفاع اللمس عن زمن الطيران؟
+                                  </span>
+                                  <div className="text-[9px] text-gray-400 space-y-1">
+                                    <p>
+                                      * <strong>ارتفاع اللمس ({maxTouchHeight && standingReach ? `${(maxTouchHeight - standingReach).toFixed(0)} سم` : "الـ 79 سم مثلاً"}):</strong> يقيس المسافة بين أطراف أصابعك. عند مد ذراع واحدة، يرتفع لوح الكتف ويدور الجذع ويتحول الجسم جانباً، مما يضيف <strong>5 إلى 10 سم</strong> مدى حركة ذراع إضافي دون أن يرتفع مركز ثقلك (الورك) نفس المسافة.
+                                    </p>
+                                    <p>
+                                      * <strong>ارتفاع الطيران ({parseFloat(stats.heightCm) > 0 ? `${parseFloat(stats.heightCm).toFixed(0)} سم` : "الـ 70 سم مثلاً"}):</strong> يقيس الارتفاع الحقيقي لـ <strong>مركز ثقل جسمك (CoM)</strong> بالهواء. إذا قمت بثني ركبتيك قليلاً عند الهبوط لامتصاص الصدمة، فإن القدم تلمس الأرض مبكراً في الكاميرا، فيقل زمن الطيران المحسوب وتظهر النتيجة أقل.
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
 
                               <button onClick={saveMeasurement} disabled={isSaving} className="w-full py-3.5 btn-orange-gradient flex items-center justify-center gap-2">
                                 <Save size={18} />

@@ -9,6 +9,32 @@
 <link rel="apple-touch-icon" href="/icon.svg">
 
 <script>
+  // Self-healing mechanism for Service Worker cache and chunk load issues
+  window.addEventListener('error', function(e) {
+    if (e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
+      const url = e.target.src || e.target.href;
+      if (url && (url.includes('index-') || url.includes('.js') || url.includes('.css'))) {
+        console.warn('Asset failed to load, cleaning service workers and caches...', url);
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for (let registration of registrations) {
+              registration.unregister();
+            }
+          });
+        }
+        if ('caches' in window) {
+          caches.keys().then(function(keys) {
+            keys.forEach(function(key) { caches.delete(key); });
+          });
+        }
+        // Force refresh from server bypassing cache
+        setTimeout(function() {
+          window.location.reload(true);
+        }, 500);
+      }
+    }
+  }, true);
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')

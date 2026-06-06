@@ -49,11 +49,24 @@ export default function RSICalculator({
 
   const [stats, setStats] = useState(null);
 
+  // Unit and Time calculation custom settings
+  const [displayUnit, setDisplayUnit] = useState('cm');
+  const [timeCalculationMethod, setTimeCalculationMethod] = useState('fps');
+  const [manualFrameDuration, setManualFrameDuration] = useState(0.033);
+  const [isFrameDurationManual, setIsFrameDurationManual] = useState(false);
+
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
   const timelineTrackRef = useRef(null);
+
+  // Sync manualFrameDuration with cameraFps when not manually overridden
+  useEffect(() => {
+    if (!isFrameDurationManual) {
+      setManualFrameDuration(parseFloat((1 / cameraFps).toFixed(6)));
+    }
+  }, [cameraFps, isFrameDurationManual]);
 
   const handleTimelineDragStart = (e, type) => {
     e.preventDefault();
@@ -116,11 +129,19 @@ export default function RSICalculator({
       takeoffTime > touchdownTime &&
       landingTime > takeoffTime
     ) {
-      // Real-time calculation based on slow-motion ratio
-      const realContactTime =
-        (takeoffTime - touchdownTime) * (videoFps / cameraFps);
-      const realFlightTime =
-        (landingTime - takeoffTime) * (videoFps / cameraFps);
+      // Real-time calculation based on slow-motion ratio or manual frame duration
+      let realContactTime;
+      let realFlightTime;
+      
+      if (timeCalculationMethod === 'manual' && parseFloat(manualFrameDuration) > 0) {
+        const contactFrames = (takeoffTime - touchdownTime) * videoFps;
+        const flightFrames = (landingTime - takeoffTime) * videoFps;
+        realContactTime = contactFrames * parseFloat(manualFrameDuration);
+        realFlightTime = flightFrames * parseFloat(manualFrameDuration);
+      } else {
+        realContactTime = (takeoffTime - touchdownTime) * (videoFps / cameraFps);
+        realFlightTime = (landingTime - takeoffTime) * (videoFps / cameraFps);
+      }
 
       const g = 9.81;
       const mass = activePlayer?.weight_kg || 70;
@@ -128,6 +149,7 @@ export default function RSICalculator({
       // Jump height from flight time (Bosco)
       const heightMeters = (g * Math.pow(realFlightTime, 2)) / 8;
       const heightCm = heightMeters * 100;
+      const heightInches = heightCm / 2.54;
 
       // Standard RSI = height (m) / contact time (s)
       const rsiScore = heightMeters / realContactTime;
@@ -149,6 +171,7 @@ export default function RSICalculator({
         contactTime: realContactTime.toFixed(3),
         flightTime: realFlightTime.toFixed(3),
         heightCm: heightCm.toFixed(2),
+        heightInches: heightInches.toFixed(2),
         rsi: rsiScore.toFixed(2),
         rsiMod: rsiModScore.toFixed(2),
         legStiffness: legStiffnessKnM.toFixed(2),
@@ -156,7 +179,7 @@ export default function RSICalculator({
     } else {
       setStats(null);
     }
-  }, [touchdownTime, takeoffTime, landingTime, cameraFps, videoFps, activePlayer]);
+  }, [touchdownTime, takeoffTime, landingTime, cameraFps, videoFps, activePlayer, timeCalculationMethod, manualFrameDuration]);
 
   const handleAnalyze = () => {
     if (touchdownTime === 0 || takeoffTime === 0 || landingTime === 0) {
@@ -497,42 +520,99 @@ export default function RSICalculator({
         )}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 bg-black/20 p-5 rounded-2xl border border-[var(--border-light)]">
-        <div>
-          <label className="block text-xs text-gray-400 mb-1">FPS الكاميرا</label>
-          <input
-            type="number"
-            value={cameraFps}
-            onChange={(e) => setCameraFps(Number(e.target.value))}
-            className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2.5 text-white outline-none font-mono focus:border-[var(--brand-main)]"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-400 mb-1">FPS ملف الفيديو</label>
-          <input
-            type="number"
-            value={videoFps}
-            onChange={(e) => setVideoFps(Number(e.target.value))}
-            className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2.5 text-white outline-none font-mono focus:border-[var(--brand-main)]"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-400 mb-1 text-center">الملامسة (s)</label>
-          <div className="w-full bg-black/40 border border-cyan-500/30 rounded-xl p-2.5 text-cyan-400 font-mono font-bold text-center">
-            {touchdownTime.toFixed(3)}
+      <div className="bg-black/20 p-5 rounded-2xl border border-[var(--border-light)] mb-6 space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">FPS الكاميرا</label>
+            <input
+              type="number"
+              value={cameraFps}
+              onChange={(e) => setCameraFps(Number(e.target.value))}
+              className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2.5 text-white outline-none font-mono focus:border-[var(--brand-main)]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">FPS ملف الفيديو</label>
+            <input
+              type="number"
+              value={videoFps}
+              onChange={(e) => setVideoFps(Number(e.target.value))}
+              className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2.5 text-white outline-none font-mono focus:border-[var(--brand-main)]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1 text-center">الملامسة (s)</label>
+            <div className="w-full bg-black/40 border border-cyan-500/30 rounded-xl p-2.5 text-cyan-400 font-mono font-bold text-center">
+              {touchdownTime.toFixed(3)}
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1 text-center">الإقلاع (s)</label>
+            <div className="w-full bg-black/40 border border-teal-500/30 rounded-xl p-2.5 text-teal-400 font-mono font-bold text-center">
+              {takeoffTime.toFixed(3)}
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1 text-center">الهبوط (s)</label>
+            <div className="w-full bg-black/40 border border-red-500/30 rounded-xl p-2.5 text-red-400 font-mono font-bold text-center">
+              {landingTime.toFixed(3)}
+            </div>
           </div>
         </div>
-        <div>
-          <label className="block text-xs text-gray-400 mb-1 text-center">الإقلاع (s)</label>
-          <div className="w-full bg-black/40 border border-teal-500/30 rounded-xl p-2.5 text-teal-400 font-mono font-bold text-center">
-            {takeoffTime.toFixed(3)}
+
+        {/* Time Calculation Method & Custom Frame Duration */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-[var(--border-light)] pt-4 text-right" style={{ direction: 'rtl' }}>
+          <div>
+            <label className="block text-[10px] text-gray-400 mb-1">طريقة حساب الوقت (Time Calculation)</label>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-black/30 rounded-xl border border-[var(--border-light)]">
+              {[
+                { id: 'fps', name: '⏱️ تلقائي من FPS' },
+                { id: 'manual', name: '✏️ زمن إطار مخصص' }
+              ].map(method => (
+                <button
+                  key={method.id}
+                  type="button"
+                  onClick={() => {
+                    setTimeCalculationMethod(method.id);
+                    if (method.id === 'fps') {
+                      setIsFrameDurationManual(false);
+                    }
+                  }}
+                  className={`py-1.5 px-1 text-[10px] font-bold rounded-lg transition-all ${timeCalculationMethod === method.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
+                >
+                  {method.name}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-        <div>
-          <label className="block text-xs text-gray-400 mb-1 text-center">الهبوط (s)</label>
-          <div className="w-full bg-black/40 border border-red-500/30 rounded-xl p-2.5 text-red-400 font-mono font-bold text-center">
-            {landingTime.toFixed(3)}
-          </div>
+          
+          {timeCalculationMethod === 'manual' && (
+            <div className="bg-cyan-950/10 border border-cyan-500/20 p-3 rounded-xl animate-fade-in space-y-1">
+              <div className="flex justify-between items-center text-[10px] text-gray-400">
+                <span className="font-bold">زمن الإطار الفعلي (ثانية):</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsFrameDurationManual(false);
+                    setManualFrameDuration(parseFloat((1 / cameraFps).toFixed(6)));
+                  }}
+                  className="text-[8px] text-cyan-400 font-bold bg-cyan-950/50 border border-cyan-500/20 px-1.5 py-0.5 rounded hover:bg-cyan-900/30"
+                >
+                  إعادة ضبط للتلقائي ↺
+                </button>
+              </div>
+              <input
+                type="number"
+                step="0.000001"
+                value={manualFrameDuration}
+                onChange={(e) => {
+                  setManualFrameDuration(e.target.value);
+                  setIsFrameDurationManual(true);
+                }}
+                className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-1.5 px-3 text-xs text-white outline-none font-mono focus:border-[var(--brand-main)]"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -548,8 +628,26 @@ export default function RSICalculator({
       {showResults && stats && (
         <div className="space-y-6 border-t border-[var(--border-light)] pt-6 text-right">
           
-          <div className="text-center font-bold text-xs text-cyan-400 border-b border-cyan-500/25 pb-2">
-            🚀 شاشة نتائج الـ Cockpit HUD لمؤشر RSI
+          <div className="flex justify-between items-center border-b border-cyan-500/25 pb-2">
+            <div className="text-xs font-bold text-cyan-400">
+              🚀 شاشة نتائج الـ Cockpit HUD لمؤشر RSI
+            </div>
+            <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-lg border border-cyan-500/20">
+              <button
+                type="button"
+                onClick={() => setDisplayUnit('cm')}
+                className={`px-2 py-0.5 text-[9px] font-bold rounded transition-all duration-200 ${displayUnit === 'cm' ? 'bg-cyan-500 text-[#070a13] shadow shadow-cyan-500/30' : 'text-gray-400 hover:text-white bg-transparent'}`}
+              >
+                سم (Cm)
+              </button>
+              <button
+                type="button"
+                onClick={() => setDisplayUnit('in')}
+                className={`px-2 py-0.5 text-[9px] font-bold rounded transition-all duration-200 ${displayUnit === 'in' ? 'bg-cyan-500 text-[#070a13] shadow shadow-cyan-500/30' : 'text-gray-400 hover:text-white bg-transparent'}`}
+              >
+                بوصة (Inches)
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-col items-center justify-center p-6 bg-black/40 rounded-3xl border border-cyan-500/30 relative overflow-hidden">
@@ -610,8 +708,8 @@ export default function RSICalculator({
             <div className="bg-[var(--bg-surface)] p-3.5 rounded-2xl border border-[var(--border-light)]">
               <span className="block text-[10px] text-gray-400 mb-1 font-bold">الارتفاع (Height)</span>
               <span className="text-lg font-black text-white font-mono">
-                <AnimatedCounter value={stats.heightCm} decimals={1} />
-                <span className="text-[9px] text-gray-400 mr-0.5">cm</span>
+                <AnimatedCounter value={displayUnit === 'in' ? stats.heightInches : stats.heightCm} decimals={1} />
+                <span className="text-[9px] text-gray-400 mr-0.5">{displayUnit === 'in' ? 'in' : 'cm'}</span>
               </span>
             </div>
             <div className="bg-[var(--bg-surface)] p-3.5 rounded-2xl border border-teal-500/40 relative overflow-hidden">
