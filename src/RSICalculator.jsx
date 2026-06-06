@@ -60,8 +60,8 @@ export default function RSICalculator({
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
-
   const timelineTrackRef = useRef(null);
+  const lastSeekTimeRef = useRef(0);
 
   // Sync manualFrameDuration with cameraFps when not manually overridden
   useEffect(() => {
@@ -97,31 +97,35 @@ export default function RSICalculator({
       const targetTime = clampedPct * duration;
       latestTime = targetTime;
 
+      const performSeek = (time) => {
+        const now = performance.now();
+        if (videoRef.current && (now - lastSeekTimeRef.current > 40)) {
+          try {
+            videoRef.current.currentTime = time;
+            lastSeekTimeRef.current = now;
+          } catch (err) {
+            console.error("Seeking error:", err);
+          }
+        }
+      };
+
       if (type === 'touchdown') {
         setTouchdownTime(targetTime);
-        if (videoRef.current && !videoRef.current.seeking) {
-          videoRef.current.currentTime = targetTime;
-        }
+        performSeek(targetTime);
         setCurrentTime(targetTime);
         setShowResults(false);
       } else if (type === 'takeoff') {
         setTakeoffTime(targetTime);
-        if (videoRef.current && !videoRef.current.seeking) {
-          videoRef.current.currentTime = targetTime;
-        }
+        performSeek(targetTime);
         setCurrentTime(targetTime);
         setShowResults(false);
       } else if (type === 'landing') {
         setLandingTime(targetTime);
-        if (videoRef.current && !videoRef.current.seeking) {
-          videoRef.current.currentTime = targetTime;
-        }
+        performSeek(targetTime);
         setCurrentTime(targetTime);
         setShowResults(false);
       } else if (type === 'playhead') {
-        if (videoRef.current && !videoRef.current.seeking) {
-          videoRef.current.currentTime = targetTime;
-        }
+        performSeek(targetTime);
         setCurrentTime(targetTime);
       }
     };
@@ -133,7 +137,11 @@ export default function RSICalculator({
       window.removeEventListener('touchend', handlePointerUp);
 
       if (videoRef.current) {
-        videoRef.current.currentTime = latestTime;
+        try {
+          videoRef.current.currentTime = latestTime;
+        } catch (err) {
+          console.error("Seeking error on up:", err);
+        }
       }
     };
 
@@ -379,7 +387,11 @@ export default function RSICalculator({
   const handleSeek = (e) => {
     const time = Number(e.target.value);
     if (videoRef.current) {
-      videoRef.current.currentTime = time;
+      try {
+        videoRef.current.currentTime = time;
+      } catch (err) {
+        console.error("Seek error:", err);
+      }
       setCurrentTime(time);
     }
   };
@@ -393,8 +405,12 @@ export default function RSICalculator({
       let newTime = video.currentTime + timeStep;
       newTime = Math.max(0, Math.min(newTime, duration));
       setTimeout(() => {
-        video.currentTime = newTime;
-        setCurrentTime(newTime);
+        try {
+          video.currentTime = newTime;
+          setCurrentTime(newTime);
+        } catch (err) {
+          console.error("Step frames error:", err);
+        }
       }, 0);
     }
   };

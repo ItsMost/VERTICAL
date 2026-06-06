@@ -88,8 +88,8 @@ export default function JumpCalculator() {
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const reqRef = useRef(null);
-  
   const timelineTrackRef = useRef(null);
+  const lastSeekTimeRef = useRef(0);
 
   const handleTimelineDragStart = (e, type) => {
     e.preventDefault();
@@ -118,31 +118,35 @@ export default function JumpCalculator() {
       const targetTime = clampedPct * duration;
       latestTime = targetTime;
 
+      const performSeek = (time) => {
+        const now = performance.now();
+        if (videoRef.current && (now - lastSeekTimeRef.current > 40)) {
+          try {
+            videoRef.current.currentTime = time;
+            lastSeekTimeRef.current = now;
+          } catch (err) {
+            console.error("Seeking error:", err);
+          }
+        }
+      };
+
       if (type === 'takeoff') {
         setTakeoffTime(targetTime);
-        if (videoRef.current && !videoRef.current.seeking) {
-          videoRef.current.currentTime = targetTime;
-        }
+        performSeek(targetTime);
         setCurrentTime(targetTime);
         setShowResults(false);
       } else if (type === 'landing') {
         setLandingTime(targetTime);
-        if (videoRef.current && !videoRef.current.seeking) {
-          videoRef.current.currentTime = targetTime;
-        }
+        performSeek(targetTime);
         setCurrentTime(targetTime);
         setShowResults(false);
       } else if (type === 'touchdown') {
         setBoxTouchdownTime(targetTime);
-        if (videoRef.current && !videoRef.current.seeking) {
-          videoRef.current.currentTime = targetTime;
-        }
+        performSeek(targetTime);
         setCurrentTime(targetTime);
         setShowResults(false);
       } else if (type === 'playhead') {
-        if (videoRef.current && !videoRef.current.seeking) {
-          videoRef.current.currentTime = targetTime;
-        }
+        performSeek(targetTime);
         setCurrentTime(targetTime);
       }
     };
@@ -154,7 +158,11 @@ export default function JumpCalculator() {
       window.removeEventListener('touchend', handlePointerUp);
 
       if (videoRef.current) {
-        videoRef.current.currentTime = latestTime;
+        try {
+          videoRef.current.currentTime = latestTime;
+        } catch (err) {
+          console.error("Seeking error on up:", err);
+        }
       }
     };
 
@@ -486,7 +494,7 @@ export default function JumpCalculator() {
   const togglePlay = () => { if (videoRef.current) { if (videoRef.current.paused) { videoRef.current.play(); setIsPlaying(true); } else { videoRef.current.pause(); setIsPlaying(false); } } };
   const handleTimeUpdate = () => { if (videoRef.current) setCurrentTime(videoRef.current.currentTime); };
   const handleLoadedMetadata = () => { if (videoRef.current) setDuration(videoRef.current.duration); };
-  const handleSeek = async (e) => { const time = Number(e.target.value); if (videoRef.current) { videoRef.current.currentTime = time; setCurrentTime(time); if (aiEnabled && poseRef.current) await poseRef.current.send({ image: videoRef.current }); } };
+  const handleSeek = async (e) => { const time = Number(e.target.value); if (videoRef.current) { try { videoRef.current.currentTime = time; } catch(err) { console.error("Seek error:", err); } setCurrentTime(time); if (aiEnabled && poseRef.current) await poseRef.current.send({ image: videoRef.current }); } };
   
   const stepFrames = async (frames) => { 
     if (videoRef.current && duration > 0) { 
@@ -499,8 +507,12 @@ export default function JumpCalculator() {
       newTime = Math.max(0, Math.min(newTime, duration)); 
       
       setTimeout(() => {
-        video.currentTime = newTime; 
-        setCurrentTime(newTime); 
+        try {
+          video.currentTime = newTime; 
+          setCurrentTime(newTime); 
+        } catch (err) {
+          console.error("Step frames error:", err);
+        }
       }, 0);
       
       if (aiEnabled && poseRef.current) {
