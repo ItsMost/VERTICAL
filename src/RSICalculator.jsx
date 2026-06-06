@@ -1,5 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { Zap, Play, Pause, X, Save, Info, ChevronRight, ChevronLeft, Activity } from 'lucide-react';
+
+// Animated counter helper
+const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let start = 0;
+    const end = parseFloat(value) || 0;
+    if (end === 0) {
+      setCount(0);
+      return;
+    }
+    const startTime = performance.now();
+    const updateCount = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easeProgress = progress * (2 - progress); // easeOutQuad
+      setCount(start + easeProgress * (end - start));
+      if (progress < 1) {
+        requestAnimationFrame(updateCount);
+      }
+    };
+    requestAnimationFrame(updateCount);
+  }, [value, duration]);
+  return <span className="font-mono">{count.toFixed(decimals)}</span>;
+};
 
 export default function RSICalculator({
   activePlayer,
@@ -9,7 +35,7 @@ export default function RSICalculator({
   const [cameraFps, setCameraFps] = useState(240);
   const [videoFps, setVideoFps] = useState(30);
 
-  // 3 نقاط زمنية لاختبار الـ RSI
+  // 3 key time points for RSI
   const [touchdownTime, setTouchdownTime] = useState(0);
   const [takeoffTime, setTakeoffTime] = useState(0);
   const [landingTime, setLandingTime] = useState(0);
@@ -27,36 +53,110 @@ export default function RSICalculator({
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
-  // حساب الـ RSI
+  const timelineTrackRef = useRef(null);
+
+  const handleTimelineDragStart = (e, type) => {
+    e.preventDefault();
+    const track = timelineTrackRef.current;
+    if (!track || !duration) return;
+
+    const rect = track.getBoundingClientRect();
+    const rtl = document.documentElement.dir === 'rtl' || window.getComputedStyle(track).direction === 'rtl';
+
+    const handlePointerMove = (moveEvent) => {
+      let clientX = moveEvent.clientX;
+      if (moveEvent.touches && moveEvent.touches.length > 0) {
+        clientX = moveEvent.touches[0].clientX;
+      } else if (moveEvent.clientX === undefined && moveEvent.nativeEvent) {
+        clientX = moveEvent.nativeEvent.clientX;
+      }
+      
+      const pct = rtl ? (rect.right - clientX) / rect.width : (clientX - rect.left) / rect.width;
+      const clampedPct = Math.max(0, Math.min(1, pct));
+      const targetTime = clampedPct * duration;
+
+      if (type === 'touchdown') {
+        setTouchdownTime(targetTime);
+        if (videoRef.current) videoRef.current.currentTime = targetTime;
+        setCurrentTime(targetTime);
+        setShowResults(false);
+      } else if (type === 'takeoff') {
+        setTakeoffTime(targetTime);
+        if (videoRef.current) videoRef.current.currentTime = targetTime;
+        setCurrentTime(targetTime);
+        setShowResults(false);
+      } else if (type === 'landing') {
+        setLandingTime(targetTime);
+        if (videoRef.current) videoRef.current.currentTime = targetTime;
+        setCurrentTime(targetTime);
+        setShowResults(false);
+      } else if (type === 'playhead') {
+        if (videoRef.current) videoRef.current.currentTime = targetTime;
+        setCurrentTime(targetTime);
+      }
+    };
+
+    const handlePointerUp = () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('touchmove', handlePointerMove);
+      window.removeEventListener('touchend', handlePointerUp);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('touchmove', handlePointerMove, { passive: true });
+    window.addEventListener('touchend', handlePointerUp);
+  };
+
+  // RSI Calculations & Leg Stiffness
   useEffect(() => {
     if (
       touchdownTime > 0 &&
       takeoffTime > touchdownTime &&
       landingTime > takeoffTime
     ) {
-      // حساب الأوقات الحقيقية بناءً على الـ Slow Motion
+      // Real-time calculation based on slow-motion ratio
       const realContactTime =
         (takeoffTime - touchdownTime) * (videoFps / cameraFps);
       const realFlightTime =
         (landingTime - takeoffTime) * (videoFps / cameraFps);
 
       const g = 9.81;
+      const mass = activePlayer?.weight_kg || 70;
+
+      // Jump height from flight time (Bosco)
       const heightMeters = (g * Math.pow(realFlightTime, 2)) / 8;
       const heightCm = heightMeters * 100;
 
-      // معادلة RSI = الارتفاع بالمتر / زمن التلامس بالثانية
+      // Standard RSI = height (m) / contact time (s)
       const rsiScore = heightMeters / realContactTime;
+
+      // Modified RSI = flight time (s) / contact time (s)
+      const rsiModScore = realFlightTime / realContactTime;
+
+      // Dynamic Vertical Leg Stiffness (kN/m)
+      // Spring-Mass model vertical stiffness formula (Morin/Brenner):
+      // k = (M * pi * (Tf + Tc)) / (Tc^2 * ((Tf + Tc)/pi - Tc/2))
+      const tc = realContactTime;
+      const tf = realFlightTime;
+      const numerator = mass * Math.PI * (tf + tc);
+      const denominator = Math.pow(tc, 2) * ((tf + tc) / Math.PI - tc / 2);
+      const stiffnessN = numerator / denominator;
+      const legStiffnessKnM = stiffnessN / 1000;
 
       setStats({
         contactTime: realContactTime.toFixed(3),
         flightTime: realFlightTime.toFixed(3),
         heightCm: heightCm.toFixed(2),
         rsi: rsiScore.toFixed(2),
+        rsiMod: rsiModScore.toFixed(2),
+        legStiffness: legStiffnessKnM.toFixed(2),
       });
     } else {
       setStats(null);
     }
-  }, [touchdownTime, takeoffTime, landingTime, cameraFps, videoFps]);
+  }, [touchdownTime, takeoffTime, landingTime, cameraFps, videoFps, activePlayer]);
 
   const handleAnalyze = () => {
     if (touchdownTime === 0 || takeoffTime === 0 || landingTime === 0) {
@@ -66,7 +166,7 @@ export default function RSICalculator({
     }
     if (takeoffTime <= touchdownTime || landingTime <= takeoffTime) {
       return alert(
-        'تسلسل الأوقات غير منطقي! يجب أن يكون: ملامسة -> إقلاع -> هبوط.'
+        'تسلسل الأوقات غير منطقي! يجب أن يكون: ملامسة ⬅️ إقلاع ⬅️ هبوط.'
       );
     }
     setShowResults(true);
@@ -76,17 +176,18 @@ export default function RSICalculator({
     if (!selectedPlayerId || !stats) return alert('خطأ في البيانات!');
     setIsSaving(true);
 
+    // Save to the unified lab_jump_measurements table
     const { data, error } = await supabase
-      .from('jump_measurements')
+      .from('lab_jump_measurements')
       .insert([
         {
           player_id: selectedPlayerId,
-          test_type: 'rsi', // تحديد نوع الاختبار
+          test_type: 'rsi',
           jump_height_cm: stats.heightCm,
           flight_time_sec: stats.flightTime,
           contact_time_sec: stats.contactTime,
           rsi_score: stats.rsi,
-          takeoff_velocity_ms: 0, // غير مستخدم هنا بقوة
+          takeoff_velocity_ms: 0,
           mean_power_watts: 0,
           leg_used: 'both',
         },
@@ -94,20 +195,21 @@ export default function RSICalculator({
       .select();
 
     if (!error && data) {
-      alert('تم حفظ اختبار الـ RSI بنجاح!');
+      alert('✅ تم حفظ اختبار الـ RSI في سجل اللاعب بنجاح!');
       setShowResults(false);
-      if (onSaveSuccess) onSaveSuccess(data[0]); // تحديث السجل في الواجهة الرئيسية
+      if (onSaveSuccess) onSaveSuccess(data[0]);
     } else {
-      alert('حدث خطأ أثناء الحفظ.');
+      console.error(error);
+      alert('حدث خطأ أثناء حفظ النتيجة.');
     }
     setIsSaving(false);
   };
 
-  // وظائف التحكم في الفيديو
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) setVideoSrc(URL.createObjectURL(file));
   };
+
   const clearVideo = () => {
     setVideoSrc(null);
     setTouchdownTime(0);
@@ -119,6 +221,7 @@ export default function RSICalculator({
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
+
   const togglePlay = () => {
     if (videoRef.current) {
       if (videoRef.current.paused) {
@@ -132,9 +235,11 @@ export default function RSICalculator({
       }
     }
   };
+
   const handleTimeUpdate = () => {
     if (videoRef.current) setCurrentTime(videoRef.current.currentTime);
   };
+
   const handleSeek = (e) => {
     const time = Number(e.target.value);
     if (videoRef.current) {
@@ -142,6 +247,7 @@ export default function RSICalculator({
       setCurrentTime(time);
     }
   };
+
   const stepFrames = (frames) => {
     if (videoRef.current && duration > 0) {
       videoRef.current.pause();
@@ -153,36 +259,35 @@ export default function RSICalculator({
     }
   };
 
-  // تقييم الـ RSI
   const getRSIEval = (rsi) => {
-    if (rsi < 1.5)
+    const score = parseFloat(rsi);
+    if (score < 1.5)
       return {
-        text: 'ضعيف (يحتاج تدريبات Plyometrics)',
-        color: 'text-red-400',
+        text: 'ضعيفة (تحتاج تدريبات Plyometrics مكثفة لحقن الطاقة)',
+        color: 'text-red-500 dark:text-red-400',
       };
-    if (rsi >= 1.5 && rsi < 2.0)
-      return { text: 'جيد (متوسط)', color: 'text-yellow-400' };
-    if (rsi >= 2.0 && rsi < 2.5)
-      return { text: 'جيد جداً (قوة تفاعلية ممتازة)', color: 'text-blue-400' };
-    return { text: 'نخبة - Elite (أوتار فولاذية)', color: 'text-emerald-400' };
+    if (score >= 1.5 && score < 2.0)
+      return { text: 'متوسطة المقاومة (تحتاج استمرارية التطوير العضلي)', color: 'text-cyan-500 dark:text-cyan-400' };
+    if (score >= 2.0 && score < 2.5)
+      return { text: 'قوية وتفاعلية (مرونة تفاعل ممتازة للأوتار)', color: 'text-teal-500 dark:text-teal-400' };
+    return { text: 'نخبة استثنائية (أوتار فولاذية صلبة وسريعة الاستجابة)', color: 'text-emerald-500 dark:text-emerald-400' };
   };
 
   return (
-    <div className="bg-[#111827] border border-gray-800 rounded-2xl p-6 shadow-2xl animate-fade-in">
-      <div className="mb-6 text-center border-b border-gray-800 pb-4">
-        <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
-          اختبار مؤشر القوة التفاعلية (RSI - Drop Jump)
+    <div className="glass-panel p-6 shadow-2xl transition-all duration-300">
+      <div className="mb-6 text-center border-b border-[var(--border-light)] pb-4">
+        <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-teal-500">
+          مؤشر القوة التفاعلية (RSI - Drop Jump)
         </h3>
-        <p className="text-gray-400 text-sm mt-2">
-          يقيس قدرة الأوتار على امتصاص الصدمة وتحويلها لقفزة في أسرع وقت
-          (Stiffness).
+        <p className="text-gray-400 text-sm mt-1.5 leading-relaxed">
+          يقيس قدرة الأوتار على امتصاص الصدمات وتحويلها لقفزة رأسية بأقل زمن تلامس أرضي (Stiffness).
         </p>
       </div>
 
-      <div className="mb-8 p-4 bg-[#0f1423] rounded-2xl border border-gray-800 relative">
+      <div className="mb-8 p-6 bg-black/20 rounded-2xl border border-[var(--border-light)] relative">
         {!videoSrc && (
           <div className="flex flex-col md:flex-row gap-4 w-full">
-            <div className="flex-1 relative">
+            <div className="flex-1 relative cursor-pointer">
               <input
                 type="file"
                 accept="video/*"
@@ -191,11 +296,12 @@ export default function RSICalculator({
                 ref={cameraInputRef}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-              <div className="bg-orange-600 hover:bg-orange-500 text-white text-center py-5 rounded-xl border border-orange-500 font-bold transition-all flex items-center justify-center gap-3">
+              <div className="btn-orange-gradient text-center py-5 rounded-xl font-bold transition-all flex items-center justify-center gap-3">
+                <Zap size={20} />
                 افتح الكاميرا وصوّر
               </div>
             </div>
-            <div className="flex-1 relative">
+            <div className="flex-1 relative cursor-pointer">
               <input
                 type="file"
                 accept="video/*"
@@ -203,7 +309,8 @@ export default function RSICalculator({
                 ref={fileInputRef}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-              <div className="bg-[#1f2937] hover:bg-gray-700 text-gray-300 text-center py-5 rounded-xl border border-gray-600 font-bold transition-all flex items-center justify-center gap-3">
+              <div className="bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] text-[var(--text-primary)] text-center py-5 rounded-xl font-bold transition-all flex items-center justify-center gap-3">
+                <Play size={20} />
                 اختر فيديو من المعرض
               </div>
             </div>
@@ -214,192 +321,322 @@ export default function RSICalculator({
           <div className="flex flex-col items-center w-full relative">
             <button
               onClick={clearVideo}
-              className="absolute top-2 right-2 z-10 bg-red-600 hover:bg-red-500 text-white p-2 rounded-full shadow-lg"
+              className="absolute top-2 right-2 z-20 bg-red-600 hover:bg-red-500 text-white p-2.5 rounded-full shadow-lg transition-transform hover:scale-110"
             >
-              X
+              <X size={16} />
             </button>
-            <video
-              ref={videoRef}
-              src={videoSrc}
-              playsInline
-              className="max-h-80 w-auto rounded-xl border-2 border-gray-700 mb-5 shadow-lg"
-              onLoadedMetadata={() => setDuration(videoRef.current.duration)}
-              onTimeUpdate={handleTimeUpdate}
-              onEnded={() => setIsPlaying(false)}
-            />
-
-            <div className="w-full max-w-lg flex items-center gap-4 mb-5">
-              <span className="text-xs text-gray-400 font-mono bg-gray-800 px-2 py-1 rounded">
-                {currentTime.toFixed(2)}s
-              </span>
-              <input
-                type="range"
-                min="0"
-                max={duration || 0}
-                step="0.001"
-                value={currentTime}
-                onChange={handleSeek}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+            
+            <div className="relative inline-block border-4 border-[var(--border-light)] rounded-2xl overflow-hidden mb-5 shadow-2xl bg-black max-w-full">
+              <video
+                ref={videoRef}
+                src={videoSrc}
+                playsInline
+                className="max-h-80 w-auto object-contain"
+                onLoadedMetadata={() => setDuration(videoRef.current.duration)}
+                onTimeUpdate={handleTimeUpdate}
+                onEnded={() => setIsPlaying(false)}
               />
-              <span className="text-xs text-gray-400 font-mono bg-gray-800 px-2 py-1 rounded">
-                {duration.toFixed(2)}s
-              </span>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-2 mb-6 bg-gray-800/50 p-2 rounded-2xl border border-gray-700/50">
-              <button
-                onClick={() => stepFrames(-1)}
-                className="px-4 py-2 bg-[#1f2937] hover:bg-gray-700 rounded-xl text-white text-sm font-bold"
-              >
-                -1 Frame
-              </button>
-              <button
-                onClick={togglePlay}
-                className="px-8 py-2 bg-orange-600 hover:bg-orange-500 rounded-xl text-white font-bold mx-2"
-              >
-                {isPlaying ? '⏸ إيقاف' : '▶ تشغيل'}
-              </button>
-              <button
-                onClick={() => stepFrames(1)}
-                className="px-4 py-2 bg-[#1f2937] hover:bg-gray-700 rounded-xl text-white text-sm font-bold"
-              >
-                +1 Frame
-              </button>
+            {/* Filmstrip Draggable Timeline */}
+            <div className="w-full bg-black/35 p-4 rounded-2xl border border-[var(--border-light)] mb-5 text-right" style={{ direction: 'rtl' }}>
+              <div className="flex items-center justify-between text-xs text-gray-400 mb-2 font-bold px-1">
+                <span>خط الزمن السينمائي (Filmstrip Timeline)</span>
+                <span className="text-cyan-400">اسحب المؤشرات لتحديد اللحظات بدقة 🚀</span>
+              </div>
+              <div className="flex items-center gap-3 relative mb-4">
+                <div className="flex flex-col text-xs text-[var(--brand-text)] font-mono bg-[var(--bg-input)] px-2.5 py-1.5 rounded-xl border border-[var(--border-light)] text-center shrink-0">
+                  <span>{currentTime.toFixed(3)}s</span>
+                  <span className="text-[9px] text-gray-500">F {Math.round(currentTime * (videoFps || 30))}</span>
+                </div>
+                
+                {/* Timeline Track */}
+                <div 
+                  ref={timelineTrackRef}
+                  className="relative flex-1 h-12 bg-[#0d1627] border border-cyan-950/60 rounded-xl overflow-hidden cursor-pointer select-none"
+                  onPointerDown={(e) => {
+                    if (e.target.closest('[data-timeline-handle]')) return;
+                    handleTimelineDragStart(e, 'playhead');
+                  }}
+                  style={{
+                    backgroundImage: `
+                      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+                      radial-gradient(circle at 10px 4px, #182640 2px, transparent 2px),
+                      radial-gradient(circle at 10px 44px, #182640 2px, transparent 2px)
+                    `,
+                    backgroundSize: '8px 100%, 20px 48px, 20px 48px, 20px 48px',
+                    backgroundPosition: '0 0, 0 0, 0 0'
+                  }}
+                >
+                  {/* Filmstrip sprocket holes (top and bottom) */}
+                  <div className="absolute top-1 left-0 right-0 flex justify-between px-1 opacity-20 pointer-events-none">
+                    {Array.from({ length: 18 }).map((_, i) => <div key={i} className="w-2.5 h-1.5 bg-cyan-400 rounded-sm"></div>)}
+                  </div>
+                  <div className="absolute bottom-1 left-0 right-0 flex justify-between px-1 opacity-20 pointer-events-none">
+                    {Array.from({ length: 18 }).map((_, i) => <div key={i} className="w-2.5 h-1.5 bg-cyan-400 rounded-sm"></div>)}
+                  </div>
+
+                  {/* Range Highlight overlay */}
+                  {duration > 0 && touchdownTime > 0 && landingTime > touchdownTime && (
+                    <div 
+                      className="absolute top-2 bottom-2 bg-cyan-500/10 border-l border-r border-cyan-400/30 pointer-events-none"
+                      style={{
+                        right: `${(touchdownTime / duration) * 100}%`,
+                        left: `${100 - (landingTime / duration) * 100}%`
+                      }}
+                    />
+                  )}
+
+                  {/* Draggable Playhead */}
+                  {duration > 0 && (
+                    <div 
+                      className="absolute top-0 bottom-0 w-0.5 bg-yellow-400 shadow-[0_0_8px_#facc15] z-10 pointer-events-none"
+                      style={{ right: `${(currentTime / duration) * 100}%` }}
+                    >
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-yellow-400 rotate-45 border border-black animate-pulse"></div>
+                    </div>
+                  )}
+
+                  {/* Draggable Touchdown Handle */}
+                  {duration > 0 && touchdownTime > 0 && (
+                    <div 
+                      data-timeline-handle="touchdown"
+                      onPointerDown={(e) => handleTimelineDragStart(e, 'touchdown')}
+                      className="absolute top-0 bottom-0 w-1 bg-blue-500 z-20 cursor-ew-resize"
+                      style={{ right: `${(touchdownTime / duration) * 100}%` }}
+                    >
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-blue-500 text-white text-[9px] font-black rounded border border-blue-300 shadow-[0_0_8px_rgba(59,130,246,0.6)] flex items-center gap-0.5 select-none whitespace-nowrap">
+                        📥 ملامسة
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Draggable Takeoff Handle */}
+                  {duration > 0 && takeoffTime > 0 && (
+                    <div 
+                      data-timeline-handle="takeoff"
+                      onPointerDown={(e) => handleTimelineDragStart(e, 'takeoff')}
+                      className="absolute top-0 bottom-0 w-1 bg-cyan-400 z-20 cursor-ew-resize"
+                      style={{ right: `${(takeoffTime / duration) * 100}%` }}
+                    >
+                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-cyan-500 text-[#070a13] text-[9px] font-black rounded border border-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.6)] flex items-center gap-0.5 select-none whitespace-nowrap">
+                        🚀 إقلاع
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Draggable Landing Handle */}
+                  {duration > 0 && landingTime > 0 && (
+                    <div 
+                      data-timeline-handle="landing"
+                      onPointerDown={(e) => handleTimelineDragStart(e, 'landing')}
+                      className="absolute top-0 bottom-0 w-1 bg-red-500 z-20 cursor-ew-resize"
+                      style={{ right: `${(landingTime / duration) * 100}%` }}
+                    >
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-red-500 text-white text-[9px] font-black rounded border border-red-400 shadow-[0_0_8px_rgba(239,68,68,0.6)] flex items-center gap-0.5 select-none whitespace-nowrap">
+                        🛬 هبوط
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col text-xs text-gray-400 font-mono bg-[var(--bg-input)] px-2.5 py-1.5 rounded-xl border border-[var(--border-light)] text-center shrink-0">
+                  <span>{duration.toFixed(3)}s</span>
+                  <span className="text-[9px] text-gray-500">F {Math.round(duration * (videoFps || 30))}</span>
+                </div>
+              </div>
+              
+              {/* Controller Buttons */}
+              <div className="flex justify-center items-center gap-3">
+                <button onClick={() => stepFrames(-10)} title="العودة 10 إطارات" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors"><ChevronsRight size={18} /></button>
+                <button onClick={() => stepFrames(-1)} title="العودة إطار واحد" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors"><ChevronRight size={18} /></button>
+                
+                <button onClick={togglePlay} className="px-10 py-3 btn-orange-gradient rounded-xl font-bold flex items-center justify-center gap-2">
+                  {isPlaying ? <Pause size={18}/> : <Play size={18}/>}
+                </button>
+                
+                <button onClick={() => stepFrames(1)} title="التقدم إطار واحد" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors"><ChevronLeft size={18} /></button>
+                <button onClick={() => stepFrames(10)} title="التقدم 10 إطارات" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors"><ChevronsLeft size={18} /></button>
+              </div>
             </div>
 
-            {/* الأزرار الثلاثة لـ RSI */}
-            <div className="flex flex-wrap gap-4 w-full justify-center">
+            {/* Quick Placement triggers */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-xl">
               <button
-                onClick={() => setTouchdownTime(videoRef.current.currentTime)}
-                className="px-6 py-3 bg-red-900/40 hover:bg-red-600 text-red-300 hover:text-white border border-red-700/50 rounded-xl font-bold"
+                onClick={() => { setTouchdownTime(currentTime); setShowResults(false); }}
+                className={`px-4 py-3 rounded-2xl font-bold transition-all border ${
+                  touchdownTime > 0
+                    ? 'bg-blue-600/30 text-blue-400 border-blue-500'
+                    : 'bg-[var(--bg-input)] hover:bg-[var(--border-color)] text-[var(--text-primary)] border-[var(--border-light)]'
+                }`}
               >
-                1. ملامسة الأرض
+                1. ملامسة الأرض 🦶
               </button>
               <button
-                onClick={() => setTakeoffTime(videoRef.current.currentTime)}
-                className="px-6 py-3 bg-indigo-900/40 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-700/50 rounded-xl font-bold"
+                onClick={() => { setTakeoffTime(currentTime); setShowResults(false); }}
+                className={`px-4 py-3 rounded-2xl font-bold transition-all border ${
+                  takeoffTime > 0
+                    ? 'bg-cyan-600/30 text-cyan-400 border-cyan-500'
+                    : 'bg-[var(--bg-input)] hover:bg-[var(--border-color)] text-[var(--text-primary)] border-[var(--border-light)]'
+                }`}
               >
-                2. الإقلاع لأعلى
+                2. لحظة الإقلاع 🚀
               </button>
               <button
-                onClick={() => setLandingTime(videoRef.current.currentTime)}
-                className="px-6 py-3 bg-purple-900/40 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-700/50 rounded-xl font-bold"
+                onClick={() => { setLandingTime(currentTime); setShowResults(false); }}
+                className={`px-4 py-3 rounded-2xl font-bold transition-all border ${
+                  landingTime > 0
+                    ? 'bg-red-600/30 text-red-400 border-red-500'
+                    : 'bg-[var(--bg-input)] hover:bg-[var(--border-color)] text-[var(--text-primary)] border-[var(--border-light)]'
+                }`}
               >
-                3. الهبوط النهائي
+                3. الهبوط النهائي 🛬
               </button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 bg-[#0f1423] p-5 rounded-2xl border border-gray-800">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 bg-black/20 p-5 rounded-2xl border border-[var(--border-light)]">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">
-            FPS الكاميرا
-          </label>
+          <label className="block text-xs text-gray-400 mb-1">FPS الكاميرا</label>
           <input
             type="number"
             value={cameraFps}
             onChange={(e) => setCameraFps(Number(e.target.value))}
-            className="w-full bg-[#1f2937] border border-gray-700 rounded-xl p-2.5 text-white outline-none"
+            className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2.5 text-white outline-none font-mono focus:border-[var(--brand-main)]"
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">FPS الملف</label>
+          <label className="block text-xs text-gray-400 mb-1">FPS ملف الفيديو</label>
           <input
             type="number"
             value={videoFps}
             onChange={(e) => setVideoFps(Number(e.target.value))}
-            className="w-full bg-[#1f2937] border border-gray-700 rounded-xl p-2.5 text-white outline-none"
+            className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2.5 text-white outline-none font-mono focus:border-[var(--brand-main)]"
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1 text-center">
-            الملامسة (ث)
-          </label>
-          <input
-            type="text"
-            value={touchdownTime.toFixed(3)}
-            readOnly
-            className="w-full bg-[#0b0f19] border border-red-900/50 rounded-xl p-2.5 text-red-400 font-mono font-bold text-center"
-          />
+          <label className="block text-xs text-gray-400 mb-1 text-center">الملامسة (s)</label>
+          <div className="w-full bg-black/40 border border-cyan-500/30 rounded-xl p-2.5 text-cyan-400 font-mono font-bold text-center">
+            {touchdownTime.toFixed(3)}
+          </div>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1 text-center">
-            الإقلاع (ث)
-          </label>
-          <input
-            type="text"
-            value={takeoffTime.toFixed(3)}
-            readOnly
-            className="w-full bg-[#0b0f19] border border-indigo-900/50 rounded-xl p-2.5 text-indigo-400 font-mono font-bold text-center"
-          />
+          <label className="block text-xs text-gray-400 mb-1 text-center">الإقلاع (s)</label>
+          <div className="w-full bg-black/40 border border-teal-500/30 rounded-xl p-2.5 text-teal-400 font-mono font-bold text-center">
+            {takeoffTime.toFixed(3)}
+          </div>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1 text-center">
-            الهبوط (ث)
-          </label>
-          <input
-            type="text"
-            value={landingTime.toFixed(3)}
-            readOnly
-            className="w-full bg-[#0b0f19] border border-purple-900/50 rounded-xl p-2.5 text-purple-400 font-mono font-bold text-center"
-          />
+          <label className="block text-xs text-gray-400 mb-1 text-center">الهبوط (s)</label>
+          <div className="w-full bg-black/40 border border-red-500/30 rounded-xl p-2.5 text-red-400 font-mono font-bold text-center">
+            {landingTime.toFixed(3)}
+          </div>
         </div>
       </div>
 
       <div className="flex justify-center mb-8">
         <button
           onClick={handleAnalyze}
-          className="px-14 py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white rounded-2xl font-bold text-xl shadow-[0_10px_25px_rgba(249,115,22,0.3)] transition-transform hover:scale-105"
+          className="px-14 py-4 btn-orange-gradient rounded-2xl font-black text-xl shadow-lg transition-transform hover:scale-105"
         >
-          تحليل مؤشر RSI
+          تحليل مؤشر القوة RSI
         </button>
       </div>
 
       {showResults && stats && (
-        <div className="space-y-6 animate-fade-in-down">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-red-500">
-              <span className="block text-xs text-gray-400 mb-2">
-                زمن التلامس (s)
-              </span>
-              <span className="text-3xl font-black text-white">
-                {stats.contactTime}
+        <div className="space-y-6 border-t border-[var(--border-light)] pt-6 text-right">
+          
+          <div className="text-center font-bold text-xs text-cyan-400 border-b border-cyan-500/25 pb-2">
+            🚀 شاشة نتائج الـ Cockpit HUD لمؤشر RSI
+          </div>
+
+          <div className="flex flex-col items-center justify-center p-6 bg-black/40 rounded-3xl border border-cyan-500/30 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent pointer-events-none animate-pulse"></div>
+            
+            <div className="relative w-44 h-44 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle cx="88" cy="88" r="72" fill="none" stroke="rgba(6,182,212,0.08)" strokeWidth="12" />
+                <circle 
+                  cx="88" 
+                  cy="88" 
+                  r="72" 
+                  fill="none" 
+                  stroke="url(#rsiTealGradient)" 
+                  strokeWidth="12" 
+                  strokeLinecap="round"
+                  strokeDasharray={452}
+                  strokeDashoffset={452 - (452 * Math.min(1.0, parseFloat(stats.rsi)/4.0))} 
+                  style={{ transition: "stroke-dashoffset 1.2s ease-out" }}
+                />
+                <defs>
+                  <linearGradient id="rsiTealGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#00f5d4" />
+                    <stop offset="100%" stopColor="#06b6d4" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                  مؤشر القوة التفاعلية (RSI)
+                </span>
+                <span className="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(0,245,212,0.6)] font-mono my-1">
+                  <AnimatedCounter value={stats.rsi} decimals={2} />
+                </span>
+                <span className="text-[10px] text-cyan-400 font-bold">
+                  Score
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 text-center">
+            <div className="bg-[var(--bg-surface)] p-3.5 rounded-2xl border border-[var(--border-light)]">
+              <span className="block text-[10px] text-gray-400 mb-1 font-bold">زمن التلامس (Tc)</span>
+              <span className="text-lg font-black text-white font-mono">
+                <AnimatedCounter value={stats.contactTime} decimals={3} />
+                <span className="text-[9px] text-gray-400 mr-0.5">s</span>
               </span>
             </div>
-            <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-indigo-500">
-              <span className="block text-xs text-gray-400 mb-2">
-                زمن الطيران (s)
-              </span>
-              <span className="text-3xl font-black text-white">
-                {stats.flightTime}
-              </span>
-            </div>
-            <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-blue-500">
-              <span className="block text-xs text-gray-400 mb-2">
-                ارتفاع القفزة (cm)
-              </span>
-              <span className="text-3xl font-black text-white">
-                {stats.heightCm}
+            <div className="bg-[var(--bg-surface)] p-3.5 rounded-2xl border border-[var(--border-light)]">
+              <span className="block text-[10px] text-gray-400 mb-1 font-bold">زمن الطيران (Tf)</span>
+              <span className="text-lg font-black text-white font-mono">
+                <AnimatedCounter value={stats.flightTime} decimals={3} />
+                <span className="text-[9px] text-gray-400 mr-0.5">s</span>
               </span>
             </div>
-            <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-orange-500 relative overflow-hidden">
-              <div className="absolute inset-0 bg-orange-600/10"></div>
-              <span className="block text-xs text-gray-400 mb-2 relative z-10">
-                مؤشر RSI
+            <div className="bg-[var(--bg-surface)] p-3.5 rounded-2xl border border-[var(--border-light)]">
+              <span className="block text-[10px] text-gray-400 mb-1 font-bold">الارتفاع (Height)</span>
+              <span className="text-lg font-black text-white font-mono">
+                <AnimatedCounter value={stats.heightCm} decimals={1} />
+                <span className="text-[9px] text-gray-400 mr-0.5">cm</span>
               </span>
-              <span className="text-3xl font-black text-white relative z-10">
-                {stats.rsi}
+            </div>
+            <div className="bg-[var(--bg-surface)] p-3.5 rounded-2xl border border-teal-500/40 relative overflow-hidden">
+              <div className="absolute inset-0 bg-teal-600/5"></div>
+              <span className="block text-[10px] text-gray-400 mb-1 relative z-10 font-bold">المؤشر المعدل</span>
+              <span className="text-lg font-black text-teal-400 relative z-10 font-mono">
+                <AnimatedCounter value={stats.rsiMod} decimals={2} />
+              </span>
+            </div>
+            <div className="bg-[var(--bg-surface)] p-3.5 rounded-2xl border-emerald-500/40 relative overflow-hidden">
+              <div className="absolute inset-0 bg-emerald-600/5"></div>
+              <span className="block text-[10px] text-gray-400 mb-1 relative z-10 font-bold">صلابة الأوتار</span>
+              <span className="text-lg font-black text-emerald-400 relative z-10 font-mono">
+                <AnimatedCounter value={stats.legStiffness} decimals={1} />
+                <span className="text-[9px] text-gray-400 mr-0.5">kN/m</span>
               </span>
             </div>
           </div>
 
-          <div className="bg-[#0f1423] border border-gray-800 rounded-xl p-5 text-center">
-            <p className="text-gray-400 text-sm mb-1">
-              التقييم الفسيولوجي للأوتار:
-            </p>
-            <p className={`text-xl font-bold ${getRSIEval(stats.rsi).color}`}>
+          <div className="bg-black/20 border border-[var(--border-light)] rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-2">
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <Info size={16} />
+              <span>التقييم الفسيولوجي لمرونة الأوتار (Dynamic Tendon Behavior)</span>
+            </div>
+            <p className={`text-xl font-black ${getRSIEval(stats.rsi).color}`}>
               {getRSIEval(stats.rsi).text}
             </p>
           </div>
@@ -407,9 +644,10 @@ export default function RSICalculator({
           <button
             onClick={saveMeasurement}
             disabled={isSaving}
-            className="w-full py-4 bg-orange-700/80 hover:bg-orange-600 text-white rounded-xl font-bold text-lg transition-all"
+            className="w-full py-4 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] text-[var(--text-primary)] rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2"
           >
-            حفظ اختبار RSI في السجل
+            <Save size={18} />
+            {isSaving ? 'جاري حفظ النتيجة...' : 'حفظ النتيجة في ملف اللاعب'}
           </button>
         </div>
       )}

@@ -308,76 +308,76 @@ export default function VBTCamera() {
   };
 
   return (
-    <div className="bg-[#111827] border border-gray-800 rounded-2xl p-6 shadow-2xl text-center animate-fade-in">
-      <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-500 mb-4">
+    <div className="glass-panel p-6 shadow-2xl text-center transition-all duration-300">
+      <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-teal-500 mb-4">
         نظام التدريب المبني على السرعة (VBT AI)
       </h3>
 
-      <div className="flex flex-wrap justify-center gap-3 mb-6 bg-[#0f1423] p-4 rounded-2xl border border-gray-800">
-        <button onClick={() => setMode('front')} className={`px-4 py-2 rounded-xl font-bold transition-all ${mode === 'front' ? 'bg-blue-600 text-white' : 'bg-[#1f2937] text-gray-400'}`}>كاميرا أمامية</button>
-        <button onClick={() => setMode('back')} className={`px-4 py-2 rounded-xl font-bold transition-all ${mode === 'back' ? 'bg-emerald-600 text-white' : 'bg-[#1f2937] text-gray-400'}`}>كاميرا خلفية</button>
+      <div className="flex flex-wrap justify-center gap-3 mb-6 bg-black/20 p-4 rounded-2xl border border-[var(--border-light)]">
+        <button onClick={() => setMode('front')} className={`px-5 py-2.5 rounded-xl font-bold transition-all ${mode === 'front' ? 'bg-cyan-600 text-white shadow-md' : 'bg-[var(--bg-input)] text-gray-400 border border-[var(--border-light)]'}`}>كاميرا أمامية 📸</button>
+        <button onClick={() => setMode('back')} className={`px-5 py-2.5 rounded-xl font-bold transition-all ${mode === 'back' ? 'bg-cyan-600 text-white shadow-md' : 'bg-[var(--bg-input)] text-gray-400 border border-[var(--border-light)]'}`}>كاميرا خلفية 🎥</button>
         <div className="relative">
           <input type="file" accept="video/*" onChange={handleVideoUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-          <button className={`px-4 py-2 rounded-xl font-bold transition-all ${mode === 'video' ? 'bg-purple-600 text-white' : 'bg-[#1f2937] text-gray-400'}`}>رفع فيديو</button>
+          <button className={`px-5 py-2.5 rounded-xl font-bold transition-all ${mode === 'video' ? 'bg-cyan-600 text-white shadow-md' : 'bg-[var(--bg-input)] text-gray-400 border border-[var(--border-light)]'}`}>رفع فيديو 📁</button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 bg-[#0f1423] p-4 rounded-2xl border border-gray-800 mx-auto relative">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 bg-black/20 p-4 rounded-2xl border border-[var(--border-light)] mx-auto relative">
         <div>
           <label className="block text-xs text-gray-400 mb-1">نوع التمرين (Zone)</label>
-          <select value={exerciseType} onChange={e => setExerciseType(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none focus:border-emerald-500">
-            <option value="olympic">كلين / خطف</option>
-            <option value="strength">سكوات / بنش</option>
+          <select value={exerciseType} onChange={e => setExerciseType(e.target.value)} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-white rounded-xl text-center outline-none focus:border-[var(--brand-main)] cursor-pointer">
+            <option value="olympic">كلين / خطف (Olympic)</option>
+            <option value="strength">سكوات / بنش (Power)</option>
           </select>
         </div>
         <div>
           <label className="block text-xs text-gray-400 mb-1">مسافة الرفعة الحالية</label>
-          <input type="number" step="0.01" value={liftDistance} readOnly className="w-full bg-[#0b0f19] border border-gray-700 p-2 text-emerald-400 font-bold rounded-xl text-center outline-none" />
+          <input type="number" step="0.01" value={liftDistance} readOnly className="w-full bg-black/40 border border-[var(--border-light)] p-2.5 text-cyan-400 font-bold rounded-xl text-center outline-none font-mono" />
         </div>
         <div>
           <label className="block text-xs text-gray-400 mb-1">FPS الكاميرا</label>
-          <input type="number" value={cameraFps} onChange={e => setCameraFps(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none" />
+          <input type="number" value={cameraFps} onChange={e => setCameraFps(e.target.value)} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-white rounded-xl text-center outline-none font-mono focus:border-[var(--brand-main)]" />
         </div>
         <div>
           <label className="block text-xs text-gray-400 mb-1">FPS التشغيل</label>
-          <input type="number" value={videoFps} onChange={e => setVideoFps(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none" />
+          <input type="number" value={videoFps} onChange={e => setVideoFps(e.target.value)} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-white rounded-xl text-center outline-none font-mono focus:border-[var(--brand-main)]" />
         </div>
       </div>
 
-      <div className="mb-6 bg-[#0f1423] p-4 rounded-2xl border border-gray-800 inline-block w-full max-w-md">
-         <label className="block text-xs text-gray-400 mb-2">طول الجسم المرجعي (مثال: طارة 0.45)</label>
-         <input type="number" step="0.01" value={referenceLength} onChange={e => setReferenceLength(e.target.value)} className="w-full bg-[#1f2937] border border-gray-700 p-2 text-white rounded-xl text-center outline-none focus:border-blue-500 mb-3" />
+      <div className="mb-6 bg-black/20 p-4 rounded-2xl border border-[var(--border-light)] inline-block w-full max-w-md">
+         <label className="block text-xs text-gray-400 mb-2">طول الجسم المرجعي (طارة البار - متر)</label>
+         <input type="number" step="0.01" value={referenceLength} onChange={e => setReferenceLength(e.target.value)} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-[var(--brand-text)] font-bold rounded-xl text-center outline-none focus:border-[var(--brand-main)] font-mono mb-3" />
          {!isCalibrating ? (
-           <button onClick={() => { setIsCalibrating(true); setCalibrationStep(1); calibrationClicksRef.current = []; pixelsPerMeterRef.current = null; if(videoRef.current) { videoRef.current.pause(); setIsPlaying(false); } }} className="w-full px-6 py-2 bg-[#1f2937] border border-blue-500/50 text-blue-400 hover:bg-gray-700 rounded-xl font-bold text-sm transition-all">
+           <button onClick={() => { setIsCalibrating(true); setCalibrationStep(1); calibrationClicksRef.current = []; pixelsPerMeterRef.current = null; if(videoRef.current) { videoRef.current.pause(); setIsPlaying(false); } }} className="w-full px-6 py-2 bg-[var(--bg-input)] border border-[var(--border-color)] text-[var(--brand-text)] hover:bg-[var(--border-color)] rounded-xl font-bold text-sm transition-all">
               📏 بدء معايرة الكاميرا على الشاشة
            </button>
          ) : (
-           <div className="w-full bg-blue-900/30 border border-blue-500 p-3 rounded-xl animate-pulse">
-             {calibrationStep === 1 && <p className="text-blue-400 font-bold">1️⃣ اضغط على <span className="text-white">أول نقطة</span></p>}
-             {calibrationStep === 2 && <p className="text-blue-400 font-bold">2️⃣ اضغط على <span className="text-white">ثاني نقطة</span></p>}
+           <div className="w-full bg-cyan-950/20 border border-cyan-500 p-3 rounded-xl animate-pulse">
+             {calibrationStep === 1 && <p className="text-cyan-400 font-bold">1️⃣ اضغط على <span className="text-white">أول نقطة</span> بالجسم المرجعي</p>}
+             {calibrationStep === 2 && <p className="text-cyan-400 font-bold">2️⃣ اضغط على <span className="text-white">ثاني نقطة</span> بالجسم المرجعي</p>}
            </div>
          )}
       </div>
 
-      {!scriptsLoaded && <p className="text-gray-400 mb-4 font-bold">جاري تجهيز الذكاء الاصطناعي...</p>}
+      {!scriptsLoaded && <p className="text-cyan-400 mb-4 font-bold animate-pulse">جاري تجهيز رادار الذكاء الاصطناعي...</p>}
       
       <div className="relative flex flex-col items-center w-full max-w-md mx-auto mb-6">
-        <div className="relative inline-block border-4 border-gray-700 rounded-xl overflow-hidden shadow-lg w-full mb-4">
+        <div className="relative inline-block border-4 border-[var(--border-light)] rounded-2xl overflow-hidden shadow-2xl w-full mb-4 bg-black">
           <video ref={videoRef} className="hidden" playsInline onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)}></video>
           <canvas ref={canvasRef} onClick={handleCanvasClick} className={`w-full h-auto bg-black ${isCalibrating ? 'cursor-crosshair' : ''}`}></canvas>
         </div>
 
         {mode === 'video' && uploadedVideo && duration > 0 && (
-          <div className="w-full bg-[#0f1423] p-4 rounded-2xl border border-gray-800">
+          <div className="w-full bg-black/20 p-4 rounded-2xl border border-[var(--border-light)]">
             <div className="flex items-center gap-4 mb-4">
-              <span className="text-xs text-gray-400 font-mono bg-gray-800 px-2 py-1 rounded">{currentTime.toFixed(2)}s</span>
-              <input type="range" min="0" max={duration} step="0.001" value={currentTime} onChange={handleSeek} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-              <span className="text-xs text-gray-400 font-mono bg-gray-800 px-2 py-1 rounded">{duration.toFixed(2)}s</span>
+              <span className="text-xs text-gray-400 font-mono bg-[var(--bg-input)] px-2 py-1 rounded">{currentTime.toFixed(2)}s</span>
+              <input type="range" min="0" max={duration} step="0.001" value={currentTime} onChange={handleSeek} className="w-full h-2.5 bg-[var(--bg-input)] rounded-lg appearance-none cursor-pointer accent-[var(--brand-main)]" />
+              <span className="text-xs text-gray-400 font-mono bg-[var(--bg-input)] px-2 py-1 rounded">{duration.toFixed(2)}s</span>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
-              <button onClick={() => stepFrames(-1)} className="px-4 py-2 bg-[#1f2937] hover:bg-gray-700 rounded-xl text-white text-sm font-bold">-1 Frame</button>
-              <button onClick={togglePlayVideo} className="px-8 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold mx-2 shadow-lg">{isPlaying ? '⏸ إيقاف' : '▶ تشغيل'}</button>
-              <button onClick={() => stepFrames(1)} className="px-4 py-2 bg-[#1f2937] hover:bg-gray-700 rounded-xl text-white text-sm font-bold">+1 Frame</button>
+              <button onClick={() => stepFrames(-1)} className="px-4 py-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white text-xs font-bold transition-all">-1 Frame</button>
+              <button onClick={togglePlayVideo} className="px-8 py-2 btn-orange-gradient rounded-xl font-bold mx-2 shadow-lg">{isPlaying ? '⏸ إيقاف' : '▶ تشغيل'}</button>
+              <button onClick={() => stepFrames(1)} className="px-4 py-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white text-xs font-bold transition-all">+1 Frame</button>
             </div>
           </div>
         )}
@@ -389,7 +389,7 @@ export default function VBTCamera() {
             setShowBarPath(!showBarPath);
             if (videoRef.current && poseRef.current && videoRef.current.paused) { poseRef.current.send({ image: videoRef.current }); }
           }} 
-          className={`px-6 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 border ${showBarPath ? 'bg-pink-600 hover:bg-pink-500 text-white border-pink-500' : 'bg-[#1f2937] text-gray-400 border-gray-600'}`}
+          className={`px-6 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 border ${showBarPath ? 'bg-cyan-600/30 text-cyan-400 border-cyan-500' : 'bg-[var(--bg-input)] text-gray-400 border-[var(--border-light)]'}`}
         >
           {showBarPath ? '🙈 إخفاء مسار البار' : '👁️ إظهار مسار البار'}
         </button>
@@ -398,13 +398,13 @@ export default function VBTCamera() {
           {isTracking ? '⏹ إيقاف التسجيل' : '⏺ بدء تسجيل الرفعة'}
         </button>
 
-        <button onClick={handleAnalyzeVBT} className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold shadow-lg transition-transform hover:scale-105">
-          📊 تحليل السرعة
+        <button onClick={handleAnalyzeVBT} className="px-14 py-3 btn-orange-gradient rounded-xl font-bold shadow-lg transition-transform hover:scale-105">
+          📊 تحليل سرعة الحركة
         </button>
       </div>
 
       {vbtResults && (
-        <div className="space-y-6 animate-fade-in-down border-t border-gray-800 pt-6">
+        <div className="space-y-6 animate-fade-in-down border-t border-[var(--border-light)] pt-6">
           <div className={`p-6 rounded-2xl border ${vbtResults.insight.color} shadow-lg text-center`}>
              <p className="text-sm font-bold opacity-80 mb-2">منطقة التدريب الحالية (Training Zone)</p>
              <h4 className="text-3xl font-black mb-3">{vbtResults.insight.zone}</h4>
@@ -414,17 +414,17 @@ export default function VBTCamera() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-emerald-500">
+            <div className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-light)]">
               <span className="block text-xs text-gray-400 mb-2">متوسط السرعة (Mean)</span>
-              <span className="text-4xl font-black text-white">{vbtResults.meanVelocity} <span className="text-sm text-gray-500">m/s</span></span>
+              <span className="text-4xl font-black text-[var(--text-primary)]">{vbtResults.meanVelocity} <span className="text-sm text-gray-500">m/s</span></span>
             </div>
-            <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-blue-500">
+            <div className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-light)]">
               <span className="block text-xs text-gray-400 mb-2">أقصى سرعة (Peak)</span>
-              <span className="text-4xl font-black text-white">{vbtResults.peakVelocity} <span className="text-sm text-gray-500">m/s</span></span>
+              <span className="text-4xl font-black text-cyan-500">{vbtResults.peakVelocity} <span className="text-sm text-cyan-500/50">m/s</span></span>
             </div>
-            <div className="bg-[#1f2937] p-5 rounded-2xl border-b-4 border-purple-500">
+            <div className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-light)]">
               <span className="block text-xs text-gray-400 mb-2">زمن الصعود الفعلي</span>
-              <span className="text-4xl font-black text-white">{vbtResults.timeTaken} <span className="text-sm text-gray-500">s</span></span>
+              <span className="text-4xl font-black text-[var(--text-primary)]">{vbtResults.timeTaken} <span className="text-sm text-gray-500">s</span></span>
             </div>
           </div>
         </div>
