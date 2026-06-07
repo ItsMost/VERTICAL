@@ -165,23 +165,25 @@ export default function RSICalculator({
       let realContactTime;
       let realFlightTime;
       
-      if (timeCalculationMethod === 'manual' && parseFloat(manualFrameDuration) > 0) {
-        const contactFrames = (takeoffTime - touchdownTime) * videoFps;
-        const flightFrames = (landingTime - takeoffTime) * videoFps;
-        realContactTime = contactFrames * parseFloat(manualFrameDuration);
-        realFlightTime = flightFrames * parseFloat(manualFrameDuration);
+      if (timeCalculationMethod === 'manual') {
+        const touchdownFrame = touchdownTime * videoFps;
+        const takeoffFrame = takeoffTime * videoFps;
+        const landingFrame = landingTime * videoFps;
+        
+        // Frame-based calculation using the cameraFps
+        realContactTime = Math.abs(takeoffFrame - touchdownFrame) / cameraFps;
+        realFlightTime = Math.abs(landingFrame - takeoffFrame) / cameraFps;
       } else {
-        realContactTime = (takeoffTime - touchdownTime) * (videoFps / cameraFps);
-        realFlightTime = (landingTime - takeoffTime) * (videoFps / cameraFps);
+        const contactTimeDelta = Math.abs(takeoffTime - touchdownTime);
+        const flightTimeDelta = Math.abs(landingTime - takeoffTime);
+        realContactTime = contactTimeDelta * (videoFps / cameraFps);
+        realFlightTime = flightTimeDelta * (videoFps / cameraFps);
       }
 
-      const g = 9.81;
-      const mass = activePlayer?.weight_kg || 70;
-
-      // Jump height from flight time (Bosco)
-      const heightMeters = (g * Math.pow(realFlightTime, 2)) / 8;
+      // Calculate the true vertical jump height:
+      const heightMeters = 1.22625 * Math.pow(realFlightTime, 2);
       const heightCm = heightMeters * 100;
-      const heightInches = heightCm / 2.54;
+      const heightInches = heightCm * 0.393701;
 
       // Standard RSI = height (m) / contact time (s)
       const rsiScore = heightMeters / realContactTime;
@@ -190,8 +192,7 @@ export default function RSICalculator({
       const rsiModScore = realFlightTime / realContactTime;
 
       // Dynamic Vertical Leg Stiffness (kN/m)
-      // Spring-Mass model vertical stiffness formula (Morin/Brenner):
-      // k = (M * pi * (Tf + Tc)) / (Tc^2 * ((Tf + Tc)/pi - Tc/2))
+      const mass = activePlayer?.weight_kg || 70;
       const tc = realContactTime;
       const tf = realFlightTime;
       const numerator = mass * Math.PI * (tf + tc);

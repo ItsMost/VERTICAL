@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, Moon, Sun, Award, Info, AlertTriangle, ShieldCheck, Sparkles } from 'lucide-react';
+import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, Moon, Sun, Award, Info, AlertTriangle, ShieldCheck, Sparkles, Users } from 'lucide-react';
 import { useJumpMechanics } from './useJumpMechanics';
 import { supabase } from './supabaseClient'; 
 import PlayerProfile from './PlayerProfile'; 
 import RSICalculator from './RSICalculator'; 
 import FVPCalculator from './FVPCalculator';
 import VBTCamera from './VBTCamera'; 
+import TeamDashboard from './TeamDashboard'; 
 
 // Animated counter helper
 const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
@@ -34,7 +35,7 @@ const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
 };
 
 export default function JumpCalculator() {
-  const [activeTab, setActiveTab] = useState('calculator'); 
+  const [activeTab, setActiveTab] = useState('team'); 
   const [colorMode, setColorMode] = useState('dark'); 
 
   const [players, setPlayers] = useState([]);
@@ -44,6 +45,7 @@ export default function JumpCalculator() {
   const [showNewPlayerForm, setShowNewPlayerForm] = useState(false);
   const [newPlayer, setNewPlayer] = useState({ name: '', birthYear: '', weight: '', leg: '', gender: 'male', height: '', standingReach: '', coachId: '' });
   const [isSaving, setIsSaving] = useState(false);
+  const [saveJumpTag, setSaveJumpTag] = useState('cmj');
 
   const [coaches, setCoaches] = useState([]);
   const [showCoachModal, setShowCoachModal] = useState(false);
@@ -491,7 +493,21 @@ export default function JumpCalculator() {
     if (id) {
       const player = players.find(p => p.id === id);
       setActivePlayer(player); setBodyMass(player.weight_kg); setLegLength(player.leg_length_m); fetchPlayerHistory(id);
-    } else { setActivePlayer(null); setPlayerHistory([]); setActiveTab('calculator'); }
+    } else { setActivePlayer(null); setPlayerHistory([]); setActiveTab('team'); }
+  };
+
+  const handleSelectPlayerFromDashboard = (player) => {
+    setSelectedPlayerId(player.id);
+    setActivePlayer(player);
+    setBodyMass(player.weight_kg);
+    setLegLength(player.leg_length_m);
+    fetchPlayerHistory(player.id);
+    setShowResults(false);
+    setIsEditingPlayer(false);
+    setTakeoffTime(0);
+    setLandingTime(0);
+    setVideoSrc(null);
+    setAiEnabled(false);
   };
 
   const fetchPlayerHistory = async (id) => {
@@ -980,9 +996,15 @@ export default function JumpCalculator() {
   const saveMeasurement = async () => {
     if (!selectedPlayerId) return; setIsSaving(true);
     const powerVal = parseFloat(stats.harmanPeakPower) > 0 ? parseFloat(stats.harmanPeakPower) : parseFloat(stats.meanPower) * 2.1;
+    
+    let finalTestType = saveJumpTag;
+    if (jumpType === 'dj') {
+      finalTestType = 'rsi';
+    }
+
     const { data, error } = await supabase.from('lab_jump_measurements').insert([ { 
       player_id: selectedPlayerId, 
-      test_type: 'standard', 
+      test_type: finalTestType, 
       jump_height_cm: stats.heightCm, 
       flight_time_sec: stats.flightTime, 
       takeoff_velocity_ms: stats.takeoffVelocity, 
@@ -1000,6 +1022,7 @@ export default function JumpCalculator() {
   };
 
   const tabs = [
+    { id: 'team', name: 'لوحة الفريق', icon: Users },
     { id: 'calculator', name: 'الوثبة الرأسية', icon: Activity },
     { id: 'rsi', name: 'مؤشر RSI', icon: Zap },
     { id: 'fvp', name: 'منحنى FVP', icon: LineChart },
@@ -1166,27 +1189,29 @@ export default function JumpCalculator() {
           )}
 
           {/* Sidebar Vertical Tabs Menu (Desktop) */}
-          {activePlayer && (
-            <nav className="glass-panel p-3 flex flex-col gap-1">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all duration-300
-                      ${isActive 
-                        ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-[#070a13] shadow-md shadow-cyan-500/20 border border-cyan-500/20' 
+          <nav className="glass-panel p-3 flex flex-col gap-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              const isDisabled = tab.id !== 'team' && !activePlayer;
+              return (
+                <button
+                  key={tab.id}
+                  disabled={isDisabled}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all duration-300
+                    ${isActive 
+                      ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-[#070a13] shadow-md shadow-cyan-500/20 border border-cyan-500/20' 
+                      : isDisabled 
+                        ? 'text-gray-600 cursor-not-allowed bg-transparent' 
                         : 'text-gray-400 hover:text-white bg-transparent hover:bg-[var(--bg-input)]'}`}
-                  >
-                    <Icon size={16} />
-                    <span>{tab.name}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          )}
+                >
+                  <Icon size={16} />
+                  <span>{tab.name}</span>
+                </button>
+              );
+            })}
+          </nav>
           
           {/* Footer/Connection details */}
           <div className="glass-panel p-4 text-[10px] text-gray-500 flex flex-col gap-1 items-center">
@@ -1333,7 +1358,14 @@ export default function JumpCalculator() {
         {/* ================= MAIN CONTENT WORKSPACE ================= */}
         <main className="flex-1 min-w-0">
           <AnimatePresence mode="wait">
-            {activePlayer ? (
+            {activeTab === 'team' ? (
+              <motion.div key="team" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                <TeamDashboard 
+                  onSelectPlayer={handleSelectPlayerFromDashboard} 
+                  onChangeTab={setActiveTab} 
+                />
+              </motion.div>
+            ) : activePlayer ? (
               <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
                 
                 {activeTab === 'calculator' && (
@@ -2317,6 +2349,39 @@ export default function JumpCalculator() {
                                 </div>
                               </div>
 
+                              {/* Jump Tag Selector for Logging */}
+                              {jumpType !== 'dj' && (
+                                <div className="space-y-2 bg-black/20 border border-[var(--border-light)] p-3 rounded-2xl mb-3">
+                                  <label className="block text-[10px] text-gray-400 font-bold mb-1 text-right">
+                                    تصنيف القفزة لحفظها (Jump Classification)
+                                  </label>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => setSaveJumpTag('cmj')}
+                                      className={`py-2 px-3 text-[10px] font-bold rounded-xl border transition-all ${
+                                        saveJumpTag === 'cmj'
+                                          ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 shadow-md'
+                                          : 'bg-[var(--bg-input)] text-gray-400 border-[var(--border-light)] hover:text-white'
+                                      }`}
+                                    >
+                                      🚀 قفزة من الثبات (CMJ)
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setSaveJumpTag('approach')}
+                                      className={`py-2 px-3 text-[10px] font-bold rounded-xl border transition-all ${
+                                        saveJumpTag === 'approach'
+                                          ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 shadow-md'
+                                          : 'bg-[var(--bg-input)] text-gray-400 border-[var(--border-light)] hover:text-white'
+                                      }`}
+                                    >
+                                      🏃‍♂️ قفزة من الحركة (Approach)
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+
                               <button onClick={saveMeasurement} disabled={isSaving} className="w-full py-3.5 btn-orange-gradient flex items-center justify-center gap-2">
                                 <Save size={18} />
                                 {isSaving ? 'جاري الحفظ...' : 'حفظ النتيجة في سجل اللاعب'}
@@ -2350,27 +2415,29 @@ export default function JumpCalculator() {
       </div>
 
       {/* ================= MOBILE BOTTOM NAVIGATION BAR ================= */}
-      {activePlayer && (
-        <nav className="md:hidden fixed bottom-4 left-4 right-4 z-40 bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-color)] rounded-2xl p-2 flex justify-around items-center shadow-lg shadow-black/40">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all duration-200
-                  ${isActive 
-                    ? 'text-[var(--text-secondary)] scale-105 font-bold' 
+      <nav className="md:hidden fixed bottom-4 left-4 right-4 z-40 bg-[var(--bg-panel)]/90 backdrop-blur-md border border-[var(--border-color)] rounded-2xl p-2 flex justify-around items-center shadow-lg shadow-black/40">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          const isDisabled = tab.id !== 'team' && !activePlayer;
+          return (
+            <button
+              key={tab.id}
+              disabled={isDisabled}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all duration-200
+                ${isActive 
+                  ? 'text-[var(--text-secondary)] scale-105 font-bold' 
+                  : isDisabled 
+                    ? 'text-gray-700 cursor-not-allowed' 
                     : 'text-gray-400 hover:text-white'}`}
-              >
-                <Icon size={18} />
-                <span className="text-[9px] mt-0.5">{tab.name}</span>
-              </button>
-            );
-          })}
-        </nav>
-      )}
+            >
+              <Icon size={18} />
+              <span className="text-[9px] mt-0.5">{tab.name}</span>
+            </button>
+          );
+        })}
+      </nav>
 
       {/* Registration Dialog Modal */}
       {showCoachModal && (
