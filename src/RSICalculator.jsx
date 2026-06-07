@@ -66,6 +66,7 @@ export default function RSICalculator({
   const lastSeekTimeRef = useRef(0);
   const isSeekingRef = useRef(false);
   const seekTimeoutRef = useRef(null);
+  const pendingSeekTimeRef = useRef(null);
 
   // Sync manualFrameDuration with cameraFps when not manually overridden
   useEffect(() => {
@@ -90,6 +91,9 @@ export default function RSICalculator({
     let latestTime = currentTime;
 
     const handlePointerMove = (moveEvent) => {
+      if (moveEvent.cancelable) {
+        moveEvent.preventDefault();
+      }
       let clientX = moveEvent.clientX;
       if (moveEvent.touches && moveEvent.touches.length > 0) {
         clientX = moveEvent.touches[0].clientX;
@@ -103,29 +107,29 @@ export default function RSICalculator({
       latestTime = targetTime;
 
       const performSeek = (time) => {
-        if (videoRef.current && !isSeekingRef.current) {
-          isSeekingRef.current = true;
-          setIsSeeking(true);
+        const video = videoRef.current;
+        if (!video) return;
 
-          if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
-          seekTimeoutRef.current = setTimeout(() => {
-            if (isSeekingRef.current) {
-              isSeekingRef.current = false;
-              setIsSeeking(false);
-            }
-          }, 500);
+        if (isSeekingRef.current) {
+          pendingSeekTimeRef.current = time;
+          return;
+        }
 
-          try {
-            requestAnimationFrame(() => {
-              if (videoRef.current) {
-                videoRef.current.currentTime = time;
-              }
-            });
-          } catch (err) {
-            console.error("Seeking error:", err);
-            isSeekingRef.current = false;
-            setIsSeeking(false);
-          }
+        isSeekingRef.current = true;
+        setIsSeeking(true);
+
+        if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
+        seekTimeoutRef.current = setTimeout(() => {
+          console.warn("Safety timeout seek reset");
+          handleVideoSeeked();
+        }, 200);
+
+        try {
+          video.currentTime = time;
+        } catch (err) {
+          console.error("Seeking error:", err);
+          isSeekingRef.current = false;
+          setIsSeeking(false);
         }
       };
 
@@ -157,20 +161,16 @@ export default function RSICalculator({
       window.removeEventListener('touchend', handlePointerUp);
 
       if (videoRef.current) {
-        // Force reset seek-lock to ensure the final snap-seek works
         isSeekingRef.current = false;
         setIsSeeking(false);
+        pendingSeekTimeRef.current = null;
         if (seekTimeoutRef.current) {
           clearTimeout(seekTimeoutRef.current);
           seekTimeoutRef.current = null;
         }
 
         try {
-          requestAnimationFrame(() => {
-            if (videoRef.current) {
-              videoRef.current.currentTime = latestTime;
-            }
-          });
+          videoRef.current.currentTime = latestTime;
         } catch (err) {
           console.error("Seeking error on up:", err);
         }
@@ -178,10 +178,9 @@ export default function RSICalculator({
       setIsDragging(false);
     };
 
-
-    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointermove', handlePointerMove, { passive: false });
     window.addEventListener('pointerup', handlePointerUp);
-    window.addEventListener('touchmove', handlePointerMove, { passive: true });
+    window.addEventListener('touchmove', handlePointerMove, { passive: false });
     window.addEventListener('touchend', handlePointerUp);
   };
 
@@ -433,19 +432,12 @@ export default function RSICalculator({
 
     if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
     seekTimeoutRef.current = setTimeout(() => {
-      if (isSeekingRef.current) {
-        console.warn("Seek timeout safety trigger");
-        isSeekingRef.current = false;
-        setIsSeeking(false);
-      }
-    }, 500);
+      console.warn("Seek timeout safety trigger");
+      handleVideoSeeked();
+    }, 200);
 
     try {
-      requestAnimationFrame(() => {
-        if (videoRef.current) {
-          videoRef.current.currentTime = time;
-        }
-      });
+      video.currentTime = time;
       setCurrentTime(time);
     } catch (err) {
       console.error("Seek error:", err);
@@ -473,6 +465,27 @@ export default function RSICalculator({
     if (videoRef.current) {
       setCurrentTime(videoRef.current.currentTime);
     }
+    
+    if (pendingSeekTimeRef.current !== null) {
+      const nextTime = pendingSeekTimeRef.current;
+      pendingSeekTimeRef.current = null;
+      const video = videoRef.current;
+      if (video) {
+        isSeekingRef.current = true;
+        setIsSeeking(true);
+        if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
+        seekTimeoutRef.current = setTimeout(() => {
+          handleVideoSeeked();
+        }, 200);
+        try {
+          video.currentTime = nextTime;
+        } catch (err) {
+          console.error("Queue seek error:", err);
+          isSeekingRef.current = false;
+          setIsSeeking(false);
+        }
+      }
+    }
   };
 
   const stepFrames = (frames) => {
@@ -492,19 +505,12 @@ export default function RSICalculator({
 
     if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
     seekTimeoutRef.current = setTimeout(() => {
-      if (isSeekingRef.current) {
-        console.warn("Seeking timeout safety trigger");
-        isSeekingRef.current = false;
-        setIsSeeking(false);
-      }
-    }, 500);
+      console.warn("Seeking timeout safety trigger");
+      handleVideoSeeked();
+    }, 200);
     
     try {
-      requestAnimationFrame(() => {
-        if (videoRef.current) {
-          videoRef.current.currentTime = newTime;
-        }
-      });
+      video.currentTime = newTime;
     } catch (err) {
       console.error("Step frames error:", err);
       if (seekTimeoutRef.current) {
