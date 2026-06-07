@@ -99,6 +99,7 @@ export default function JumpCalculator() {
   const timelineTrackRef = useRef(null);
   const lastSeekTimeRef = useRef(0);
   const isSeekingRef = useRef(false);
+  const seekTimeoutRef = useRef(null);
 
   const handleTimelineDragStart = (e, type) => {
     e.preventDefault();
@@ -129,11 +130,28 @@ export default function JumpCalculator() {
       latestTime = targetTime;
 
       const performSeek = (time) => {
-        if (videoRef.current) {
+        if (videoRef.current && !isSeekingRef.current) {
+          isSeekingRef.current = true;
+          setIsSeeking(true);
+
+          if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
+          seekTimeoutRef.current = setTimeout(() => {
+            if (isSeekingRef.current) {
+              isSeekingRef.current = false;
+              setIsSeeking(false);
+            }
+          }, 500);
+
           try {
-            videoRef.current.currentTime = time;
+            requestAnimationFrame(() => {
+              if (videoRef.current) {
+                videoRef.current.currentTime = time;
+              }
+            });
           } catch (err) {
             console.error("Seeking error:", err);
+            isSeekingRef.current = false;
+            setIsSeeking(false);
           }
         }
       };
@@ -166,14 +184,27 @@ export default function JumpCalculator() {
       window.removeEventListener('touchend', handlePointerUp);
 
       if (videoRef.current) {
+        // Force reset seek-lock to ensure the final snap-seek works
+        isSeekingRef.current = false;
+        setIsSeeking(false);
+        if (seekTimeoutRef.current) {
+          clearTimeout(seekTimeoutRef.current);
+          seekTimeoutRef.current = null;
+        }
+
         try {
-          videoRef.current.currentTime = latestTime;
+          requestAnimationFrame(() => {
+            if (videoRef.current) {
+              videoRef.current.currentTime = latestTime;
+            }
+          });
         } catch (err) {
           console.error("Seeking error on up:", err);
         }
       }
       setIsDragging(false);
     };
+
 
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
@@ -594,10 +625,57 @@ export default function JumpCalculator() {
   const togglePlay = () => { if (videoRef.current) { if (videoRef.current.paused) { videoRef.current.play(); setIsPlaying(true); } else { videoRef.current.pause(); setIsPlaying(false); } } };
   const handleTimeUpdate = () => { if (isDragging) return; if (videoRef.current) setCurrentTime(videoRef.current.currentTime); };
   const handleLoadedMetadata = () => { if (videoRef.current) setDuration(videoRef.current.duration); };
-  const handleSeek = async (e) => { const time = Number(e.target.value); if (videoRef.current) { try { videoRef.current.currentTime = time; } catch(err) { console.error("Seek error:", err); } setCurrentTime(time); if (aiEnabled && poseRef.current) await poseRef.current.send({ image: videoRef.current }); } };
+  const handleSeek = async (e) => {
+    if (!videoRef.current) return;
+    if (isSeekingRef.current) return;
+    const time = Number(e.target.value);
+    const video = videoRef.current;
+    video.pause();
+    setIsPlaying(false);
+    
+    isSeekingRef.current = true;
+    setIsSeeking(true);
+    
+    if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
+    seekTimeoutRef.current = setTimeout(() => {
+      if (isSeekingRef.current) {
+        console.warn("Seek timeout safety trigger");
+        isSeekingRef.current = false;
+        setIsSeeking(false);
+      }
+    }, 500);
 
-  const handleVideoSeeking = () => { isSeekingRef.current = true; setIsSeeking(true); };
+    try {
+      requestAnimationFrame(() => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = time;
+        }
+      });
+      setCurrentTime(time);
+      if (aiEnabled && poseRef.current) {
+        await poseRef.current.send({ image: videoRef.current });
+      }
+    } catch(err) {
+      console.error("Seek error:", err);
+      if (seekTimeoutRef.current) {
+        clearTimeout(seekTimeoutRef.current);
+        seekTimeoutRef.current = null;
+      }
+      isSeekingRef.current = false;
+      setIsSeeking(false);
+    }
+  };
+
+  const handleVideoSeeking = () => {
+    isSeekingRef.current = true;
+    setIsSeeking(true);
+  };
+
   const handleVideoSeeked = async () => {
+    if (seekTimeoutRef.current) {
+      clearTimeout(seekTimeoutRef.current);
+      seekTimeoutRef.current = null;
+    }
     isSeekingRef.current = false;
     setIsSeeking(false);
     if (videoRef.current) {
@@ -610,7 +688,7 @@ export default function JumpCalculator() {
   
   const stepFrames = async (frames) => {
     if (!videoRef.current || duration <= 0) return;
-    if (isSeekingRef.current) return; // Seek lock: block concurrent seeks
+    if (isSeekingRef.current) return;
     
     const video = videoRef.current;
     video.pause();
@@ -623,14 +701,32 @@ export default function JumpCalculator() {
     isSeekingRef.current = true;
     setIsSeeking(true);
     
+    if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
+    seekTimeoutRef.current = setTimeout(() => {
+      if (isSeekingRef.current) {
+        console.warn("Seeking timeout safety trigger");
+        isSeekingRef.current = false;
+        setIsSeeking(false);
+      }
+    }, 500);
+    
     try {
-      video.currentTime = newTime;
+      requestAnimationFrame(() => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = newTime;
+        }
+      });
     } catch (err) {
       console.error("Step frames error:", err);
+      if (seekTimeoutRef.current) {
+        clearTimeout(seekTimeoutRef.current);
+        seekTimeoutRef.current = null;
+      }
       isSeekingRef.current = false;
       setIsSeeking(false);
     }
   };
+
 
   // Math vector angles calculation (3 points: p1, p2 vertex, p3)
   const calculateAngle = (p1, p2, p3) => {
@@ -1363,6 +1459,7 @@ export default function JumpCalculator() {
                 <TeamDashboard 
                   onSelectPlayer={handleSelectPlayerFromDashboard} 
                   onChangeTab={setActiveTab} 
+                  coaches={coaches}
                 />
               </motion.div>
             ) : activePlayer ? (
@@ -1400,7 +1497,7 @@ export default function JumpCalculator() {
                             <button onClick={clearVideo} className="absolute top-2 right-2 bg-red-600 hover:bg-red-500 p-2 rounded-full text-white z-20 shadow-lg transition-transform hover:scale-110"><X size={16}/></button>
                             
                             <div className="relative inline-block border border-[var(--border-light)] rounded-2xl overflow-hidden mb-5 shadow-2xl w-full bg-black">
-                              <video ref={videoRef} src={videoSrc} playsInline muted preload="auto" className="w-full h-auto max-h-[48vh] object-contain mx-auto" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onSeeking={handleVideoSeeking} onSeeked={handleVideoSeeked} onEnded={() => setIsPlaying(false)} />
+                              <video ref={videoRef} src={videoSrc} playsInline webkitPlaysInline={true} muted preload="auto" className="w-full h-auto max-h-[48vh] object-contain mx-auto" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onSeeking={handleVideoSeeking} onSeeked={handleVideoSeeked} onEnded={() => setIsPlaying(false)} />
                               <canvas 
                                 ref={canvasRef} 
                                 onClick={handleCanvasClick} 

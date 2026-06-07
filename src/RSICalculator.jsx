@@ -65,6 +65,7 @@ export default function RSICalculator({
   const timelineTrackRef = useRef(null);
   const lastSeekTimeRef = useRef(0);
   const isSeekingRef = useRef(false);
+  const seekTimeoutRef = useRef(null);
 
   // Sync manualFrameDuration with cameraFps when not manually overridden
   useEffect(() => {
@@ -102,11 +103,28 @@ export default function RSICalculator({
       latestTime = targetTime;
 
       const performSeek = (time) => {
-        if (videoRef.current) {
+        if (videoRef.current && !isSeekingRef.current) {
+          isSeekingRef.current = true;
+          setIsSeeking(true);
+
+          if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
+          seekTimeoutRef.current = setTimeout(() => {
+            if (isSeekingRef.current) {
+              isSeekingRef.current = false;
+              setIsSeeking(false);
+            }
+          }, 500);
+
           try {
-            videoRef.current.currentTime = time;
+            requestAnimationFrame(() => {
+              if (videoRef.current) {
+                videoRef.current.currentTime = time;
+              }
+            });
           } catch (err) {
             console.error("Seeking error:", err);
+            isSeekingRef.current = false;
+            setIsSeeking(false);
           }
         }
       };
@@ -139,14 +157,27 @@ export default function RSICalculator({
       window.removeEventListener('touchend', handlePointerUp);
 
       if (videoRef.current) {
+        // Force reset seek-lock to ensure the final snap-seek works
+        isSeekingRef.current = false;
+        setIsSeeking(false);
+        if (seekTimeoutRef.current) {
+          clearTimeout(seekTimeoutRef.current);
+          seekTimeoutRef.current = null;
+        }
+
         try {
-          videoRef.current.currentTime = latestTime;
+          requestAnimationFrame(() => {
+            if (videoRef.current) {
+              videoRef.current.currentTime = latestTime;
+            }
+          });
         } catch (err) {
           console.error("Seeking error on up:", err);
         }
       }
       setIsDragging(false);
     };
+
 
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
@@ -390,10 +421,40 @@ export default function RSICalculator({
   };
 
   const handleSeek = (e) => {
+    if (!videoRef.current) return;
+    if (isSeekingRef.current) return;
     const time = Number(e.target.value);
-    if (videoRef.current) {
-      videoRef.current.currentTime = time;
+    const video = videoRef.current;
+    video.pause();
+    setIsPlaying(false);
+
+    isSeekingRef.current = true;
+    setIsSeeking(true);
+
+    if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
+    seekTimeoutRef.current = setTimeout(() => {
+      if (isSeekingRef.current) {
+        console.warn("Seek timeout safety trigger");
+        isSeekingRef.current = false;
+        setIsSeeking(false);
+      }
+    }, 500);
+
+    try {
+      requestAnimationFrame(() => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = time;
+        }
+      });
       setCurrentTime(time);
+    } catch (err) {
+      console.error("Seek error:", err);
+      if (seekTimeoutRef.current) {
+        clearTimeout(seekTimeoutRef.current);
+        seekTimeoutRef.current = null;
+      }
+      isSeekingRef.current = false;
+      setIsSeeking(false);
     }
   };
 
@@ -403,6 +464,10 @@ export default function RSICalculator({
   };
 
   const handleVideoSeeked = () => {
+    if (seekTimeoutRef.current) {
+      clearTimeout(seekTimeoutRef.current);
+      seekTimeoutRef.current = null;
+    }
     isSeekingRef.current = false;
     setIsSeeking(false);
     if (videoRef.current) {
@@ -424,15 +489,33 @@ export default function RSICalculator({
     
     isSeekingRef.current = true;
     setIsSeeking(true);
+
+    if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
+    seekTimeoutRef.current = setTimeout(() => {
+      if (isSeekingRef.current) {
+        console.warn("Seeking timeout safety trigger");
+        isSeekingRef.current = false;
+        setIsSeeking(false);
+      }
+    }, 500);
     
     try {
-      video.currentTime = newTime;
+      requestAnimationFrame(() => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = newTime;
+        }
+      });
     } catch (err) {
       console.error("Step frames error:", err);
+      if (seekTimeoutRef.current) {
+        clearTimeout(seekTimeoutRef.current);
+        seekTimeoutRef.current = null;
+      }
       isSeekingRef.current = false;
       setIsSeeking(false);
     }
   };
+
 
   const getRSIEval = (rsi) => {
     const score = parseFloat(rsi);
@@ -506,6 +589,7 @@ export default function RSICalculator({
                 ref={videoRef}
                 src={videoSrc}
                 playsInline
+                webkitPlaysInline={true}
                 muted
                 preload="auto"
                 className="max-h-80 w-auto object-contain"

@@ -3,28 +3,24 @@ import { supabase } from './supabaseClient';
 import { Users, Award, ChevronDown, ChevronUp, Activity, Zap, Play, BookOpen, AlertCircle, HelpCircle, User, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function TeamDashboard({ onSelectPlayer, onChangeTab }) {
-  const [coaches, setCoaches] = useState([]);
+export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [] }) {
   const [selectedCoachId, setSelectedCoachId] = useState('');
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [latestScores, setLatestScores] = useState({}); // player_id -> { cmj, approach, rsi }
   const [expandedPlayerId, setExpandedPlayerId] = useState(null);
 
-  // Fetch coaches on mount
+  // Sync selectedCoachId with the first coach if not already set or if current selectedCoachId is not in the list anymore
   useEffect(() => {
-    async function fetchCoaches() {
-      const { data, error } = await supabase.from('lab_coaches').select('*').order('full_name');
-      if (data) {
-        setCoaches(data);
-        // Default to first coach if available
-        if (data.length > 0) {
-          setSelectedCoachId(data[0].id);
-        }
+    if (coaches && coaches.length > 0) {
+      if (!selectedCoachId || !coaches.some(c => c.id === selectedCoachId)) {
+        setSelectedCoachId(coaches[0].id);
       }
+    } else {
+      setSelectedCoachId('');
     }
-    fetchCoaches();
-  }, []);
+  }, [coaches, selectedCoachId]);
+
 
   // Fetch players and measurements on coach change
   useEffect(() => {
