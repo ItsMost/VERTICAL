@@ -87,6 +87,8 @@ export default function JumpCalculator() {
   const [boxTouchdownTime, setBoxTouchdownTime] = useState(0);
   const [landingCorrectionMode, setLandingCorrectionMode] = useState('ai_auto');
   const [jumpPhases, setJumpPhases] = useState(null); // { movementStart, deepestSquat, takeoff, apex, landing, kneeAngleAtLanding, correctionMs }
+  const [isSeeking, setIsSeeking] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -94,6 +96,7 @@ export default function JumpCalculator() {
   const reqRef = useRef(null);
   const timelineTrackRef = useRef(null);
   const lastSeekTimeRef = useRef(0);
+  const isSeekingRef = useRef(false);
 
   const handleTimelineDragStart = (e, type) => {
     e.preventDefault();
@@ -104,6 +107,7 @@ export default function JumpCalculator() {
       videoRef.current.pause();
       setIsPlaying(false);
     }
+    setIsDragging(true);
 
     const rect = track.getBoundingClientRect();
     const rtl = document.documentElement.dir === 'rtl' || window.getComputedStyle(track).direction === 'rtl';
@@ -123,11 +127,9 @@ export default function JumpCalculator() {
       latestTime = targetTime;
 
       const performSeek = (time) => {
-        const now = performance.now();
-        if (videoRef.current && (now - lastSeekTimeRef.current > 40)) {
+        if (videoRef.current) {
           try {
             videoRef.current.currentTime = time;
-            lastSeekTimeRef.current = now;
           } catch (err) {
             console.error("Seeking error:", err);
           }
@@ -168,6 +170,7 @@ export default function JumpCalculator() {
           console.error("Seeking error on up:", err);
         }
       }
+      setIsDragging(false);
     };
 
     window.addEventListener('pointermove', handlePointerMove);
@@ -573,37 +576,44 @@ export default function JumpCalculator() {
   const handleFileUpload = (e) => { const file = e.target.files[0]; if (file) { setVideoSrc(URL.createObjectURL(file)); setAiEnabled(false); flightDataRef.current = []; setAiDetectedFrameDuration(null); } };
   const clearVideo = () => { setVideoSrc(null); setTakeoffTime(0); setLandingTime(0); setCurrentTime(0); setIsPlaying(false); setShowResults(false); setAiEnabled(false); flightDataRef.current = []; setAiDetectedFrameDuration(null); };
   const togglePlay = () => { if (videoRef.current) { if (videoRef.current.paused) { videoRef.current.play(); setIsPlaying(true); } else { videoRef.current.pause(); setIsPlaying(false); } } };
-  const handleTimeUpdate = () => { if (videoRef.current) setCurrentTime(videoRef.current.currentTime); };
+  const handleTimeUpdate = () => { if (isDragging) return; if (videoRef.current) setCurrentTime(videoRef.current.currentTime); };
   const handleLoadedMetadata = () => { if (videoRef.current) setDuration(videoRef.current.duration); };
   const handleSeek = async (e) => { const time = Number(e.target.value); if (videoRef.current) { try { videoRef.current.currentTime = time; } catch(err) { console.error("Seek error:", err); } setCurrentTime(time); if (aiEnabled && poseRef.current) await poseRef.current.send({ image: videoRef.current }); } };
-  
-  const stepFrames = async (frames) => { 
-    if (videoRef.current && duration > 0) { 
-      const video = videoRef.current;
-      video.pause(); 
-      setIsPlaying(false); 
-      
-      const timeStep = frames / (videoFps || 30); 
-      let newTime = video.currentTime + timeStep; 
-      newTime = Math.max(0, Math.min(newTime, duration)); 
-      
-      setTimeout(() => {
-        try {
-          video.currentTime = newTime; 
-          setCurrentTime(newTime); 
-        } catch (err) {
-          console.error("Step frames error:", err);
-        }
-      }, 0);
-      
-      if (aiEnabled && poseRef.current) {
-        const onSeeked = async () => {
-          video.removeEventListener('seeked', onSeeked);
-          await poseRef.current.send({ image: video });
-        };
-        video.addEventListener('seeked', onSeeked);
+
+  const handleVideoSeeking = () => { isSeekingRef.current = true; setIsSeeking(true); };
+  const handleVideoSeeked = async () => {
+    isSeekingRef.current = false;
+    setIsSeeking(false);
+    if (videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime);
+      if (aiEnabled && poseRef.current && !isDragging) {
+        await poseRef.current.send({ image: videoRef.current });
       }
-    } 
+    }
+  };
+  
+  const stepFrames = async (frames) => {
+    if (!videoRef.current || duration <= 0) return;
+    if (isSeekingRef.current) return; // Seek lock: block concurrent seeks
+    
+    const video = videoRef.current;
+    video.pause();
+    setIsPlaying(false);
+    
+    const timeStep = frames / (videoFps || 30);
+    let newTime = video.currentTime + timeStep;
+    newTime = Math.max(0, Math.min(newTime, duration));
+    
+    isSeekingRef.current = true;
+    setIsSeeking(true);
+    
+    try {
+      video.currentTime = newTime;
+    } catch (err) {
+      console.error("Step frames error:", err);
+      isSeekingRef.current = false;
+      setIsSeeking(false);
+    }
   };
 
   // Math vector angles calculation (3 points: p1, p2 vertex, p3)
@@ -1358,7 +1368,7 @@ export default function JumpCalculator() {
                             <button onClick={clearVideo} className="absolute top-2 right-2 bg-red-600 hover:bg-red-500 p-2 rounded-full text-white z-20 shadow-lg transition-transform hover:scale-110"><X size={16}/></button>
                             
                             <div className="relative inline-block border border-[var(--border-light)] rounded-2xl overflow-hidden mb-5 shadow-2xl w-full bg-black">
-                              <video ref={videoRef} src={videoSrc} playsInline muted preload="auto" className="w-full h-auto max-h-[48vh] object-contain mx-auto" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)} />
+                              <video ref={videoRef} src={videoSrc} playsInline muted preload="auto" className="w-full h-auto max-h-[48vh] object-contain mx-auto" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onSeeking={handleVideoSeeking} onSeeked={handleVideoSeeked} onEnded={() => setIsPlaying(false)} />
                               <canvas 
                                 ref={canvasRef} 
                                 onClick={handleCanvasClick} 

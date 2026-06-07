@@ -46,6 +46,8 @@ export default function RSICalculator({
   const [duration, setDuration] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [stats, setStats] = useState(null);
 
@@ -62,6 +64,7 @@ export default function RSICalculator({
   const cameraInputRef = useRef(null);
   const timelineTrackRef = useRef(null);
   const lastSeekTimeRef = useRef(0);
+  const isSeekingRef = useRef(false);
 
   // Sync manualFrameDuration with cameraFps when not manually overridden
   useEffect(() => {
@@ -79,6 +82,7 @@ export default function RSICalculator({
       videoRef.current.pause();
       setIsPlaying(false);
     }
+    setIsDragging(true);
 
     const rect = track.getBoundingClientRect();
     const rtl = document.documentElement.dir === 'rtl' || window.getComputedStyle(track).direction === 'rtl';
@@ -98,11 +102,9 @@ export default function RSICalculator({
       latestTime = targetTime;
 
       const performSeek = (time) => {
-        const now = performance.now();
-        if (videoRef.current && (now - lastSeekTimeRef.current > 40)) {
+        if (videoRef.current) {
           try {
             videoRef.current.currentTime = time;
-            lastSeekTimeRef.current = now;
           } catch (err) {
             console.error("Seeking error:", err);
           }
@@ -143,6 +145,7 @@ export default function RSICalculator({
           console.error("Seeking error on up:", err);
         }
       }
+      setIsDragging(false);
     };
 
     window.addEventListener('pointermove', handlePointerMove);
@@ -381,37 +384,52 @@ export default function RSICalculator({
   };
 
   const handleTimeUpdate = () => {
+    if (isDragging) return;
     if (videoRef.current) setCurrentTime(videoRef.current.currentTime);
   };
 
   const handleSeek = (e) => {
     const time = Number(e.target.value);
     if (videoRef.current) {
-      try {
-        videoRef.current.currentTime = time;
-      } catch (err) {
-        console.error("Seek error:", err);
-      }
+      videoRef.current.currentTime = time;
       setCurrentTime(time);
     }
   };
 
+  const handleVideoSeeking = () => {
+    isSeekingRef.current = true;
+    setIsSeeking(true);
+  };
+
+  const handleVideoSeeked = () => {
+    isSeekingRef.current = false;
+    setIsSeeking(false);
+    if (videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime);
+    }
+  };
+
   const stepFrames = (frames) => {
-    if (videoRef.current && duration > 0) {
-      const video = videoRef.current;
-      video.pause();
-      setIsPlaying(false);
-      const timeStep = frames / videoFps;
-      let newTime = video.currentTime + timeStep;
-      newTime = Math.max(0, Math.min(newTime, duration));
-      setTimeout(() => {
-        try {
-          video.currentTime = newTime;
-          setCurrentTime(newTime);
-        } catch (err) {
-          console.error("Step frames error:", err);
-        }
-      }, 0);
+    if (!videoRef.current || duration <= 0) return;
+    if (isSeekingRef.current) return;
+    
+    const video = videoRef.current;
+    video.pause();
+    setIsPlaying(false);
+    
+    const timeStep = frames / videoFps;
+    let newTime = video.currentTime + timeStep;
+    newTime = Math.max(0, Math.min(newTime, duration));
+    
+    isSeekingRef.current = true;
+    setIsSeeking(true);
+    
+    try {
+      video.currentTime = newTime;
+    } catch (err) {
+      console.error("Step frames error:", err);
+      isSeekingRef.current = false;
+      setIsSeeking(false);
     }
   };
 
@@ -492,6 +510,8 @@ export default function RSICalculator({
                 className="max-h-80 w-auto object-contain"
                 onLoadedMetadata={() => setDuration(videoRef.current.duration)}
                 onTimeUpdate={handleTimeUpdate}
+                onSeeking={handleVideoSeeking}
+                onSeeked={handleVideoSeeked}
                 onEnded={() => setIsPlaying(false)}
               />
             </div>
