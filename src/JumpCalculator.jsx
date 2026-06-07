@@ -42,8 +42,12 @@ export default function JumpCalculator() {
   const [activePlayer, setActivePlayer] = useState(null);
   const [playerHistory, setPlayerHistory] = useState([]);
   const [showNewPlayerForm, setShowNewPlayerForm] = useState(false);
-  const [newPlayer, setNewPlayer] = useState({ name: '', birthYear: '', weight: '', leg: '', gender: 'male', height: '', standingReach: '' });
+  const [newPlayer, setNewPlayer] = useState({ name: '', birthYear: '', weight: '', leg: '', gender: 'male', height: '', standingReach: '', coachId: '' });
   const [isSaving, setIsSaving] = useState(false);
+
+  const [coaches, setCoaches] = useState([]);
+  const [showCoachModal, setShowCoachModal] = useState(false);
+  const [newCoachName, setNewCoachName] = useState('');
 
   const [isEditingPlayer, setIsEditingPlayer] = useState(false);
   const [editPlayerForm, setEditPlayerForm] = useState({ id: '', name: '', birthYear: '', weight: '', leg: '', gender: '', height: '', standingReach: '' });
@@ -246,7 +250,10 @@ export default function JumpCalculator() {
   const [trackedJumpHeight, setTrackedJumpHeight] = useState(null);
   const calibrationClicksRef = useRef([]);
 
-  useEffect(() => { fetchPlayers(); }, []);
+  useEffect(() => {
+    fetchPlayers();
+    fetchCoaches();
+  }, []);
 
   // Load MediaPipe scripts on mount
   useEffect(() => {
@@ -406,6 +413,72 @@ export default function JumpCalculator() {
     if (!error && data) setPlayers(data);
   };
 
+  const fetchCoaches = async () => {
+    const { data, error } = await supabase.from('lab_coaches').select('*').order('created_at', { ascending: false });
+    if (!error && data) setCoaches(data);
+  };
+
+  const handleRegisterCoach = async (e) => {
+    if (e) e.preventDefault();
+    if (!newCoachName.trim()) return alert("برجاء إدخال اسم المدرب.");
+    const { data, error } = await supabase.from('lab_coaches').insert([{ full_name: newCoachName.trim() }]).select();
+    if (!error && data) {
+      setCoaches([data[0], ...coaches]);
+      setNewCoachName('');
+      setShowCoachModal(false);
+      alert("✅ تم تسجيل المدرب بنجاح!");
+    } else if (error) {
+      alert("خطأ في تسجيل المدرب: " + error.message);
+    }
+  };
+
+  const renderPlayerOptions = () => {
+    const grouped = {};
+    coaches.forEach(coach => {
+      grouped[coach.id] = {
+        name: coach.full_name,
+        players: []
+      };
+    });
+    
+    const unassigned = [];
+    
+    players.forEach(player => {
+      if (player.coach_id && grouped[player.coach_id]) {
+        grouped[player.coach_id].players.push(player);
+      } else {
+        unassigned.push(player);
+      }
+    });
+
+    const elements = [];
+    
+    coaches.forEach(coach => {
+      const group = grouped[coach.id];
+      if (group && group.players.length > 0) {
+        elements.push(
+          <optgroup key={coach.id} label={coach.full_name} className="text-gray-900 bg-white font-bold">
+            {group.players.map(p => (
+              <option key={p.id} value={p.id} className="text-gray-900 bg-white font-normal">{p.full_name}</option>
+            ))}
+          </optgroup>
+        );
+      }
+    });
+    
+    if (unassigned.length > 0) {
+      elements.push(
+        <optgroup key="unassigned" label="لاعبون بدون مدرب" className="text-gray-900 bg-white font-bold">
+          {unassigned.map(p => (
+            <option key={p.id} value={p.id} className="text-gray-900 bg-white font-normal">{p.full_name}</option>
+          ))}
+        </optgroup>
+      );
+    }
+    
+    return elements;
+  };
+
   const getPlayerAge = (dobString) => { return dobString ? new Date().getFullYear() - new Date(dobString).getFullYear() : 0; };
 
   const handlePlayerSelect = async (e) => {
@@ -428,7 +501,15 @@ export default function JumpCalculator() {
     const weight = parseFloat(newPlayer.weight) || 0; const legLen = parseFloat(newPlayer.leg) || 0;
     if (weight <= 0 || legLen <= 0) return alert("برجاء إدخال الوزن وطول الرجل بشكل صحيح.");
     const formattedDate = `${newPlayer.birthYear}-01-01`;
-    const { data, error } = await supabase.from('lab_players').insert([{ full_name: newPlayer.name, date_of_birth: formattedDate, weight_kg: weight, leg_length_m: legLen, gender: newPlayer.gender }]).select();
+    const coachId = newPlayer.coachId || null;
+    const { data, error } = await supabase.from('lab_players').insert([{ 
+      full_name: newPlayer.name, 
+      date_of_birth: formattedDate, 
+      weight_kg: weight, 
+      leg_length_m: legLen, 
+      gender: newPlayer.gender,
+      coach_id: coachId 
+    }]).select();
     if (!error && data) {
       const createdPlayer = data[0];
       if (newPlayer.height) localStorage.setItem(`player_height_${createdPlayer.id}`, newPlayer.height);
@@ -437,7 +518,7 @@ export default function JumpCalculator() {
       setPlayers([createdPlayer, ...players]); setSelectedPlayerId(createdPlayer.id); setActivePlayer(createdPlayer);
       setBodyMass(createdPlayer.weight_kg); setLegLength(createdPlayer.leg_length_m);
       setPlayerHistory([]); setShowResults(false); setTakeoffTime(0); setLandingTime(0); setVideoSrc(null); setAiEnabled(false);
-      setShowNewPlayerForm(false); setNewPlayer({ name: '', birthYear: '', weight: '', leg: '', gender: 'male', height: '', standingReach: '' });
+      setShowNewPlayerForm(false); setNewPlayer({ name: '', birthYear: '', weight: '', leg: '', gender: 'male', height: '', standingReach: '', coachId: '' });
     } else if (error) { alert("خطأ في تسجيل اللاعب: " + error.message); }
   };
 
@@ -926,9 +1007,14 @@ export default function JumpCalculator() {
           <div className="glass-panel p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-[var(--border-light)] pb-3">
               <h1 className="text-xl font-black text-white tracking-wide font-mono">The Lab 🧪</h1>
-              <button onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} className="p-2 rounded-xl bg-[var(--bg-input)] text-[var(--text-secondary)] hover:text-white transition-all border border-[var(--border-light)] shadow-sm">
-                {colorMode === 'dark' ? <Sun size={16}/> : <Moon size={16}/>}
-              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setShowCoachModal(true)} title="تسجيل مدرب جديد" className="p-2 rounded-xl bg-[var(--bg-input)] text-[var(--text-secondary)] hover:text-white transition-all border border-[var(--border-light)] shadow-sm">
+                  <Plus size={16} />
+                </button>
+                <button onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} className="p-2 rounded-xl bg-[var(--bg-input)] text-[var(--text-secondary)] hover:text-white transition-all border border-[var(--border-light)] shadow-sm">
+                  {colorMode === 'dark' ? <Sun size={16}/> : <Moon size={16}/>}
+                </button>
+              </div>
             </div>
             
             <div className="space-y-3">
@@ -937,7 +1023,7 @@ export default function JumpCalculator() {
                 <UserCircle className="absolute right-3.5 top-3 text-gray-400" size={18} />
                 <select value={selectedPlayerId} onChange={handlePlayerSelect} className="w-full bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-xl py-2.5 pr-10 pl-3 outline-none focus:ring-2 focus:ring-[var(--brand-main)] transition-all cursor-pointer font-bold appearance-none text-xs">
                   <option value="" className="text-gray-900 bg-white">-- اختر لاعب --</option>
-                  {players.map(p => (<option key={p.id} value={p.id} className="text-gray-900 bg-white">{p.full_name}</option>))}
+                  {renderPlayerOptions()}
                 </select>
               </div>
               
@@ -988,6 +1074,15 @@ export default function JumpCalculator() {
                     <label className="text-[10px] text-gray-400 block mb-0.5">الوصول من الثبات (cm)</label>
                     <input type="number" value={newPlayer.standingReach} onChange={e => setNewPlayer({...newPlayer, standingReach: e.target.value})} placeholder="مثال: 235" className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-[var(--text-primary)] rounded-lg outline-none focus:border-[var(--brand-main)]" />
                   </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-0.5">المدرب المسؤول</label>
+                  <select value={newPlayer.coachId || ''} onChange={e => setNewPlayer({...newPlayer, coachId: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-[var(--text-primary)] rounded-lg outline-none focus:border-[var(--brand-main)]">
+                    <option value="" className="text-gray-900 bg-white">-- بدون مدرب --</option>
+                    {coaches.map(c => (
+                      <option key={c.id} value={c.id} className="text-gray-900 bg-white">{c.full_name}</option>
+                    ))}
+                  </select>
                 </div>
                 <button type="submit" className="w-full btn-orange-gradient py-2 rounded-xl text-xs font-bold shadow-md flex justify-center items-center gap-1.5"><Save size={14}/> حفظ البيانات</button>
               </motion.form>
@@ -1097,6 +1192,9 @@ export default function JumpCalculator() {
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-black text-white tracking-wide font-mono">The Lab 🧪</h1>
             <div className="flex items-center gap-2">
+              <button onClick={() => setShowCoachModal(true)} title="تسجيل مدرب جديد" className="p-2 rounded-xl bg-[var(--bg-input)] text-[var(--text-secondary)] hover:text-white transition-all border border-[var(--border-light)] shadow-sm">
+                <Plus size={16} />
+              </button>
               <button onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} className="p-2 rounded-xl bg-[var(--bg-input)] text-[var(--text-secondary)] hover:text-white transition-all border border-[var(--border-light)] shadow-sm">
                 {colorMode === 'dark' ? <Sun size={16}/> : <Moon size={16}/>}
               </button>
@@ -1108,7 +1206,7 @@ export default function JumpCalculator() {
               <UserCircle className="absolute right-3 top-2.5 text-gray-400" size={18} />
               <select value={selectedPlayerId} onChange={handlePlayerSelect} className="w-full bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-xl py-2 pr-9 pl-3 outline-none font-bold text-xs appearance-none">
                 <option value="" className="text-gray-900 bg-white">-- اختر لاعب --</option>
-                {players.map(p => (<option key={p.id} value={p.id} className="text-gray-900 bg-white">{p.full_name}</option>))}
+                {renderPlayerOptions()}
               </select>
             </div>
             <button onClick={() => setShowNewPlayerForm(!showNewPlayerForm)} className="px-3 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] text-[var(--text-secondary)] rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1">
@@ -1156,6 +1254,15 @@ export default function JumpCalculator() {
                     <label className="text-[10px] text-gray-400 block mb-0.5">الوصول من الثبات (cm)</label>
                     <input type="number" value={newPlayer.standingReach} onChange={e => setNewPlayer({...newPlayer, standingReach: e.target.value})} placeholder="مثال: 235" className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-[var(--text-primary)] rounded-lg outline-none focus:border-[var(--brand-main)]" />
                   </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-0.5">المدرب المسؤول</label>
+                  <select value={newPlayer.coachId || ''} onChange={e => setNewPlayer({...newPlayer, coachId: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2 text-xs text-[var(--text-primary)] rounded-lg outline-none focus:border-[var(--brand-main)]">
+                    <option value="" className="text-gray-900 bg-white">-- بدون مدرب --</option>
+                    {coaches.map(c => (
+                      <option key={c.id} value={c.id} className="text-gray-900 bg-white">{c.full_name}</option>
+                    ))}
+                  </select>
                 </div>
                 <button type="submit" className="w-full btn-orange-gradient py-2 rounded-xl text-xs font-bold shadow-md flex justify-center items-center gap-1"><Save size={14}/> حفظ البيانات</button>
               </motion.form>
@@ -2253,6 +2360,36 @@ export default function JumpCalculator() {
             );
           })}
         </nav>
+      )}
+
+      {/* Registration Dialog Modal */}
+      {showCoachModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" style={{ direction: 'rtl' }}>
+          <div className="bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
+            <button onClick={() => setShowCoachModal(false)} className="absolute top-4 left-4 text-gray-400 hover:text-white transition-all">
+              <X size={20} />
+            </button>
+            <h2 className="text-lg font-black text-white mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
+              <Plus className="text-cyan-400" size={20} /> تسجيل مدرب جديد
+            </h2>
+            <form onSubmit={handleRegisterCoach} className="space-y-4">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-bold">اسم المدرب الكامل</label>
+                <input 
+                  required 
+                  type="text" 
+                  value={newCoachName} 
+                  onChange={e => setNewCoachName(e.target.value)} 
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-3 text-sm text-[var(--text-primary)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--brand-main)] focus:border-transparent transition-all" 
+                  placeholder="مثال: الكابتن أحمد علي"
+                />
+              </div>
+              <button type="submit" className="w-full btn-orange-gradient py-3 rounded-xl font-bold text-sm shadow-lg flex justify-center items-center gap-2">
+                <Save size={18} /> حفظ بيانات المدرب
+              </button>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

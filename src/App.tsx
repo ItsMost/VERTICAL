@@ -4,8 +4,28 @@ import JumpCalculator from './JumpCalculator';
 import { Lock, Mail, Key, LogIn, UserPlus, LogOut, ShieldAlert, PlusCircle, Copy, CheckCircle2, FlaskConical, Eye, EyeOff } from 'lucide-react';
 
 export default function App() {
-  const [session, setSession] = useState(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [session, setSession] = useState<{
+    user: {
+      id: string;
+      email: string;
+    } | null;
+  } | null>({
+    user: {
+      id: 'd3b07384-d113-4956-a5db-630d7830be1e',
+      email: 'coach@thelab.com'
+    }
+  });
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+
+  useEffect(() => {
+    // Auth listener disabled to ensure direct bypass and maintain mock coach session.
+    /*
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+    return () => subscription.unsubscribe();
+    */
+  }, []);
 
   // === Glowing Flask Loading Simulation ===
   const [appLoadingPercent, setAppLoadingPercent] = useState(0);
@@ -29,18 +49,7 @@ export default function App() {
 
   const isAdminEmail = email.trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session); 
-      setIsAuthLoading(false);
-    });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   // Loading Simulation
   useEffect(() => {
@@ -59,14 +68,18 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    if (session?.user?.email === ADMIN_EMAIL) fetchAdminCodes();
-  }, [session]);
-
   const fetchAdminCodes = async () => {
     const { data } = await supabase.from('invite_codes').select('*').order('created_at', { ascending: false });
     if (data) setAdminCodes(data);
   };
+
+  useEffect(() => {
+    if (session?.user?.email === ADMIN_EMAIL) {
+      Promise.resolve().then(() => {
+        fetchAdminCodes();
+      });
+    }
+  }, [session]);
 
   const generateCode = async () => {
     const newCode = 'LAB-' + Math.random().toString(36).substring(2, 8).toUpperCase();

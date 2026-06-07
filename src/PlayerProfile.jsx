@@ -87,6 +87,10 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
   const sayersPeak = 60.7 * heightCm + 45.3 * mass - 2055;
   const harmanPeak = 61.9 * heightCm + 36.0 * mass - 1822;
   const harmanMean = 21.2 * heightCm + 23.0 * mass - 1393;
+  const maxRsi = playerHistory ? playerHistory.reduce((max, j) => {
+    const val = parseFloat(j.rsi_score) || 0;
+    return val > max ? val : max;
+  }, 0) : 0;
 
   return (
     <div className="space-y-6 relative text-right" style={{ direction: "rtl" }}>
@@ -224,6 +228,43 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
             </div>
           </div>
 
+          {/* Sport Performance Critique Box in Arabic */}
+          <div className="glass-panel p-5 shadow-lg mt-6 text-right">
+            <h4 className="text-lg font-black text-white mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-1.5 justify-start" style={{ direction: 'rtl' }}>
+              🔬 التقييم البيوميكانيكي ونقاط التطوير (Performance Critique)
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5" style={{ direction: 'rtl' }}>
+              <div className="bg-emerald-950/15 border border-emerald-500/20 p-4 rounded-2xl">
+                <h5 className="font-bold text-emerald-400 mb-2 flex items-center gap-1.5">
+                  🌟 ما يميز اللاعب (Strengths)
+                </h5>
+                <p className="text-xs text-gray-300 leading-relaxed">
+                  {((relativePower || (harmanPeak / mass)) >= 50) 
+                    ? "يتميز اللاعب بمعدلات قدرة انفجارية ممتازة ونسب قوة إلى الوزن مرتفعة، مما يمنحه أفضلية في الانطلاق السريع والقفز العمودي." 
+                    : "يمتلك اللاعب أساس حركي مستقر وثبات جيد أثناء المراحل التحضيرية للقفز."}
+                  {" "}
+                  {maxRsi >= 2.2 
+                    ? "كما يظهر التحليل مرونة تفاعلية ممتازة وصلابة جيدة في مفصل الكاحل (Reactive Strength Index)، مما يقلل من زمن التلامس مع الأرض ويزيد من كفاءة الارتداد." 
+                    : "التحكم الحركي والتوازن العام أثناء الهبوط ضمن المعدلات الآمنة."}
+                </p>
+              </div>
+              <div className="bg-amber-950/15 border border-amber-500/20 p-4 rounded-2xl">
+                <h5 className="font-bold text-amber-400 mb-2 flex items-center gap-1.5">
+                  ⚡ نقاط التطوير البدني (Gaps)
+                </h5>
+                <p className="text-xs text-gray-300 leading-relaxed">
+                  {((relativePower || (harmanPeak / mass)) < 50) 
+                    ? "يوصى بالتركيز على زيادة القوة القصوى للأطراف السفلية عبر تدريبات المقاومة الثقيلة (مثل Squats و Deadlifts) لتحسين كثافة القدرة الإجمالية." 
+                    : "لتحسين الأداء بشكل أكبر، يوصى بدمج تدريبات القوة البالستية للحفاظ على مستويات القدرة العالية."}
+                  {" "}
+                  {maxRsi < 2.0 
+                    ? "يجب العمل على تحسين الصلابة التفاعلية (Reactive Stiffness) وتقليل زمن التلامس بالأرض باستخدام تمارين الارتداد السريع (Pogo Jumps و Depth Jumps من ارتفاعات متدرجة)." 
+                    : "ينصح بالتركيز على التكنيك الحركي للذراعين لزيادة زمن الطيران ونقل الزخم الزاوي بشكل أكثر كفاءة."}
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Detailed jump history log */}
           <div className="glass-panel p-5 shadow-lg mt-6 overflow-hidden">
              <h4 className="text-lg font-black text-white mb-4 border-b border-[var(--border-light)] pb-2">سجل القياسات التفصيلية للاعب</h4>
@@ -301,11 +342,66 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
                   </div>
                 </div>
 
+                {/* Egyptian & Regional Club Benchmarks */}
+                <div className="bg-black/20 p-4 rounded-2xl border border-orange-500/30">
+                  <h3 className="text-lg font-bold text-orange-400 mb-3 border-b border-orange-500/20 pb-2">🏐 معايير الأندية المصرية - الكرة الطائرة (Volleyball)</h3>
+                  <div className="grid grid-cols-5 text-center text-xs font-bold text-gray-400 mb-2">
+                    <div>النادي</div><div>نخبة (Elite)</div><div>ممتاز</div><div>جيد</div><div>مقبول</div>
+                  </div>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="grid grid-cols-5 text-center items-center bg-red-950/15 p-2 rounded-xl border border-red-500/20"><span className="text-red-400 font-bold">الأهلي</span><span>+34" (86+)</span><span>30"-33"</span><span>26"-29"</span><span>22"-25"</span></div>
+                    <div className="grid grid-cols-5 text-center items-center bg-white/[0.02] p-2 rounded-xl border border-gray-700"><span className="text-white font-bold">الزمالك</span><span>+34" (86+)</span><span>30"-33"</span><span>26"-29"</span><span>22"-25"</span></div>
+                    <div className="grid grid-cols-5 text-center items-center bg-blue-950/15 p-2 rounded-xl border border-blue-500/20"><span className="text-blue-400 font-bold">سموحة</span><span>+32" (81+)</span><span>28"-31"</span><span>24"-27"</span><span>20"-23"</span></div>
+                    <div className="grid grid-cols-5 text-center items-center bg-yellow-950/15 p-2 rounded-xl border border-yellow-500/20"><span className="text-yellow-400 font-bold">سبورتنج</span><span>+32" (81+)</span><span>28"-31"</span><span>24"-27"</span><span>20"-23"</span></div>
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-2 text-center">* معايير السيدات (18+): نخبة: +26" (66+) | ممتاز: 22"-25" | جيد: 18"-21"</p>
+                </div>
+
+                {/* National Teams & Track/Field */}
+                <div className="bg-black/20 p-4 rounded-2xl border border-emerald-500/30">
+                  <h3 className="text-lg font-bold text-emerald-400 mb-3 border-b border-emerald-500/20 pb-2">🏃 المنتخبات الوطنية - ألعاب القوى والكرة الطائرة (National Teams)</h3>
+                  <div className="grid grid-cols-4 text-center text-xs font-bold text-gray-400 mb-2">
+                    <div>الفئة</div><div>نخبة (Elite)</div><div>ممتاز</div><div>جيد</div>
+                  </div>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="grid grid-cols-4 text-center items-center bg-emerald-950/15 p-2 rounded-xl border border-emerald-500/20"><span className="text-emerald-400 font-bold">منتخب طائرة رجال</span><span>+36" (91+)</span><span>32"-35"</span><span>28"-31"</span></div>
+                    <div className="grid grid-cols-4 text-center items-center bg-emerald-950/10 p-2 rounded-xl border border-emerald-500/15"><span className="text-emerald-300 font-bold">منتخب طائرة سيدات</span><span>+28" (71+)</span><span>24"-27"</span><span>20"-23"</span></div>
+                    <div className="grid grid-cols-4 text-center items-center bg-purple-950/15 p-2 rounded-xl border border-purple-500/20"><span className="text-purple-400 font-bold">ألعاب قوى - وثب</span><span>+38" (96+)</span><span>34"-37"</span><span>30"-33"</span></div>
+                    <div className="grid grid-cols-4 text-center items-center bg-purple-950/10 p-2 rounded-xl border border-purple-500/15"><span className="text-purple-300 font-bold">ألعاب قوى - عدو</span><span>+34" (86+)</span><span>30"-33"</span><span>26"-29"</span></div>
+                  </div>
+                </div>
+
+                {/* RSI Benchmarks */}
+                <div className="bg-black/20 p-4 rounded-2xl border border-cyan-500/30">
+                  <h3 className="text-lg font-bold text-cyan-400 mb-3 border-b border-cyan-500/20 pb-2">⚡ معايير مؤشر القوة التفاعلية (RSI Benchmarks)</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* CMJ/Standard RSI */}
+                    <div>
+                      <p className="text-xs text-gray-400 font-bold mb-2">RSI - القفز المضاد للحركة (CMJ):</p>
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex justify-between items-center bg-cyan-950/20 p-2.5 rounded-xl border border-cyan-500/25"><span className="text-cyan-400 font-bold">نخبة (Elite)</span><span className="font-mono text-white">&gt; 3.0</span></div>
+                        <div className="flex justify-between items-center bg-black/30 p-2.5 rounded-xl border border-gray-700"><span className="text-emerald-400 font-bold">جيد (Good)</span><span className="font-mono text-white">2.0 - 2.5</span></div>
+                        <div className="flex justify-between items-center bg-black/30 p-2.5 rounded-xl border border-gray-700"><span className="text-amber-400 font-bold">متوسط (Average)</span><span className="font-mono text-white">1.5 - 2.0</span></div>
+                        <div className="flex justify-between items-center bg-red-950/15 p-2.5 rounded-xl border border-red-500/20"><span className="text-red-400 font-bold">انتقالي (Transitional)</span><span className="font-mono text-white">&lt; 1.5</span></div>
+                      </div>
+                    </div>
+                    {/* Depth Jump RSI */}
+                    <div>
+                      <p className="text-xs text-gray-400 font-bold mb-2">RSI - قفز العمق (Depth Jump):</p>
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex justify-between items-center bg-cyan-950/20 p-2.5 rounded-xl border border-cyan-500/25"><span className="text-cyan-400 font-bold">نخبة (Elite)</span><span className="font-mono text-white">&gt; 2.5</span></div>
+                        <div className="flex justify-between items-center bg-black/30 p-2.5 rounded-xl border border-gray-700"><span className="text-emerald-400 font-bold">جيد (Good)</span><span className="font-mono text-white">1.6 - 2.5</span></div>
+                        <div className="flex justify-between items-center bg-red-950/15 p-2.5 rounded-xl border border-red-500/20"><span className="text-red-400 font-bold">منخفض (Low)</span><span className="font-mono text-white">&lt; 1.6</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="bg-cyan-950/10 border border-cyan-500/30 p-4 rounded-xl flex gap-2">
                   <ShieldAlert className="text-cyan-400 shrink-0" size={18} />
                   <div>
                      <p className="text-xs text-cyan-400 font-bold mb-0.5">معايير الناشئين والناشئات (أقل من 17 سنة):</p>
-                     <p className="text-xs text-gray-400 leading-relaxed">يقوم المحرك تلقائياً بتخفيض الحدود المعيارية السابقة بنسبة 15% لملاءمة معدلات التطور البدني والفسيولوجي لسن اللاعب المحدد.</p>
+                     <p className="text-xs text-gray-400 leading-relaxed">يقوم المحرك تلقائياً بتخفيض الحدود المعيارية السابقة بنسبة 15% لملاءمة معدلات التطور البدني والفسيولوجي لسن اللاعب المحدد. ينطبق هذا على جميع الأندية والمنتخبات أعلاه.</p>
                   </div>
                 </div>
               </div>

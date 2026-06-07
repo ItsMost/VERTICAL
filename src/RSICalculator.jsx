@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
-import { Zap, Play, Pause, X, Save, Info, ChevronRight, ChevronLeft, Activity } from 'lucide-react';
+import { Zap, Play, Pause, X, Save, Info, ChevronRight, ChevronLeft, Activity, ChevronsRight, ChevronsLeft, Sparkles } from 'lucide-react';
 
 // Animated counter helper
 const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {

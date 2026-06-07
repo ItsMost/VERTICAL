@@ -535,8 +535,11 @@ export default function FVPCalculator({ activePlayer }) {
   const [jumps, setJumps] = useState([
     { weight: 0, flightTime: '' },
     { weight: 10, flightTime: '' },
-    { weight: 20, flightTime: '' }
+    { weight: 20, flightTime: '' },
+    { weight: 30, flightTime: '' }
   ]);
+  const [seasonPeriod, setSeasonPeriod] = useState('off_season');
+  const [trainingAge, setTrainingAge] = useState('intermediate');
   
   const [fvpResult, setFvpResult] = useState(null);
 
@@ -585,12 +588,11 @@ export default function FVPCalculator({ activePlayer }) {
     });
 
     const slope = numerator / denominator;
-    if (slope >= 0) {
-      return alert("خطأ فيزيائي: لا يمكن أن تزيد سرعتك عندما تحمل وزناً أثقل! يرجى التأكد من أن أزمنة الطيران تقل منطقياً مع زيادة الأوزان.");
-    }
+    const isDistorted = slope >= 0;
+    const effectiveSlope = isDistorted ? -50 : slope;
 
-    const F0 = mean_f_all - slope * mean_v_all; 
-    const V0 = -F0 / slope;                     
+    const F0 = mean_f_all - effectiveSlope * mean_v_all; 
+    const V0 = -F0 / effectiveSlope;                     
     const Pmax = (F0 * V0) / 4;                 
     const f0_rel = F0 / mass; 
 
@@ -600,24 +602,36 @@ export default function FVPCalculator({ activePlayer }) {
 
     if (V0 < 3.0 && f0_rel >= 24) {
         diagnosis = "نقص في السرعة (Velocity Deficit)";
-        advice = "اللاعب يمتلك قوة كبيرة لكنه بطيء. يجب التركيز على تدريبات القفز السريع (Plyometrics) والأوزان الخفيفة جداً.";
+        if (seasonPeriod === 'in_season' || seasonPeriod === 'competition_phase') {
+            advice = "اللاعب يمتلك قوة كبيرة لكنه بطيء. نظراً للموسم الحالي، نوصي بتمارين السرعة القصوى والارتداد السريع جداً Plyometrics لتفادي بطء الحركة أثناء المنافسات.";
+        } else {
+            advice = "اللاعب يمتلك قوة كبيرة لكنه بطيء. نوصي بتمارين القدرة البالستية الخفيفة لزيادة تسارع القوة في فترة الإعداد.";
+        }
         color = "text-blue-400 border-blue-500 bg-blue-900/20";
     } else if (f0_rel < 24 && V0 >= 3.0) {
         diagnosis = "نقص في القوة (Force Deficit)";
-        advice = "اللاعب سريع ولكنه يفتقر للقوة الأساسية. يجب التركيز على تدريبات الأوزان الثقيلة (Squat/Deadlift).";
+        if (seasonPeriod === 'in_season' || seasonPeriod === 'competition_phase') {
+            advice = "اللاعب سريع ولكنه يفتقر للقوة الأساسية. نوصي بتمارين البلايومتركس السريعة ذات الأحمال المنخفضة والتدريب المركب (Complex Training) للحفاظ على التفجير القوي دون إجهاد.";
+        } else {
+            advice = "اللاعب سريع ولكنه يفتقر للقوة الأساسية. نوصي بPrescribe heavy strength training (تمارين أوزان ثقيلة مثل Squats, Cleans, eccentric loading) لبناء أساس متين.";
+        }
         color = "text-orange-400 border-orange-500 bg-orange-900/20";
     } else if (f0_rel < 24 && V0 < 3.0) {
         diagnosis = "ضعف عام (Weak Profile)";
-        advice = "اللاعب يعاني من نقص في كل من القوة والسرعة. ابدأ ببناء قاعدة قوة (Base Strength) أولاً ثم انتقل للسرعة.";
+        advice = "اللاعب يعاني من نقص في كل من القوة والسرعة. ابدأ ببناء قاعدة قوة (Base Strength) أولاً ثم انتقل لتسارع القوة.";
         color = "text-red-400 border-red-500 bg-red-900/20";
     } else {
         diagnosis = "ملف متوازن (Well-Balanced Profile)";
-        advice = "اللاعب يمتلك توازن ممتاز بين القوة والسرعة. استمر في التدريب المتنوع (Mixed Training) للحفاظ على المنحنى وتطويره.";
+        advice = "اللاعب يمتلك توازن ممتاز بين القوة والسرعة. استمر في التدريب المختلط للحفاظ على المنحنى وتطويره.";
         color = "text-emerald-400 border-emerald-500 bg-emerald-900/20";
     }
 
+    if (trainingAge === 'beginner') {
+        advice += " (تنبيه: نظراً لأن عمر اللاعب التدريبي مبتدئ، ركز أولاً على التكنيك الصحيح والسلامة البدنية.)";
+    }
+
     setFvpResult({
-      F0, V0, Pmax, diagnosis, advice, color, points
+      F0, V0, Pmax, diagnosis, advice, color, points, isDistorted
     });
   };
 
@@ -1286,11 +1300,39 @@ export default function FVPCalculator({ activePlayer }) {
               منحنى القوة والسرعة لقفز متعدد الأوزان (Force-Velocity Profile - Samozino)
             </h3>
             <p className="text-gray-400 text-xs md:text-sm mt-1.5 max-w-xl mx-auto">
-              قم بإجراء 3 قفزات بأوزان إضافية مختلفة (بوزن الجسم، ووزن خفيف، ووزن متوسط) لتحديد بروفايل القوة والسرعة للاعب بدقة.
+              قم بإجراء 4 قفزات بأوزان إضافية مختلفة لتحديد بروفايل القوة والسرعة للاعب بدقة.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8 text-right">
+          {/* Metadata selectors */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-6 bg-black/20 p-4 rounded-2xl border border-gray-800">
+            <div className="space-y-1 text-right">
+              <label className="block text-xs text-gray-400 font-bold">فترة الموسم (Season Period):</label>
+              <select
+                value={seasonPeriod}
+                onChange={(e) => setSeasonPeriod(e.target.value)}
+                className="w-full bg-[#1f2937] text-white border border-gray-700 rounded-lg p-2 text-xs font-bold outline-none cursor-pointer"
+              >
+                <option value="off_season">خارج الموسم (Off-Season)</option>
+                <option value="in_season">داخل الموسم (In-Season)</option>
+                <option value="competition_phase">فترة المنافسات (Competition-Phase)</option>
+              </select>
+            </div>
+            <div className="space-y-1 text-right">
+              <label className="block text-xs text-gray-400 font-bold">العمر التدريبي (Training Age):</label>
+              <select
+                value={trainingAge}
+                onChange={(e) => setTrainingAge(e.target.value)}
+                className="w-full bg-[#1f2937] text-white border border-gray-700 rounded-lg p-2 text-xs font-bold outline-none cursor-pointer"
+              >
+                <option value="beginner">مبتدئ / ناشئ (Beginner &lt;1 year)</option>
+                <option value="intermediate">متوسط (Intermediate 1-3 years)</option>
+                <option value="advanced">متقدم (Advanced &gt;3 years)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8 text-right">
             {jumps.map((jump, index) => (
               <div key={index} className="bg-black/20 p-5 rounded-2xl border border-gray-800 text-center transition-all hover:border-orange-500/50">
                 <h4 className="font-bold text-white mb-4 bg-gray-900 py-2 rounded-xl border border-gray-800">
@@ -1375,12 +1417,28 @@ export default function FVPCalculator({ activePlayer }) {
           {fvpResult && (
             <div className="space-y-6 border-t border-gray-800 pt-6 text-right">
               
+              {fvpResult.isDistorted && (
+                <div className="p-4 rounded-xl border border-red-500/20 bg-red-950/20 text-red-400 text-center text-xs font-bold mb-4">
+                  ⚠️ تشويه في بروفايل القوة والسرعة (Profiling Distortion): العلاقة البيوميكانيكية غير منطقية (السرعة زادت مع زيادة الأوزان). تم تطبيق كبح حسابي لمتابعة التحليل.
+                </div>
+              )}
+
               <div className={`p-6 rounded-2xl border shadow-lg text-center ${fvpResult.color}`}>
                  <p className="text-sm font-bold opacity-80 mb-2">التشخيص الميكانيكي (FVP Diagnosis)</p>
                  <h4 className="text-3xl font-black mb-3 text-white">{fvpResult.diagnosis}</h4>
                  <p className="text-sm opacity-90 max-w-xl mx-auto leading-relaxed">
                    💡 {fvpResult.advice}
                  </p>
+              </div>
+
+              {/* LaTeX Biomechanical Equations */}
+              <div className="glass-panel p-4 rounded-xl border border-cyan-800/20 text-center bg-black/10">
+                <span className="block text-xs text-gray-400 mb-2">تقرير المعادلات البيوميكانيكية (LaTeX Report)</span>
+                <div className="latex-equations font-mono text-cyan-400 text-xs md:text-sm space-y-1.5" dir="ltr">
+                  <div>{"$$F_0 = " + fvpResult.F0.toFixed(1) + " \\text{ N}$$"}</div>
+                  <div>{"$$V_0 = " + fvpResult.V0.toFixed(2) + " \\text{ m/s}$$"}</div>
+                  <div>{"$$P_{max} = " + fvpResult.Pmax.toFixed(0) + " \\text{ W}$$"}</div>
+                </div>
               </div>
 
               {/* Metric Cards & Speedometer Dashboard */}
