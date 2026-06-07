@@ -157,8 +157,10 @@ export default function RSICalculator({
     const handlePointerUp = () => {
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
       window.removeEventListener('touchmove', handlePointerMove);
       window.removeEventListener('touchend', handlePointerUp);
+      window.removeEventListener('touchcancel', handlePointerUp);
 
       if (videoRef.current) {
         isSeekingRef.current = false;
@@ -180,8 +182,10 @@ export default function RSICalculator({
 
     window.addEventListener('pointermove', handlePointerMove, { passive: false });
     window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerUp);
     window.addEventListener('touchmove', handlePointerMove, { passive: false });
     window.addEventListener('touchend', handlePointerUp);
+    window.addEventListener('touchcancel', handlePointerUp);
   };
 
   // RSI Calculations & Leg Stiffness
@@ -601,9 +605,9 @@ export default function RSICalculator({
                 className="max-h-80 w-auto object-contain"
                 onLoadedMetadata={() => setDuration(videoRef.current.duration)}
                 onTimeUpdate={handleTimeUpdate}
-                onSeeking={handleVideoSeeking}
                 onSeeked={handleVideoSeeked}
                 onEnded={() => setIsPlaying(false)}
+
               />
             </div>
 

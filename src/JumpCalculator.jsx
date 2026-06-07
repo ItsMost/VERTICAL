@@ -184,8 +184,10 @@ export default function JumpCalculator() {
     const handlePointerUp = () => {
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
       window.removeEventListener('touchmove', handlePointerMove);
       window.removeEventListener('touchend', handlePointerUp);
+      window.removeEventListener('touchcancel', handlePointerUp);
 
       if (videoRef.current) {
         isSeekingRef.current = false;
@@ -207,8 +209,10 @@ export default function JumpCalculator() {
 
     window.addEventListener('pointermove', handlePointerMove, { passive: false });
     window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerUp);
     window.addEventListener('touchmove', handlePointerMove, { passive: false });
     window.addEventListener('touchend', handlePointerUp);
+    window.addEventListener('touchcancel', handlePointerUp);
   };
   
   const getActiveCorrectionMs = () => {
@@ -1503,7 +1507,7 @@ export default function JumpCalculator() {
                             <button onClick={clearVideo} className="absolute top-2 right-2 bg-red-600 hover:bg-red-500 p-2 rounded-full text-white z-20 shadow-lg transition-transform hover:scale-110"><X size={16}/></button>
                             
                             <div className="relative inline-block border border-[var(--border-light)] rounded-2xl overflow-hidden mb-5 shadow-2xl w-full bg-black">
-                              <video ref={videoRef} src={videoSrc} playsInline webkitPlaysInline={true} muted preload="auto" className="w-full h-auto max-h-[48vh] object-contain mx-auto" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onSeeking={handleVideoSeeking} onSeeked={handleVideoSeeked} onEnded={() => setIsPlaying(false)} />
+                              <video ref={videoRef} src={videoSrc} playsInline webkitPlaysInline={true} muted preload="auto" className="w-full h-auto max-h-[48vh] object-contain mx-auto" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onSeeked={handleVideoSeeked} onEnded={() => setIsPlaying(false)} />
                               <canvas 
                                 ref={canvasRef} 
                                 onClick={handleCanvasClick} 
