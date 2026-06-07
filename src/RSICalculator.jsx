@@ -466,8 +466,21 @@ export default function RSICalculator({
     }
     isSeekingRef.current = false;
     setIsSeeking(false);
+    
     if (videoRef.current) {
       setCurrentTime(videoRef.current.currentTime);
+      
+      // iOS Safari paused render workaround: play and pause immediately if no pending seeks
+      if (pendingSeekTimeRef.current === null && videoRef.current.paused) {
+        try {
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.then(() => {
+              if (videoRef.current) videoRef.current.pause();
+            }).catch(() => {});
+          }
+        } catch (e) {}
+      }
     }
     
     if (pendingSeekTimeRef.current !== null) {
