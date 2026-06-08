@@ -101,94 +101,197 @@ export default function JumpCalculator() {
   const isSeekingRef = useRef(false);
   const seekTimeoutRef = useRef(null);
   const pendingSeekTimeRef = useRef(null);
+  const [activeDragType, setActiveDragType] = useState(null);
+  const activeDragTypeRef = useRef(null);
 
-  const handleTimelineDragStart = (e, type) => {
-    e.preventDefault();
+
+  const updatePositionFromClientX = (clientX, type) => {
     const track = timelineTrackRef.current;
     if (!track || !duration) return;
+    
+    const rect = track.getBoundingClientRect();
+    const rtl = document.documentElement.dir === 'rtl' || window.getComputedStyle(track).direction === 'rtl';
+    
+    const pct = rtl ? (rect.right - clientX) / rect.width : (clientX - rect.left) / rect.width;
+    const clampedPct = Math.max(0, Math.min(1, pct));
+    const targetTime = clampedPct * duration;
+    
+    // Apply safe time boundaries to prevent Safari freeze/0-seek bugs
+    const safeTime = Math.max(0.01, Math.min(targetTime, duration - 0.01));
+    
+    if (type === 'takeoff') {
+      setTakeoffTime(safeTime);
+      setShowResults(false);
+    } else if (type === 'landing') {
+      setLandingTime(safeTime);
+      setShowResults(false);
+    } else if (type === 'touchdown') {
+      setBoxTouchdownTime(safeTime);
+      setShowResults(false);
+    }
+    
+    setCurrentTime(safeTime);
+    performSeek(safeTime);
+  };
 
+  const performSeek = (time) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const safeTime = Math.max(0.01, Math.min(time, duration - 0.01));
+
+    if (isSeekingRef.current) {
+      pendingSeekTimeRef.current = safeTime;
+      return;
+    }
+
+    isSeekingRef.current = true;
+    setIsSeeking(true);
+
+    if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
+    seekTimeoutRef.current = setTimeout(() => {
+      console.warn("Safety timeout seek reset");
+      handleVideoSeeked();
+    }, 200);
+
+    try {
+      video.currentTime = safeTime;
+    } catch (err) {
+      console.error("Seeking error:", err);
+      isSeekingRef.current = false;
+      setIsSeeking(false);
+    }
+  };
+
+  const processPointerPosition = (e, type) => {
+    updatePositionFromClientX(e.clientX, type);
+  };
+
+  const handleTimelinePointerDown = (e, type) => {
+    if (!duration) return;
+    e.preventDefault();
+    
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch (err) {}
+    
     if (videoRef.current && !videoRef.current.paused) {
       videoRef.current.pause();
       setIsPlaying(false);
     }
+    
     setIsDragging(true);
+    setActiveDragType(type);
+    activeDragTypeRef.current = type;
+    
+    processPointerPosition(e, type);
+  };
 
-    const rect = track.getBoundingClientRect();
-    const rtl = document.documentElement.dir === 'rtl' || window.getComputedStyle(track).direction === 'rtl';
-    let latestTime = currentTime;
+  const handleTimelinePointerMove = (e) => {
+    const type = activeDragTypeRef.current;
+    if (!type) return;
+    e.preventDefault();
+    processPointerPosition(e, type);
+  };
 
-    const handlePointerMove = (moveEvent) => {
-      if (moveEvent.cancelable) {
-        moveEvent.preventDefault();
-      }
-      let clientX = moveEvent.clientX;
-      if (moveEvent.touches && moveEvent.touches.length > 0) {
-        clientX = moveEvent.touches[0].clientX;
-      } else if (moveEvent.clientX === undefined && moveEvent.nativeEvent) {
-        clientX = moveEvent.nativeEvent.clientX;
+  const handleTimelinePointerUp = (e) => {
+    const type = activeDragTypeRef.current;
+    if (!type) return;
+    e.preventDefault();
+    
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (err) {}
+    
+    setIsDragging(false);
+    setActiveDragType(null);
+    activeDragTypeRef.current = null;
+    
+    if (videoRef.current) {
+      isSeekingRef.current = false;
+      setIsSeeking(false);
+      pendingSeekTimeRef.current = null;
+      if (seekTimeoutRef.current) {
+        clearTimeout(seekTimeoutRef.current);
+        seekTimeoutRef.current = null;
       }
       
-      const pct = rtl ? (rect.right - clientX) / rect.width : (clientX - rect.left) / rect.width;
-      const clampedPct = Math.max(0, Math.min(1, pct));
-      const targetTime = clampedPct * duration;
-      latestTime = targetTime;
-
-      const performSeek = (time) => {
+      let snapTime = currentTime;
+      if (type === 'takeoff') snapTime = takeoffTime;
+      else if (type === 'landing') snapTime = landingTime;
+      else if (type === 'touchdown') snapTime = boxTouchdownTime;
+      
+      const safeTime = Math.max(0.01, Math.min(snapTime, duration - 0.01));
+      
+      try {
         const video = videoRef.current;
-        if (!video) return;
-
-        if (isSeekingRef.current) {
-          pendingSeekTimeRef.current = time;
-          return;
+        video.currentTime = safeTime;
+        if (video.paused) {
+          video.play().then(() => {
+            if (videoRef.current) videoRef.current.pause();
+          }).catch(() => {});
         }
+      } catch (err) {
+        console.error("Snap seek error:", err);
+      }
+    }
+  };
 
-        isSeekingRef.current = true;
-        setIsSeeking(true);
+  // Touch event dragging listeners for iOS Safari support
+  useEffect(() => {
+    const track = timelineTrackRef.current;
+    if (!track) return;
 
-        if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
-        seekTimeoutRef.current = setTimeout(() => {
-          console.warn("Safety timeout seek reset");
-          handleVideoSeeked();
-        }, 200);
+    const getTouchPosition = (e) => {
+      if (!e.touches || e.touches.length === 0) return null;
+      return e.touches[0].clientX;
+    };
 
-        try {
-          video.currentTime = time;
-        } catch (err) {
-          console.error("Seeking error:", err);
-          isSeekingRef.current = false;
-          setIsSeeking(false);
-        }
-      };
-
-      if (type === 'takeoff') {
-        setTakeoffTime(targetTime);
-        performSeek(targetTime);
-        setCurrentTime(targetTime);
-        setShowResults(false);
-      } else if (type === 'landing') {
-        setLandingTime(targetTime);
-        performSeek(targetTime);
-        setCurrentTime(targetTime);
-        setShowResults(false);
-      } else if (type === 'touchdown') {
-        setBoxTouchdownTime(targetTime);
-        performSeek(targetTime);
-        setCurrentTime(targetTime);
-        setShowResults(false);
-      } else if (type === 'playhead') {
-        performSeek(targetTime);
-        setCurrentTime(targetTime);
+    const handleTouchStart = (e) => {
+      if (!duration) return;
+      
+      const target = e.target.closest('[data-timeline-handle]');
+      const type = target ? target.getAttribute('data-timeline-handle') : 'playhead';
+      
+      e.preventDefault();
+      
+      if (videoRef.current && !videoRef.current.paused) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+      
+      setIsDragging(true);
+      setActiveDragType(type);
+      activeDragTypeRef.current = type;
+      
+      const clientX = getTouchPosition(e);
+      if (clientX !== null) {
+        updatePositionFromClientX(clientX, type);
       }
     };
 
-    const handlePointerUp = () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-      window.removeEventListener('pointercancel', handlePointerUp);
-      window.removeEventListener('touchmove', handlePointerMove);
-      window.removeEventListener('touchend', handlePointerUp);
-      window.removeEventListener('touchcancel', handlePointerUp);
+    const handleTouchMove = (e) => {
+      const type = activeDragTypeRef.current;
+      if (!type) return;
+      
+      e.preventDefault();
+      
+      const clientX = getTouchPosition(e);
+      if (clientX !== null) {
+        updatePositionFromClientX(clientX, type);
+      }
+    };
 
+    const handleTouchEnd = (e) => {
+      const type = activeDragTypeRef.current;
+      if (!type) return;
+      
+      e.preventDefault();
+      
+      setIsDragging(false);
+      setActiveDragType(null);
+      activeDragTypeRef.current = null;
+      
       if (videoRef.current) {
         isSeekingRef.current = false;
         setIsSeeking(false);
@@ -197,23 +300,38 @@ export default function JumpCalculator() {
           clearTimeout(seekTimeoutRef.current);
           seekTimeoutRef.current = null;
         }
-
+        
+        let snapTime = currentTime;
+        if (type === 'takeoff') snapTime = takeoffTime;
+        else if (type === 'landing') snapTime = landingTime;
+        else if (type === 'touchdown') snapTime = boxTouchdownTime;
+        
+        const safeTime = Math.max(0.01, Math.min(snapTime, duration - 0.01));
+        
         try {
-          videoRef.current.currentTime = latestTime;
-        } catch (err) {
-          console.error("Seeking error on up:", err);
-        }
+          const video = videoRef.current;
+          video.currentTime = safeTime;
+          if (video.paused) {
+            video.play().then(() => {
+              if (videoRef.current) videoRef.current.pause();
+            }).catch(() => {});
+          }
+        } catch (err) {}
       }
-      setIsDragging(false);
     };
 
-    window.addEventListener('pointermove', handlePointerMove, { passive: false });
-    window.addEventListener('pointerup', handlePointerUp);
-    window.addEventListener('pointercancel', handlePointerUp);
-    window.addEventListener('touchmove', handlePointerMove, { passive: false });
-    window.addEventListener('touchend', handlePointerUp);
-    window.addEventListener('touchcancel', handlePointerUp);
-  };
+    track.addEventListener('touchstart', handleTouchStart, { passive: false });
+    track.addEventListener('touchmove', handleTouchMove, { passive: false });
+    track.addEventListener('touchend', handleTouchEnd, { passive: false });
+    track.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+
+    return () => {
+      track.removeEventListener('touchstart', handleTouchStart);
+      track.removeEventListener('touchmove', handleTouchMove);
+      track.removeEventListener('touchend', handleTouchEnd);
+      track.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, [duration, takeoffTime, landingTime, boxTouchdownTime, currentTime]);
   
   const getActiveCorrectionMs = () => {
     if (landingCorrectionMode === 'none') return 0;
@@ -625,7 +743,22 @@ export default function JumpCalculator() {
 
   const handleFileUpload = (e) => { const file = e.target.files[0]; if (file) { setVideoSrc(URL.createObjectURL(file)); setAiEnabled(false); flightDataRef.current = []; setAiDetectedFrameDuration(null); } };
   const clearVideo = () => { setVideoSrc(null); setTakeoffTime(0); setLandingTime(0); setCurrentTime(0); setIsPlaying(false); setShowResults(false); setAiEnabled(false); flightDataRef.current = []; setAiDetectedFrameDuration(null); };
-  const togglePlay = () => { if (videoRef.current) { if (videoRef.current.paused) { videoRef.current.play(); setIsPlaying(true); } else { videoRef.current.pause(); setIsPlaying(false); } } };
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        if (videoRef.current.currentTime >= duration - 0.1) {
+          const startSafeTime = 0.01;
+          videoRef.current.currentTime = startSafeTime;
+          setCurrentTime(startSafeTime);
+        }
+        videoRef.current.play().catch(() => {});
+        setIsPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  };
   const handleTimeUpdate = () => { if (isDragging) return; if (videoRef.current) setCurrentTime(videoRef.current.currentTime); };
   const handleLoadedMetadata = () => { if (videoRef.current) setDuration(videoRef.current.duration); };
   const handleSeek = async (e) => {
@@ -635,6 +768,8 @@ export default function JumpCalculator() {
     const video = videoRef.current;
     video.pause();
     setIsPlaying(false);
+    
+    const safeTime = Math.max(0.01, Math.min(time, duration - 0.01));
     
     isSeekingRef.current = true;
     setIsSeeking(true);
@@ -646,8 +781,15 @@ export default function JumpCalculator() {
     }, 200);
 
     try {
-      video.currentTime = time;
-      setCurrentTime(time);
+      video.currentTime = safeTime;
+      setCurrentTime(safeTime);
+      
+      if (video.paused) {
+        video.play().then(() => {
+          if (videoRef.current) videoRef.current.pause();
+        }).catch(() => {});
+      }
+      
       if (aiEnabled && poseRef.current) {
         await poseRef.current.send({ image: videoRef.current });
       }
@@ -719,7 +861,6 @@ export default function JumpCalculator() {
   
   const stepFrames = async (frames) => {
     if (!videoRef.current || duration <= 0) return;
-    if (isSeekingRef.current) return;
     
     const video = videoRef.current;
     video.pause();
@@ -727,28 +868,17 @@ export default function JumpCalculator() {
     
     const timeStep = frames / (videoFps || 30);
     let newTime = video.currentTime + timeStep;
-    newTime = Math.max(0, Math.min(newTime, duration));
+    const safeTime = Math.max(0.01, Math.min(newTime, duration - 0.01));
     
-    isSeekingRef.current = true;
-    setIsSeeking(true);
-    
-    if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
-    seekTimeoutRef.current = setTimeout(() => {
-      console.warn("Seeking timeout safety trigger");
-      handleVideoSeeked();
-    }, 200);
+    performSeek(safeTime);
     
     try {
-      video.currentTime = newTime;
-    } catch (err) {
-      console.error("Step frames error:", err);
-      if (seekTimeoutRef.current) {
-        clearTimeout(seekTimeoutRef.current);
-        seekTimeoutRef.current = null;
+      if (video.paused) {
+        video.play().then(() => {
+          if (videoRef.current) videoRef.current.pause();
+        }).catch(() => {});
       }
-      isSeekingRef.current = false;
-      setIsSeeking(false);
-    }
+    } catch (err) {}
   };
 
 
@@ -1565,8 +1695,11 @@ export default function JumpCalculator() {
                                   className="relative w-full md:flex-1 h-12 bg-[#070b13] border border-cyan-950/80 rounded-2xl select-none touch-none cursor-pointer"
                                   onPointerDown={(e) => {
                                     if (e.target.closest('[data-timeline-handle]')) return;
-                                    handleTimelineDragStart(e, 'playhead');
+                                    handleTimelinePointerDown(e, 'playhead');
                                   }}
+                                  onPointerMove={handleTimelinePointerMove}
+                                  onPointerUp={handleTimelinePointerUp}
+                                  onPointerCancel={handleTimelinePointerUp}
                                   style={{ touchAction: 'none' }}
                                 >
                                   {/* Ruler-style ticks */}
@@ -1609,7 +1742,10 @@ export default function JumpCalculator() {
                                   {duration > 0 && takeoffTime > 0 && (
                                     <div 
                                       data-timeline-handle="takeoff"
-                                      onPointerDown={(e) => handleTimelineDragStart(e, 'takeoff')}
+                                      onPointerDown={(e) => handleTimelinePointerDown(e, 'takeoff')}
+                                      onPointerMove={handleTimelinePointerMove}
+                                      onPointerUp={handleTimelinePointerUp}
+                                      onPointerCancel={handleTimelinePointerUp}
                                       className="absolute top-0 bottom-0 w-8 -mr-4 z-20 cursor-ew-resize touch-none flex justify-center"
                                       style={{ right: `${(takeoffTime / duration) * 100}%`, touchAction: 'none' }}
                                     >
@@ -1626,7 +1762,10 @@ export default function JumpCalculator() {
                                   {duration > 0 && landingTime > 0 && (
                                     <div 
                                       data-timeline-handle="landing"
-                                      onPointerDown={(e) => handleTimelineDragStart(e, 'landing')}
+                                      onPointerDown={(e) => handleTimelinePointerDown(e, 'landing')}
+                                      onPointerMove={handleTimelinePointerMove}
+                                      onPointerUp={handleTimelinePointerUp}
+                                      onPointerCancel={handleTimelinePointerUp}
                                       className="absolute top-0 bottom-0 w-8 -mr-4 z-20 cursor-ew-resize touch-none flex justify-center"
                                       style={{ right: `${(landingTime / duration) * 100}%`, touchAction: 'none' }}
                                     >
@@ -1643,7 +1782,10 @@ export default function JumpCalculator() {
                                   {duration > 0 && jumpType === 'dj' && boxTouchdownTime > 0 && (
                                     <div 
                                       data-timeline-handle="touchdown"
-                                      onPointerDown={(e) => handleTimelineDragStart(e, 'touchdown')}
+                                      onPointerDown={(e) => handleTimelinePointerDown(e, 'touchdown')}
+                                      onPointerMove={handleTimelinePointerMove}
+                                      onPointerUp={handleTimelinePointerUp}
+                                      onPointerCancel={handleTimelinePointerUp}
                                       className="absolute top-0 bottom-0 w-8 -mr-4 z-20 cursor-ew-resize touch-none flex justify-center"
                                       style={{ right: `${(boxTouchdownTime / duration) * 100}%`, touchAction: 'none' }}
                                     >
