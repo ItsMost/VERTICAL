@@ -1663,7 +1663,21 @@ export default function JumpCalculator() {
                             <button onClick={clearVideo} className="absolute top-2 right-2 bg-red-600 hover:bg-red-500 p-2 rounded-full text-white z-20 shadow-lg transition-transform hover:scale-110"><X size={16}/></button>
                             
                             <div className="relative inline-block border border-[var(--border-light)] rounded-2xl overflow-hidden mb-5 shadow-2xl w-full bg-black">
-                              <video ref={videoRef} src={videoSrc} playsInline webkitPlaysInline={true} muted preload="auto" className="w-full h-auto max-h-[48vh] object-contain mx-auto" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onSeeked={handleVideoSeeked} onEnded={() => setIsPlaying(false)} />
+                              <video
+                                ref={videoRef}
+                                src={videoSrc}
+                                playsInline={true}
+                                webkitPlaysInline={true}
+                                muted={true}
+                                controls={false}
+                                preload="auto"
+                                className="w-full h-auto max-h-[48vh] object-contain mx-auto"
+                                onTimeUpdate={handleTimeUpdate}
+                                // eslint-disable-next-line react/no-unknown-property
+                                onLoadedMetadata={handleLoadedMetadata}
+                                onSeeked={handleVideoSeeked}
+                                onEnded={() => setIsPlaying(false)}
+                              />
                               <canvas 
                                 ref={canvasRef} 
                                 onClick={handleCanvasClick} 
@@ -1776,16 +1790,36 @@ export default function JumpCalculator() {
                                     step="0.001"
                                     value={currentTime}
                                     dir="rtl"
-                                    onChange={(e) => {
-                                      const val = Number(e.target.value);
-                                      setCurrentTime(val);
-                                      if (videoRef.current && !videoRef.current.paused) {
+                                    onMouseDown={() => {
+                                      setIsDragging(true);
+                                      if (videoRef.current) {
                                         videoRef.current.pause();
                                         setIsPlaying(false);
                                       }
-                                      performSeek(val);
+                                    }}
+                                    onTouchStart={() => {
+                                      setIsDragging(true);
+                                      if (videoRef.current) {
+                                        videoRef.current.pause();
+                                        setIsPlaying(false);
+                                      }
+                                    }}
+                                    onMouseMove={(e) => {
+                                      if (videoRef.current) {
+                                        const val = parseFloat(e.target.value);
+                                        videoRef.current.currentTime = val;
+                                        setCurrentTime(val);
+                                      }
+                                    }}
+                                    onTouchMove={(e) => {
+                                      if (videoRef.current) {
+                                        const val = parseFloat(e.target.value);
+                                        videoRef.current.currentTime = val;
+                                        setCurrentTime(val);
+                                      }
                                     }}
                                     onMouseUp={() => {
+                                      setIsDragging(false);
                                       if (videoRef.current && videoRef.current.paused) {
                                         videoRef.current.play().then(() => {
                                           if (videoRef.current) videoRef.current.pause();
@@ -1793,10 +1827,18 @@ export default function JumpCalculator() {
                                       }
                                     }}
                                     onTouchEnd={() => {
+                                      setIsDragging(false);
                                       if (videoRef.current && videoRef.current.paused) {
                                         videoRef.current.play().then(() => {
                                           if (videoRef.current) videoRef.current.pause();
                                         }).catch(() => {});
+                                      }
+                                    }}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value);
+                                      setCurrentTime(val);
+                                      if (videoRef.current) {
+                                        videoRef.current.currentTime = val;
                                       }
                                     }}
                                     className="timeline-slider w-full h-full opacity-100 bg-transparent absolute inset-0 z-30 px-4"

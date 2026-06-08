@@ -743,9 +743,10 @@ export default function RSICalculator({
               <video
                 ref={videoRef}
                 src={videoSrc}
-                playsInline
+                playsInline={true}
                 webkitPlaysInline={true}
-                muted
+                muted={true}
+                controls={false}
                 preload="auto"
                 className="max-h-80 w-auto object-contain"
                 onLoadedMetadata={() => setDuration(videoRef.current.duration)}
@@ -861,16 +862,36 @@ export default function RSICalculator({
                     step="0.001"
                     value={currentTime}
                     dir="rtl"
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setCurrentTime(val);
-                      if (videoRef.current && !videoRef.current.paused) {
+                    onMouseDown={() => {
+                      setIsDragging(true);
+                      if (videoRef.current) {
                         videoRef.current.pause();
                         setIsPlaying(false);
                       }
-                      performSeek(val);
+                    }}
+                    onTouchStart={() => {
+                      setIsDragging(true);
+                      if (videoRef.current) {
+                        videoRef.current.pause();
+                        setIsPlaying(false);
+                      }
+                    }}
+                    onMouseMove={(e) => {
+                      if (videoRef.current) {
+                        const val = parseFloat(e.target.value);
+                        videoRef.current.currentTime = val;
+                        setCurrentTime(val);
+                      }
+                    }}
+                    onTouchMove={(e) => {
+                      if (videoRef.current) {
+                        const val = parseFloat(e.target.value);
+                        videoRef.current.currentTime = val;
+                        setCurrentTime(val);
+                      }
                     }}
                     onMouseUp={() => {
+                      setIsDragging(false);
                       if (videoRef.current && videoRef.current.paused) {
                         videoRef.current.play().then(() => {
                           if (videoRef.current) videoRef.current.pause();
@@ -878,10 +899,18 @@ export default function RSICalculator({
                       }
                     }}
                     onTouchEnd={() => {
+                      setIsDragging(false);
                       if (videoRef.current && videoRef.current.paused) {
                         videoRef.current.play().then(() => {
                           if (videoRef.current) videoRef.current.pause();
                         }).catch(() => {});
+                      }
+                    }}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setCurrentTime(val);
+                      if (videoRef.current) {
+                        videoRef.current.currentTime = val;
                       }
                     }}
                     className="timeline-slider w-full h-full opacity-100 bg-transparent absolute inset-0 z-30 px-4"
