@@ -771,18 +771,10 @@ export default function RSICalculator({
                   <span className="text-[9px] text-gray-500">F {Math.round(currentTime * (videoFps || 30))}</span>
                 </div>
                 
-                {/* Timeline Track */}
+                {/* Timeline Track Overhauled with Native HTML5 Slider */}
                 <div 
                   ref={timelineTrackRef}
-                  className="relative w-full md:flex-1 h-12 bg-[#070b13] border border-cyan-950/80 rounded-2xl select-none touch-none cursor-pointer"
-                  onPointerDown={(e) => {
-                    if (e.target.closest('[data-timeline-handle]')) return;
-                    handleTimelinePointerDown(e, 'playhead');
-                  }}
-                  onPointerMove={handleTimelinePointerMove}
-                  onPointerUp={handleTimelinePointerUp}
-                  onPointerCancel={handleTimelinePointerUp}
-                  style={{ touchAction: 'none' }}
+                  className="relative w-full md:flex-1 h-12 bg-[#070b13] border border-cyan-950/80 rounded-2xl select-none flex items-center px-4"
                 >
                   {/* Ruler-style ticks */}
                   <div className="absolute inset-0 flex justify-between items-center px-4 pointer-events-none opacity-20">
@@ -810,75 +802,75 @@ export default function RSICalculator({
                     />
                   )}
 
-                  {/* Draggable Playhead */}
-                  {duration > 0 && (
-                    <div 
-                      className="absolute top-0 bottom-0 w-0.5 bg-yellow-400 shadow-[0_0_8px_#facc15] z-10 pointer-events-none"
-                      style={{ right: `${(currentTime / duration) * 100}%` }}
-                    >
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-yellow-400 rotate-45 border border-black animate-pulse"></div>
-                    </div>
-                  )}
-
-                  {/* Draggable Touchdown Handle */}
+                  {/* Touchdown Marker */}
                   {duration > 0 && touchdownTime > 0 && (
                     <div 
-                      data-timeline-handle="touchdown"
-                      onPointerDown={(e) => handleTimelinePointerDown(e, 'touchdown')}
-                      onPointerMove={handleTimelinePointerMove}
-                      onPointerUp={handleTimelinePointerUp}
-                      onPointerCancel={handleTimelinePointerUp}
-                      className="absolute top-0 bottom-0 w-8 -mr-4 z-20 cursor-ew-resize touch-none flex justify-center"
-                      style={{ right: `${(touchdownTime / duration) * 100}%`, touchAction: 'none' }}
+                      className="absolute top-0 bottom-0 w-0.5 bg-blue-500 shadow-[0_0_8px_#3b82f6] z-10 pointer-events-none"
+                      style={{ right: `${(touchdownTime / duration) * 100}%` }}
                     >
-                      {/* Visual handle line */}
-                      <div className="w-1 h-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)] relative">
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-blue-500 text-white text-[9px] font-black rounded border border-blue-300 shadow-[0_0_8px_rgba(59,130,246,0.6)] flex items-center gap-0.5 select-none whitespace-nowrap">
-                          📥 ملامسة
-                        </div>
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-blue-500 text-white text-[9px] font-black rounded border border-blue-300 shadow-[0_0_8px_rgba(59,130,246,0.6)] flex items-center gap-0.5 whitespace-nowrap">
+                        📥 ملامسة
                       </div>
                     </div>
                   )}
 
-                  {/* Draggable Takeoff Handle */}
+                  {/* Takeoff Marker */}
                   {duration > 0 && takeoffTime > 0 && (
                     <div 
-                      data-timeline-handle="takeoff"
-                      onPointerDown={(e) => handleTimelinePointerDown(e, 'takeoff')}
-                      onPointerMove={handleTimelinePointerMove}
-                      onPointerUp={handleTimelinePointerUp}
-                      onPointerCancel={handleTimelinePointerUp}
-                      className="absolute top-0 bottom-0 w-8 -mr-4 z-20 cursor-ew-resize touch-none flex justify-center"
-                      style={{ right: `${(takeoffTime / duration) * 100}%`, touchAction: 'none' }}
+                      className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 shadow-[0_0_8px_#22d3ee] z-10 pointer-events-none"
+                      style={{ right: `${(takeoffTime / duration) * 100}%` }}
                     >
-                      {/* Visual handle line */}
-                      <div className="w-1 h-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.6)] relative">
-                        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-cyan-500 text-[#070a13] text-[9px] font-black rounded border border-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.6)] flex items-center gap-0.5 select-none whitespace-nowrap">
-                          🚀 إقلاع
-                        </div>
+                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-cyan-500 text-[#070a13] text-[9px] font-black rounded border border-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.6)] flex items-center gap-0.5 whitespace-nowrap">
+                        🚀 إقلاع
                       </div>
                     </div>
                   )}
 
-                  {/* Draggable Landing Handle */}
+                  {/* Landing Marker */}
                   {duration > 0 && landingTime > 0 && (
                     <div 
-                      data-timeline-handle="landing"
-                      onPointerDown={(e) => handleTimelinePointerDown(e, 'landing')}
-                      onPointerMove={handleTimelinePointerMove}
-                      onPointerUp={handleTimelinePointerUp}
-                      onPointerCancel={handleTimelinePointerUp}
-                      className="absolute top-0 bottom-0 w-8 -mr-4 z-20 cursor-ew-resize touch-none flex justify-center"
-                      style={{ right: `${(landingTime / duration) * 100}%`, touchAction: 'none' }}
+                      className="absolute top-0 bottom-0 w-0.5 bg-red-500 shadow-[0_0_8px_#ef4444] z-10 pointer-events-none"
+                      style={{ right: `${(landingTime / duration) * 100}%` }}
                     >
-                      {/* Visual handle line */}
-                      <div className="w-1 h-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] relative">
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-red-500 text-white text-[9px] font-black rounded border border-red-400 shadow-[0_0_8px_rgba(239,68,68,0.6)] flex items-center gap-0.5 select-none whitespace-nowrap">
-                          🛬 هبوط
-                        </div>
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-red-500 text-white text-[9px] font-black rounded border border-red-400 shadow-[0_0_8px_rgba(239,68,68,0.6)] flex items-center gap-0.5 whitespace-nowrap">
+                        🛬 هبوط
                       </div>
                     </div>
                   )}
+
+                  {/* Native Slider Styled as Timeline */}
+                  <input 
+                    type="range"
+                    min="0.01"
+                    max={duration || 100}
+                    step="0.001"
+                    value={currentTime}
+                    dir="rtl"
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setCurrentTime(val);
+                      if (videoRef.current && !videoRef.current.paused) {
+                        videoRef.current.pause();
+                        setIsPlaying(false);
+                      }
+                      performSeek(val);
+                    }}
+                    onMouseUp={() => {
+                      if (videoRef.current && videoRef.current.paused) {
+                        videoRef.current.play().then(() => {
+                          if (videoRef.current) videoRef.current.pause();
+                        }).catch(() => {});
+                      }
+                    }}
+                    onTouchEnd={() => {
+                      if (videoRef.current && videoRef.current.paused) {
+                        videoRef.current.play().then(() => {
+                          if (videoRef.current) videoRef.current.pause();
+                        }).catch(() => {});
+                      }
+                    }}
+                    className="timeline-slider w-full h-full opacity-100 bg-transparent absolute inset-0 z-30 px-4"
+                  />
                 </div>
 
                 {/* Duration Time Badge for Desktop (hidden on mobile) */}

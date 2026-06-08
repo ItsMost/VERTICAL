@@ -184,3 +184,54 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--brand-main);
 }
+
+/* Custom Premium Range Input styling */
+input[type="range"].timeline-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"].timeline-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+input[type="range"].timeline-slider::-webkit-slider-thumb {
+  height: 28px;
+  width: 12px;
+  border-radius: 4px;
+  background: #facc15; /* Golden Yellow Playhead thumb */
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: 10px; /* Center thumb vertically inside the 48px track */
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.8), 0 0 2px rgba(0, 0, 0, 0.8);
+  border: 1px solid #000;
+  transition: transform 0.1s ease, background-color 0.1s ease;
+}
+
+input[type="range"].timeline-slider::-webkit-slider-thumb:hover {
+  transform: scaleY(1.2) scaleX(1.3);
+  background: #fde047;
+}
+
+/* Firefox support */
+input[type="range"].timeline-slider::-moz-range-track {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+input[type="range"].timeline-slider::-moz-range-thumb {
+  height: 28px;
+  width: 12px;
+  border-radius: 4px;
+  background: #facc15;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
+  border: 1px solid #000;
+}
