@@ -599,6 +599,15 @@ export default function RSICalculator({
     if (videoRef.current) {
       setCurrentTime(videoRef.current.currentTime);
       
+      // WebKit Paused Video Repaint Style Hack
+      try {
+        const video = videoRef.current;
+        const originalDisplay = video.style.display;
+        video.style.display = 'none';
+        video.offsetHeight; // Force reflow
+        video.style.display = originalDisplay;
+      } catch (e) {}
+      
       // iOS Safari paused render workaround: play and pause immediately if no pending seeks
       if (pendingSeekTimeRef.current === null && videoRef.current.paused) {
         try {
@@ -648,6 +657,12 @@ export default function RSICalculator({
     performSeek(safeTime);
     
     try {
+      // Synchronous style repaint hack inside user gesture context
+      const originalDisplay = video.style.display;
+      video.style.display = 'none';
+      video.offsetHeight; // Force reflow
+      video.style.display = originalDisplay;
+
       if (video.paused) {
         video.play().then(() => {
           if (videoRef.current) videoRef.current.pause();

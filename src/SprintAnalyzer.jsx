@@ -293,7 +293,7 @@ export default function SprintAnalyzer() {
       
       <div className="relative flex flex-col items-center w-full max-w-lg mx-auto mb-6">
         <div className="relative inline-block border-4 border-gray-700 rounded-xl overflow-hidden shadow-lg w-full mb-4">
-          <video ref={videoRef} className="hidden" playsInline onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)}></video>
+          <video ref={videoRef} className="hidden" playsInline webkitPlaysInline={true} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)}></video>
           <canvas ref={canvasRef} onClick={handleCanvasClick} className={`w-full h-auto bg-black ${isCalibrating ? 'cursor-crosshair' : ''}`}></canvas>
         </div>
 

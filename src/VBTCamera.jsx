@@ -363,7 +363,7 @@ export default function VBTCamera() {
       
       <div className="relative flex flex-col items-center w-full max-w-md mx-auto mb-6">
         <div className="relative inline-block border-4 border-[var(--border-light)] rounded-2xl overflow-hidden shadow-2xl w-full mb-4 bg-black">
-          <video ref={videoRef} className="hidden" playsInline onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)}></video>
+          <video ref={videoRef} className="hidden" playsInline webkitPlaysInline={true} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={() => setIsPlaying(false)}></video>
           <canvas ref={canvasRef} onClick={handleCanvasClick} className={`w-full h-auto bg-black ${isCalibrating ? 'cursor-crosshair' : ''}`}></canvas>
         </div>
 
