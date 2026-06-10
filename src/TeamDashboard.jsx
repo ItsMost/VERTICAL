@@ -14,6 +14,46 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
   const [activeHandbookTab, setActiveHandbookTab] = useState('men');
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
+  const [teamAverages, setTeamAverages] = useState({ cmj: null, approach: null, rsi: null });
+
+  // Fetch all measurements to calculate team averages
+  useEffect(() => {
+    async function fetchTeamAverages() {
+      try {
+        const { data, error } = await supabase
+          .from('lab_jump_measurements')
+          .select('test_type, jump_height_cm, rsi_score');
+        
+        if (!error && data) {
+          let cmjSum = 0, cmjCount = 0;
+          let appSum = 0, appCount = 0;
+          let rsiSum = 0, rsiCount = 0;
+          
+          data.forEach(m => {
+            if (m.test_type === 'cmj' || m.test_type === 'standard') {
+              const val = parseFloat(m.jump_height_cm);
+              if (val > 0) { cmjSum += val; cmjCount++; }
+            } else if (m.test_type === 'approach') {
+              const val = parseFloat(m.jump_height_cm);
+              if (val > 0) { appSum += val; appCount++; }
+            } else if (m.test_type === 'rsi') {
+              const val = parseFloat(m.rsi_score);
+              if (val > 0) { rsiSum += val; rsiCount++; }
+            }
+          });
+          
+          setTeamAverages({
+            cmj: cmjCount > 0 ? cmjSum / cmjCount : null,
+            approach: appCount > 0 ? appSum / appCount : null,
+            rsi: rsiCount > 0 ? rsiSum / rsiCount : null
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching team averages:", err);
+      }
+    }
+    fetchTeamAverages();
+  }, []);
 
   // Sync selectedCoachId with the first coach if not already set or if current selectedCoachId is not in the list anymore
   useEffect(() => {
@@ -126,6 +166,27 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
     const currentYear = new Date().getFullYear();
     const birthYear = parseInt(dob.substring(0, 4));
     return currentYear - birthYear;
+  };
+
+  const getComparisonBadge = (playerVal, avgVal) => {
+    if (!playerVal || !avgVal) return null;
+    const diffPct = ((playerVal - avgVal) / avgVal) * 100;
+    const isPositive = diffPct >= 0;
+    const absDiff = Math.abs(diffPct).toFixed(0);
+    
+    if (isPositive) {
+      return (
+        <span className="text-[9px] px-1.5 py-0.5 mt-1 rounded-md font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-800/30 block text-center">
+          +{absDiff}% من المتوسط 📈
+        </span>
+      );
+    } else {
+      return (
+        <span className="text-[9px] px-1.5 py-0.5 mt-1 rounded-md font-bold bg-orange-950/40 text-orange-400 border border-orange-800/30 block text-center">
+          -{absDiff}% من المتوسط 📉
+        </span>
+      );
+    }
   };
 
   // Calculate overall Biomechanical Score (0-100)
@@ -434,11 +495,18 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPlayers.map(player => {
             const age = getPlayerAge(player.date_of_birth);
+            const playerHeight = localStorage.getItem(`player_height_${player.id}`) || '—';
+            const playerStandingReach = localStorage.getItem(`standing_reach_${player.id}`) || '—';
+            const standingReachNum = parseFloat(playerStandingReach);
+
             const scores = latestScores[player.id] || { cmj: null, approach: null, rsi: null };
             
             const cmjVal = scores.cmj ? parseFloat(scores.cmj.jump_height_cm) : null;
             const approachVal = scores.approach ? parseFloat(scores.approach.jump_height_cm) : null;
             const rsiVal = scores.rsi ? parseFloat(scores.rsi.rsi_score) : null;
+
+            const maxReachCmj = (standingReachNum && cmjVal) ? (standingReachNum + cmjVal).toFixed(0) : null;
+            const maxReachApproach = (standingReachNum && approachVal) ? (standingReachNum + approachVal).toFixed(0) : null;
 
             const cmjInches = cmjVal ? (cmjVal * 0.393701).toFixed(1) : null;
             const approachInches = approachVal ? (approachVal * 0.393701).toFixed(1) : null;
@@ -478,6 +546,10 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                           <span>{player.gender === 'female' ? 'لاعبة' : 'لاعب'}</span>
                           <span>•</span>
                           <span>{player.weight_kg} كجم</span>
+                          <span>•</span>
+                          <span>الطول: {playerHeight} سم</span>
+                          <span>•</span>
+                          <span>الوصول: {playerStandingReach} سم</span>
                         </div>
                       </div>
                     </div>
@@ -530,9 +602,15 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                             {cmjVal.toFixed(1)} <span className="text-[9px] text-gray-450 font-normal">سم</span>
                           </span>
                           <span className="text-[9px] text-gray-500 font-mono mt-0.5">({cmjInches}")</span>
+                          {maxReachCmj && (
+                            <span className="text-[9px] text-cyan-400 font-bold mt-1">
+                              الوصول: {maxReachCmj} سم
+                            </span>
+                          )}
                           <span className={`text-[8px] px-1.5 py-0.5 mt-1.5 rounded-md font-bold leading-none ${cmjStatus.color}`}>
                             {cmjStatus.text.replace(/[🏆⭐⚡⚠️]/g, '').trim()}
                           </span>
+                          {getComparisonBadge(cmjVal, teamAverages.cmj)}
                         </>
                       ) : (
                         <span className="text-[10px] text-gray-600 font-bold mt-1.5">لم يقاس</span>
@@ -548,9 +626,15 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                             {approachVal.toFixed(1)} <span className="text-[9px] text-gray-450 font-normal">سم</span>
                           </span>
                           <span className="text-[9px] text-gray-500 font-mono mt-0.5">({approachInches}")</span>
+                          {maxReachApproach && (
+                            <span className="text-[9px] text-cyan-400 font-bold mt-1">
+                              الوصول: {maxReachApproach} سم
+                            </span>
+                          )}
                           <span className={`text-[8px] px-1.5 py-0.5 mt-1.5 rounded-md font-bold leading-none ${approachStatus.color}`}>
                             {approachStatus.text.replace(/[🏆⭐⚡⚠️]/g, '').trim()}
                           </span>
+                          {getComparisonBadge(approachVal, teamAverages.approach)}
                         </>
                       ) : (
                         <span className="text-[10px] text-gray-600 font-bold mt-1.5">لم يقاس</span>
@@ -569,6 +653,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                           <span className={`text-[8px] px-1.5 py-0.5 mt-1.5 rounded-md font-bold leading-none ${rsiStatus.color}`}>
                             {rsiStatus.text.replace(/[🏆⭐⚡⚠️]/g, '').trim()}
                           </span>
+                          {getComparisonBadge(rsiVal, teamAverages.rsi)}
                         </>
                       ) : (
                         <span className="text-[10px] text-gray-600 font-bold mt-1.5">لم يقاس</span>

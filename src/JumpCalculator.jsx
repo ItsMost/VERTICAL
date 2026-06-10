@@ -1311,7 +1311,7 @@ export default function JumpCalculator() {
       <div className="w-full max-w-7xl mx-auto flex flex-col gap-6">
         
         {/* ================= TOP DYNAMIC CONTROL HUD ================= */}
-        <header className="w-full bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-color)] p-4 rounded-3xl flex flex-col lg:flex-row items-center justify-between gap-4 shadow-xl">
+        <header className="relative z-[110] w-full bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-color)] p-4 rounded-3xl flex flex-col lg:flex-row items-center justify-between gap-4 shadow-xl">
           {/* Logo & App Branding */}
           <div className="flex items-center justify-between lg:justify-start w-full lg:w-auto gap-4">
             <div className="flex items-center gap-3">
@@ -1351,7 +1351,7 @@ export default function JumpCalculator() {
             </button>
 
             {/* Player Accordion Dropdown Selector */}
-            <div className="relative w-full sm:w-64">
+            <div className="relative w-full sm:w-64 z-[120]">
               <button
                 type="button"
                 onClick={() => setIsSelectorOpen(!isSelectorOpen)}
