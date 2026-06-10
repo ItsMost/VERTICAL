@@ -538,8 +538,8 @@ export default function FVPCalculator({ activePlayer }) {
     { weight: 20, flightTime: '' },
     { weight: 30, flightTime: '' }
   ]);
-  const [seasonPeriod, setSeasonPeriod] = useState('off_season');
-  const [trainingAge, setTrainingAge] = useState('intermediate');
+  const [seasonPeriod, setSeasonPeriod] = useState('Off-Season');
+  const [trainingAge, setTrainingAge] = useState('Intermediate (1-3 years)');
   
   const [fvpResult, setFvpResult] = useState(null);
 
@@ -596,42 +596,60 @@ export default function FVPCalculator({ activePlayer }) {
     const Pmax = (F0 * V0) / 4;                 
     const f0_rel = F0 / mass; 
 
+    // Optimal FVP Calculations based on push-off height and max power
+    const Sopt_rel = -22.5;
+    const Sopt = Sopt_rel * mass; // Optimal slope in N·s/m
+    const V0_opt = 2 * Math.sqrt(Pmax / Math.abs(Sopt));
+    const F0_opt = V0_opt * Math.abs(Sopt);
+    const fvpIndex = (effectiveSlope / Sopt) * 100;
+
     let diagnosis = "";
     let advice = "";
     let color = "";
 
     if (V0 < 3.0 && f0_rel >= 24) {
-        diagnosis = "نقص في السرعة (Velocity Deficit)";
-        if (seasonPeriod === 'in_season' || seasonPeriod === 'competition_phase') {
-            advice = "اللاعب يمتلك قوة كبيرة لكنه بطيء. نظراً للموسم الحالي، نوصي بتمارين السرعة القصوى والارتداد السريع جداً Plyometrics لتفادي بطء الحركة أثناء المنافسات.";
+        // Velocity Deficit
+        diagnosis = "عجز في السرعة (Velocity Deficit)";
+        if (seasonPeriod === 'In-Season' || seasonPeriod === 'Competition-Phase') {
+            advice = `اللاعب يمتلك قوة هيكلية ممتازة ولكنه يعاني من عجز حاد في السرعة حركياً. ونظراً لكوننا حالياً في فترة المنافسات/داخل الموسم (${seasonPeriod})، يُنصح بتجنب الأحمال التدريبية الثقيلة لتجنب الإجهاد البدني المتراكم. يجب التركيز الكامل على تدريبات البلايومترك السريع والخفيف (Fast/Light Plyometrics) والوثبات البالستية بوزن الجسم لزيادة القدرة وسرعة الارتقاء الحركي الميكانيكي.`;
         } else {
-            advice = "اللاعب يمتلك قوة كبيرة لكنه بطيء. نوصي بتمارين القدرة البالستية الخفيفة لزيادة تسارع القوة في فترة الإعداد.";
+            advice = `اللاعب يمتلك قوة هيكلية ممتازة ولكن سرعته الحركية متدنية. ونظراً لأننا في فترة الإعداد خارج الموسم (${seasonPeriod})، يوصى بتمارين القوة الانفجارية والقدرة البالستية متوسطة الأحمال (30-40% من أقصى وزن) مثل قفز القرفصاء المحمل (Loaded Squat Jumps) لبناء القدرة السريعة تدريجياً.`;
         }
         color = "text-blue-400 border-blue-500 bg-blue-900/20";
     } else if (f0_rel < 24 && V0 >= 3.0) {
-        diagnosis = "نقص في القوة (Force Deficit)";
-        if (seasonPeriod === 'in_season' || seasonPeriod === 'competition_phase') {
-            advice = "اللاعب سريع ولكنه يفتقر للقوة الأساسية. نوصي بتمارين البلايومتركس السريعة ذات الأحمال المنخفضة والتدريب المركب (Complex Training) للحفاظ على التفجير القوي دون إجهاد.";
+        // Force Deficit
+        diagnosis = "عجز في القوة (Force Deficit)";
+        if (seasonPeriod === 'In-Season' || seasonPeriod === 'Competition-Phase') {
+            advice = `اللاعب سريع للغاية ذو حركة مطاطية مرنة، ولكنه يفتقر للقوة المطلقة الكافية للتغلب على مقاومة الأحمال. نظراً للتواجد داخل الموسم/المنافسات (${seasonPeriod})، يوصى بتطبيق تدريبات التحميل الرياضي المركب (Complex Training) والتدريب المتباين (Contrast Training) لدمج تمرين قوة خفيف مع ارتداد فوري دون تراكم الإجهاد البدني.`;
         } else {
-            advice = "اللاعب سريع ولكنه يفتقر للقوة الأساسية. نوصي بPrescribe heavy strength training (تمارين أوزان ثقيلة مثل Squats, Cleans, eccentric loading) لبناء أساس متين.";
+            advice = `يعاني اللاعب من عجز واضح في القوة الأساسية رغم تمتعه بسرعة حركية جيدة. فترة الإعداد خارج الموسم (${seasonPeriod}) هي التوقيت المثالي للتركيز على تدريبات المقاومة الثقيلة لزيادة القوة القصوى (Heavy Resistance Training >80% 1RM) مثل القرفصاء الخلفي (Back Squats) والرفعة المميتة (Deadlifts) لبناء قاعدة القوة.`;
         }
         color = "text-orange-400 border-orange-500 bg-orange-900/20";
     } else if (f0_rel < 24 && V0 < 3.0) {
-        diagnosis = "ضعف عام (Weak Profile)";
-        advice = "اللاعب يعاني من نقص في كل من القوة والسرعة. ابدأ ببناء قاعدة قوة (Base Strength) أولاً ثم انتقل لتسارع القوة.";
+        // Weak/General Deficit
+        diagnosis = "عجز عام (General Deficit)";
+        if (seasonPeriod === 'In-Season' || seasonPeriod === 'Competition-Phase') {
+            advice = `يظهر اللاعب عجزاً عاماً متزامناً في القوة والسرعة. نظراً للتواجد داخل الموسم، يجب التركيز على صيانة البنية البدنية والوقاية من الإصابات مع تخفيف أحجام وثبات القفز لتجنب التحميل الزائد للمفاصل.`;
+        } else {
+            advice = `يعاني اللاعب من نقص عام في القوة العضلية والسرعة الحركية على حد سواء. فترة الإعداد الحالية (${seasonPeriod}) تتطلب البدء الفوري ببناء قاعدة القوة العامة والكتلة العضلية الداعمة للمفاصل ثم تدرج القوة الانفجارية لاحقاً.`;
+        }
         color = "text-red-400 border-red-500 bg-red-900/20";
     } else {
+        // Balanced
         diagnosis = "ملف متوازن (Well-Balanced Profile)";
-        advice = "اللاعب يمتلك توازن ممتاز بين القوة والسرعة. استمر في التدريب المختلط للحفاظ على المنحنى وتطويره.";
+        advice = `يمتلك اللاعب توازناً بيوميكانيكياً رائعاً ومثالياً بين القوة والسرعة. يُنصح بالاستمرار في التدريبات المختلطة المتنوعة للحفاظ على زوايا المنحنى وتطوير القدرة القصوى (Pmax).`;
         color = "text-emerald-400 border-emerald-500 bg-emerald-900/20";
     }
 
-    if (trainingAge === 'beginner') {
-        advice += " (تنبيه: نظراً لأن عمر اللاعب التدريبي مبتدئ، ركز أولاً على التكنيك الصحيح والسلامة البدنية.)";
+    if (trainingAge === 'Beginner (<1 year)') {
+        advice += " (تنبيه ميكانيكي حركي: نظراً لكون العمر التدريبي للاعب مبتدئ/ناشئ، تجب الأولوية التامة لسلامة الحركة وإتقان تكنيك الأداء والنزول قبل زيادة أي أحمال خارجية.)";
+    } else if (trainingAge === 'Advanced (>3 years)') {
+        advice += " (تنويه: بما أن العمر التدريبي للاعب متقدم، يمكن دمج تدريبات بلايومترك عالية الشدة وتدريبات تباين متطورة لتحقيق الاستفادة الميكانيكية القصوى.)";
     }
 
     setFvpResult({
-      F0, V0, Pmax, diagnosis, advice, color, points, isDistorted
+      F0, V0, Pmax, diagnosis, advice, color, points, isDistorted,
+      F0_opt, V0_opt, Sopt, fvpIndex
     });
   };
 
@@ -1418,8 +1436,14 @@ export default function FVPCalculator({ activePlayer }) {
             <div className="space-y-6 border-t border-gray-800 pt-6 text-right">
               
               {fvpResult.isDistorted && (
-                <div className="p-4 rounded-xl border border-red-500/20 bg-red-950/20 text-red-400 text-center text-xs font-bold mb-4">
-                  ⚠️ تشويه في بروفايل القوة والسرعة (Profiling Distortion): العلاقة البيوميكانيكية غير منطقية (السرعة زادت مع زيادة الأوزان). تم تطبيق كبح حسابي لمتابعة التحليل.
+                <div className="p-5 rounded-2xl border border-orange-500/30 bg-orange-950/25 text-orange-400 text-right text-xs leading-relaxed mb-6">
+                  <div className="flex items-center gap-2 font-black mb-2 text-sm text-orange-300">
+                    <AlertCircle size={18} />
+                    <span>⚠️ تنبيه بيوميكانيكي: حدوث انهيار للتنسيق الحركي (Mechanical/Coordination Breakdown)</span>
+                  </div>
+                  <p>
+                    أظهرت نتائج الاختبار علاقة طردية أو مسطحة غير طبيعية في منحنى القوة والسرعة ($Slope \geq 0$). في الأحوال الطبيعية، تنخفض سرعة الارتقاء مع زيادة الحمل الخارجي. حدوث العكس يشير إلى أن اللاعب يواجه <strong>خللاً في التوظيف العصبي العضلي</strong> أو <strong>قصوراً في زوايا الدفع</strong> تحت الأحمال الخفيفة، أو ربما تعمد عدم بذل الجهد الكامل في القفزة الأولى بدون أوزان. تم تفعيل نظام الحماية الرياضي وتجاوز القطع الانحداري التلقائي لرسم النقاط بنجاح دون إيقاف النظام.
+                  </p>
                 </div>
               )}
 
@@ -1429,6 +1453,197 @@ export default function FVPCalculator({ activePlayer }) {
                  <p className="text-sm opacity-90 max-w-xl mx-auto leading-relaxed">
                    💡 {fvpResult.advice}
                  </p>
+              </div>
+
+              {/* SVG F-V Curve Dashboard */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                {/* SVG Curve Plot */}
+                <div className="lg:col-span-8 bg-black/30 p-6 rounded-2xl border border-gray-800 shadow-inner flex flex-col justify-between">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="font-bold text-sm text-gray-300">مقارنة منحنى القوة والسرعة الميكانيكي الحيوي (F-V Curve Plot)</h4>
+                    <div className="flex gap-4 text-xs font-bold">
+                      <span className="flex items-center gap-1.5 text-orange-400">
+                        <span className="w-3.5 h-0.5 bg-orange-500 inline-block"></span> المنحنى الفعلي
+                      </span>
+                      <span className="flex items-center gap-1.5 text-cyan-400">
+                        <span className="w-3.5 h-0.5 border-t-2 border-dashed border-cyan-400 inline-block"></span> المنحنى المثالي (Target)
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="relative h-72 flex items-end">
+                    {/* Y-axis Label */}
+                    <div className="absolute left-2 top-2 text-[10px] text-gray-500 font-bold vertical-text">القوة (Force - N)</div>
+                    <div className="absolute left-12 top-4 bottom-12 w-0.5 bg-gray-700"></div>
+                    <span className="absolute left-6 top-4 text-[10px] text-gray-500 font-bold">
+                      {Math.max(fvpResult.F0, fvpResult.F0_opt || fvpResult.F0).toFixed(0)}
+                    </span>
+                    <span className="absolute left-8 bottom-12 text-[10px] text-gray-500 font-bold">0</span>
+
+                    {/* X-axis Label */}
+                    <div className="absolute left-12 bottom-12 right-4 h-0.5 bg-gray-700"></div>
+                    <div className="absolute right-4 bottom-4 text-[10px] text-gray-500 font-bold">السرعة (Velocity - m/s)</div>
+                    <span className="absolute right-12 bottom-14 text-[10px] text-gray-500 font-bold">
+                      {Math.max(fvpResult.V0, fvpResult.V0_opt || fvpResult.V0).toFixed(1)}
+                    </span>
+
+                    <svg className="absolute left-12 bottom-12" style={{ width: 'calc(100% - 4.5rem)', height: 'calc(100% - 4.5rem)', overflow: 'visible' }}>
+                      {/* Grid Lines */}
+                      <line x1="0" y1="0" x2="100%" y2="0" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                      <line x1="0" y1="50%" x2="100%" y2="50%" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                      <line x1="50%" y1="0" x2="50%" y2="100%" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                      
+                      {(() => {
+                        const maxF_chart = Math.max(fvpResult.F0, fvpResult.F0_opt || fvpResult.F0) * 1.15;
+                        const maxV_chart = Math.max(fvpResult.V0, fvpResult.V0_opt || fvpResult.V0) * 1.15;
+
+                        // Actual Curve Coordinates
+                        const actX1 = 0;
+                        const actY1 = (1 - (fvpResult.F0 / maxF_chart)) * 100;
+                        const actX2 = (fvpResult.V0 / maxV_chart) * 100;
+                        const actY2 = 100;
+
+                        // Optimal Curve Coordinates
+                        const optX1 = 0;
+                        const optY1 = (1 - ((fvpResult.F0_opt || fvpResult.F0) / maxF_chart)) * 100;
+                        const optX2 = ((fvpResult.V0_opt || fvpResult.V0) / maxV_chart) * 100;
+                        const optY2 = 100;
+
+                        return (
+                          <>
+                            {/* Optimal Target Curve */}
+                            <line 
+                              x1={`${optX1}%`} 
+                              y1={`${optY1}%`} 
+                              x2={`${optX2}%`} 
+                              y2={`${optY2}%`} 
+                              stroke="#06b6d4" 
+                              strokeWidth="3" 
+                              strokeDasharray="5,5"
+                              style={{ filter: 'drop-shadow(0px 0px 4px rgba(6, 182, 212, 0.4))' }}
+                            />
+
+                            {/* Actual Curve */}
+                            <line 
+                              x1={`${actX1}%`} 
+                              y1={`${actY1}%`} 
+                              x2={`${actX2}%`} 
+                              y2={`${actY2}%`} 
+                              stroke="#ea580c" 
+                              strokeWidth="3.5" 
+                              style={{ filter: 'drop-shadow(0px 0px 4px rgba(234, 88, 12, 0.4))' }}
+                            />
+
+                            {/* Plotted load points */}
+                            {fvpResult.points.map((pt, i) => {
+                              const px = (pt.v / maxV_chart) * 100;
+                              const py = 100 - (pt.f / maxF_chart) * 100;
+                              return (
+                                <g key={i}>
+                                  <circle 
+                                    cx={`${px}%`} 
+                                    cy={`${py}%`} 
+                                    r="6" 
+                                    fill="#f59e0b" 
+                                    stroke="#fff" 
+                                    strokeWidth="2" 
+                                  />
+                                  <text 
+                                    x={`${px}%`} 
+                                    y={`${py - 8}%`} 
+                                    fill="#f59e0b" 
+                                    fontSize="9" 
+                                    fontWeight="bold"
+                                    textAnchor="middle"
+                                  >
+                                    {pt.weight}kg
+                                  </text>
+                                </g>
+                              );
+                            })}
+                          </>
+                        );
+                      })()}
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Deficit HUD Panel */}
+                <div className="lg:col-span-4 bg-black/30 p-6 rounded-2xl border border-gray-800 flex flex-col justify-between text-right">
+                  <div className="space-y-4">
+                    <h4 className="font-extrabold text-sm text-white border-b border-gray-800 pb-2 flex items-center gap-1.5">
+                      📊 مؤشر عجز الفاعلية (Deficit Index)
+                    </h4>
+                    
+                    {/* Deficit Percentage calculation */}
+                    {(() => {
+                      const fIndex = fvpResult.fvpIndex || 100;
+                      let forceDef = 0;
+                      let velDef = 0;
+                      let statusText = "";
+                      let statusDesc = "";
+
+                      if (fIndex < 90) {
+                        forceDef = Math.round(100 - fIndex);
+                        statusText = "عجز في القوة (Force Deficit)";
+                        statusDesc = `اللاعب يعاني من عجز بنسبة ${forceDef}% في إنتاج القوة. يُوصى بالتركيز على تدريبات المقاومة الثقيلة لرفع القوة المطلقة.`;
+                      } else if (fIndex > 110) {
+                        velDef = Math.round(fIndex - 100);
+                        statusText = "عجز في السرعة (Velocity Deficit)";
+                        statusDesc = `اللاعب يعاني من عجز بنسبة ${velDef}% في السرعة الحركية. يُوصى بالتركيز على تدريبات البلايومترك الخفيفة وتدريبات السرعة.`;
+                      } else {
+                        statusText = "ملف متوازن (Well-Balanced)";
+                        statusDesc = "اللاعب يمتلك توزيعاً مثالياً ومتوازناً بين القوة والسرعة حركياً.";
+                      }
+
+                      return (
+                        <div className="space-y-4 text-xs">
+                          <div>
+                            <span className="text-gray-400 block mb-1">نسبة التوافق مع المنحنى المثالي:</span>
+                            <span className="text-base font-black text-white font-mono">{fIndex.toFixed(1)}%</span>
+                          </div>
+
+                          {/* Force Deficit bar */}
+                          <div>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-bold text-gray-300">عجز القوة (Force Deficit)</span>
+                              <span className="font-mono font-bold text-orange-400">{forceDef}%</span>
+                            </div>
+                            <div className="w-full bg-black/40 h-2 rounded-full overflow-hidden border border-gray-800">
+                              <div 
+                                className="bg-gradient-to-r from-orange-600 to-orange-400 h-full transition-all duration-1000"
+                                style={{ width: `${forceDef}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Velocity Deficit bar */}
+                          <div>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-bold text-gray-300">عجز السرعة (Velocity Deficit)</span>
+                              <span className="font-mono font-bold text-cyan-400">{velDef}%</span>
+                            </div>
+                            <div className="w-full bg-black/40 h-2 rounded-full overflow-hidden border border-gray-800">
+                              <div 
+                                className="bg-gradient-to-r from-cyan-600 to-cyan-400 h-full transition-all duration-1000"
+                                style={{ width: `${velDef}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="bg-black/20 p-3 rounded-xl border border-gray-800 mt-2 space-y-1">
+                            <span className="font-black text-cyan-400 block">{statusText}</span>
+                            <p className="text-[10px] text-gray-400 leading-relaxed">{statusDesc}</p>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  
+                  <div className="text-[10px] text-gray-500 leading-relaxed pt-4 border-t border-gray-800/50 mt-4">
+                    * يتم احتساب المنحنى المثالي (Target F-V Curve) تلقائياً استناداً إلى نموذج Samozino الميكانيكي الحيوي لضمان أفضل انتقال للقدرة.
+                  </div>
+                </div>
               </div>
 
               {/* LaTeX Biomechanical Equations */}
@@ -1510,85 +1725,7 @@ export default function FVPCalculator({ activePlayer }) {
                 </div>
               </div>
 
-              {/* SVG F-V Curve Dashboard */}
-              <div className="bg-black/30 p-6 rounded-2xl border border-gray-800 shadow-inner">
-                 <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-bold text-sm text-gray-300">مقارنة منحنى اللاعب الفعلي (Actual F-V Curve)</h4>
-                    <div className="flex gap-4 text-xs font-bold">
-                       <span className="flex items-center gap-1.5 text-orange-400"><span className="w-3.5 h-0.5 bg-orange-500 inline-block"></span> المنحنى الفعلي</span>
-                    </div>
-                 </div>
-                 
-                 <div className="relative h-72 flex items-end">
-                    {/* Y-axis Label */}
-                    <div className="absolute left-2 top-2 text-[10px] text-gray-500 font-bold vertical-text">القوة (Force - N)</div>
-                    <div className="absolute left-12 top-4 bottom-12 w-0.5 bg-gray-700"></div>
-                    <span className="absolute left-6 top-4 text-[10px] text-gray-500 font-bold">{fvpResult.F0.toFixed(0)}</span>
-                    <span className="absolute left-8 bottom-12 text-[10px] text-gray-500 font-bold">0</span>
 
-                    {/* X-axis Label */}
-                    <div className="absolute left-12 bottom-12 right-4 h-0.5 bg-gray-700"></div>
-                    <div className="absolute right-4 bottom-4 text-[10px] text-gray-500 font-bold">السرعة (Velocity - m/s)</div>
-                    <span className="absolute right-12 bottom-14 text-[10px] text-gray-500 font-bold">{fvpResult.V0.toFixed(1)}</span>
-
-                    <svg className="absolute left-12 bottom-12" style={{ width: 'calc(100% - 4.5rem)', height: 'calc(100% - 4.5rem)', overflow: 'visible' }}>
-                      {/* Grid Lines */}
-                      <line x1="0" y1="0" x2="100%" y2="0" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                      <line x1="0" y1="50%" x2="100%" y2="50%" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                      <line x1="50%" y1="0" x2="50%" y2="100%" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                      
-                      {(() => {
-                        const actualX1 = 0;
-                        const actualY1 = 0;
-                        const actualX2 = 100;
-                        const actualY2 = 100;
-
-                        return (
-                          <>
-                            {/* Actual Curve */}
-                            <line 
-                              x1={`${actualX1}%`} 
-                              y1={`${actualY1}%`} 
-                              x2={`${actualX2}%`} 
-                              y2={`${actualY2}%`} 
-                              stroke="#ea580c" 
-                              strokeWidth="3.5" 
-                              style={{ filter: 'drop-shadow(0px 0px 4px rgba(234, 88, 12, 0.4))' }}
-                            />
-
-                            {/* Plotted load points */}
-                            {fvpResult.points.map((pt, i) => {
-                              const px = (pt.v / fvpResult.V0) * 100;
-                              const py = 100 - (pt.f / fvpResult.F0) * 100;
-                              return (
-                                <g key={i}>
-                                  <circle 
-                                    cx={`${px}%`} 
-                                    cy={`${py}%`} 
-                                    r="6.5" 
-                                    fill="#f59e0b" 
-                                    stroke="#fff" 
-                                    strokeWidth="2.5" 
-                                  />
-                                  <text 
-                                    x={`${px}%`} 
-                                    y={`${py - 8}%`} 
-                                    fill="#f59e0b" 
-                                    fontSize="9.5" 
-                                    fontWeight="bold"
-                                    textAnchor="middle"
-                                  >
-                                    {pt.weight}kg
-                                  </text>
-                                </g>
-                              );
-                            })}
-                          </>
-                        );
-                      })()}
-                    </svg>
-                 </div>
-              </div>
             </div>
           )}
         </div>

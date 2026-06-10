@@ -70,6 +70,11 @@ export default function RSICalculator({
   const [activeDragType, setActiveDragType] = useState(null);
   const activeDragTypeRef = useRef(null);
 
+  const currentTimeMobileRef = useRef(null);
+  const currentFrameMobileRef = useRef(null);
+  const currentTimeDesktopRef = useRef(null);
+  const currentFrameDesktopRef = useRef(null);
+
 
   // Sync manualFrameDuration with cameraFps when not manually overridden
   useEffect(() => {
@@ -767,10 +772,11 @@ export default function RSICalculator({
                 {/* Badges row for mobile (hidden on desktop) */}
                 <div className="flex justify-between items-center w-full md:hidden mb-1">
                   {/* Current Time Badge */}
+                  {/* Current Time Badge */}
                   <div className="flex items-center gap-1.5 bg-[var(--bg-input)] px-2.5 py-1 rounded-xl border border-[var(--border-light)]">
                     <span className="text-[10px] text-gray-400">الوقت الحالي:</span>
-                    <span className="text-xs text-[var(--brand-text)] font-mono font-bold">{currentTime.toFixed(3)}s</span>
-                    <span className="text-[9px] text-gray-500 font-mono">F {Math.round(currentTime * (videoFps || 30))}</span>
+                    <span ref={currentTimeMobileRef} className="text-xs text-[var(--brand-text)] font-mono font-bold">{currentTime.toFixed(3)}s</span>
+                    <span ref={currentFrameMobileRef} className="text-[9px] text-gray-500 font-mono">F {Math.round(currentTime * (videoFps || 30))}</span>
                   </div>
                   
                   {/* Duration Time Badge */}
@@ -783,8 +789,8 @@ export default function RSICalculator({
 
                 {/* Current Time Badge for Desktop (hidden on mobile) */}
                 <div className="hidden md:flex flex-col text-xs text-[var(--brand-text)] font-mono bg-[var(--bg-input)] px-2.5 py-1.5 rounded-xl border border-[var(--border-light)] text-center shrink-0">
-                  <span>{currentTime.toFixed(3)}s</span>
-                  <span className="text-[9px] text-gray-500">F {Math.round(currentTime * (videoFps || 30))}</span>
+                  <span ref={currentTimeDesktopRef}>{currentTime.toFixed(3)}s</span>
+                  <span ref={currentFrameDesktopRef} className="text-[9px] text-gray-500">F {Math.round(currentTime * (videoFps || 30))}</span>
                 </div>
                 
                 {/* Timeline Track Overhauled with Native HTML5 Slider */}
@@ -833,10 +839,10 @@ export default function RSICalculator({
                   {/* Takeoff Marker */}
                   {duration > 0 && takeoffTime > 0 && (
                     <div 
-                      className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 shadow-[0_0_8px_#22d3ee] z-10 pointer-events-none"
+                      className="absolute top-0 bottom-0 w-0.5 bg-cyan-500 shadow-[0_0_8px_#06b6d4] z-10 pointer-events-none"
                       style={{ right: `${(takeoffTime / duration) * 100}%` }}
                     >
-                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-cyan-500 text-[#070a13] text-[9px] font-black rounded border border-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.6)] flex items-center gap-0.5 whitespace-nowrap">
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-cyan-500 text-[#070a13] text-[9px] font-black rounded border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.6)] flex items-center gap-0.5 whitespace-nowrap">
                         🚀 إقلاع
                       </div>
                     </div>
@@ -877,18 +883,30 @@ export default function RSICalculator({
                       }
                     }}
                     onMouseMove={(e) => {
+                      const val = parseFloat(e.target.value);
                       if (videoRef.current) {
-                        const val = parseFloat(e.target.value);
                         videoRef.current.currentTime = val;
-                        setCurrentTime(val);
                       }
+                      setCurrentTime(val);
+                      const tStr = val.toFixed(3) + 's';
+                      const fStr = 'F ' + Math.round(val * (videoFps || 30));
+                      if (currentTimeMobileRef.current) currentTimeMobileRef.current.innerText = tStr;
+                      if (currentFrameMobileRef.current) currentFrameMobileRef.current.innerText = fStr;
+                      if (currentTimeDesktopRef.current) currentTimeDesktopRef.current.innerText = tStr;
+                      if (currentFrameDesktopRef.current) currentFrameDesktopRef.current.innerText = fStr;
                     }}
                     onTouchMove={(e) => {
+                      const val = parseFloat(e.target.value);
                       if (videoRef.current) {
-                        const val = parseFloat(e.target.value);
                         videoRef.current.currentTime = val;
-                        setCurrentTime(val);
                       }
+                      setCurrentTime(val);
+                      const tStr = val.toFixed(3) + 's';
+                      const fStr = 'F ' + Math.round(val * (videoFps || 30));
+                      if (currentTimeMobileRef.current) currentTimeMobileRef.current.innerText = tStr;
+                      if (currentFrameMobileRef.current) currentFrameMobileRef.current.innerText = fStr;
+                      if (currentTimeDesktopRef.current) currentTimeDesktopRef.current.innerText = tStr;
+                      if (currentFrameDesktopRef.current) currentFrameDesktopRef.current.innerText = fStr;
                     }}
                     onMouseUp={() => {
                       setIsDragging(false);
@@ -908,10 +926,16 @@ export default function RSICalculator({
                     }}
                     onChange={(e) => {
                       const val = parseFloat(e.target.value);
-                      setCurrentTime(val);
                       if (videoRef.current) {
                         videoRef.current.currentTime = val;
                       }
+                      setCurrentTime(val);
+                      const tStr = val.toFixed(3) + 's';
+                      const fStr = 'F ' + Math.round(val * (videoFps || 30));
+                      if (currentTimeMobileRef.current) currentTimeMobileRef.current.innerText = tStr;
+                      if (currentFrameMobileRef.current) currentFrameMobileRef.current.innerText = fStr;
+                      if (currentTimeDesktopRef.current) currentTimeDesktopRef.current.innerText = tStr;
+                      if (currentFrameDesktopRef.current) currentFrameDesktopRef.current.innerText = fStr;
                     }}
                     className="timeline-slider w-full h-full opacity-100 bg-transparent absolute inset-0 z-30 px-4"
                   />
@@ -924,17 +948,19 @@ export default function RSICalculator({
                 </div>
               </div>
               
-              {/* Controller Buttons */}
-              <div className="flex justify-center items-center gap-3">
-                <button onClick={() => stepFrames(-10)} title="العودة 10 إطارات" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors"><ChevronsRight size={18} /></button>
-                <button onClick={() => stepFrames(-1)} title="العودة إطار واحد" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors"><ChevronRight size={18} /></button>
+              {/* Controller Buttons Overhauled with -10 / -5 / -1 / +1 / +5 / +10 controls */}
+              <div className="flex justify-center items-center gap-2">
+                <button onClick={() => stepFrames(-10)} title="العودة 10 إطارات" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors font-mono text-xs font-bold w-10 h-10 flex items-center justify-center">-10</button>
+                <button onClick={() => stepFrames(-5)} title="العودة 5 إطارات" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors font-mono text-xs font-bold w-10 h-10 flex items-center justify-center">-5</button>
+                <button onClick={() => stepFrames(-1)} title="العودة إطار واحد" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors font-mono text-xs font-bold w-10 h-10 flex items-center justify-center">-1</button>
                 
-                <button onClick={togglePlay} className="px-10 py-3 btn-orange-gradient rounded-xl font-bold flex items-center justify-center gap-2">
-                  {isPlaying ? <Pause size={18}/> : <Play size={18}/>}
+                <button onClick={togglePlay} className="px-6 py-2.5 btn-orange-gradient rounded-xl font-bold flex items-center justify-center gap-2">
+                  {isPlaying ? <Pause size={16}/> : <Play size={16}/>}
                 </button>
                 
-                <button onClick={() => stepFrames(1)} title="التقدم إطار واحد" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors"><ChevronLeft size={18} /></button>
-                <button onClick={() => stepFrames(10)} title="التقدم 10 إطارات" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors"><ChevronsLeft size={18} /></button>
+                <button onClick={() => stepFrames(1)} title="التقدم إطار واحد" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors font-mono text-xs font-bold w-10 h-10 flex items-center justify-center">+1</button>
+                <button onClick={() => stepFrames(5)} title="التقدم 5 إطارات" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors font-mono text-xs font-bold w-10 h-10 flex items-center justify-center">+5</button>
+                <button onClick={() => stepFrames(10)} title="التقدم 10 إطارات" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors font-mono text-xs font-bold w-10 h-10 flex items-center justify-center">+10</button>
               </div>
             </div>
 

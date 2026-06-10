@@ -128,3 +128,5 @@ export function useJumpMechanics(
 
   return stats;
 }
+
+export default useJumpMechanics;
