@@ -74,6 +74,9 @@ export default function JumpTestingConsole({
   // FPS auto-detection state
   const [isFpsDetectionActive, setIsFpsDetectionActive] = useState(false);
 
+  // Mobile Viewport detection
+  const [isMobile, setIsMobile] = useState(false);
+
   // Calibration States
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationStep, setCalibrationStep] = useState(0);
@@ -126,6 +129,16 @@ export default function JumpTestingConsole({
       setManualFrameDuration(parseFloat((1 / cameraFps).toFixed(6)));
     }
   }, [cameraFps, isFrameDurationManual]);
+
+  // Mobile viewport detection listener
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint is 1024px
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Trigger FPS detection when active
   useEffect(() => {
@@ -570,8 +583,8 @@ export default function JumpTestingConsole({
     localStorage.setItem(`standing_reach_${selectedPlayerId}`, val);
   };
 
-  return (
-    <div className="glass-panel p-4 md:p-6 shadow-2xl transition-all duration-300 relative text-right animate-fade-in" style={{ direction: 'rtl' }}>
+  const renderDesktopView = () => {
+    return (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left Panel: Widescreen Video Viewport & Biomechanical Jog-Wheel Console */}
@@ -1465,6 +1478,580 @@ export default function JumpTestingConsole({
           </div>
         )}
       </div>
+    );
+  };
+
+  const renderMobileView = () => {
+    return (
+      <div className="flex flex-col gap-5 text-right w-full">
+        {/* Header */}
+        <div className="w-full flex justify-between items-center bg-[#111827]/40 p-3.5 rounded-2xl border border-gray-800">
+          <span className="text-xs font-bold text-white flex items-center gap-1.5"><ScanEye size={16} className="text-cyan-400"/> شاشة تحليل الفيديو (Mobile HUD)</span>
+        </div>
+
+        {/* Video Viewport & Scrubber Container */}
+        <div className="bg-black/20 p-4 rounded-3xl border border-gray-800 flex flex-col gap-4">
+          {!videoSrc ? (
+            /* File Upload Area */
+            <div className="flex flex-col gap-3.5 w-full justify-center items-center py-12 bg-black/10 rounded-2xl border border-dashed border-gray-800">
+              <label className="w-full max-w-xs cursor-pointer btn-orange-gradient text-center py-6 rounded-2xl font-black flex flex-col items-center justify-center gap-1.5 transition-transform shadow-lg text-xs">
+                <input type="file" accept="video/*" capture="environment" onChange={handleFileUpload} ref={cameraInputRef} className="hidden" />
+                <Focus size={24} /> فتح الكاميرا للتصوير 🎥
+              </label>
+              <label className="w-full max-w-xs cursor-pointer bg-[#111827]/40 border border-gray-850 text-white text-center py-6 rounded-2xl font-black flex flex-col items-center justify-center gap-1.5 transition-all text-xs">
+                <input type="file" accept="video/*" onChange={handleFileUpload} ref={fileInputRef} className="hidden" />
+                <Play size={24} className="text-cyan-400" /> اختيار فيديو من المعرض 📁
+              </label>
+            </div>
+          ) : (
+            /* Video Scrubber View */
+            <div className="flex flex-col items-center w-full relative">
+              {/* Close button */}
+              <button onClick={clearVideo} className="absolute top-2.5 right-2.5 bg-red-600/90 hover:bg-red-500 p-2 rounded-full text-white z-20 shadow-lg transition-transform hover:scale-105 cursor-pointer">
+                <X size={14}/>
+              </button>
+              
+              {/* Video Viewport */}
+              <div className="relative inline-block border border-gray-800 rounded-2xl overflow-hidden mb-3 shadow-2xl w-full bg-black">
+                <video
+                  ref={videoRef}
+                  src={videoSrc}
+                  playsInline={true}
+                  webkitPlaysInline={true}
+                  muted={true}
+                  controls={false}
+                  preload="auto"
+                  className="w-full h-auto max-h-[35vh] object-contain mx-auto"
+                  onTimeUpdate={handleTimeUpdate}
+                  onLoadedMetadata={handleLoadedMetadata}
+                  onSeeked={handleVideoSeeked}
+                  onEnded={() => setIsPlaying(false)}
+                />
+                <canvas 
+                  ref={canvasRef} 
+                  onClick={handleCanvasClick} 
+                  className={`absolute top-0 left-0 w-full h-full ${isCalibrating ? 'cursor-crosshair z-10' : 'pointer-events-none'}`} 
+                />
+
+                {/* Telemetry overlay badges */}
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10 select-none">
+                  <span className="px-1.5 py-0.5 rounded bg-black/60 border border-red-500/30 text-[8px] font-bold text-red-500 flex items-center gap-0.5">
+                    <span className="w-1 h-1 rounded-full bg-red-500 animate-pulse"></span> REC
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-black/60 border border-cyan-500/30 text-[8px] font-mono text-cyan-400">
+                    {cameraFps} FPS
+                  </span>
+                </div>
+
+                <div className="absolute bottom-2.5 right-2.5 z-10 bg-black/60 border border-gray-800 px-2 py-0.5 rounded-lg text-[8px] font-bold text-gray-300">
+                  الوزن الإضافي: <span className="text-cyan-400 font-mono">{bodyMass - (activePlayer?.weight_kg || 70)} kg</span>
+                </div>
+              </div>
+
+              {/* Scrubber Console Controls */}
+              <div className="w-full bg-[#111827]/40 p-4 rounded-2xl border border-gray-800 space-y-4">
+                <div className="flex flex-col items-center gap-4">
+                  {/* Compact Jog Wheel */}
+                  <div 
+                    ref={jogWheelRef}
+                    onMouseDown={handleJogStart}
+                    onTouchStart={handleJogStart}
+                    className="relative w-28 h-28 rounded-full bg-gradient-to-br from-gray-800 to-black border-4 border-gray-900 shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing select-none group"
+                  >
+                    <div className="absolute inset-0 rounded-full border border-cyan-500/20 group-active:border-cyan-400 transition-all duration-300 pointer-events-none"></div>
+                    
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="4" />
+                      {Array.from({ length: 12 }).map((_, i) => {
+                        const angle = (i * 30 * Math.PI) / 180;
+                        const x1 = 50 + 38 * Math.cos(angle);
+                        const y1 = 50 + 38 * Math.sin(angle);
+                        const x2 = 50 + 44 * Math.cos(angle);
+                        const y2 = 50 + 44 * Math.sin(angle);
+                        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />;
+                      })}
+                    </svg>
+
+                    {/* Dial Indicator Needle */}
+                    <div 
+                      className="absolute w-0.5 h-10 origin-bottom"
+                      style={{ 
+                        transform: `rotate(${jogAngle}deg)`, 
+                        bottom: '50%',
+                        transition: isDraggingJog.current ? 'none' : 'transform 0.15s ease-out'
+                      }}
+                    >
+                      <div className="w-0.5 h-3 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.8)]"></div>
+                    </div>
+
+                    {/* Center Display */}
+                    <div className="absolute w-20 h-20 rounded-full bg-[#0a0d16] border border-gray-850 shadow-inner flex flex-col items-center justify-center pointer-events-none">
+                      <span className="text-[6px] text-gray-500 font-extrabold tracking-wider leading-none">FRAME</span>
+                      <span className="text-[10px] font-black text-white font-mono leading-none mt-1">
+                        F {Math.round(currentTime * (videoFps || 30))}
+                      </span>
+                      <span className="text-[8px] text-cyan-400 font-bold mt-0.5 font-mono">
+                        {currentTime.toFixed(2)}s
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Frame Buttons and timing selectors */}
+                  <div className="w-full space-y-3">
+                    <div className="grid grid-cols-6 gap-1 justify-center">
+                      <button onClick={() => stepFrames(-10)} className="py-2 bg-black/45 border border-gray-805 rounded-lg text-gray-300 font-mono text-[9px] font-bold cursor-pointer">-10</button>
+                      <button onClick={() => stepFrames(-5)} className="py-2 bg-black/45 border border-gray-805 rounded-lg text-gray-300 font-mono text-[9px] font-bold cursor-pointer">-5</button>
+                      <button onClick={() => stepFrames(-1)} className="py-2 bg-black/45 border border-gray-805 rounded-lg text-gray-300 font-mono text-[9px] font-bold cursor-pointer">-1</button>
+                      <button onClick={() => stepFrames(1)} className="py-2 bg-black/45 border border-gray-805 rounded-lg text-gray-300 font-mono text-[9px] font-bold cursor-pointer">+1</button>
+                      <button onClick={() => stepFrames(5)} className="py-2 bg-black/45 border border-gray-805 rounded-lg text-gray-300 font-mono text-[9px] font-bold cursor-pointer">+5</button>
+                      <button onClick={() => stepFrames(10)} className="py-2 bg-black/45 border border-gray-805 rounded-lg text-gray-300 font-mono text-[9px] font-bold cursor-pointer">+10</button>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <button onClick={togglePlay} className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 text-[10px] shadow-lg cursor-pointer w-full max-w-[160px]">
+                        {isPlaying ? <><Pause size={12}/> إيقاف مؤقت</> : <><Play size={12}/> تشغيل الفيديو</>}
+                      </button>
+                    </div>
+
+                    <div className="flex gap-2 w-full">
+                      <button onClick={() => { setTakeoffTime(currentTime); setShowResults(false); }} className={`flex-1 py-2 border rounded-xl font-bold transition-all text-[10px] flex items-center justify-center gap-1 cursor-pointer ${takeoffTime > 0 ? 'bg-cyan-600/30 text-cyan-400 border-cyan-500/50 shadow' : 'bg-black/30 border-gray-800 text-white hover:bg-gray-805'}`}>
+                        <span>🚀 إقلاع</span>
+                        {takeoffTime > 0 && <span className="text-[8px] font-mono font-bold bg-cyan-950/40 px-1 py-0.5 rounded">F {Math.round(takeoffTime * (videoFps || 30))}</span>}
+                      </button>
+                      <button onClick={() => { setLandingTime(currentTime); setShowResults(false); }} className={`flex-1 py-2 border rounded-xl font-bold transition-all text-[10px] flex items-center justify-center gap-1 cursor-pointer ${landingTime > 0 ? 'bg-red-600/30 text-red-400 border-red-500/50 shadow' : 'bg-black/30 border-gray-800 text-white hover:bg-gray-805'}`}>
+                        <span>🛬 هبوط</span>
+                        {landingTime > 0 && <span className="text-[8px] font-mono font-bold bg-red-950/40 px-1 py-0.5 rounded">F {Math.round(landingTime * (videoFps || 30))}</span>}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Custom Filmstrip Timeline Progress Bar */}
+                <div className="relative w-full h-6 bg-black/60 border border-gray-850 rounded-xl overflow-hidden flex items-center px-3 mt-2">
+                  <div className="absolute inset-0 flex justify-between items-center px-3 pointer-events-none opacity-20">
+                    {Array.from({ length: 15 }).map((_, i) => (
+                      <div key={i} className={`w-0.5 bg-cyan-500 rounded-full ${i % 5 === 0 ? 'h-3' : 'h-1.5'}`} />
+                    ))}
+                  </div>
+
+                  {duration > 0 && takeoffTime > 0 && landingTime > takeoffTime && (
+                    <div 
+                      className="absolute top-0 bottom-0 bg-cyan-500/10 border-l border-r border-cyan-500/35 pointer-events-none"
+                      style={{
+                        right: `${(takeoffTime / duration) * 100}%`,
+                        left: `${100 - (landingTime / duration) * 100}%`
+                      }}
+                    />
+                  )}
+
+                  <input 
+                    type="range"
+                    min="0.01"
+                    max={duration || 100}
+                    step="0.001"
+                    value={currentTime}
+                    dir="rtl"
+                    onMouseDown={() => {
+                      setIsDragging(true);
+                      if (videoRef.current) {
+                        videoRef.current.pause();
+                        setIsPlaying(false);
+                      }
+                    }}
+                    onTouchStart={() => {
+                      setIsDragging(true);
+                      if (videoRef.current) {
+                        videoRef.current.pause();
+                        setIsPlaying(false);
+                      }
+                    }}
+                    onMouseMove={(e) => {
+                      const val = parseFloat(e.target.value);
+                      if (videoRef.current) videoRef.current.currentTime = val;
+                      setCurrentTime(val);
+                    }}
+                    onTouchMove={(e) => {
+                      const val = parseFloat(e.target.value);
+                      if (videoRef.current) videoRef.current.currentTime = val;
+                      setCurrentTime(val);
+                    }}
+                    onMouseUp={() => setIsDragging(false)}
+                    onTouchEnd={() => setIsDragging(false)}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setCurrentTime(val);
+                      if (videoRef.current) videoRef.current.currentTime = val;
+                    }}
+                    className="timeline-slider w-full h-full opacity-100 bg-transparent absolute inset-0 z-30 px-3 cursor-pointer"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Settings Panel */}
+        <div className="bg-black/20 p-4 rounded-3xl border border-gray-800 flex flex-col gap-4">
+          <div className="flex border border-cyan-500/20 bg-black/40 p-1 rounded-2xl gap-1">
+            <button
+              type="button"
+              onClick={() => setActiveSettingsTab('analysis')}
+              className={`flex-1 py-2 text-center font-extrabold text-[10px] rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer ${activeSettingsTab === 'analysis' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-500 hover:text-white bg-transparent border border-transparent'}`}
+            >
+              🎥 تحليل الفيديو
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSettingsTab('anthropometrics')}
+              className={`flex-1 py-2 text-center font-extrabold text-[10px] rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer ${activeSettingsTab === 'anthropometrics' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-500 hover:text-white bg-transparent border border-transparent'}`}
+            >
+              ⚖️ قياسات اللاعب
+            </button>
+          </div>
+
+          {activeSettingsTab === 'analysis' && (
+            <div className="space-y-4 text-right">
+              <div>
+                <label className="block text-[10px] text-gray-400 mb-1">نوع القفزة (Jump Type)</label>
+                <div className="grid grid-cols-3 gap-2 p-1 bg-black/35 rounded-2xl border border-gray-800">
+                  {[
+                    { id: 'cmj', name: 'CMJ' },
+                    { id: 'sj', name: 'SJ' },
+                    { id: 'dj', name: 'DJ' }
+                  ].map(type => (
+                    <button
+                      key={type.id}
+                      type="button"
+                      onClick={() => { setJumpType(type.id); setShowResults(false); }}
+                      className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${jumpType === type.id ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-[#070a13] shadow' : 'text-gray-400 bg-transparent'}`}
+                    >
+                      {type.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-[10px] text-gray-400 mb-1 font-bold text-cyan-400">معامل تصحيح ركبة الهبوط</label>
+                <div className="grid grid-cols-4 gap-1 p-1 bg-black/35 rounded-2xl border border-gray-800">
+                  {[
+                    { id: 'none', name: 'بدون' },
+                    { id: 'light', name: 'خفيف' },
+                    { id: 'medium', name: 'وسط' },
+                    { id: 'heavy', name: 'شديد' }
+                  ].map(mode => (
+                    <button
+                      key={mode.id}
+                      type="button"
+                      onClick={() => setLandingCorrectionMode(mode.id)}
+                      className={`py-1.5 px-0.5 text-[9px] font-bold rounded-lg transition-all cursor-pointer ${landingCorrectionMode === mode.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50' : 'text-gray-500 bg-transparent'}`}
+                    >
+                      {mode.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {jumpType === 'dj' && (
+                <div className="grid grid-cols-2 gap-3 bg-cyan-950/15 border border-cyan-500/25 p-3 rounded-2xl text-[10px]">
+                  <div>
+                    <label className="block text-[9px] text-gray-400 mb-1">ارتفاع الصندوق (cm)</label>
+                    <input type="number" value={boxHeight} onChange={e => setBoxHeight(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] text-gray-400 mb-1">وقت لمس الأرض</label>
+                    <div className="flex gap-2">
+                      <input type="number" step="0.001" value={boxTouchdownTime} onChange={e => setBoxTouchdownTime(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
+                      <button type="button" onClick={() => setBoxTouchdownTime(currentTime)} className="px-2 bg-cyan-500 text-[#070a13] rounded-xl text-[10px] font-bold shrink-0 cursor-pointer">هنا 📍</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between bg-black/30 p-2.5 rounded-2xl border border-gray-800">
+                  <span className="text-[10px] text-gray-300 font-bold">🔍 الكشف التلقائي لـ FPS</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsFpsDetectionActive(!isFpsDetectionActive)}
+                    className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${isFpsDetectionActive ? 'bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.4)]' : 'bg-gray-800'}`}
+                  >
+                    <span className={`absolute top-1 bottom-1 w-4 h-4 rounded-full bg-white transition-all ${isFpsDetectionActive ? 'right-7' : 'right-1'}`} />
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] text-gray-400 mb-1">نوع تصوير الفيديو</label>
+                  <div className="grid grid-cols-4 gap-1 p-1 bg-black/35 rounded-2xl border border-gray-805">
+                    {[
+                      { id: 'slow240', name: '240 FPS' },
+                      { id: 'slow120', name: '120 FPS' },
+                      { id: 'normal60', name: '60 FPS' },
+                      { id: 'normal30', name: '30' }
+                    ].map(preset => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setVideoPreset(preset.id);
+                          if (preset.id === 'slow240') { setCameraFps(240); setVideoFps(30); }
+                          else if (preset.id === 'slow120') { setCameraFps(120); setVideoFps(30); }
+                          else if (preset.id === 'normal30') { setCameraFps(30); setVideoFps(30); }
+                          else if (preset.id === 'normal60') { setCameraFps(60); setVideoFps(60); }
+                        }}
+                        className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${videoPreset === preset.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/35' : 'text-gray-400 bg-transparent'}`}
+                      >
+                        {preset.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[9px] text-gray-400 mb-1 block">FPS ملف الفيديو</label>
+                  <input type="number" value={videoFps} onChange={(e) => setVideoFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
+                </div>
+                <div>
+                  <label className="text-[9px] text-gray-400 mb-1 block">FPS الكاميرا</label>
+                  <input type="number" value={cameraFps} onChange={(e) => setCameraFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
+                </div>
+              </div>
+
+              {/* Calibration */}
+              <div className="bg-black/15 border border-gray-850 p-3 rounded-2xl space-y-3">
+                <span className="block text-[10px] text-cyan-400 font-bold border-b border-gray-800 pb-1">
+                  <span>📐 معايرة الفيديو وطول الرجل</span>
+                </span>
+                
+                <div className="flex items-center gap-2 justify-between">
+                  <label className="text-[9px] text-gray-400">طول الرجل المرجعي (m):</label>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value={referenceLength} 
+                    onChange={(e) => setReferenceLength(Number(e.target.value))} 
+                    className="w-16 bg-[#111827]/60 border border-gray-800 p-1 text-xs text-center text-white rounded font-mono" 
+                  />
+                </div>
+
+                {!isCalibrating ? (
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setIsCalibrating(true);
+                      setCalibrationStep(1);
+                      calibrationClicksRef.current = [];
+                      setPixelsPerMeter(null);
+                      setTrackedJumpHeight(null);
+                    }}
+                    className="w-full py-2 bg-black/35 border border-cyan-500/20 text-gray-300 rounded-xl text-[9px] font-bold transition-all cursor-pointer"
+                  >
+                    📏 ابدأ المعايرة باللمس
+                  </button>
+                ) : (
+                  <div className="bg-cyan-950/20 border border-cyan-500/40 p-2 rounded-xl text-center text-[9px]">
+                    {calibrationStep === 1 && <p className="text-cyan-400 font-bold">1️⃣ اضغط على <span className="text-white font-extrabold">مفصل الفخذ</span> بالفيديو</p>}
+                    {calibrationStep === 2 && <p className="text-cyan-400 font-bold">2️⃣ اضغط على <span className="text-white font-extrabold">مفصل الكاحل</span> بالفيديو</p>}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeSettingsTab === 'anthropometrics' && (
+            <div className="space-y-4 text-right">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-gray-400 font-bold">وزن اللاعب:</span>
+                  <span className="font-mono font-black text-white bg-cyan-950/40 px-2 py-0.5 rounded">{bodyMass} kg</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="range" min="40" max="150" step="1" value={bodyMass} onChange={(e) => { setBodyMass(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-cyan-500" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-gray-400 font-bold">طول القامة:</span>
+                  <span className="font-mono font-black text-white bg-cyan-950/40 px-2 py-0.5 rounded">{playerHeight} cm</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="range" min="120" max="230" step="1" value={playerHeight} onChange={(e) => { handleHeightChange(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-cyan-500" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-gray-400 font-bold">الوصول من الثبات:</span>
+                  <span className="font-mono font-black text-white bg-cyan-950/40 px-2 py-0.5 rounded">{standingReach} cm</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="range" min="150" max="300" step="1" value={standingReach} onChange={(e) => { handleStandingReachChange(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-cyan-500" />
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-gray-800">
+                <label className="block text-[9px] text-gray-500 mb-1">أقصى لمس بالقفز (cm)</label>
+                <input
+                  type="number"
+                  value={maxTouchHeight}
+                  onChange={(e) => setMaxTouchHeight(parseFloat(e.target.value) || '')}
+                  placeholder="مثال: 314"
+                  className="w-full bg-[var(--bg-input)] border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono"
+                />
+              </div>
+
+              {maxTouchHeight > standingReach && (
+                <div className="bg-cyan-950/20 border border-cyan-500/30 p-2.5 rounded-2xl space-y-1.5 text-[10px]">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 font-semibold">قفزة اللمس الفعلية:</span>
+                    <span className="font-extrabold text-cyan-400 font-mono">{(maxTouchHeight - standingReach).toFixed(1)} سم</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 font-semibold">ارتفاع طيران مركز الثقل:</span>
+                    <span className="font-extrabold text-white font-mono">{parseFloat(stats.heightCm).toFixed(1)} سم</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="pt-2">
+            <button onClick={handleAnalyze} className="w-full btn-orange-gradient py-3.5 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 text-xs cursor-pointer">
+              <Activity size={16} /> استخراج وتحليل النتائج ⏱️
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Results Dashboard */}
+        {showResults && (
+          <div className="bg-[#111827]/40 backdrop-blur-xl border border-gray-800 rounded-3xl p-4 space-y-5 text-right">
+            <div className="flex justify-between items-center border-b border-cyan-500/20 pb-2">
+              <span className="text-[11px] font-extrabold text-cyan-400">🚀 لوحة القيادة الميكانيكية الحيوية (Mobile Cockpit)</span>
+              <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-cyan-500/10">
+                <button type="button" onClick={() => setDisplayUnit('cm')} className={`px-2 py-0.5 text-[9px] font-bold rounded transition-all cursor-pointer ${displayUnit === 'cm' ? 'bg-cyan-500 text-[#070a13]' : 'text-gray-400'}`}>Cm</button>
+                <button type="button" onClick={() => setDisplayUnit('inches')} className={`px-2 py-0.5 text-[9px] font-bold rounded transition-all cursor-pointer ${displayUnit === 'inches' ? 'bg-cyan-500 text-[#070a13]' : 'text-gray-400'}`}>In</button>
+              </div>
+            </div>
+
+            {/* Results Grid */}
+            <div className="flex flex-col gap-5 items-center">
+              {/* Altimeter height scale */}
+              <div className="w-full bg-black/30 p-4 rounded-2xl border border-gray-800/80 flex flex-col items-center gap-3">
+                <span className="text-[10px] text-cyan-400 font-bold">📏 الارتفاع الرأسي (BIOMECHANICAL ALTIMETER)</span>
+                
+                <div className="flex items-end gap-4 h-48 w-full justify-center">
+                  <div className="w-12 h-full bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden relative flex flex-col justify-end p-1">
+                    <div 
+                      className="w-full bg-gradient-to-t from-cyan-600 to-cyan-400 rounded-xl transition-all duration-1000 shadow-[0_0_12px_rgba(6,182,212,0.4)]"
+                      style={{ 
+                        height: `${Math.min(100, (parseFloat(stats.heightCm) / (displayUnit === 'cm' ? 100 : 40)) * 100)}%` 
+                      }}
+                    />
+                  </div>
+                  <div className="flex flex-col justify-between h-full text-[8px] font-mono text-gray-500 text-left">
+                    <span>100</span>
+                    <span>80</span>
+                    <span>60</span>
+                    <span>40</span>
+                    <span>20</span>
+                    <span>0</span>
+                  </div>
+                </div>
+
+                <div className="text-center mt-1">
+                  <span className="text-2xl font-black text-white font-mono leading-none">
+                    {displayUnit === 'cm' ? <AnimatedCounter value={stats.heightCm} /> : <AnimatedCounter value={stats.heightInches} />}
+                  </span>
+                  <span className="text-[10px] text-cyan-400 font-black mr-1">{displayUnit === 'cm' ? 'cm' : 'inches'}</span>
+                </div>
+              </div>
+
+              {/* Power Speedometer */}
+              <div className="w-full bg-black/30 p-4 rounded-2xl border border-gray-800/80 flex flex-col items-center gap-2">
+                <span className="text-[10px] text-cyan-400 font-bold font-Cairo">⚡ القدرة الانفجارية (POWER TELEMETRY)</span>
+                
+                <div className="relative w-40 h-24 flex items-center justify-center overflow-hidden">
+                  <svg className="w-full h-full transform -rotate-180" viewBox="0 0 100 50">
+                    <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" strokeLinecap="round" />
+                    <path 
+                      d="M 10 50 A 40 40 0 0 1 90 50" 
+                      fill="none" 
+                      stroke="url(#powerGrad)" 
+                      strokeWidth="8" 
+                      strokeLinecap="round"
+                      strokeDasharray="125.6"
+                      strokeDashoffset={125.6 - (125.6 * Math.min(100, (parseFloat(stats.harmanPeakPower) > 0 ? parseFloat(stats.harmanPeakPower) : parseFloat(stats.meanPower) * 2.1) / 7500)) * 1}
+                      className="transition-all duration-1000"
+                    />
+                    <defs>
+                      <linearGradient id="powerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#06b6d4" />
+                        <stop offset="100%" stopColor="#fb923c" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  
+                  <div className="absolute bottom-1 text-center">
+                    <span className="text-lg font-black text-white font-mono">
+                      <AnimatedCounter value={parseFloat(stats.harmanPeakPower) > 0 ? stats.harmanPeakPower : (parseFloat(stats.meanPower) * 2.1).toFixed(0)} decimals={0} />
+                    </span>
+                    <span className="text-[8px] text-gray-500 block">Peak Watts</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stepper Timeline & Diagnostics */}
+            <div className="bg-black/15 p-3 rounded-2xl border border-gray-855 space-y-4">
+              <span className="block text-[10px] text-cyan-400 font-bold border-b border-gray-800 pb-1.5">📊 المراحل الميكانيكية للقفزة</span>
+              
+              <div className="space-y-4 pr-1">
+                {[
+                  { title: "المرحلة اللامركزية (Eccentric)", color: "bg-purple-500", desc: "يبدأ الهبوط والتخزين المرن للطاقة العضلية في العضلات القابضة للورك والركبة." },
+                  { title: "مرحلة التحول (Amortization)", color: "bg-cyan-400", desc: "النقطة الحرجة للتحول من الانقباض اللامركزي للمركزي. سرعة التحول تحدد كفاءة الـ SSC." },
+                  { title: "المرحلة المركزية (Concentric)", color: "bg-blue-500", desc: "التفريغ الانفجاري للطاقة المخزنة ودفع الأرض بقوة أقصى للوصول لسرعة الانطلاق." },
+                  { title: "مرحلة الطيران (Flight Phase)", color: "bg-emerald-400", desc: "يبدأ مركز ثقل اللاعب في الصعود لقمة المسار الحركي محكوماً بـ flight time." },
+                  { title: "مرحلة الهبوط (Landing Correction)", color: "bg-red-400", desc: "امتصاص الصدمات وقوى رد فعل الأرض بتفعيل معامل تصحيح الركبة المختار." }
+                ].map((phase, idx) => (
+                  <div key={idx} className="relative pl-1">
+                    <div className={`absolute right-[-17px] top-1 w-2.5 h-2.5 rounded-full ${phase.color} border-2 border-black`}></div>
+                    <span className="block text-[10px] font-black text-white">{phase.title}</span>
+                    <p className="text-[9px] text-gray-400 leading-relaxed mt-0.5">{phase.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Jump Classification Tag */}
+            {jumpType !== 'dj' && (
+              <div className="space-y-2 bg-black/25 border border-gray-855 p-3 rounded-2xl">
+                <label className="block text-[9px] text-gray-400 font-bold">تصنيف القفزة للحفظ</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => setSaveJumpTag('cmj')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'cmj' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>CMJ</button>
+                  <button type="button" onClick={() => setSaveJumpTag('approach')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'approach' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>Approach</button>
+                </div>
+              </div>
+            )}
+
+            {/* Save Button */}
+            <div className="pt-2">
+              <button onClick={saveMeasurement} disabled={isSaving} className="w-full py-3.5 btn-orange-gradient flex items-center justify-center gap-2 font-black text-xs rounded-xl cursor-pointer">
+                <Save size={16} />
+                {isSaving ? 'جاري الحفظ...' : 'حفظ النتيجة في سجل اللاعب'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="glass-panel p-4 md:p-6 shadow-2xl transition-all duration-300 relative text-right animate-fade-in" style={{ direction: 'rtl' }}>
+      {isMobile ? renderMobileView() : renderDesktopView()}
     </div>
   );
 }
