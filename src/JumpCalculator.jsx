@@ -110,7 +110,7 @@ export default function JumpCalculator() {
   const currentFrameDesktopRef = useRef(null);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [isMobileSelectorOpen, setIsMobileSelectorOpen] = useState(false);
-  const [expandedCoaches, setExpandedCoaches] = useState({});
+  const [expandedCoaches, setExpandedCoaches] = useState({ unassigned: true });
 
   const toggleCoachSelector = (coachId) => {
     setExpandedCoaches(prev => ({

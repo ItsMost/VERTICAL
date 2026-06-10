@@ -18,17 +18,19 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
   // Sync selectedCoachId with the first coach if not already set or if current selectedCoachId is not in the list anymore
   useEffect(() => {
     if (coaches && coaches.length > 0) {
-      if (!selectedCoachId || !coaches.some(c => c.id === selectedCoachId)) {
-        setSelectedCoachId(coaches[0].id);
+      if (!selectedCoachId || (!coaches.some(c => c.id === selectedCoachId) && selectedCoachId !== 'all' && selectedCoachId !== 'unassigned')) {
+        setSelectedCoachId('all');
       }
     } else {
-      setSelectedCoachId('');
+      if (selectedCoachId !== 'all' && selectedCoachId !== 'unassigned') {
+        setSelectedCoachId('all');
+      }
     }
   }, [coaches, selectedCoachId]);
 
   // Fetch players and measurements on coach change
   useEffect(() => {
-    if (!selectedCoachId) {
+    if (selectedCoachId === undefined || selectedCoachId === null) {
       setPlayers([]);
       setLatestScores({});
       return;
@@ -37,11 +39,15 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
     async function fetchCoachRoster() {
       setLoading(true);
       try {
-        const { data: playersData, error: playersError } = await supabase
-          .from('lab_players')
-          .select('*')
-          .eq('coach_id', selectedCoachId)
-          .order('full_name');
+        let query = supabase.from('lab_players').select('*');
+        
+        if (selectedCoachId === 'unassigned') {
+          query = query.is('coach_id', null);
+        } else if (selectedCoachId !== 'all' && selectedCoachId) {
+          query = query.eq('coach_id', selectedCoachId);
+        }
+        
+        const { data: playersData, error: playersError } = await query.order('full_name');
 
         if (playersError || !playersData) {
           setPlayers([]);
@@ -306,7 +312,13 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                 onClick={() => setIsCoachDropdownOpen(!isCoachDropdownOpen)}
                 className="w-full sm:w-60 bg-[#111827]/60 border border-gray-800 text-xs text-white p-3 px-4 rounded-xl outline-none font-bold focus:border-cyan-500 flex items-center justify-between gap-2 cursor-pointer text-right min-w-[15rem]"
               >
-                <span>{selectedCoachId ? (coaches.find(c => c.id === selectedCoachId)?.full_name || '-- اختر مدرباً --') : '-- اختر مدرباً --'}</span>
+                <span>
+                  {selectedCoachId === 'all' 
+                    ? 'جميع اللاعبين (الكل)' 
+                    : selectedCoachId === 'unassigned' 
+                      ? 'لاعبون بدون مدرب' 
+                      : (coaches.find(c => c.id === selectedCoachId)?.full_name || '-- اختر مدرباً --')}
+                </span>
                 <ChevronDown size={14} className={`text-gray-400 transition-transform duration-205 ${isCoachDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -328,12 +340,22 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                       <button
                         type="button"
                         onClick={() => {
-                          setSelectedCoachId('');
+                          setSelectedCoachId('all');
                           setIsCoachDropdownOpen(false);
                         }}
-                        className={`w-full px-4 py-3 text-right text-xs hover:bg-cyan-500/10 transition-colors block border-b border-gray-800/40 ${!selectedCoachId ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-400 font-bold'}`}
+                        className={`w-full px-4 py-3 text-right text-xs hover:bg-cyan-500/10 transition-colors block border-b border-gray-800/40 ${selectedCoachId === 'all' ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-450 font-bold'}`}
                       >
-                        -- اختر مدرباً --
+                        جميع اللاعبين (الكل)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCoachId('unassigned');
+                          setIsCoachDropdownOpen(false);
+                        }}
+                        className={`w-full px-4 py-3 text-right text-xs hover:bg-cyan-500/10 transition-colors block border-b border-gray-800/40 ${selectedCoachId === 'unassigned' ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-450 font-bold'}`}
+                      >
+                        لاعبون بدون مدرب
                       </button>
                       {coaches.map(c => (
                         <button
