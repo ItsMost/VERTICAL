@@ -336,6 +336,11 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
     return list.length > 0 ? parseFloat(list[list.length - 1].rsi_score) : 0;
   };
 
+  const getLatestJumpRecord = (type) => {
+    const list = playerHistory ? playerHistory.filter(j => j.test_type === type) : [];
+    return list.length > 0 ? list[list.length - 1] : null;
+  };
+
   const sjNoArms = getLatestTestHeight('sj_no_arms');
   const cmjNoArms = getLatestTestHeight('cmj_no_arms');
   const sjArms = getLatestTestHeight('sj_arms');
@@ -343,7 +348,15 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
   const approachJump = getLatestTestHeight('approach');
   const latestRsi = getLatestTestRsi() || latestRsiVal || maxRsi;
 
+  const sjNoArmsRecord = getLatestJumpRecord('sj_no_arms');
+  const cmjNoArmsRecord = getLatestJumpRecord('cmj_no_arms');
+  const sjArmsRecord = getLatestJumpRecord('sj_arms');
+  const cmjArmsRecord = getLatestJumpRecord('cmj_arms');
+  const approachRecord = getLatestJumpRecord('approach');
+  const rsiRecord = getLatestJumpRecord('rsi');
+
   const eur = sjNoArms > 0 ? cmjNoArms / sjNoArms : 0;
+  const eurPctDiff = sjNoArms > 0 ? ((cmjNoArms - sjNoArms) / sjNoArms) * 100 : 0;
   const armSwing = cmjNoArms > 0 ? ((cmjArms - cmjNoArms) / cmjNoArms) * 100 : 0;
   const velocityConversion = cmjArms > 0 ? ((approachJump - cmjArms) / cmjArms) * 100 : 0;
 
@@ -354,13 +367,15 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
     let report = "";
     
-    // Tendons & Ankle stiffness
-    if (eur > 0 && eur < 1.05) {
-      report += "🔴 يعاني اللاعب من عجز واضح في مطاطية الأوتار واستغلال الدورة المطاطية الانقباضية (Tendon Elastic Deficit)؛ حيث أن ارتفاع قفزته مع الهبوط المتتابع لا يزيد عن قفزة البدء من الثبات. يُنصح بالتركيز الفوري على تدريبات البلايومترك السريع (Fast SSC) مثل الحجل السريع وقفز الحواجز المنخفضة لبناء طاقة ارتداد الكاحل.\n\n";
-    } else if (eur > 1.15) {
-      report += "🟢 يمتلك اللاعب قدرة مطاطية ممتازة في الأوتار، ولكنه يعاني من نقص في القوة العضلية الانقباضية الصرفة (Concentric Force Deficit)؛ قفزات الثبات لديه ضعيفة مقارنة بالقفز الارتدادي. يُنصح بشدة بإدخال تدريبات القوة القصوى للأرجل بوزن ثقيل (>80% 1RM) مثل القرفصاء الخلفي والرفعة المميتة لإنشاء قاعدة قوة ثابتة.\n\n";
-    } else if (eur >= 1.05 && eur <= 1.15) {
-      report += "✨ يُظهر اللاعب توازناً ممتازاً في الكفاءة المطاطية (EUR)؛ الأوتار تعمل بانسجام تام مع ألياف العضلات الانقباضية لاسترداد وتخزين الطاقة.\n\n";
+    // Tendons & SSC Efficiency (EUR)
+    if (eur > 0) {
+      if (eur >= 1.05 && eur <= 1.15) {
+        report += `✨ مؤشر EUR: متوازن (عضلات وأوتار) (${eur.toFixed(2)} | +${eurPctDiff.toFixed(1)}%)\nاللاعب يمتلك توازناً ممتازاً وكويس جداً بين قوته العضلية وكفاءة الأوتار. هذا المعدل المثالي (من 5% إلى 15% زيادة للـ CMJ عن الـ Squat Jump) يعكس كفاءة ممتازة في دورة التمدد والتقصير (SSC) ومرونة واستغلال رائع لطاقة الأوتار المخزنة.\n\n`;
+      } else if (eur < 1.05) {
+        report += `🔴 مؤشر EUR: اعتماد عضلي / ضعف مطاطية الأوتار (${eur.toFixed(2)} | ${eurPctDiff >= 0 ? '+' : ''}${eurPctDiff.toFixed(1)}%)\nالنسبة قليلة (أقل من 5%)${eur < 1.00 ? '، وفي حالة كارثية حيث أن الـ Squat Jump أعلى من الـ CMJ (النسبة سالبة والـ EUR أقل من 1)' : ''}. هذا معناه أن اللاعب يعتمد تماماً على عضلاته ويمتلك قوة concentric عالية جداً، ولكنه يمتلك ضعفاً صريحاً في كفاءة الأوتار ومطاطيتها واستغلال دورة التمدد والتقصير (SSC). يُنصح بالتركيز الفوري على تمارين البلايومترك السريع (Fast SSC) لتنشيط وتطوير كفاءة أوتار كاحله.\n\n`;
+      } else {
+        report += `⚠️ مؤشر EUR: عجز قوة عضلية صافية (${eur.toFixed(2)} | +${eurPctDiff.toFixed(1)}%)\nالنسبة مرتفعة جداً (أكثر من 15%)، وهذا معناه أن اللاعب يعتمد على أوتاره والمطاطية الحركية بتاعته فقط، ويمتلك ضعفاً واضحاً وصريحاً في القوة العضلية الصافية الانقباضية (Concentric Force Deficit). يُنصح بشدة بإدخال تمارين الحديد والقوة القصوى للأرجل (>80% 1RM) لبناء أساس عضلي قوي.\n\n`;
+      }
     }
 
     // Arm coordination
@@ -402,13 +417,15 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
     let report = "";
     
-    // Tendons & Ankle stiffness
-    if (eur > 0 && eur < 1.05) {
-      report += "🔴 The athlete exhibits a Tendon Elastic Deficit; CMJ height does not exceed SJ height. Focus on fast SSC plyometrics (e.g., depth jumps, fast pogo jumps) to increase tendon stiffness and elastic recoil.\n\n";
-    } else if (eur > 1.15) {
-      report += "🟢 The athlete possesses excellent tendon elasticity but has a Concentric Force Deficit. SJ is weak compared to rebound jumps. Focus on high-intensity lower-body strength training (>80% 1RM squats, deadlifts) to build force output.\n\n";
-    } else if (eur >= 1.05 && eur <= 1.15) {
-      report += "✨ The athlete shows an optimal Elastic Utilization Ratio (EUR). The tendon system works in perfect harmony with concentric muscle fibers to store and release energy.\n\n";
+    // Tendons & SSC Efficiency (EUR)
+    if (eur > 0) {
+      if (eur >= 1.05 && eur <= 1.15) {
+        report += `✨ EUR Index: Balanced (Muscles & Tendons) (${eur.toFixed(2)} | +${eurPctDiff.toFixed(1)}%)\nThe athlete exhibits an excellent balance between pure muscular strength and tendon elasticity. This optimal range (5% to 15% increase in CMJ over SJ) indicates high stretch-shortening cycle (SSC) efficiency and great utilization of elastic energy.\n\n`;
+      } else if (eur < 1.05) {
+        report += `🔴 EUR Index: Tendon Deficit / Poor SSC (${eur.toFixed(2)} | ${eurPctDiff >= 0 ? '+' : ''}${eurPctDiff.toFixed(1)}%)\nThe ratio is low (less than 5%)${eur < 1.00 ? ', and in a critical state where Squat Jump is greater than CMJ (EUR < 1.00)' : ''}. This indicates the athlete relies entirely on their muscles and concentric strength, but has a clear deficit in tendon stiffness and stretch-shortening cycle (SSC) efficiency. Focus on rapid plyometrics immediately.\n\n`;
+      } else {
+        report += `⚠️ EUR Index: Concentric Force Deficit (${eur.toFixed(2)} | +${eurPctDiff.toFixed(1)}%)\nThe ratio is high (above 15%). The athlete relies solely on tendon elasticity and recoil, and suffers from a clear deficit in raw concentric muscle force. Heavy resistance training (>80% 1RM) is highly recommended.\n\n`;
+      }
     }
 
     // Arm coordination
@@ -444,6 +461,119 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
   };
 
   const unifiedDiagnosticText = generateUnifiedDiagnostic();
+
+  const jumpTestsConfig = [
+    {
+      type: 'sj_no_arms',
+      nameAr: 'وثبة ثبات بدون أذرع (Squat Jump - No Arms)',
+      nameEn: 'Squat Jump (No Arms)',
+      value: sjNoArms,
+      record: sjNoArmsRecord,
+      icon: '🏋️‍♂️',
+      desc: 'اختبار القفز من الثبات بدون أرجحة ذراعين. يقيس القوة الانقباضية الصافية للعضلات (Concentric Force Output) دون استغلال الطاقة المطاطية للأوتار.',
+      importance: 'حاسم لتقييم قوة العضلات الصافية وعزل مساهمة الأوتار. ضعف هذا الرقم يشير إلى نقص القوة العضلية الانقباضية الصرفة.',
+      benchmarks: [
+        { label: 'نخبة أولمبية 👑', value: age < 17 ? '+24.0"' : '+29.0" (النساء: +22.0")' },
+        { label: 'ممتاز 🏆', value: age < 17 ? '21.0" - 24.0"' : '25.0" - 28.9" (النساء: 18.0" - 21.9")' },
+        { label: 'جيد ⭐', value: age < 17 ? '18.0" - 21.0"' : '21.0" - 24.9" (النساء: 15.0" - 17.9")' },
+        { label: 'مقبول ⚡', value: age < 17 ? '15.0" - 18.0"' : '18.0" - 20.9" (النساء: 12.0" - 14.9")' },
+        { label: 'تحت المتوسط ⚠️', value: age < 17 ? '<15.0"' : '<18.0" (النساء: <12.0")' }
+      ],
+      tips: [
+        'تمارين القرفصاء من الثبات (Pause Squats 3s).',
+        'تدريبات القوة الانفجارية من السكون (Dead-stop Squats / Pin Squats).',
+        'تمارين دفع الأوزان الثقيلة (Leg Press >85% 1RM).'
+      ]
+    },
+    {
+      type: 'cmj_no_arms',
+      nameAr: 'وثبة ارتداد بدون أذرع (CMJ - No Arms)',
+      nameEn: 'Countermovement Jump (No Arms)',
+      value: cmjNoArms,
+      record: cmjNoArmsRecord,
+      icon: '⚡',
+      desc: 'وثبة ارتداد مع ثني الركبتين وبدون أذرع. تقيس كفاءة دورة التمدد والتقصير (SSC) ومطاطية أوتار الجزء السفلي بشكل معزول.',
+      importance: 'تساعد في تحديد قدرة الأوتار على تخزين وإطلاق الطاقة المطاطية دون مساعدة الجزء العلوي. تستخدم لمقارنتها مع Squat Jump لحساب الـ EUR.',
+      benchmarks: [
+        { label: 'نخبة أولمبية 👑', value: age < 17 ? '+26.0"' : '+31.0" (النساء: +24.0")' },
+        { label: 'ممتاز 🏆', value: age < 17 ? '22.0" - 26.0"' : '27.0" - 30.9" (النساء: 20.0" - 23.9")' },
+        { label: 'جيد ⭐', value: age < 17 ? '19.0" - 22.0"' : '23.0" - 26.9" (النساء: 16.0" - 19.9")' },
+        { label: 'مقبول ⚡', value: age < 17 ? '16.0" - 19.0"' : '19.0" - 22.9" (النساء: 13.0" - 15.9")' },
+        { label: 'تحت المتوسط ⚠️', value: age < 17 ? '<16.0"' : '<19.0" (النساء: <13.0")' }
+      ],
+      tips: [
+        'تمارين البلايومترك السريع (Countermovement Jumps with stick landing).',
+        'الحجل والقفز المتتالي بوزن الجسم (Pogo Jumps).',
+        'تدريبات السقوط والارتداد الخفيفة.'
+      ]
+    },
+    {
+      type: 'sj_arms',
+      nameAr: 'وثبة ثبات باليدين (Squat Jump - With Arms)',
+      nameEn: 'Squat Jump (With Arms)',
+      value: sjArms,
+      record: sjArmsRecord,
+      icon: '🙌',
+      desc: 'قفز من الثبات مع أرجحة ذراعين كاملة. يربط القوة العضلية الصافية للجزء السفلي مع حركة التنسيق للجزء العلوي.',
+      importance: 'يقيس التوافق الحركي بين أرجحة الأذرع والقوة العضلية البسيطة. يساعد في عزل التنسيق الحركي للذراعين عن مرونة الأوتار.',
+      benchmarks: [
+        { label: 'نخبة أولمبية 👑', value: age < 17 ? '+27.0"' : '+33.0" (النساء: +25.0")' },
+        { label: 'ممتاز 🏆', value: age < 17 ? '24.0" - 27.0"' : '29.0" - 32.9" (النساء: 21.0" - 24.9")' },
+        { label: 'جيد ⭐', value: age < 17 ? '20.0" - 24.0"' : '25.0" - 28.9" (النساء: 17.0" - 20.9")' },
+        { label: 'مقبول ⚡', value: age < 17 ? '17.0" - 20.0"' : '21.0" - 24.9" (النساء: 14.0" - 16.9")' },
+        { label: 'تحت المتوسط ⚠️', value: age < 17 ? '<17.0"' : '<21.0" (النساء: <14.0")' }
+      ],
+      tips: [
+        'تمارين القرفصاء السريع مع دفع اليدين لأعلى.',
+        'تدريبات التنسيق العصبي العضلي للأطراف.',
+        'تمارين أرجحة الذراعين المحملة بدمبلز خفيفة.'
+      ]
+    },
+    {
+      type: 'cmj_arms',
+      nameAr: 'وثبة ارتداد باليدين (CMJ - With Arms)',
+      nameEn: 'Countermovement Jump (With Arms)',
+      value: cmjArms,
+      record: cmjArmsRecord,
+      icon: '🚀',
+      desc: 'الوثب الارتدادي المعتاد بمساعدة الأذرع. يمثل القفز الطبيعي بأقصى أداء حركي متاح للاعب.',
+      importance: 'الارتقاء الأقصى الأساسي للرياضيين. يجمع بين كفاءة الأوتار وقوة العضلات والتنسيق الحركي للأذرع لتحقيق أعلى طيران عمودي ممكن.',
+      benchmarks: [
+        { label: 'نخبة أولمبية 👑', value: age < 17 ? '+28.9"' : '+34.0" (النساء: +26.0")' },
+        { label: 'ممتاز 🏆', value: age < 17 ? '25.5" - 28.9"' : '30.0" - 33.9" (النساء: 22.0" - 25.9")' },
+        { label: 'جيد ⭐', value: age < 17 ? '22.1" - 25.5"' : '26.0" - 29.9" (النساء: 18.0" - 21.9")' },
+        { label: 'مقبول ⚡', value: age < 17 ? '18.7" - 22.1"' : '22.0" - 25.9" (النساء: 15.0" - 17.9")' },
+        { label: 'تحت المتوسط ⚠️', value: age < 17 ? '<18.7"' : '<22.0" (النساء: <15.0")' }
+      ],
+      tips: [
+        'تدريبات القفز مع أوزان متوسطة (Jump Squats 30% 1RM).',
+        'تدريبات القوة القصوى للأطراف السفلية (Back Squats 85%+ 1RM).',
+        'تدريبات الدفع الأفقي والعمودي الأحادي (Single Leg Bounds).'
+      ]
+    },
+    {
+      type: 'approach',
+      nameAr: 'وثبة الاقتراب بالتجميع (Approach Jump)',
+      nameEn: 'Approach Jump',
+      value: approachJump,
+      record: approachRecord,
+      icon: '🏃‍♂️',
+      desc: 'الارتقاء بالاقتراب وجري خطوتين أو أكثر والتجميع للارتقاء لأعلى نقطة. يقيس مدى كفاءة اللاعب في تحويل السرعة الأفقية إلى عمودية.',
+      importance: 'حاسم للاعبي الكرة الطائرة وكرة السلة للارتقاء الفعلي أثناء اللعب. يقيم قدرة الجهاز الهيكلي العصبي العضلي على دمج القوة الأفقية بالعمودية.',
+      benchmarks: [
+        { label: 'نخبة أولمبية 👑', value: age < 17 ? '+32.0"' : '+38.0" (النساء: +30.0")' },
+        { label: 'ممتاز 🏆', value: age < 17 ? '28.0" - 32.0"' : '33.0" - 37.9" (النساء: 25.0" - 29.9")' },
+        { label: 'جيد ⭐', value: age < 17 ? '24.0" - 28.0"' : '29.0" - 32.9" (النساء: 21.0" - 24.9")' },
+        { label: 'مقبول ⚡', value: age < 17 ? '20.0" - 24.0"' : '25.0" - 28.9" (النساء: 18.0" - 20.9")' },
+        { label: 'تحت المتوسط ⚠️', value: age < 17 ? '<20.0"' : '<25.0" (النساء: <18.0")' }
+      ],
+      tips: [
+        'تدريب خطوة الاقتراب قبل الأخيرة (Penultimate Step) والارتقاء السريع.',
+        'تمارين الوثب المتعدد الأفقي والعمودي (Bounds and Hurdles).',
+        'تدريبات السرعة والانفجار العضلي للأطراف السفلى.'
+      ]
+    }
+  ];
 
   // Calculate overall rating (Biomechanical Score)
   const overallRating = maxRsi > 0 
@@ -888,6 +1018,116 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     </span>
                   </div>
                 </div>
+
+                {/* 5-Jump Profile Matrix Grid */}
+                <div className="glass-panel p-6 shadow-lg space-y-4">
+                  <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 border-b border-gray-800/85 pb-2.5 flex items-center justify-between">
+                    <span>📊 مصفوفة اختبارات الوثب الخمسة (5-Jump Profile Matrix)</span>
+                    <span className="text-[10px] text-gray-500 font-bold">آخر قراءة مسجلة لكل نوع اختبار (اضغط للتفاصيل)</span>
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+                    {jumpTestsConfig.map((test) => {
+                      const valInches = parseFloat((test.value * 0.393701).toFixed(1));
+                      const testEval = evaluateMetric('jump_in', valInches);
+                      const dateStr = test.record ? new Date(test.record.created_at).toLocaleDateString('ar-EG') : 'لم يقاس بعد';
+                      return (
+                        <div 
+                          key={test.type}
+                          onClick={() => setSelectedMetric({
+                            title: test.nameAr,
+                            value: test.value > 0 ? `${valInches}" (${test.value.toFixed(1)} cm)` : '—',
+                            rating: testEval.text,
+                            ratingColor: testEval.color,
+                            desc: test.desc,
+                            importance: test.importance,
+                            benchmarks: test.benchmarks,
+                            tips: test.tips
+                          })}
+                          className="bg-black/20 border border-gray-800 hover:border-cyan-500/40 hover:bg-cyan-950/5 p-4 rounded-2xl flex flex-col justify-between transition-all cursor-pointer select-none"
+                        >
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-[14px]">{test.icon}</span>
+                              <span className="text-[9px] text-gray-400 font-bold max-w-[80px] text-left truncate" title={test.nameEn}>{test.nameEn}</span>
+                            </div>
+                            <h4 className="text-[10px] text-gray-300 font-black mb-2 truncate" title={test.nameAr}>{test.nameAr.split('(')[0]}</h4>
+                            {test.value > 0 ? (
+                              <div className="space-y-1">
+                                <div className="flex items-baseline gap-1">
+                                  <span className="text-2xl font-black text-white font-mono">{valInches}</span>
+                                  <span className="text-gray-500 text-[10px] font-bold">in</span>
+                                  <span className="text-gray-450 font-mono text-[10px] mr-1">({test.value.toFixed(1)} cm)</span>
+                                </div>
+                                <span className={`text-[10px] font-black block ${testEval.color}`}>{testEval.text}</span>
+                              </div>
+                            ) : (
+                              <div className="py-2">
+                                <span className="text-xs text-gray-500 font-bold block">لم يقاس</span>
+                                <span className="text-[9px] text-gray-650 block">اضغط لعرض المعايير</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="mt-3 pt-2 border-t border-gray-850/30 text-[8px] text-gray-500 font-mono">
+                            📅 {dateStr}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* EUR Muscle-Tendon Balance Diagnostics Card */}
+                {sjNoArms > 0 && cmjNoArms > 0 && (
+                  <div className="glass-panel p-6 shadow-lg border border-cyan-950/40 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
+                    
+                    <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
+                      ⚖️ تشخيص توازن العضلات والأوتار (EUR Muscle-Tendon Diagnostics)
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                      {/* Left: Score board */}
+                      <div className="bg-black/30 border border-gray-800 p-5 rounded-2xl text-center flex flex-col justify-center items-center">
+                        <span className="text-xs text-gray-455 font-bold mb-2">مؤشر الاستغلال المطاطي (Elastic Utilization Ratio)</span>
+                        <div className="flex items-baseline gap-1.5 justify-center mb-1">
+                          <span className="text-5xl font-black text-white font-mono">{eur.toFixed(2)}</span>
+                          <span className="text-gray-400 text-xs font-mono font-bold">Index</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full font-mono bg-white/5 ${
+                            eur >= 1.05 && eur <= 1.15 ? 'text-emerald-400' : 'text-orange-400'
+                          }`}>
+                            {eurPctDiff >= 0 ? '+' : ''}{eurPctDiff.toFixed(1)}% فرق
+                          </span>
+                        </div>
+                        <div className="mt-4 text-[10px] text-gray-450 leading-relaxed max-w-[200px]">
+                          الهدف الرياضي النموذجي هو أن يزيد CMJ عن Squat Jump بنسبة <strong>5% إلى 15%</strong> (EUR: 1.05 - 1.15).
+                        </div>
+                      </div>
+
+                      {/* Middle & Right: Diagnostics details */}
+                      <div className="lg:col-span-2 space-y-4">
+                        <div className="p-4 rounded-xl border bg-black/10 border-gray-805 space-y-2">
+                          <span className="text-xs font-black text-white block">📋 تقييم التوازن البدني والفسيولوجي:</span>
+                          <p className="text-xs text-gray-300 leading-relaxed font-mono whitespace-pre-line">
+                            {generateUnifiedDiagnostic().split('\n\n')[0]}
+                          </p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                          <div className="bg-black/20 p-3.5 rounded-xl border border-gray-850">
+                            <span className="text-[10px] text-gray-455 block mb-1">ارتفاع ثبات بدون أذرع (SJ)</span>
+                            <span className="text-base font-black text-white font-mono">{sjNoArms.toFixed(1)} <span className="text-xs text-gray-500 font-bold">سم</span></span>
+                          </div>
+                          <div className="bg-black/20 p-3.5 rounded-xl border border-gray-850">
+                            <span className="text-[10px] text-gray-455 block mb-1">ارتفاع ارتداد بدون أذرع (CMJ)</span>
+                            <span className="text-base font-black text-white font-mono">{cmjNoArms.toFixed(1)} <span className="text-xs text-gray-500 font-bold">سم</span></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
               </motion.div>
             )}
@@ -1506,38 +1746,63 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
         {/* Core numbers */}
         <div className={`mb-6 ${printLang === 'ar' ? 'text-right' : 'text-left'}`}>
           <h3 className="text-sm font-black text-black mb-3">
-            {printLang === 'ar' ? 'نتائج قياسات الاختبار الأخير' : 'Latest Test Session Results'}
+            {printLang === 'ar' ? 'بيانات مصفوفة قياسات اختبارات الوثب المتكاملة' : 'Integrated Vertical Jump Tests Matrix'}
           </h3>
           <table className="print-table text-xs">
             <thead>
               {printLang === 'ar' ? (
                 <tr>
-                  <th>ارتفاع الوثب (سم)</th>
-                  <th>ارتفاع الوثب (إنش)</th>
-                  <th>زمن الطيران المعلق (ثانية)</th>
-                  <th>كثافة القدرة الميكانيكية (W/kg)</th>
-                  <th>أقصى ارتفاع للوصول (سم)</th>
-                  <th>مؤشر RSI الأقصى</th>
+                  <th>نوع الاختبار</th>
+                  <th>الارتفاع (سم)</th>
+                  <th>الارتفاع (إنش)</th>
+                  <th>زمن الطيران (ثانية)</th>
+                  <th>كثافة القدرة (W/kg)</th>
+                  <th>القدرة القصوى (وات)</th>
+                  <th>تاريخ القياس</th>
                 </tr>
               ) : (
                 <tr>
-                  <th>Jump Height (cm)</th>
-                  <th>Jump Height (in)</th>
+                  <th>Test Type</th>
+                  <th>Height (cm)</th>
+                  <th>Height (in)</th>
                   <th>Flight Time (s)</th>
                   <th>Relative Power (W/kg)</th>
-                  <th>Max Touch Reach (cm)</th>
-                  <th>Max RSI Index</th>
+                  <th>Peak Power (Watts)</th>
+                  <th>Test Date</th>
                 </tr>
               )}
             </thead>
             <tbody>
+              {jumpTestsConfig.map((test) => {
+                const rec = test.record;
+                const inHeight = rec ? parseFloat((parseFloat(rec.jump_height_cm) * 0.393701).toFixed(1)) : 0;
+                const recPower = rec ? (rec.peak_power_watts && parseFloat(rec.peak_power_watts) > 0 ? parseFloat(rec.peak_power_watts) : (60.7 * parseFloat(rec.jump_height_cm) + 45.3 * mass - 2055)) : 0;
+                const recRelPower = rec && mass > 0 ? parseFloat((recPower / mass).toFixed(1)) : 0;
+                
+                return (
+                  <tr key={test.type}>
+                    <td className="font-bold">{printLang === 'ar' ? test.nameAr.split('(')[0] : test.nameEn}</td>
+                    <td className="font-mono font-bold">{rec ? parseFloat(rec.jump_height_cm).toFixed(1) : '—'}</td>
+                    <td className="font-mono">{rec ? inHeight.toFixed(1) : '—'}</td>
+                    <td className="font-mono">{rec ? parseFloat(rec.flight_time_sec).toFixed(3) : '—'}</td>
+                    <td className="font-mono">{rec ? recRelPower.toFixed(1) : '—'}</td>
+                    <td className="font-mono">{rec ? recPower.toFixed(0) : '—'}</td>
+                    <td className="font-mono text-gray-700 text-[10px]">
+                      {rec ? new Date(rec.created_at).toLocaleDateString(printLang === 'ar' ? 'ar-EG' : 'en-US') : '—'}
+                    </td>
+                  </tr>
+                );
+              })}
               <tr>
-                <td className="font-bold">{heightCm.toFixed(1)}</td>
-                <td className="font-bold">{heightInches}</td>
-                <td>{flightTime.toFixed(3)}</td>
-                <td>{relativePower > 0 ? relativePower : (harmanPeak / mass).toFixed(1)}</td>
-                <td className="font-bold text-blue-800">{maxReachCmj || '—'}</td>
-                <td className="font-bold text-cyan-800">{maxRsi > 0 ? maxRsi.toFixed(2) : '—'}</td>
+                <td className="font-bold">{printLang === 'ar' ? 'الوثب الساقط (RSI)' : 'Drop Jump (RSI)'}</td>
+                <td className="font-mono">—</td>
+                <td className="font-mono">—</td>
+                <td className="font-mono">{rsiRecord ? parseFloat(rsiRecord.flight_time_sec).toFixed(3) : '—'}</td>
+                <td className="font-mono">—</td>
+                <td className="font-mono">—</td>
+                <td className="font-mono text-gray-700 text-[10px]">
+                  {rsiRecord ? new Date(rsiRecord.created_at).toLocaleDateString(printLang === 'ar' ? 'ar-EG' : 'en-US') : '—'}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -1597,8 +1862,9 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   {eur > 0 ? eur.toFixed(2) : '—'}
                   <div className="text-[9px] font-bold text-gray-700">
                     {eur === 0 ? (printLang === 'ar' ? 'غير متوفر' : 'N/A') :
-                     eur < 1.05 ? (printLang === 'ar' ? 'عجز أوتار ⚠️' : 'Tendon Deficit ⚠️') :
-                     eur > 1.15 ? (printLang === 'ar' ? 'عجز قوة عضلية 🏋️‍♂️' : 'Force Deficit 🏋️‍♂️') : (printLang === 'ar' ? 'كفاءة ممتازة ✨' : 'Optimal ✨')}
+                     eur >= 1.05 && eur <= 1.15 ? (printLang === 'ar' ? 'متوازن (عضلات وأوتار) ✨' : 'Balanced (Optimal) ✨') :
+                     eur < 1.05 ? (printLang === 'ar' ? 'العضلات (الأوتار ضعيفة) 🔴' : 'Muscles Dominant (Tendon Deficit) 🔴') : 
+                     (printLang === 'ar' ? 'الأوتار (العضلات تفتقر للقوة الصافية) ⚠️' : 'Tendon Dominant (Force Deficit) ⚠️')}
                   </div>
                 </td>
                 <td className="font-mono font-bold text-sm">

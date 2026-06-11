@@ -708,11 +708,24 @@ export default function JumpCalculator() {
     } else if (error) { alert("خطأ في تسجيل اللاعب: " + error.message); }
   };
 
-  const handleDeletePlayer = async () => {
-    if (!activePlayer) return;
-    if (window.confirm(`هل أنت متأكد من مسح اللاعب "${activePlayer.full_name}" وكل سجلاته؟`)) {
-      const { error } = await supabase.from('lab_players').delete().eq('id', activePlayer.id);
-      if (!error) { setPlayers(players.filter(p => p.id !== activePlayer.id)); setSelectedPlayerId(''); setActivePlayer(null); setPlayerHistory([]); setActiveTab('calculator'); }
+  const handleDeletePlayer = async (idToUse = null, nameToUse = null) => {
+    const id = idToUse || (activePlayer ? activePlayer.id : null);
+    const name = nameToUse || (activePlayer ? activePlayer.full_name : '');
+    if (!id) return;
+    if (window.confirm(`هل أنت متأكد من مسح اللاعب "${name}" وكل سجلاته؟`)) {
+      const { error } = await supabase.from('lab_players').delete().eq('id', id);
+      if (!error) {
+        setPlayers(players.filter(p => p.id !== id));
+        if (selectedPlayerId === id || (activePlayer && activePlayer.id === id)) {
+          setSelectedPlayerId('');
+          setActivePlayer(null);
+          setPlayerHistory([]);
+        }
+        setIsEditingPlayer(false);
+        setActiveTab('team');
+      } else {
+        alert("خطأ في حذف اللاعب: " + error.message);
+      }
     }
   };
 
@@ -1329,7 +1342,7 @@ export default function JumpCalculator() {
   ];
 
   return (
-    <div data-theme={colorMode} className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] p-4 md:p-6 pb-40 transition-all duration-300 text-shadow-contrast" style={{ direction: "rtl" }}>
+    <div data-theme={colorMode} className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] p-4 md:p-6 pb-12 transition-all duration-300 text-shadow-contrast" style={{ direction: "rtl" }}>
       <div className="w-full max-w-7xl mx-auto flex flex-col gap-6">
         
         {/* ================= TOP DYNAMIC CONTROL HUD ================= */}
@@ -1534,7 +1547,7 @@ export default function JumpCalculator() {
       </div>
 
       {/* ================= FLOATING GLASSMORPHIC DOCK NAVIGATION ================= */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-[#0a1224]/85 backdrop-blur-xl border border-[var(--border-color)] rounded-full px-6 py-2.5 flex items-center gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+      <nav className="mt-8 mb-6 mx-auto w-fit bg-[#0a1224]/85 backdrop-blur-xl border border-[var(--border-color)] rounded-full px-6 py-2.5 flex items-center gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative z-[100]">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -1688,7 +1701,10 @@ export default function JumpCalculator() {
                     ))}
                   </select>
                 </div>
-                <button type="submit" className="w-full btn-orange-gradient py-3 rounded-xl text-xs font-bold shadow-md flex justify-center items-center gap-1.5"><Save size={14}/> حفظ التعديلات</button>
+                <div className="flex gap-3 mt-4">
+                  <button type="submit" className="flex-1 btn-orange-gradient py-3 rounded-xl text-xs font-bold shadow-md flex justify-center items-center gap-1.5"><Save size={14}/> حفظ التعديلات</button>
+                  <button type="button" onClick={() => handleDeletePlayer(editPlayerForm.id, editPlayerForm.name)} className="px-4 py-3 rounded-xl text-xs font-bold bg-red-950/40 border border-red-800/40 hover:bg-red-900/40 text-red-400 hover:text-red-300 transition-all flex justify-center items-center gap-1.5"><Trash2 size={14}/> حذف اللاعب</button>
+                </div>
               </form>
             </motion.div>
           </div>

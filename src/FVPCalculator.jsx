@@ -649,9 +649,42 @@ export default function FVPCalculator({ activePlayer }) {
         advice += " (تنويه: بما أن العمر التدريبي للاعب متقدم، يمكن دمج تدريبات بلايومترك عالية الشدة وتدريبات تباين متطورة لتحقيق الاستفادة الميكانيكية القصوى.)";
     }
 
+    let curveZoneAr = "";
+    let curveZoneEn = "";
+    let curveZoneColor = "";
+    let curveZonePct = "";
+
+    if (fvpIndex > 140) {
+      curveZoneAr = "Max Strength (القوة القصوى)";
+      curveZoneEn = "Max Strength";
+      curveZoneColor = "text-red-400 border-red-500 bg-red-950/20";
+      curveZonePct = "90-100% 1RM";
+    } else if (fvpIndex > 110) {
+      curveZoneAr = "Strength-Speed (القوة المميزة بالسرعة)";
+      curveZoneEn = "Strength-Speed";
+      curveZoneColor = "text-orange-400 border-orange-500 bg-orange-950/20";
+      curveZonePct = "80-90% 1RM";
+    } else if (fvpIndex >= 90) {
+      curveZoneAr = "Peak Power / Balanced (القدرة القصوى / متوازن)";
+      curveZoneEn = "Peak Power / Balanced";
+      curveZoneColor = "text-emerald-400 border-emerald-500 bg-emerald-950/20";
+      curveZonePct = "30-80% 1RM";
+    } else if (fvpIndex >= 60) {
+      curveZoneAr = "Speed-Strength (السرعة المميزة بالقوة)";
+      curveZoneEn = "Speed-Strength";
+      curveZoneColor = "text-cyan-400 border-cyan-500 bg-cyan-950/20";
+      curveZonePct = "30-60% 1RM";
+    } else {
+      curveZoneAr = "Max Velocity (السرعة القصوى)";
+      curveZoneEn = "Max Velocity";
+      curveZoneColor = "text-blue-400 border-blue-500 bg-blue-950/20";
+      curveZonePct = "<30% 1RM";
+    }
+
     setFvpResult({
       F0, V0, Pmax, diagnosis, advice, color, points, isDistorted,
-      F0_opt, V0_opt, Sopt, fvpIndex
+      F0_opt, V0_opt, Sopt, fvpIndex,
+      curveZoneAr, curveZoneEn, curveZoneColor, curveZonePct
     });
   };
 
@@ -1558,13 +1591,13 @@ export default function FVPCalculator({ activePlayer }) {
                               style={{ filter: 'drop-shadow(0px 0px 4px rgba(234, 88, 12, 0.4))' }}
                             />
 
-                            {/* Textual deficit status overlay on the SVG plot */}
+                             {/* Textual deficit status overlay on the SVG plot */}
                             <g>
                               <rect 
                                 x="4%" 
                                 y="4%" 
-                                width="42%" 
-                                height="16%" 
+                                width="46%" 
+                                height="22%" 
                                 rx="6" 
                                 fill="rgba(10, 18, 36, 0.85)" 
                                 stroke="#06b6d4" 
@@ -1572,14 +1605,24 @@ export default function FVPCalculator({ activePlayer }) {
                                 style={{ filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.5))' }}
                               />
                               <text 
-                                x="25%" 
-                                y="13.5%" 
+                                x="27%" 
+                                y="12.5%" 
                                 fill="#00f5d4" 
                                 fontSize="9" 
                                 fontWeight="900" 
                                 textAnchor="middle"
                               >
                                 حالة اللاعب: {fvpResult.diagnosis}
+                              </text>
+                              <text 
+                                x="27%" 
+                                y="21%" 
+                                fill="#f59e0b" 
+                                fontSize="8.5" 
+                                fontWeight="bold" 
+                                textAnchor="middle"
+                              >
+                                نطاق المنحنى: {fvpResult.curveZoneAr || '—'}
                               </text>
                             </g>
 
@@ -1712,6 +1755,14 @@ export default function FVPCalculator({ activePlayer }) {
                           <div className="bg-black/20 p-3 rounded-xl border border-gray-800 mt-2 space-y-1">
                             <span className="font-black text-cyan-400 block">{statusText}</span>
                             <p className="text-[10px] text-gray-400 leading-relaxed">{statusDesc}</p>
+                          </div>
+
+                          <div className={`p-3 rounded-xl border mt-2 flex justify-between items-center ${fvpResult.curveZoneColor || 'border-gray-800 bg-black/20'}`}>
+                            <div>
+                              <span className="text-[9px] text-gray-400 block font-bold">منطقة القوة والسرعة النشطة (Active F-V Zone)</span>
+                              <span className="text-xs font-black text-white">{fvpResult.curveZoneAr || '—'}</span>
+                            </div>
+                            <span className="text-[10px] font-bold bg-white/10 px-2.5 py-0.5 rounded-md font-mono">{fvpResult.curveZonePct}</span>
                           </div>
                         </div>
                       );
