@@ -64,6 +64,19 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
       return { text: 'قدرة متفجرة 👑', color: 'text-cyan-400', bg: '#06b6d4', progress: 100, range: `أعلى من ${elite.toFixed(1)} W/kg` };
     }
 
+    if (type === 'rsi') {
+      let elite = 2.5;
+      let excellent = 2.0;
+      let good = 1.5;
+      let fair = 1.0;
+
+      if (value < fair) return { text: 'صلابة منخفضة ⚠️', color: 'text-red-400', bg: '#ef4444', progress: 25, range: `المعدل الجيد: +${good.toFixed(1)}` };
+      if (value < good) return { text: 'تفاعل مقبول ⚡', color: 'text-orange-400', bg: '#f97316', progress: 45, range: `المعدل الجيد: +${good.toFixed(1)}` };
+      if (value < excellent) return { text: 'تفاعل جيد ⭐', color: 'text-teal-400', bg: '#14b8a6', progress: 65, range: `الممتاز: +${excellent.toFixed(1)}` };
+      if (value < elite) return { text: 'ممتاز 🏆', color: 'text-emerald-400', bg: '#10b981', progress: 85, range: `النخبة: +${elite.toFixed(1)}` };
+      return { text: 'نخبة تفاعلية 👑', color: 'text-cyan-400', bg: '#06b6d4', progress: 100, range: `أعلى من ${elite.toFixed(1)}` };
+    }
+
     return { text: '', color: '', bg: '', progress: 0, range: '' };
   };
 
@@ -104,13 +117,19 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
     : heightCm;
   const trendPct = heightCm - avgHistoryCm;
 
-  // Calculate overall rating (Biomechanical Score)
-  const overallRating = Math.round((evalHeight.progress + evalFlight.progress + evalPower.progress) / 3);
-
   const maxRsi = playerHistory ? playerHistory.reduce((max, j) => {
     const val = parseFloat(j.rsi_score) || 0;
     return val > max ? val : max;
   }, 0) : 0;
+
+  const latestRsiJump = playerHistory ? playerHistory.filter(j => j.test_type === 'rsi').pop() : null;
+  const latestRsiVal = latestRsiJump ? parseFloat(latestRsiJump.rsi_score) : 0;
+  const evalRsi = evaluateMetric('rsi', latestRsiVal || maxRsi);
+
+  // Calculate overall rating (Biomechanical Score)
+  const overallRating = maxRsi > 0 
+    ? Math.round((evalHeight.progress + evalFlight.progress + evalPower.progress + evalRsi.progress) / 4)
+    : Math.round((evalHeight.progress + evalFlight.progress + evalPower.progress) / 3);
 
   const tabs = [
     { id: 'overview', name: 'الملخص الحركي', icon: Trophy },
@@ -118,6 +137,8 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
     { id: 'critique', name: 'التشخيص ونقاط التطوير', icon: Target },
     { id: 'history', name: 'سجل القياسات الكامل', icon: FileText }
   ];
+
+  const [selectedMetric, setSelectedMetric] = useState(null);
 
   return (
     <div className="space-y-6 text-right relative" style={{ direction: "rtl" }}>
@@ -338,10 +359,32 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
                   </div>
 
                   {/* Core Metric Visual Cards */}
-                  <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     
                     {/* Gauge Card: Jump Height */}
-                    <div className="bg-[#111827]/30 border border-gray-850 p-5 rounded-3xl flex flex-col justify-between hover:border-cyan-500/30 transition-colors">
+                    <div 
+                      onClick={() => setSelectedMetric({
+                        title: 'الارتقاء الأقصى (CMJ Height)',
+                        value: `${heightInches}" (${heightCm} cm)`,
+                        rating: evalHeight.text,
+                        ratingColor: evalHeight.color,
+                        desc: 'يقيس الارتفاع العمودي الأقصى لمركز ثقل الجسم خلال الوثبة العمودية من الثبات مع أرجحة ذراعين. وهو المعيار الأساسي للقدرة الانفجارية للأطراف السفلية.',
+                        importance: 'مؤشر مباشر على تجنيد الألياف العضلية السريعة (Type II) وسرعة إنتاج القوة العمودية ضد الأرض. حاسم جداً للاعبي الطائرة والسلة للارتقاء الفعال.',
+                        benchmarks: [
+                          { label: 'نخبة أولمبية 👑', value: age < 17 ? '+28.9"' : '+34.0" (النساء: +26.0")' },
+                          { label: 'ممتاز 🏆', value: age < 17 ? '25.5" - 28.9"' : '30.0" - 33.9" (النساء: 22.0" - 25.9")' },
+                          { label: 'جيد ⭐', value: age < 17 ? '22.1" - 25.5"' : '26.0" - 29.9" (النساء: 18.0" - 21.9")' },
+                          { label: 'مقبول ⚡', value: age < 17 ? '18.7" - 22.1"' : '22.0" - 25.9" (النساء: 15.0" - 17.9")' },
+                          { label: 'تحت المتوسط ⚠️', value: age < 17 ? '<18.7"' : '<22.0" (النساء: <15.0")' }
+                        ],
+                        tips: [
+                          'تدريبات القفز مع أوزان متوسطة (Jump Squats 30% 1RM).',
+                          'تدريبات القوة القصوى للأطراف السفلية (Back Squats 85%+ 1RM).',
+                          'تدريبات الدفع الأفقي والعمودي الأحادي (Single Leg Bounds).'
+                        ]
+                      })}
+                      className="bg-[#111827]/30 border border-gray-850 p-5 rounded-3xl flex flex-col justify-between hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer select-none"
+                    >
                       <div>
                         <div className="flex justify-between items-center mb-3">
                           <span className="text-[10px] text-gray-400 font-bold">الوثبة الانفجارية القصوى</span>
@@ -367,7 +410,28 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
                     </div>
 
                     {/* Gauge Card: Flight Time */}
-                    <div className="bg-[#111827]/30 border border-gray-850 p-5 rounded-3xl flex flex-col justify-between hover:border-cyan-500/30 transition-colors">
+                    <div 
+                      onClick={() => setSelectedMetric({
+                        title: 'زمن الطيران المعلق (Flight Time)',
+                        value: `${flightTime.toFixed(3)} s`,
+                        rating: evalFlight.text,
+                        ratingColor: evalFlight.color,
+                        desc: 'الوقت المستغرق بالثواني منذ لحظة مغادرة أصابع القدم للأرض وحتى لحظة أول ملامسة للقدمين للأرض مرة أخرى.',
+                        importance: 'يرتبط رياضياً وعضوياً بمقدار الدفع الحركي المتولد لحظة الإقلاع. يعكس مدى قدرة اللاعب على تحقيق تسارع رأسي عالٍ للجسم والتغلب على الجاذبية الأرضية.',
+                        benchmarks: [
+                          { label: 'تحليق نخبة 👑', value: age < 17 ? '+0.64s' : '+0.75s (النساء: +0.65s)' },
+                          { label: 'ممتاز ⭐', value: age < 17 ? '0.58s - 0.64s' : '0.68s - 0.74s (النساء: 0.58s - 0.64s)' },
+                          { label: 'جيد ⚡', value: age < 17 ? '0.51s - 0.58s' : '0.60s - 0.67s (النساء: 0.52s - 0.57s)' },
+                          { label: 'تلامس بطيء ⚠️', value: age < 17 ? '<0.51s' : '<0.60s (النساء: <0.52s)' }
+                        ],
+                        tips: [
+                          'تمارين القفز الارتدادي السريع (Pogo Jumps).',
+                          'تدريبات التوافق العصبي العضلي للقدمين والسرعة الحركية.',
+                          'تدريبات القفز فوق الصناديق المتتالية لزيادة زمن التعليق الحركي.'
+                        ]
+                      })}
+                      className="bg-[#111827]/30 border border-gray-855 p-5 rounded-3xl flex flex-col justify-between hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer select-none"
+                    >
                       <div>
                         <div className="flex justify-between items-center mb-3">
                           <span className="text-[10px] text-gray-400 font-bold">زمن الطيران المعلق</span>
@@ -392,7 +456,28 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
                     </div>
 
                     {/* Gauge Card: Power Density */}
-                    <div className="bg-[#111827]/30 border border-gray-850 p-5 rounded-3xl flex flex-col justify-between hover:border-cyan-500/30 transition-colors">
+                    <div 
+                      onClick={() => setSelectedMetric({
+                        title: 'كثافة القدرة الميكانيكية (Relative Power)',
+                        value: `${relativePower > 0 ? relativePower : (harmanPeak / mass).toFixed(1)} W/kg`,
+                        rating: evalPower.text,
+                        ratingColor: evalPower.color,
+                        desc: 'القدرة الميكانيكية المتولدة مقسومة على وزن اللاعب الفعلي. وهي أهم مقياس بيوميكانيكي يربط القوة بالوزن (Power-to-Weight Ratio).',
+                        importance: 'حاسم للسرعات الحركية العالية وبدء الانطلاق. زيادة نسبة القدرة للوزن تتيح تسارعاً رأسياً فائقاً دون إرهاق عضلات الأرجل بكتلة جسم زائدة.',
+                        benchmarks: [
+                          { label: 'قدرة متفجرة 👑', value: age < 17 ? '+55.3 W/kg' : '+65.0 W/kg (النساء: +52.0 W/kg)' },
+                          { label: 'ممتاز ⭐', value: age < 17 ? '46.8 - 55.3 W/kg' : '55.0 - 64.9 W/kg (النساء: 45.0 - 51.9 W/kg)' },
+                          { label: 'جيد ⚡', value: age < 17 ? '38.3 - 46.8 W/kg' : '45.0 - 54.9 W/kg (النساء: 38.0 - 44.9 W/kg)' },
+                          { label: 'قدرة منخفضة ⚠️', value: age < 17 ? '<38.3 W/kg' : '<45.0 W/kg (النساء: <38.0 W/kg)' }
+                        ],
+                        tips: [
+                          'تدريبات الأولمبيك ليفت السريعة (Hang Clean, Snatch).',
+                          'تدريبات القفز مع مقاومة عكسية (Banded Jump Squats).',
+                          'تحسين التكوين الجسماني وخفض نسبة الدهون لزيادة القوة النسبية.'
+                        ]
+                      })}
+                      className="bg-[#111827]/30 border border-gray-855 p-5 rounded-3xl flex flex-col justify-between hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer select-none"
+                    >
                       <div>
                         <div className="flex justify-between items-center mb-3">
                           <span className="text-[10px] text-gray-400 font-bold">كثافة القدرة الميكانيكية</span>
@@ -412,6 +497,53 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
                         <div className="flex justify-between text-[8px] text-gray-500 mt-2 font-mono">
                           <span>0</span>
                           <span>{evalPower.range}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Gauge Card: RSI Score */}
+                    <div 
+                      onClick={() => setSelectedMetric({
+                        title: 'مؤشر القوة التفاعلية (RSI Score)',
+                        value: `${latestRsiVal > 0 ? latestRsiVal.toFixed(2) : (maxRsi > 0 ? maxRsi.toFixed(2) : '—')}`,
+                        rating: evalRsi.text,
+                        ratingColor: evalRsi.color,
+                        desc: 'مؤشر القوة التفاعلية (Reactive Strength Index)، ويتم حسابه بقسمة زمن الطيران على زمن التلامس مع الأرض (Tf / Tc) في قفزة السقوط والارتداد.',
+                        importance: 'يقيس صلابة الأوتار (Joint Stiffness) وكفاءة دورة التمدد والتقلص (SSC). يعكس قدرة الجهاز العصبي والعضلي على امتصاص طاقة السقوط وإعادة استخدامها كقوة ارتداد دفعية فورا.',
+                        benchmarks: [
+                          { label: 'نخبة تفاعلية 👑', value: '+2.50' },
+                          { label: 'ممتاز 🏆', value: '2.00 - 2.49' },
+                          { label: 'تفاعل جيد ⭐', value: '1.50 - 1.99' },
+                          { label: 'تفاعل مقبول ⚡', value: '1.00 - 1.49' },
+                          { label: 'صلابة منخفضة ⚠️', value: '<1.00' }
+                        ],
+                        tips: [
+                          'قفز العمق (Depth Jumps من صندوق 30-40 سم بالارتداد الفوري).',
+                          'تمارين الهبوط المعجل والارتداد السريع (Accelerated Plyometrics).',
+                          'الحجل السريع على ساق واحدة مع تثبيت الحوض والركبة لزيادة الصلابة.'
+                        ]
+                      })}
+                      className="bg-[#111827]/30 border border-gray-855 p-5 rounded-3xl flex flex-col justify-between hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer select-none"
+                    >
+                      <div>
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="text-[10px] text-gray-400 font-bold">مؤشر الارتداد التفاعلي</span>
+                          <span className="text-yellow-455 bg-yellow-950/20 border border-yellow-800/30 text-[9px] px-2 py-0.5 rounded-lg font-bold">RSI</span>
+                        </div>
+                        <div className="flex items-baseline gap-1.5 mb-1.5">
+                          <span className="text-4xl font-black text-white font-mono">{latestRsiVal > 0 ? latestRsiVal.toFixed(2) : (maxRsi > 0 ? maxRsi.toFixed(2) : '—')}</span>
+                          <span className="text-gray-400 font-bold text-xs">Index</span>
+                        </div>
+                        <p className={`text-xs font-bold ${evalRsi.color}`}>{evalRsi.text}</p>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-yellow-500 to-amber-500" style={{ width: `${evalRsi.progress}%` }}></div>
+                        </div>
+                        <div className="flex justify-between text-[8px] text-gray-500 mt-2 font-mono">
+                          <span>0</span>
+                          <span>{evalRsi.range}</span>
                         </div>
                       </div>
                     </div>
@@ -600,6 +732,92 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
 
           </AnimatePresence>
         )}
+
+        {/* Metric Explanation Modal */}
+        <AnimatePresence>
+          {selectedMetric && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md text-right" style={{ direction: 'rtl' }}>
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }} 
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-[#0b1329] border border-cyan-950/40 rounded-3xl p-6 w-full max-w-xl shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+              >
+                {/* Close Button */}
+                <button 
+                  type="button" 
+                  onClick={() => setSelectedMetric(null)} 
+                  className="absolute top-4 left-4 text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-gray-800 cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
+
+                <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 mb-2 pb-2 border-b border-gray-850 flex items-center gap-2">
+                  📊 {selectedMetric.title}
+                </h3>
+
+                <div className="space-y-4 text-xs leading-relaxed text-gray-300">
+                  {/* Current Athlete Value Card */}
+                  <div className="bg-cyan-950/20 border border-cyan-500/20 p-4 rounded-2xl flex justify-between items-center">
+                    <div>
+                      <span className="text-[10px] text-gray-500 block">قياس اللاعب الحالي</span>
+                      <span className="text-xl font-black text-white font-mono">{selectedMetric.value}</span>
+                    </div>
+                    <div className="text-left">
+                      <span className="text-[10px] text-gray-500 block">تقييم النطاق</span>
+                      <span className={`text-sm font-extrabold ${selectedMetric.ratingColor}`}>{selectedMetric.rating}</span>
+                    </div>
+                  </div>
+
+                  {/* Physics Description */}
+                  <div>
+                    <span className="block font-black text-white text-xs mb-1">🔍 ما هو هذا القياس؟</span>
+                    <p className="text-gray-305 font-medium">{selectedMetric.desc}</p>
+                  </div>
+
+                  {/* Importance for Performance */}
+                  <div>
+                    <span className="block font-black text-white text-xs mb-1">🏃‍♂️ الأهمية الفسيولوجية والرياضية</span>
+                    <p className="text-gray-305 font-medium">{selectedMetric.importance}</p>
+                  </div>
+
+                  {/* Sports Benchmarks table */}
+                  <div>
+                    <span className="block font-black text-white text-xs mb-2">🏆 الجداول المعيارية للقياس (Sports Science Standards)</span>
+                    <div className="overflow-x-auto rounded-xl border border-gray-850">
+                      <table className="w-full text-center text-[10px]">
+                        <thead>
+                          <tr className="bg-black/40 text-gray-400 font-bold border-b border-gray-850">
+                            <th className="p-2">التصنيف</th>
+                            <th className="p-2">المدى المستهدف</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedMetric.benchmarks.map((b, idx) => (
+                            <tr key={idx} className="border-b border-gray-900 last:border-b-0 hover:bg-black/10">
+                              <td className="p-2 font-bold text-gray-250">{b.label}</td>
+                              <td className="p-2 font-mono text-cyan-400 font-bold">{b.value}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Training tips list */}
+                  <div className="bg-teal-950/10 border border-teal-500/10 p-4 rounded-2xl space-y-2">
+                    <span className="block font-black text-teal-400 text-xs">💪 نصائح تدريبية مقترحة للتطوير:</span>
+                    <ul className="list-disc list-inside space-y-1.5 text-gray-300 pr-2">
+                      {selectedMetric.tips.map((t, idx) => (
+                        <li key={idx} className="font-medium">{t}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
       </div>
 

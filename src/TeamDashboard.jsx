@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import { Users, Award, ChevronDown, ChevronUp, Activity, Zap, Play, BookOpen, AlertCircle, HelpCircle, User, Loader2, X, Scaling } from 'lucide-react';
+import { Users, Award, ChevronDown, ChevronUp, Activity, Zap, Play, BookOpen, AlertCircle, HelpCircle, User, Loader2, X, Scaling, Edit3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [] }) {
+export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [], onEditPlayer }) {
   const [selectedCoachId, setSelectedCoachId] = useState('');
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -539,8 +539,23 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                         <User size={20} />
                       </div>
                       <div>
-                        <h4 className="font-extrabold text-white text-base leading-tight">{player.full_name}</h4>
-                        <div className="text-[10px] text-gray-450 mt-1 font-semibold flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-extrabold text-white text-base leading-tight">{player.full_name}</h4>
+                          {onEditPlayer && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEditPlayer(player);
+                              }}
+                              className="p-1 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all cursor-pointer"
+                              title="تعديل بيانات اللاعب"
+                            >
+                              <Edit3 size={13} />
+                            </button>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-gray-455 mt-1 font-semibold flex items-center gap-1.5 flex-wrap">
                           <span>{age} سنة</span>
                           <span>•</span>
                           <span>{player.gender === 'female' ? 'لاعبة' : 'لاعب'}</span>

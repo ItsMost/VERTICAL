@@ -107,6 +107,8 @@ export function useJumpMechanics(
         pushDuration: pushDur.toFixed(3),
         contactTime: contactTimeSec > 0 ? contactTimeSec.toFixed(3) : '',
         rsi: rsiVal > 0 ? rsiVal.toFixed(2) : '',
+        meanForce: meanForce.toFixed(2),
+        peakForce: (meanForce * 1.5).toFixed(2),
       });
     } else {
       setStats({
@@ -122,6 +124,8 @@ export function useJumpMechanics(
         pushDuration: '',
         contactTime: '',
         rsi: '',
+        meanForce: '',
+        peakForce: '',
       });
     }
   }, [cameraFps, videoFps, takeoffTime, landingTime, bodyMass, legLength, boxTouchdownTime, landingCorrectionMs, jumpType, boxHeight, useManualFrameDuration, manualFrameDuration]);

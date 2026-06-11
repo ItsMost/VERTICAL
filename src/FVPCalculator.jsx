@@ -669,7 +669,7 @@ export default function FVPCalculator({ activePlayer }) {
           }`}
         >
           <Activity size={16} />
-          منحنى القوة والزمن (FTC)
+          Force-Time Curve (FTC)
         </button>
         <button
           onClick={() => setActiveSubTab('fvp')}
@@ -680,7 +680,7 @@ export default function FVPCalculator({ activePlayer }) {
           }`}
         >
           <TrendingUp size={16} />
-          بروفايل القوة والسرعة (FVP)
+          Force-Velocity Profile (FVP)
         </button>
       </div>
 
@@ -691,7 +691,7 @@ export default function FVPCalculator({ activePlayer }) {
         <div className="space-y-6">
           <div className="text-center mb-6">
             <h3 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400">
-              تحليل منحنى القوة والزمن البيوميكانيكي (Force-Time Curve Analysis)
+              Force-Time Curve (FTC) Analysis
             </h3>
             <p className="text-gray-400 text-xs md:text-sm mt-1.5 max-w-xl mx-auto">
               قم بتحليل قفزة اللاعب باستخدام قيم القوة الخام المستخرجة من لوحة القياس (Force Plate) للحصول على تقرير بيوميكانيكي مفصل.
@@ -1317,7 +1317,7 @@ export default function FVPCalculator({ activePlayer }) {
         <div className="space-y-6">
           <div className="text-center mb-6">
             <h3 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400">
-              منحنى القوة والسرعة لقفز متعدد الأوزان (Force-Velocity Profile - Samozino)
+              Force-Velocity Profile (FVP) - Samozino
             </h3>
             <p className="text-gray-400 text-xs md:text-sm mt-1.5 max-w-xl mx-auto">
               قم بإجراء 4 قفزات بأوزان إضافية مختلفة لتحديد بروفايل القوة والسرعة للاعب بدقة.
@@ -1495,6 +1495,28 @@ export default function FVPCalculator({ activePlayer }) {
                       <line x1="0" y1="50%" x2="100%" y2="50%" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
                       <line x1="50%" y1="0" x2="50%" y2="100%" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
                       
+                      {/* Zone Dividers */}
+                      <line x1="15%" y1="0" x2="15%" y2="100%" stroke="rgba(255,255,255,0.08)" strokeWidth="1" strokeDasharray="3,3" />
+                      <line x1="35%" y1="0" x2="35%" y2="100%" stroke="rgba(255,255,255,0.08)" strokeWidth="1" strokeDasharray="3,3" />
+                      <line x1="65%" y1="0" x2="65%" y2="100%" stroke="rgba(255,255,255,0.08)" strokeWidth="1" strokeDasharray="3,3" />
+                      <line x1="85%" y1="0" x2="85%" y2="100%" stroke="rgba(255,255,255,0.08)" strokeWidth="1" strokeDasharray="3,3" />
+
+                      {/* Zone Text Annotations */}
+                      <text x="7.5%" y="15%" fill="rgba(255,255,255,0.22)" fontSize="7" fontWeight="bold" textAnchor="middle">Max Strength</text>
+                      <text x="7.5%" y="23%" fill="rgba(255,255,255,0.14)" fontSize="6" textAnchor="middle">90-100% 1RM</text>
+
+                      <text x="25%" y="35%" fill="rgba(255,255,255,0.22)" fontSize="7" fontWeight="bold" textAnchor="middle">Strength-Speed</text>
+                      <text x="25%" y="43%" fill="rgba(255,255,255,0.14)" fontSize="6" textAnchor="middle">80-90% 1RM</text>
+
+                      <text x="50%" y="55%" fill="rgba(255,255,255,0.22)" fontSize="7" fontWeight="bold" textAnchor="middle">Peak Power</text>
+                      <text x="50%" y="63%" fill="rgba(255,255,255,0.14)" fontSize="6" textAnchor="middle">30-80% 1RM</text>
+
+                      <text x="75%" y="75%" fill="rgba(255,255,255,0.22)" fontSize="7" fontWeight="bold" textAnchor="middle">Speed-Strength</text>
+                      <text x="75%" y="83%" fill="rgba(255,255,255,0.14)" fontSize="6" textAnchor="middle">30-60% 1RM</text>
+
+                      <text x="92.5%" y="85%" fill="rgba(255,255,255,0.22)" fontSize="7" fontWeight="bold" textAnchor="middle">Max Velocity</text>
+                      <text x="92.5%" y="93%" fill="rgba(255,255,255,0.14)" fontSize="6" textAnchor="middle">&lt;30% 1RM</text>
+
                       {(() => {
                         const maxF_chart = Math.max(fvpResult.F0, fvpResult.F0_opt || fvpResult.F0) * 1.15;
                         const maxV_chart = Math.max(fvpResult.V0, fvpResult.V0_opt || fvpResult.V0) * 1.15;
@@ -1567,6 +1589,35 @@ export default function FVPCalculator({ activePlayer }) {
                         );
                       })()}
                     </svg>
+                  </div>
+
+                  {/* Training Zones Table/Legend */}
+                  <div className="mt-4 pt-3 border-t border-cyan-950/20 grid grid-cols-5 gap-2 text-[9px] text-center font-bold">
+                    <div className="bg-slate-950/30 p-2 rounded-xl border border-gray-850">
+                      <span className="block text-red-400 font-extrabold mb-1">Max Strength</span>
+                      <span className="block text-gray-300">90-100% 1RM</span>
+                      <span className="block text-gray-500 mt-1 text-[8px] leading-tight">حمل أقصى - سرعة بطيئة جداً</span>
+                    </div>
+                    <div className="bg-slate-950/30 p-2 rounded-xl border border-gray-850">
+                      <span className="block text-orange-400 font-extrabold mb-1">Strength-Speed</span>
+                      <span className="block text-gray-300">80-90% 1RM</span>
+                      <span className="block text-gray-500 mt-1 text-[8px] leading-tight">تدريبات القوة المميزة بالسرعة</span>
+                    </div>
+                    <div className="bg-slate-950/30 p-2 rounded-xl border border-gray-850">
+                      <span className="block text-yellow-400 font-extrabold mb-1">Peak Power</span>
+                      <span className="block text-gray-300">30-80% 1RM</span>
+                      <span className="block text-gray-500 mt-1 text-[8px] leading-tight">أقصى إنتاج للقدرة والوثب</span>
+                    </div>
+                    <div className="bg-slate-950/30 p-2 rounded-xl border border-gray-850">
+                      <span className="block text-cyan-400 font-extrabold mb-1">Speed-Strength</span>
+                      <span className="block text-gray-300">30-60% 1RM</span>
+                      <span className="block text-gray-500 mt-1 text-[8px] leading-tight">تدريبات السرعة المميزة بالقوة</span>
+                    </div>
+                    <div className="bg-slate-950/30 p-2 rounded-xl border border-gray-850">
+                      <span className="block text-emerald-400 font-extrabold mb-1">Max Velocity</span>
+                      <span className="block text-gray-300">&lt;30% 1RM</span>
+                      <span className="block text-gray-500 mt-1 text-[8px] leading-tight">سرعة قصوى بدون أوزان</span>
+                    </div>
                   </div>
                 </div>
 

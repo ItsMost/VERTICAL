@@ -668,7 +668,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
             <Zap size={24} />
           </div>
           <div>
-            <h3 className="text-2xl font-black text-white">مؤشر القوة التفاعلية RSI (Drop Jump)</h3>
+            <h3 className="text-2xl font-black text-white">RSI (Reactive Strength Index) - Drop Jump</h3>
             <p className="text-xs text-gray-400 mt-1">قياس مرونة الكاحل وسرعة الاستجابة اللامركزية للأوتار والأربطة</p>
           </div>
         </div>
@@ -892,25 +892,28 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           {/* FPS Auto-detect toggle switch (Default: OFF) */}
           <div className="flex flex-col justify-end">
             <div className="glass-input flex items-center justify-between h-[41px] px-3">
-              <span className="text-[10px] text-gray-450 font-bold">كشف FPS تلقائياً:</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setFpsAutoDetectEnabled(!fpsAutoDetectEnabled);
-                  if (!fpsAutoDetectEnabled && videoRef.current) {
-                    detectVideoFps(videoRef.current);
-                  }
-                }}
-                className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors duration-200 outline-none cursor-pointer ${
-                  fpsAutoDetectEnabled ? 'bg-cyan-500' : 'bg-gray-700'
-                }`}
-              >
-                <span
-                  className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-all duration-200 ${
-                    fpsAutoDetectEnabled ? 'mr-5' : 'mr-1'
+              <span className="text-[10px] text-gray-450 font-bold">Frame Detection (كشف الـ Frame):</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-bold text-gray-500 font-mono">{fpsAutoDetectEnabled ? 'ON' : 'OFF'}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFpsAutoDetectEnabled(!fpsAutoDetectEnabled);
+                    if (!fpsAutoDetectEnabled && videoRef.current) {
+                      detectVideoFps(videoRef.current);
+                    }
+                  }}
+                  className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors duration-200 outline-none cursor-pointer ${
+                    fpsAutoDetectEnabled ? 'bg-cyan-500' : 'bg-gray-700'
                   }`}
-                />
-              </button>
+                >
+                  <span
+                    className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-all duration-200 ${
+                      fpsAutoDetectEnabled ? 'mr-5' : 'mr-1'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
 

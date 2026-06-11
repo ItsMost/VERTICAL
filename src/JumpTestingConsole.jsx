@@ -844,12 +844,12 @@ export default function JumpTestingConsole({
               <div className="space-y-4 animate-fade-in text-right">
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-[10px] text-gray-400 mb-1">نوع القفزة (Jump Type)</label>
+                    <label className="block text-[10px] text-gray-400 mb-1">Jump Type (نوع القفزة)</label>
                     <div className="grid grid-cols-3 gap-2 p-1 bg-black/35 rounded-2xl border border-gray-800">
                       {[
-                        { id: 'cmj', name: 'عمودي نزول (CMJ)' },
-                        { id: 'sj', name: 'ثبات (SJ)' },
-                        { id: 'dj', name: 'سقوط صندوق (DJ)' }
+                        { id: 'cmj', name: 'CMJ (Countermovement)' },
+                        { id: 'sj', name: 'SJ (Squat Jump)' },
+                        { id: 'dj', name: 'DJ (Drop Jump)' }
                       ].map(type => (
                         <button
                           key={type.id}
@@ -864,13 +864,13 @@ export default function JumpTestingConsole({
                   </div>
                   
                   <div>
-                    <label className="block text-[10px] text-gray-400 mb-1 font-bold text-cyan-400">معامل تصحيح الركبة للهبوط</label>
+                    <label className="block text-[10px] text-gray-400 mb-1 font-bold text-cyan-400">Landing Knee Correction (معامل تصحيح الركبة)</label>
                     <div className="grid grid-cols-4 gap-1 p-1 bg-black/35 rounded-2xl border border-gray-800">
                       {[
-                        { id: 'none', name: '❌ بدون' },
-                        { id: 'light', name: '⏱️ خفيف' },
-                        { id: 'medium', name: '⏱️ وسط' },
-                        { id: 'heavy', name: '⏱️ شديد' }
+                        { id: 'none', name: '❌ None' },
+                        { id: 'light', name: '⏱️ Light' },
+                        { id: 'medium', name: '⏱️ Medium' },
+                        { id: 'heavy', name: '⏱️ Heavy' }
                       ].map(mode => (
                         <button
                           key={mode.id}
@@ -888,11 +888,11 @@ export default function JumpTestingConsole({
                 {jumpType === 'dj' && (
                   <div className="grid grid-cols-2 gap-3 bg-cyan-950/15 border border-cyan-500/25 p-3 rounded-2xl animate-fade-in text-[10px]">
                     <div>
-                      <label className="block text-[9px] text-gray-400 mb-1">ارتفاع الصندوق (cm)</label>
+                      <label className="block text-[9px] text-gray-400 mb-1">Box Height (ارتفاع الصندوق cm)</label>
                       <input type="number" value={boxHeight} onChange={e => setBoxHeight(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
                     </div>
                     <div>
-                      <label className="block text-[9px] text-gray-400 mb-1">وقت لمس الأرض</label>
+                      <label className="block text-[9px] text-gray-400 mb-1">Ground Contact Time (وقت ملامسة الأرض)</label>
                       <div className="flex gap-2">
                         <input type="number" step="0.001" value={boxTouchdownTime} onChange={e => setBoxTouchdownTime(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
                         <button type="button" onClick={() => setBoxTouchdownTime(currentTime)} className="px-2 bg-cyan-500 text-[#070a13] rounded-xl text-[10px] font-bold shrink-0 cursor-pointer">هنا 📍</button>
@@ -904,7 +904,7 @@ export default function JumpTestingConsole({
                 <div className="space-y-3">
                   {/* Smart FPS Auto-Detect Switch */}
                   <div className="flex items-center justify-between bg-black/30 p-2.5 rounded-2xl border border-gray-800">
-                    <span className="text-[10px] text-gray-300 font-bold flex items-center gap-1">🔍 الكشف التلقائي الذكي لـ FPS</span>
+                    <span className="text-[10px] text-gray-300 font-bold flex items-center gap-1">🔍 Smart FPS Auto-Detect (كشف FPS تلقائي)</span>
                     <button
                       type="button"
                       onClick={() => setIsFpsDetectionActive(!isFpsDetectionActive)}
@@ -915,7 +915,7 @@ export default function JumpTestingConsole({
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-400 mb-1">نوع تصوير الفيديو</label>
+                    <label className="block text-[10px] text-gray-400 mb-1">Video Recording Type (نوع تصوير الفيديو)</label>
                     <div className="grid grid-cols-4 gap-1 p-1 bg-black/35 rounded-2xl border border-gray-805">
                       {[
                         { id: 'slow240', name: '240 FPS' },
@@ -944,11 +944,11 @@ export default function JumpTestingConsole({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[9px] text-gray-400 mb-1 block">FPS ملف الفيديو</label>
+                    <label className="text-[9px] text-gray-400 mb-1 block">Video File FPS (FPS ملف الفيديو)</label>
                     <input type="number" value={videoFps} onChange={(e) => setVideoFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-cyan-500" />
                   </div>
                   <div>
-                    <label className="text-[9px] text-gray-400 mb-1 block">FPS الكاميرا (الفعلي)</label>
+                    <label className="text-[9px] text-gray-400 mb-1 block">Camera FPS (FPS الكاميرا)</label>
                     <input type="number" value={cameraFps} onChange={(e) => setCameraFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-cyan-500" />
                   </div>
                 </div>
@@ -956,11 +956,11 @@ export default function JumpTestingConsole({
                 {/* Limb & Scale Calibration Helper */}
                 <div className="bg-black/15 border border-gray-850 p-3.5 rounded-2xl space-y-3">
                   <span className="block text-xs text-cyan-400 font-bold border-b border-gray-800 pb-1.5 flex items-center gap-1.5 flex-row-reverse">
-                    📐 معايرة مقياس الفيديو وطول الرجل
+                    📐 Video Scale & Leg Calibration (معايرة مقياس الفيديو وطول الرجل)
                   </span>
                   
                   <div className="flex items-center gap-2 justify-between">
-                    <label className="text-[10px] text-gray-400 shrink-0">طول الرجل المرجعي (m):</label>
+                    <label className="text-[10px] text-gray-400 shrink-0">Reference Leg Length (m):</label>
                     <input 
                       type="number" 
                       step="0.01" 
@@ -1712,7 +1712,7 @@ export default function JumpTestingConsole({
           {activeSettingsTab === 'analysis' && (
             <div className="space-y-4 text-right">
               <div>
-                <label className="block text-[10px] text-gray-400 mb-1">نوع القفزة (Jump Type)</label>
+                <label className="block text-[10px] text-gray-400 mb-1">Jump Type (نوع القفزة)</label>
                 <div className="grid grid-cols-3 gap-2 p-1 bg-black/35 rounded-2xl border border-gray-800">
                   {[
                     { id: 'cmj', name: 'CMJ' },
@@ -1732,13 +1732,13 @@ export default function JumpTestingConsole({
               </div>
               
               <div>
-                <label className="block text-[10px] text-gray-400 mb-1 font-bold text-cyan-400">معامل تصحيح ركبة الهبوط</label>
+                <label className="block text-[10px] text-gray-400 mb-1 font-bold text-cyan-400">Landing Knee Correction (معامل تصحيح الركبة)</label>
                 <div className="grid grid-cols-4 gap-1 p-1 bg-black/35 rounded-2xl border border-gray-800">
                   {[
-                    { id: 'none', name: 'بدون' },
-                    { id: 'light', name: 'خفيف' },
-                    { id: 'medium', name: 'وسط' },
-                    { id: 'heavy', name: 'شديد' }
+                    { id: 'none', name: '❌ None' },
+                    { id: 'light', name: '⏱️ Light' },
+                    { id: 'medium', name: '⏱️ Medium' },
+                    { id: 'heavy', name: '⏱️ Heavy' }
                   ].map(mode => (
                     <button
                       key={mode.id}
@@ -1755,11 +1755,11 @@ export default function JumpTestingConsole({
               {jumpType === 'dj' && (
                 <div className="grid grid-cols-2 gap-3 bg-cyan-950/15 border border-cyan-500/25 p-3 rounded-2xl text-[10px]">
                   <div>
-                    <label className="block text-[9px] text-gray-400 mb-1">ارتفاع الصندوق (cm)</label>
+                    <label className="block text-[9px] text-gray-400 mb-1">Box Height (ارتفاع الصندوق cm)</label>
                     <input type="number" value={boxHeight} onChange={e => setBoxHeight(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
                   </div>
                   <div>
-                    <label className="block text-[9px] text-gray-400 mb-1">وقت لمس الأرض</label>
+                    <label className="block text-[9px] text-gray-400 mb-1">Ground Contact Time (وقت ملامسة الأرض)</label>
                     <div className="flex gap-2">
                       <input type="number" step="0.001" value={boxTouchdownTime} onChange={e => setBoxTouchdownTime(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
                       <button type="button" onClick={() => setBoxTouchdownTime(currentTime)} className="px-2 bg-cyan-500 text-[#070a13] rounded-xl text-[10px] font-bold shrink-0 cursor-pointer">هنا 📍</button>
@@ -1770,7 +1770,7 @@ export default function JumpTestingConsole({
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between bg-black/30 p-2.5 rounded-2xl border border-gray-800">
-                  <span className="text-[10px] text-gray-300 font-bold">🔍 الكشف التلقائي لـ FPS</span>
+                  <span className="text-[10px] text-gray-300 font-bold">🔍 Smart FPS Auto-Detect (كشف FPS تلقائي)</span>
                   <button
                     type="button"
                     onClick={() => setIsFpsDetectionActive(!isFpsDetectionActive)}
@@ -1781,7 +1781,7 @@ export default function JumpTestingConsole({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-gray-400 mb-1">نوع تصوير الفيديو</label>
+                  <label className="block text-[10px] text-gray-400 mb-1">Video Recording Type (نوع تصوير الفيديو)</label>
                   <div className="grid grid-cols-4 gap-1 p-1 bg-black/35 rounded-2xl border border-gray-805">
                     {[
                       { id: 'slow240', name: '240 FPS' },
@@ -1810,11 +1810,11 @@ export default function JumpTestingConsole({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[9px] text-gray-400 mb-1 block">FPS ملف الفيديو</label>
+                  <label className="text-[9px] text-gray-400 mb-1 block">Video File FPS (FPS ملف الفيديو)</label>
                   <input type="number" value={videoFps} onChange={(e) => setVideoFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
                 </div>
                 <div>
-                  <label className="text-[9px] text-gray-400 mb-1 block">FPS الكاميرا</label>
+                  <label className="text-[9px] text-gray-400 mb-1 block">Camera FPS (FPS الكاميرا)</label>
                   <input type="number" value={cameraFps} onChange={(e) => setCameraFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
                 </div>
               </div>
@@ -1822,11 +1822,11 @@ export default function JumpTestingConsole({
               {/* Calibration */}
               <div className="bg-black/15 border border-gray-850 p-3 rounded-2xl space-y-3">
                 <span className="block text-[10px] text-cyan-400 font-bold border-b border-gray-800 pb-1">
-                  <span>📐 معايرة الفيديو وطول الرجل</span>
+                  <span>📐 Video Scale & Leg Calibration (معايرة الفيديو وطول الرجل)</span>
                 </span>
                 
                 <div className="flex items-center gap-2 justify-between">
-                  <label className="text-[9px] text-gray-400">طول الرجل المرجعي (m):</label>
+                  <label className="text-[9px] text-gray-400">Reference Leg Length (m):</label>
                   <input 
                     type="number" 
                     step="0.01" 
@@ -2022,6 +2022,65 @@ export default function JumpTestingConsole({
                     <p className="text-[9px] text-gray-400 leading-relaxed mt-0.5">{phase.desc}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Biomechanical Calculations & Force Estimation Card */}
+            <div className="bg-black/35 border border-gray-800 p-4 rounded-3xl space-y-4 text-right">
+              <span className="block text-xs text-cyan-400 font-extrabold border-b border-gray-800 pb-1.5 flex justify-between items-center">
+                <span>🔬 Biomechanical Physics & Force Estimation</span>
+                <span className="text-[9px] text-gray-500 font-bold font-mono">Physics Engine v2.0</span>
+              </span>
+
+              <div className="grid grid-cols-1 gap-4 text-xs text-gray-300">
+                {/* Height Formula Column */}
+                <div className="bg-black/20 p-4.5 rounded-2xl border border-cyan-500/10 space-y-2">
+                  <span className="block font-black text-cyan-400">📏 Jump Height (حساب الارتفاع)</span>
+                  <div className="bg-black/30 p-2 rounded-xl font-mono text-center text-[10px] text-white">
+                    Height = (g * Tf²) / 8
+                  </div>
+                  <p className="text-[10px] text-gray-405 leading-relaxed">
+                    g = 9.81 m/s² | Tf = {stats.flightTime}s <br />
+                    Height = <span className="text-cyan-400 font-bold">{(parseFloat(stats.heightCm)).toFixed(1)} cm</span>
+                  </p>
+                  <p className="text-[9px] text-gray-500 leading-normal">
+                    يعتمد الارتفاع على زمن الطيران الكلي. بما أن الجاذبية الأرضية هي المؤثر الوحيد أثناء التحليق، يمثل زمن التحليق قياساً بالغ الدقة لارتفاع مركز ثقل الجسم.
+                  </p>
+                </div>
+
+                {/* Force Estimation Column */}
+                <div className="bg-black/20 p-4.5 rounded-2xl border border-teal-500/10 space-y-2">
+                  <span className="block font-black text-teal-400">🏋️ Takeoff Force (الدفع الأرضي المقدر)</span>
+                  <div className="bg-black/30 p-2 rounded-xl font-mono text-center text-[10px] text-white flex justify-between px-3">
+                    <span>Avg: {parseFloat(stats.meanForce).toFixed(0)} N</span>
+                    <span>Peak: {parseFloat(stats.peakForce).toFixed(0)} N</span>
+                  </div>
+                  <p className="text-[10px] text-gray-405 leading-relaxed">
+                    متوسط الدفع: <span className="text-teal-400 font-bold">{(parseFloat(stats.meanForce) / (bodyMass * 9.81)).toFixed(2)} BW</span> <br />
+                    ذروة الدفع: <span className="text-teal-400 font-bold">{(parseFloat(stats.peakForce) / (bodyMass * 9.81)).toFixed(2)} BW</span>
+                  </p>
+                  <p className="text-[9px] text-gray-500 leading-normal">
+                    تُعبر القوة التفاعلية الأرضية (GRF) عن شدة دفع أرجل اللاعب للأرض لحظة الصعود. النسب المثالية للرياضيين النخبة تتعدى 2.5 أضعاف وزن الجسم (Peak &gt; 2.5 BW).
+                  </p>
+                </div>
+
+                {/* Power Models Column */}
+                <div className="bg-black/20 p-4.5 rounded-2xl border border-purple-500/10 space-y-2">
+                  <span className="block font-black text-purple-400">⚡ Power Models (القدرة الميكانيكية)</span>
+                  <div className="space-y-1.5 text-[10px]">
+                    <div className="flex justify-between items-center bg-black/15 px-2 py-1 rounded">
+                      <span className="text-gray-450 font-bold">Harman Peak:</span>
+                      <span className="font-mono text-white font-bold">{parseFloat(stats.harmanPeakPower).toFixed(0)} W</span>
+                    </div>
+                    <div className="flex justify-between items-center bg-black/15 px-2 py-1 rounded">
+                      <span className="text-gray-450 font-bold">Sayers Peak:</span>
+                      <span className="font-mono text-white font-bold">{parseFloat(stats.sayersPeakPower).toFixed(0)} W</span>
+                    </div>
+                  </div>
+                  <p className="text-[9px] text-gray-500 leading-normal">
+                    تستخدم معادلات Sayers و Harman لتقدير إجمالي القدرة المتفجرة بالوات بناءً على طول الوثبة وكتلة الجسم.
+                  </p>
+                </div>
               </div>
             </div>
 

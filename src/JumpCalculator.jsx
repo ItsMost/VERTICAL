@@ -52,7 +52,7 @@ export default function JumpCalculator() {
   const [newCoachName, setNewCoachName] = useState('');
 
   const [isEditingPlayer, setIsEditingPlayer] = useState(false);
-  const [editPlayerForm, setEditPlayerForm] = useState({ id: '', name: '', birthYear: '', weight: '', leg: '', gender: '', height: '', standingReach: '' });
+  const [editPlayerForm, setEditPlayerForm] = useState({ id: '', name: '', birthYear: '', weight: '', leg: '', gender: '', height: '', standingReach: '', coachId: '' });
 
   // Custom states for Inches display and Manual Frame duration
   const [displayUnit, setDisplayUnit] = useState('cm');
@@ -716,34 +716,55 @@ export default function JumpCalculator() {
     }
   };
 
-  const handleEditClick = () => {
+  const handleEditPlayer = (player) => {
+    const pHeight = localStorage.getItem(`player_height_${player.id}`) || '180';
+    const pStandingReach = localStorage.getItem(`standing_reach_${player.id}`) || '230';
     setEditPlayerForm({ 
-      id: activePlayer.id, 
-      name: activePlayer.full_name, 
-      birthYear: activePlayer.date_of_birth ? activePlayer.date_of_birth.substring(0, 4) : '', 
-      weight: activePlayer.weight_kg, 
-      leg: activePlayer.leg_length_m, 
-      gender: activePlayer.gender,
-      height: playerHeight,
-      standingReach: standingReach
+      id: player.id, 
+      name: player.full_name, 
+      birthYear: player.date_of_birth ? player.date_of_birth.substring(0, 4) : '', 
+      weight: player.weight_kg, 
+      leg: player.leg_length_m, 
+      gender: player.gender,
+      height: pHeight,
+      standingReach: pStandingReach,
+      coachId: player.coach_id || ''
     });
     setIsEditingPlayer(true);
   };
 
   const handleUpdatePlayer = async (e) => {
     e.preventDefault();
-    const weight = parseFloat(editPlayerForm.weight) || 0; const legLen = parseFloat(editPlayerForm.leg) || 0;
+    const weight = parseFloat(editPlayerForm.weight) || 0; 
+    const legLen = parseFloat(editPlayerForm.leg) || 0;
     if (weight <= 0 || legLen <= 0) return alert("برجاء إدخال الأرقام بشكل صحيح.");
     const formattedDate = `${editPlayerForm.birthYear}-01-01`;
-    const { data, error } = await supabase.from('lab_players').update({ full_name: editPlayerForm.name, date_of_birth: formattedDate, weight_kg: weight, leg_length_m: legLen, gender: editPlayerForm.gender }).eq('id', editPlayerForm.id).select();
+    const coachId = editPlayerForm.coachId || null;
+    const { data, error } = await supabase.from('lab_players').update({ 
+      full_name: editPlayerForm.name, 
+      date_of_birth: formattedDate, 
+      weight_kg: weight, 
+      leg_length_m: legLen, 
+      gender: editPlayerForm.gender,
+      coach_id: coachId
+    }).eq('id', editPlayerForm.id).select();
     if (!error && data) {
       const updatedPlayer = data[0];
       localStorage.setItem(`player_height_${updatedPlayer.id}`, editPlayerForm.height);
       localStorage.setItem(`standing_reach_${updatedPlayer.id}`, editPlayerForm.standingReach);
-      setPlayerHeight(parseFloat(editPlayerForm.height) || 180);
-      setStandingReach(parseFloat(editPlayerForm.standingReach) || 230);
       
-      setPlayers(players.map(p => p.id === updatedPlayer.id ? updatedPlayer : p)); setActivePlayer(updatedPlayer); setBodyMass(updatedPlayer.weight_kg); setLegLength(updatedPlayer.leg_length_m); setIsEditingPlayer(false);
+      if (activePlayer && activePlayer.id === updatedPlayer.id) {
+        setActivePlayer(updatedPlayer); 
+        setBodyMass(updatedPlayer.weight_kg); 
+        setLegLength(updatedPlayer.leg_length_m);
+        setPlayerHeight(parseFloat(editPlayerForm.height) || 180);
+        setStandingReach(parseFloat(editPlayerForm.standingReach) || 230);
+      }
+      
+      setPlayers(players.map(p => p.id === updatedPlayer.id ? updatedPlayer : p)); 
+      setIsEditingPlayer(false);
+    } else if (error) {
+      alert("خطأ في تعديل بيانات اللاعب: " + error.message);
     }
   };
 
@@ -1299,15 +1320,15 @@ export default function JumpCalculator() {
   };
 
   const tabs = [
-    { id: 'team', name: 'لوحة الفريق', icon: Users },
-    { id: 'calculator', name: 'الوثبة الرأسية', icon: Activity },
-    { id: 'rsi', name: 'مؤشر RSI', icon: Zap },
-    { id: 'fvp', name: 'منحنى FVP', icon: LineChart },
-    { id: 'profile', name: 'ملف التقرير', icon: UserCircle }
+    { id: 'team', name: 'Roster Dashboard', icon: Users },
+    { id: 'calculator', name: 'Vertical Jump', icon: Activity },
+    { id: 'rsi', name: 'RSI Calculator', icon: Zap },
+    { id: 'fvp', name: 'FVP Curve', icon: LineChart },
+    { id: 'profile', name: 'Athlete Profile', icon: UserCircle }
   ];
 
   return (
-    <div data-theme={colorMode} className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] p-4 md:p-6 pb-28 transition-all duration-300 text-shadow-contrast" style={{ direction: "rtl" }}>
+    <div data-theme={colorMode} className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] p-4 md:p-6 pb-40 transition-all duration-300 text-shadow-contrast" style={{ direction: "rtl" }}>
       <div className="w-full max-w-7xl mx-auto flex flex-col gap-6">
         
         {/* ================= TOP DYNAMIC CONTROL HUD ================= */}
@@ -1465,6 +1486,7 @@ export default function JumpCalculator() {
                   onSelectPlayer={handleSelectPlayerFromDashboard} 
                   onChangeTab={setActiveTab} 
                   coaches={coaches}
+                  onEditPlayer={handleEditPlayer}
                 />
               </motion.div>
             ) : activePlayer ? (
@@ -1588,6 +1610,71 @@ export default function JumpCalculator() {
                   </select>
                 </div>
                 <button type="submit" className="w-full btn-orange-gradient py-3 rounded-xl text-xs font-bold shadow-md flex justify-center items-center gap-1.5"><Save size={14}/> حفظ بيانات اللاعب</button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Athlete Modal Dialog */}
+      <AnimatePresence>
+        {isEditingPlayer && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in" style={{ direction: 'rtl' }}>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-3xl p-6 w-full max-w-lg shadow-2xl relative">
+              <button type="button" onClick={() => setIsEditingPlayer(false)} className="absolute top-4 left-4 text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-[var(--border-light)]">
+                <X size={16} />
+              </button>
+              <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
+                <Edit3 className="text-cyan-400" size={20} /> تعديل بيانات اللاعب
+              </h2>
+              <form onSubmit={handleUpdatePlayer} className="space-y-4 text-right">
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-1 font-bold">الاسم الكامل</label>
+                  <input required type="text" value={editPlayerForm.name} onChange={e => setEditPlayerForm({...editPlayerForm, name: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">سنة الميلاد</label>
+                    <input required type="number" min="1950" max={new Date().getFullYear()} value={editPlayerForm.birthYear} onChange={e => setEditPlayerForm({...editPlayerForm, birthYear: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">النوع</label>
+                    <select value={editPlayerForm.gender} onChange={e => setEditPlayerForm({...editPlayerForm, gender: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]">
+                      <option value="male" className="text-gray-900 bg-white">ذكر</option>
+                      <option value="female" className="text-gray-900 bg-white">أنثى</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">الوزن (kg)</label>
+                    <input required type="number" step="0.1" value={editPlayerForm.weight} onChange={e => setEditPlayerForm({...editPlayerForm, weight: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">طول الرجل (م)</label>
+                    <input required type="number" step="0.01" value={editPlayerForm.leg} onChange={e => setEditPlayerForm({...editPlayerForm, leg: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">طول اللاعب (cm)</label>
+                    <input type="number" value={editPlayerForm.height} onChange={e => setEditPlayerForm({...editPlayerForm, height: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">الوصول من الثبات (cm)</label>
+                    <input type="number" value={editPlayerForm.standingReach} onChange={e => setEditPlayerForm({...editPlayerForm, standingReach: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-1 font-bold">المدرب المسؤول</label>
+                  <select value={editPlayerForm.coachId || ''} onChange={e => setEditPlayerForm({...editPlayerForm, coachId: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]">
+                    <option value="" className="text-gray-900 bg-white">-- بدون مدرب --</option>
+                    {coaches.map(c => (
+                      <option key={c.id} value={c.id} className="text-gray-900 bg-white">{c.full_name}</option>
+                    ))}
+                  </select>
+                </div>
+                <button type="submit" className="w-full btn-orange-gradient py-3 rounded-xl text-xs font-bold shadow-md flex justify-center items-center gap-1.5"><Save size={14}/> حفظ التعديلات</button>
               </form>
             </motion.div>
           </div>
