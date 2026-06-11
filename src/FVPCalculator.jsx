@@ -654,16 +654,16 @@ export default function FVPCalculator({ activePlayer }) {
   };
 
   return (
-    <div className="bg-[#111827] border border-gray-800 rounded-2xl p-4 md:p-6 shadow-2xl animate-fade-in text-right">
+    <div className="glass-panel p-4 md:p-6 text-right" style={{ direction: 'rtl' }}>
       
       {/* ================= DUAL SUB-TAB NAVIGATION ================= */}
-      <div className="flex bg-black/40 p-1.5 rounded-xl border border-gray-800 mb-6 max-w-md mx-auto">
+      <div className="flex bg-black/25 p-1 rounded-2xl border border-cyan-950/30 mb-6 max-w-md mx-auto">
         <button
           onClick={() => setActiveSubTab('ftc')}
-          className={`flex-1 py-2 rounded-lg font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition-all ${
+          className={`flex-1 py-2.5 rounded-xl font-black text-xs md:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
             activeSubTab === 'ftc' 
-              ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-md' 
-              : 'text-gray-400 hover:text-white'
+              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/25 shadow-md scale-[1.01]' 
+              : 'text-gray-400 hover:text-white border border-transparent'
           }`}
         >
           <Activity size={16} />
@@ -671,10 +671,10 @@ export default function FVPCalculator({ activePlayer }) {
         </button>
         <button
           onClick={() => setActiveSubTab('fvp')}
-          className={`flex-1 py-2 rounded-lg font-bold text-xs md:text-sm flex items-center justify-center gap-1.5 transition-all ${
+          className={`flex-1 py-2.5 rounded-xl font-black text-xs md:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
             activeSubTab === 'fvp' 
-              ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-md' 
-              : 'text-gray-400 hover:text-white'
+              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/25 shadow-md scale-[1.01]' 
+              : 'text-gray-400 hover:text-white border border-transparent'
           }`}
         >
           <TrendingUp size={16} />
@@ -688,7 +688,7 @@ export default function FVPCalculator({ activePlayer }) {
       {activeSubTab === 'ftc' && (
         <div className="space-y-6">
           <div className="text-center mb-6">
-            <h3 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500">
+            <h3 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400">
               تحليل منحنى القوة والزمن البيوميكانيكي (Force-Time Curve Analysis)
             </h3>
             <p className="text-gray-400 text-xs md:text-sm mt-1.5 max-w-xl mx-auto">
@@ -699,9 +699,9 @@ export default function FVPCalculator({ activePlayer }) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
             {/* FTC FORM PANEL */}
-            <div className="lg:col-span-5 bg-black/20 p-5 rounded-2xl border border-gray-800 space-y-4">
+            <div className="lg:col-span-5 bg-[#111827]/25 p-5 rounded-2xl border border-gray-800/80 space-y-4">
               <h4 className="font-bold text-white text-sm border-b border-gray-800 pb-2 flex items-center gap-1.5">
-                <Sparkles className="text-amber-500" size={16} /> مدخلات التحليل
+                <Sparkles className="text-cyan-400" size={16} /> مدخلات التحليل
               </h4>
 
               {/* Mass and Sampling Rate */}
@@ -712,7 +712,7 @@ export default function FVPCalculator({ activePlayer }) {
                     type="number"
                     value={athleteMass}
                     onChange={(e) => setAthleteMass(e.target.value)}
-                    className="w-full bg-[#1f2937] text-white border border-gray-700 rounded-lg p-2 text-xs font-mono outline-none focus:border-orange-500"
+                    className="glass-input w-full p-2.5 text-xs font-mono"
                   />
                 </div>
                 <div className="space-y-1">
@@ -732,7 +732,7 @@ export default function FVPCalculator({ activePlayer }) {
                 <select
                   value={movementType}
                   onChange={(e) => setMovementType(e.target.value)}
-                  className="w-full bg-[#1f2937] text-white border border-gray-700 rounded-lg p-2 text-xs font-bold outline-none focus:border-orange-500 cursor-pointer"
+                  className="glass-input w-full p-2.5 text-xs font-bold cursor-pointer"
                 >
                   <option value="cmj">قفزة من وضع الحركة (Countermovement Jump - CMJ)</option>
                   <option value="sj">قفزة من وضع الثبات (Squat Jump - SJ)</option>
@@ -743,12 +743,12 @@ export default function FVPCalculator({ activePlayer }) {
               {/* Input Mode Selector */}
               <div className="space-y-1">
                 <label className="block text-xs text-gray-400 font-bold">طريقة إدخال البيانات:</label>
-                <div className="flex bg-black/35 rounded-lg border border-gray-800 p-1">
+                <div className="flex bg-black/30 rounded-xl border border-gray-850 p-1">
                   <button
                     type="button"
                     onClick={() => setInputMode('raw')}
-                    className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all ${
-                      inputMode === 'raw' ? 'bg-[#1f2937] text-orange-400' : 'text-gray-400 hover:text-white'
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                      inputMode === 'raw' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/25' : 'text-gray-400 hover:text-white border border-transparent'
                     }`}
                   >
                     بيانات لوحة القوة الخام (Raw Array)
@@ -756,8 +756,8 @@ export default function FVPCalculator({ activePlayer }) {
                   <button
                     type="button"
                     onClick={() => setInputMode('metrics')}
-                    className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all ${
-                      inputMode === 'metrics' ? 'bg-[#1f2937] text-orange-400' : 'text-gray-400 hover:text-white'
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                      inputMode === 'metrics' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/25' : 'text-gray-400 hover:text-white border border-transparent'
                     }`}
                   >
                     المؤشرات المباشرة (Key Metrics)
@@ -777,7 +777,7 @@ export default function FVPCalculator({ activePlayer }) {
                     onChange={(e) => setRawForceInput(e.target.value)}
                     rows={4}
                     placeholder="2100, 2150, 1950, 1600, 1200, 800, 450..."
-                    className="w-full bg-[#1a202c] text-white border border-gray-700 rounded-xl p-2.5 text-[10px] font-mono outline-none focus:border-orange-500 resize-y"
+                    className="glass-input w-full p-2.5 text-[10px] font-mono resize-y"
                   />
                   
                   {/* Preset buttons */}
@@ -787,21 +787,21 @@ export default function FVPCalculator({ activePlayer }) {
                       <button
                         type="button"
                         onClick={() => loadPreset('elite')}
-                        className="py-1 px-2 text-[9px] font-bold rounded-lg border border-emerald-900 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-950/40 transition-colors"
+                        className="py-1 px-2 text-[9px] font-bold rounded-lg border border-emerald-900 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-950/40 transition-colors cursor-pointer"
                       >
                         ⚡ لاعب نخبة متكامل
                       </button>
                       <button
                         type="button"
                         onClick={() => loadPreset('low_rfd')}
-                        className="py-1 px-2 text-[9px] font-bold rounded-lg border border-blue-900 bg-blue-950/20 text-blue-400 hover:bg-blue-950/40 transition-colors"
+                        className="py-1 px-2 text-[9px] font-bold rounded-lg border border-blue-900 bg-blue-950/20 text-blue-400 hover:bg-blue-950/40 transition-colors cursor-pointer"
                       >
                         🐢 لاعب قوي وبطيء
                       </button>
                       <button
                         type="button"
                         onClick={() => loadPreset('low_force')}
-                        className="py-1 px-2 text-[9px] font-bold rounded-lg border border-orange-950 bg-orange-900/10 text-orange-400 hover:bg-orange-900/20 transition-colors"
+                        className="py-1 px-2 text-[9px] font-bold rounded-lg border border-cyan-900 bg-cyan-950/20 text-cyan-400 hover:bg-cyan-950/40 transition-colors cursor-pointer"
                       >
                         💥 لاعب سريع بدون قوة
                       </button>
@@ -818,7 +818,7 @@ export default function FVPCalculator({ activePlayer }) {
                         placeholder="e.g. 2100"
                         value={metricPeakForce}
                         onChange={(e) => setMetricPeakForce(e.target.value)}
-                        className="w-full bg-[#1f2937] text-white border border-gray-700 rounded-lg p-2 text-xs font-mono outline-none"
+                        className="glass-input w-full p-2 text-xs font-mono"
                       />
                     </div>
                     <div className="space-y-1">
@@ -871,9 +871,9 @@ export default function FVPCalculator({ activePlayer }) {
             </div>
 
             {/* INTERACTIVE SVG VISUALIZER */}
-            <div className="lg:col-span-7 bg-black/30 p-5 rounded-2xl border border-gray-800 h-full flex flex-col justify-between">
+            <div className="lg:col-span-7 glass-card p-5 h-full flex flex-col justify-between">
               <div>
-                <h4 className="font-bold text-white text-sm border-b border-gray-800 pb-2 mb-4">
+                <h4 className="font-bold text-white text-sm border-b border-cyan-950/20 pb-2 mb-4">
                   📈 رسم بياني لمنحنى القوة والزمن (Force-Time Plot)
                 </h4>
                 
@@ -881,7 +881,7 @@ export default function FVPCalculator({ activePlayer }) {
                   <div className="relative w-full overflow-hidden">
                     
                     {/* SVG Curve */}
-                    <div className="w-full bg-[#0b0f19] p-3 rounded-xl border border-cyan-950/40 relative">
+                    <div className="w-full bg-[#0a1224]/50 p-4 rounded-2xl border border-cyan-950/30 relative">
                       <svg viewBox="0 0 500 240" className="w-full overflow-visible">
                         <defs>
                           {/* Shading gradients */}
@@ -895,7 +895,7 @@ export default function FVPCalculator({ activePlayer }) {
                           </linearGradient>
                           <linearGradient id="curveGradient" x1="0" y1="0" x2="1" y2="0">
                             <stop offset="0%" stopColor="#00f5d4" />
-                            <stop offset="100%" stopColor="#f59e0b" />
+                            <stop offset="100%" stopColor="#facc15" />
                           </linearGradient>
                         </defs>
 
@@ -976,7 +976,7 @@ export default function FVPCalculator({ activePlayer }) {
                                 cx={scaleX(ftcResult.i_peak)} 
                                 cy={scaleY(ftcResult.peakForce)} 
                                 r="5.5" 
-                                fill="#f59e0b" 
+                                fill="#facc15" 
                                 stroke="#fff" 
                                 strokeWidth="1.5" 
                               />
@@ -1042,8 +1042,8 @@ export default function FVPCalculator({ activePlayer }) {
 
                   </div>
                 ) : (
-                  <div className="h-48 flex flex-col items-center justify-center text-gray-500 border border-dashed border-gray-800 rounded-xl bg-black/10">
-                    <Activity size={32} className="opacity-30 mb-2 animate-pulse" />
+                  <div className="h-48 flex flex-col items-center justify-center text-gray-500 border border-dashed border-cyan-950/40 rounded-2xl bg-black/10">
+                    <Activity size={32} className="opacity-30 mb-2 animate-pulse text-cyan-400" />
                     <span className="text-xs">الرجاء إدخال البيانات والضغط على زر التحليل للرسم</span>
                   </div>
                 )}
@@ -1051,25 +1051,25 @@ export default function FVPCalculator({ activePlayer }) {
 
               {/* Quick stats brief inside visualizer */}
               {ftcResult && (
-                <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-gray-800 text-center font-bold">
-                  <div className="bg-black/40 p-2 rounded-xl border border-gray-800">
+                <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-cyan-950/20 text-center font-bold">
+                  <div className="glass-input p-2 text-center">
                     <span className="block text-[9px] text-gray-400">الارتفاع الفعلي</span>
-                    <span className="text-base text-orange-400 font-mono">
+                    <span className="text-base text-cyan-400 font-mono font-black">
                       {(ftcResult.jumpHeight * 100).toFixed(1)} <span className="text-[10px] text-gray-500">سم</span>
                     </span>
                     <span className="block text-[8px] text-gray-500 font-mono">
                       ({(ftcResult.jumpHeight * 39.3701).toFixed(1)} بوصة)
                     </span>
                   </div>
-                  <div className="bg-black/40 p-2 rounded-xl border border-gray-800">
+                  <div className="glass-input p-2 text-center">
                     <span className="block text-[9px] text-gray-400">القوة النسبية القصوى</span>
                     <span className="text-base text-cyan-400 font-mono">
                       {ftcResult.relativePeakForce.toFixed(2)} <span className="text-[10px] text-gray-500">BW</span>
                     </span>
                   </div>
-                  <div className="bg-black/40 p-2 rounded-xl border border-gray-800">
+                  <div className="glass-input p-2 text-center">
                     <span className="block text-[9px] text-gray-400">معدل توليد القوة RFD (Early)</span>
-                    <span className="text-xs text-amber-400 font-mono mt-1 block">
+                    <span className="text-xs text-yellow-450 font-mono font-black mt-1 block">
                       {Math.round(ftcResult.rfd50).toLocaleString()} <span className="text-[9px] text-gray-500">N/s</span>
                     </span>
                   </div>
@@ -1314,7 +1314,7 @@ export default function FVPCalculator({ activePlayer }) {
       {activeSubTab === 'fvp' && (
         <div className="space-y-6">
           <div className="text-center mb-6">
-            <h3 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500">
+            <h3 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400">
               منحنى القوة والسرعة لقفز متعدد الأوزان (Force-Velocity Profile - Samozino)
             </h3>
             <p className="text-gray-400 text-xs md:text-sm mt-1.5 max-w-xl mx-auto">
@@ -1323,13 +1323,13 @@ export default function FVPCalculator({ activePlayer }) {
           </div>
 
           {/* Metadata selectors */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-6 bg-black/20 p-4 rounded-2xl border border-gray-800">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-6 glass-card p-4">
             <div className="space-y-1 text-right">
               <label className="block text-xs text-gray-400 font-bold">فترة الموسم (Season Period):</label>
               <select
                 value={seasonPeriod}
                 onChange={(e) => setSeasonPeriod(e.target.value)}
-                className="w-full bg-[#1f2937] text-white border border-gray-700 rounded-lg p-2 text-xs font-bold outline-none cursor-pointer"
+                className="glass-input w-full p-2.5 text-xs font-bold cursor-pointer"
               >
                 <option value="off_season">خارج الموسم (Off-Season)</option>
                 <option value="in_season">داخل الموسم (In-Season)</option>
@@ -1341,7 +1341,7 @@ export default function FVPCalculator({ activePlayer }) {
               <select
                 value={trainingAge}
                 onChange={(e) => setTrainingAge(e.target.value)}
-                className="w-full bg-[#1f2937] text-white border border-gray-700 rounded-lg p-2 text-xs font-bold outline-none cursor-pointer"
+                className="glass-input w-full p-2.5 text-xs font-bold cursor-pointer"
               >
                 <option value="beginner">مبتدئ / ناشئ (Beginner &lt;1 year)</option>
                 <option value="intermediate">متوسط (Intermediate 1-3 years)</option>
@@ -1352,8 +1352,8 @@ export default function FVPCalculator({ activePlayer }) {
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8 text-right">
             {jumps.map((jump, index) => (
-              <div key={index} className="bg-black/20 p-5 rounded-2xl border border-gray-800 text-center transition-all hover:border-orange-500/50">
-                <h4 className="font-bold text-white mb-4 bg-gray-900 py-2 rounded-xl border border-gray-800">
+              <div key={index} className="glass-card p-5 text-center transition-all hover:border-cyan-500/50">
+                <h4 className="font-bold text-white mb-4 bg-[#101c36]/40 py-2 rounded-xl border border-cyan-950/20">
                   قفزة {index + 1}
                 </h4>
                 
@@ -1361,10 +1361,10 @@ export default function FVPCalculator({ activePlayer }) {
                 <div className="mb-4 space-y-2 text-right">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400">الوزن الإضافي:</span>
-                    <span className="text-orange-400 font-mono font-bold bg-orange-950/40 px-2 py-0.5 rounded border border-orange-500/30">{jump.weight} kg</span>
+                    <span className="text-cyan-400 font-mono font-bold bg-cyan-950/30 px-2 py-0.5 rounded border border-cyan-500/20">{jump.weight} kg</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => handleJumpChange(index, 'weight', Math.max(0, parseInt(jump.weight || 0) - 5))} className="w-8 h-8 rounded-lg bg-gray-800 hover:bg-gray-750 border border-gray-700 text-white font-bold flex items-center justify-center">-</button>
+                    <button type="button" onClick={() => handleJumpChange(index, 'weight', Math.max(0, parseInt(jump.weight || 0) - 5))} className="w-8 h-8 rounded-lg bg-slate-900/60 hover:bg-slate-800 border border-gray-850 text-white font-bold flex items-center justify-center cursor-pointer">-</button>
                     <input 
                       type="range" 
                       min="0" 
@@ -1372,7 +1372,7 @@ export default function FVPCalculator({ activePlayer }) {
                       step="5" 
                       value={jump.weight || 0} 
                       onChange={(e) => handleJumpChange(index, 'weight', Number(e.target.value))} 
-                      className="flex-1 h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-orange-500" 
+                      className="flex-1 h-1.5 bg-[#050b16] rounded-lg appearance-none cursor-pointer accent-cyan-500" 
                     />
                     <button type="button" onClick={() => handleJumpChange(index, 'weight', Math.min(100, parseInt(jump.weight || 0) + 5))} className="w-8 h-8 rounded-lg bg-gray-800 hover:bg-gray-750 border border-gray-700 text-white font-bold flex items-center justify-center">+</button>
                   </div>
@@ -1382,7 +1382,7 @@ export default function FVPCalculator({ activePlayer }) {
                         key={w}
                         type="button"
                         onClick={() => handleJumpChange(index, 'weight', w)}
-                        className={`px-2 py-0.5 rounded-lg text-[9px] font-bold border transition-all ${parseInt(jump.weight || 0) === w ? 'bg-orange-500/20 text-orange-400 border-orange-500/40' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-white'}`}
+                        className={`px-2 py-0.5 rounded-lg text-[9px] font-black border transition-all cursor-pointer ${parseInt(jump.weight || 0) === w ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/25' : 'bg-slate-900/60 text-gray-400 border-gray-850 hover:text-white'}`}
                       >
                         {w}kg
                       </button>
@@ -1415,7 +1415,7 @@ export default function FVPCalculator({ activePlayer }) {
                         key={f}
                         type="button"
                         onClick={() => handleJumpChange(index, 'flightTime', f.toFixed(3))}
-                        className={`px-2 py-0.5 rounded-lg text-[9px] font-bold border transition-all ${(parseFloat(jump.flightTime) || 0).toFixed(3) === f.toFixed(3) ? 'bg-orange-500/20 text-orange-400 border-orange-500/40' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-white'}`}
+                        className={`px-2 py-0.5 rounded-lg text-[9px] font-black border transition-all cursor-pointer ${(parseFloat(jump.flightTime) || 0).toFixed(3) === f.toFixed(3) ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/25' : 'bg-slate-900/60 text-gray-400 border-gray-850 hover:text-white'}`}
                       >
                         {f.toFixed(2)}s
                       </button>
@@ -1427,7 +1427,7 @@ export default function FVPCalculator({ activePlayer }) {
           </div>
 
           <div className="flex justify-center mb-8">
-            <button onClick={handleFVPAnalyze} className="px-14 py-4 btn-orange-gradient rounded-2xl font-black text-xl shadow-lg transition-transform hover:scale-105 active:scale-95">
+            <button onClick={handleFVPAnalyze} className="px-14 py-4 btn-orange-gradient rounded-2xl font-black text-xl shadow-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer">
               رسم منحنى القوة والسرعة
             </button>
           </div>
@@ -1458,7 +1458,7 @@ export default function FVPCalculator({ activePlayer }) {
               {/* SVG F-V Curve Dashboard */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                 {/* SVG Curve Plot */}
-                <div className="lg:col-span-8 bg-black/30 p-6 rounded-2xl border border-gray-800 shadow-inner flex flex-col justify-between">
+                <div className="lg:col-span-8 glass-card p-6 flex flex-col justify-between shadow-inner">
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="font-bold text-sm text-gray-300">مقارنة منحنى القوة والسرعة الميكانيكي الحيوي (F-V Curve Plot)</h4>
                     <div className="flex gap-4 text-xs font-bold">
@@ -1529,7 +1529,7 @@ export default function FVPCalculator({ activePlayer }) {
                               y1={`${actY1}%`} 
                               x2={`${actX2}%`} 
                               y2={`${actY2}%`} 
-                              stroke="#ea580c" 
+                              stroke="#00b4d8" 
                               strokeWidth="3.5" 
                               style={{ filter: 'drop-shadow(0px 0px 4px rgba(234, 88, 12, 0.4))' }}
                             />
@@ -1569,7 +1569,7 @@ export default function FVPCalculator({ activePlayer }) {
                 </div>
 
                 {/* Deficit HUD Panel */}
-                <div className="lg:col-span-4 bg-black/30 p-6 rounded-2xl border border-gray-800 flex flex-col justify-between text-right">
+                <div className="lg:col-span-4 glass-card p-6 flex flex-col justify-between text-right">
                   <div className="space-y-4">
                     <h4 className="font-extrabold text-sm text-white border-b border-gray-800 pb-2 flex items-center gap-1.5">
                       📊 مؤشر عجز الفاعلية (Deficit Index)
@@ -1647,7 +1647,7 @@ export default function FVPCalculator({ activePlayer }) {
               </div>
 
               {/* LaTeX Biomechanical Equations */}
-              <div className="glass-panel p-4 rounded-xl border border-cyan-800/20 text-center bg-black/10">
+              <div className="glass-card p-4 text-center bg-[#0a1224]/50 border border-cyan-950/25">
                 <span className="block text-xs text-gray-400 mb-2">تقرير المعادلات البيوميكانيكية (LaTeX Report)</span>
                 <div className="latex-equations font-mono text-cyan-400 text-xs md:text-sm space-y-1.5" dir="ltr">
                   <div>{"$$F_0 = " + fvpResult.F0.toFixed(1) + " \\text{ N}$$"}</div>
@@ -1660,7 +1660,7 @@ export default function FVPCalculator({ activePlayer }) {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center items-center">
                 
                 {/* Speedometer Gauge card */}
-                <div className="bg-[#1f2937]/30 p-4 rounded-2xl border border-orange-500/30 relative overflow-hidden flex flex-col items-center justify-center">
+                <div className="glass-card p-4 relative overflow-hidden flex flex-col items-center justify-center border-cyan-500/25 bg-[#101c36]/20">
                   <div className="absolute inset-0 bg-orange-600/5"></div>
                   
                   {/* SVG Speedometer Needle Gauge for Velocity V0 */}
@@ -1691,8 +1691,8 @@ export default function FVPCalculator({ activePlayer }) {
                       <circle cx="50" cy="50" r="3" fill="#f59e0b" />
                       <defs>
                         <linearGradient id="fvpGaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#ea580c" />
-                          <stop offset="100%" stopColor="#f59e0b" />
+                          <stop offset="0%" stopColor="#00f5d4" />
+                          <stop offset="100%" stopColor="#00b4d8" />
                         </linearGradient>
                       </defs>
                     </svg>
@@ -1703,7 +1703,7 @@ export default function FVPCalculator({ activePlayer }) {
                   </div>
                 </div>
 
-                <div className="bg-[#1f2937]/30 p-5 rounded-2xl border border-gray-800 relative">
+                <div className="glass-card p-5 relative border-cyan-950/20">
                   <span className="block text-xs text-gray-400 mb-2">أقصى قوة نظرية (F0)</span>
                   <span className="text-3xl font-black text-white"><AnimatedCounter value={fvpResult.F0} decimals={0} /> <span className="text-xs text-gray-500 font-bold">N</span></span>
                   {activePlayer?.weight_kg && (
@@ -1711,16 +1711,16 @@ export default function FVPCalculator({ activePlayer }) {
                   )}
                 </div>
                 
-                <div className="bg-[#1f2937]/30 p-5 rounded-2xl border border-gray-800 relative">
+                <div className="glass-card p-5 relative border-cyan-950/20">
                   <span className="block text-xs text-gray-400 mb-2">أقصى سرعة نظرية (V0)</span>
                   <span className="text-3xl font-black text-white"><AnimatedCounter value={fvpResult.V0} decimals={2} /> <span className="text-xs text-gray-500 font-bold">m/s</span></span>
                 </div>
 
-                <div className="bg-[#1f2937]/30 p-5 rounded-2xl border border-gray-800 relative">
+                <div className="glass-card p-5 relative border-cyan-950/20">
                   <span className="block text-xs text-gray-400 mb-2">ذروة القدرة القصوى (Pmax)</span>
-                  <span className="text-3xl font-black text-orange-500"><AnimatedCounter value={fvpResult.Pmax} decimals={0} /> <span className="text-xs text-orange-500/50 font-bold">W</span></span>
+                  <span className="text-3xl font-black text-cyan-400"><AnimatedCounter value={fvpResult.Pmax} decimals={0} /> <span className="text-xs text-cyan-400/50 font-bold">W</span></span>
                   {activePlayer?.weight_kg && (
-                    <span className="block text-[10px] text-orange-500/50 mt-1 font-mono">({(fvpResult.Pmax / activePlayer.weight_kg).toFixed(1)} W/kg)</span>
+                    <span className="block text-[10px] text-cyan-400/50 mt-1 font-mono">({(fvpResult.Pmax / activePlayer.weight_kg).toFixed(1)} W/kg)</span>
                   )}
                 </div>
               </div>

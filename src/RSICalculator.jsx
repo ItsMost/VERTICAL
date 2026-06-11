@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
-import { Zap, Play, Pause, X, Save, Info, ChevronRight, ChevronLeft, Activity, ChevronsRight, ChevronsLeft, Sparkles } from 'lucide-react';
+import { Zap, Play, Pause, X, Save, Info, ChevronRight, ChevronLeft, Activity, ChevronsRight, ChevronsLeft, Sparkles, Clock, ArrowUpCircle, ShieldAlert, Award } from 'lucide-react';
 
 // Animated counter helper
 const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
@@ -27,11 +27,7 @@ const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
   return <span className="font-mono">{count.toFixed(decimals)}</span>;
 };
 
-export default function RSICalculator({
-  activePlayer,
-  selectedPlayerId,
-  onSaveSuccess,
-}) {
+export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSuccess }) {
   const [cameraFps, setCameraFps] = useState(240);
   const [videoFps, setVideoFps] = useState(30);
 
@@ -58,6 +54,7 @@ export default function RSICalculator({
   const [isFrameDurationManual, setIsFrameDurationManual] = useState(false);
   const [isFpsAutoDetected, setIsFpsAutoDetected] = useState(false);
   const [aiDetectedFrameDuration, setAiDetectedFrameDuration] = useState(null);
+  const [fpsAutoDetectEnabled, setFpsAutoDetectEnabled] = useState(false); // Default to false (OFF)
 
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -74,7 +71,6 @@ export default function RSICalculator({
   const currentFrameMobileRef = useRef(null);
   const currentTimeDesktopRef = useRef(null);
   const currentFrameDesktopRef = useRef(null);
-
 
   // Sync manualFrameDuration with cameraFps when not manually overridden
   useEffect(() => {
@@ -128,7 +124,6 @@ export default function RSICalculator({
 
     if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
     seekTimeoutRef.current = setTimeout(() => {
-      console.warn("Safety timeout seek reset");
       handleVideoSeeked();
     }, 200);
 
@@ -318,7 +313,6 @@ export default function RSICalculator({
       takeoffTime > touchdownTime &&
       landingTime > takeoffTime
     ) {
-      // Real-time calculation based on slow-motion ratio or manual frame duration
       let realContactTime;
       let realFlightTime;
       
@@ -327,7 +321,6 @@ export default function RSICalculator({
         const takeoffFrame = takeoffTime * videoFps;
         const landingFrame = landingTime * videoFps;
         
-        // Frame-based calculation using the cameraFps
         realContactTime = Math.abs(takeoffFrame - touchdownFrame) / cameraFps;
         realFlightTime = Math.abs(landingFrame - takeoffFrame) / cameraFps;
       } else {
@@ -337,18 +330,13 @@ export default function RSICalculator({
         realFlightTime = flightTimeDelta * (videoFps / cameraFps);
       }
 
-      // Calculate the true vertical jump height:
       const heightMeters = 1.22625 * Math.pow(realFlightTime, 2);
       const heightCm = heightMeters * 100;
       const heightInches = heightCm * 0.393701;
 
-      // Standard RSI = height (m) / contact time (s)
       const rsiScore = heightMeters / realContactTime;
-
-      // Modified RSI = flight time (s) / contact time (s)
       const rsiModScore = realFlightTime / realContactTime;
 
-      // Dynamic Vertical Leg Stiffness (kN/m)
       const mass = activePlayer?.weight_kg || 70;
       const tc = realContactTime;
       const tf = realFlightTime;
@@ -373,14 +361,10 @@ export default function RSICalculator({
 
   const handleAnalyze = () => {
     if (touchdownTime === 0 || takeoffTime === 0 || landingTime === 0) {
-      return alert(
-        'يرجى تحديد الأوقات الثلاثة (ملامسة الأرض، الإقلاع، الهبوط) من الفيديو.'
-      );
+      return alert('يرجى تحديد الأوقات الثلاثة (ملامسة الأرض، الإقلاع، الهبوط) من الفيديو.');
     }
     if (takeoffTime <= touchdownTime || landingTime <= takeoffTime) {
-      return alert(
-        'تسلسل الأوقات غير منطقي! يجب أن يكون: ملامسة ⬅️ إقلاع ⬅️ هبوط.'
-      );
+      return alert('تسلسل الأوقات غير منطقي! يجب أن يكون: ملامسة ⬅️ إقلاع ⬅️ هبوط.');
     }
     setShowResults(true);
   };
@@ -389,7 +373,6 @@ export default function RSICalculator({
     if (!selectedPlayerId || !stats) return alert('خطأ في البيانات!');
     setIsSaving(true);
 
-    // Save to the unified lab_jump_measurements table
     const { data, error } = await supabase
       .from('lab_jump_measurements')
       .insert([
@@ -421,7 +404,6 @@ export default function RSICalculator({
   const detectVideoFps = (videoEl) => {
     if (!videoEl || !videoEl.duration) return;
     
-    // Use requestVideoFrameCallback with longer sampling and outlier removal
     if (videoEl.requestVideoFrameCallback) {
       let frameCount = 0;
       let startTime = null;
@@ -443,13 +425,11 @@ export default function RSICalculator({
         lastMediaTime = metadata.mediaTime;
         frameCount++;
         
-        // Collect at least 15 frame diffs over at least 300ms, timeout at 2s
         if (frameDiffs.length < 15 && (now - startTime) < 2000) {
           videoEl.requestVideoFrameCallback(callback);
         } else {
           videoEl.pause();
           if (frameDiffs.length >= 5) {
-            // Remove outliers (top/bottom 20%)
             const sorted = [...frameDiffs].sort((a, b) => a - b);
             const trimCount = Math.floor(sorted.length * 0.2);
             const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
@@ -457,7 +437,6 @@ export default function RSICalculator({
             
             if (avgDiff > 0) {
               const rawFps = 1 / avgDiff;
-              // Snap to common rates with 15% tolerance
               const commonRates = [24, 25, 30, 50, 60, 120, 240];
               let bestMatch = commonRates.reduce((prev, curr) => 
                 Math.abs(curr - rawFps) < Math.abs(prev - rawFps) ? curr : prev
@@ -474,7 +453,6 @@ export default function RSICalculator({
               setAiDetectedFrameDuration(parseFloat(avgDiff.toFixed(6)));
             }
           } else {
-            // Fallback: assume 30fps
             setVideoFps(30);
             setCameraFps(30);
             setIsFpsAutoDetected(false);
@@ -482,7 +460,6 @@ export default function RSICalculator({
         }
       };
       
-      // Seek past potential black frames before sampling
       videoEl.currentTime = 0.5;
       setTimeout(() => {
         videoEl.requestVideoFrameCallback(callback);
@@ -495,16 +472,16 @@ export default function RSICalculator({
     }
   };
 
-  // Automated FPS Detection once video file loads
+  // Automated FPS Detection once video file loads (controls by fpsAutoDetectEnabled switch)
   useEffect(() => {
-    if (videoSrc && videoRef.current) {
+    if (fpsAutoDetectEnabled && videoSrc && videoRef.current) {
       setIsFpsAutoDetected(false);
       const timer = setTimeout(() => {
         detectVideoFps(videoRef.current);
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [videoSrc]);
+  }, [videoSrc, fpsAutoDetectEnabled]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -564,7 +541,6 @@ export default function RSICalculator({
 
     if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
     seekTimeoutRef.current = setTimeout(() => {
-      console.warn("Seek timeout safety trigger");
       handleVideoSeeked();
     }, 200);
 
@@ -588,11 +564,6 @@ export default function RSICalculator({
     }
   };
 
-  const handleVideoSeeking = () => {
-    isSeekingRef.current = true;
-    setIsSeeking(true);
-  };
-
   const handleVideoSeeked = () => {
     if (seekTimeoutRef.current) {
       clearTimeout(seekTimeoutRef.current);
@@ -604,16 +575,14 @@ export default function RSICalculator({
     if (videoRef.current) {
       setCurrentTime(videoRef.current.currentTime);
       
-      // WebKit Paused Video Repaint Style Hack
       try {
         const video = videoRef.current;
         const originalDisplay = video.style.display;
         video.style.display = 'none';
-        video.offsetHeight; // Force reflow
+        video.offsetHeight;
         video.style.display = originalDisplay;
       } catch (e) {}
       
-      // iOS Safari paused render workaround: play and pause immediately if no pending seeks
       if (pendingSeekTimeRef.current === null && videoRef.current.paused) {
         try {
           const playPromise = videoRef.current.play();
@@ -662,10 +631,9 @@ export default function RSICalculator({
     performSeek(safeTime);
     
     try {
-      // Synchronous style repaint hack inside user gesture context
       const originalDisplay = video.style.display;
       video.style.display = 'none';
-      video.offsetHeight; // Force reflow
+      video.offsetHeight;
       video.style.display = originalDisplay;
 
       if (video.paused) {
@@ -676,36 +644,41 @@ export default function RSICalculator({
     } catch (err) {}
   };
 
-
   const getRSIEval = (rsi) => {
     const score = parseFloat(rsi);
     if (score < 1.5)
       return {
-        text: 'ضعيفة (تحتاج تدريبات Plyometrics مكثفة لحقن الطاقة)',
-        color: 'text-red-500 dark:text-red-400',
+        text: 'تحتاج تطوير ⚠️ (أوتار مرنة ضعيفة، تتطلب تدريبات بليومترك سريعة مكثفة)',
+        color: 'text-red-400 bg-red-950/20 border-red-900/30',
       };
     if (score >= 1.5 && score < 2.0)
-      return { text: 'متوسطة المقاومة (تحتاج استمرارية التطوير العضلي)', color: 'text-cyan-500 dark:text-cyan-400' };
+      return { text: 'مقبول ⚡ (صلابة متوسطة، تحتاج لدمج قفزات Pogo قصيرة)', color: 'text-orange-400 bg-orange-950/20 border-orange-900/30' };
     if (score >= 2.0 && score < 2.5)
-      return { text: 'قوية وتفاعلية (مرونة تفاعل ممتازة للأوتار)', color: 'text-teal-500 dark:text-teal-400' };
-    return { text: 'نخبة استثنائية (أوتار فولاذية صلبة وسريعة الاستجابة)', color: 'text-emerald-500 dark:text-emerald-400' };
+      return { text: 'جيد ⭐ (صلابة كاحل ممتازة وكفاءة ارتداد قوية)', color: 'text-teal-400 bg-teal-950/20 border-teal-800/30' };
+    return { text: 'نخبة أولمبية 👑 (صلابة أوتار استثنائية وسرعة نقل طاقة فائقة)', color: 'text-cyan-400 bg-cyan-950/20 border-cyan-800/30' };
   };
 
   return (
-    <div className="glass-panel p-6 shadow-2xl transition-all duration-300">
-      <div className="mb-6 text-center border-b border-[var(--border-light)] pb-4">
-        <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-teal-500">
-          مؤشر القوة التفاعلية (RSI - Drop Jump)
-        </h3>
-        <p className="text-gray-400 text-sm mt-1.5 leading-relaxed">
-          يقيس قدرة الأوتار على امتصاص الصدمات وتحويلها لقفزة رأسية بأقل زمن تلامس أرضي (Stiffness).
-        </p>
+    <div className="glass-panel p-4 md:p-6 shadow-2xl transition-all duration-300 text-right animate-fade-in" style={{ direction: 'rtl' }}>
+      
+      {/* Header section */}
+      <div className="flex justify-between items-center border-b border-gray-800/80 pb-5 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/20 text-cyan-400">
+            <Zap size={24} />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black text-white">مؤشر القوة التفاعلية RSI (Drop Jump)</h3>
+            <p className="text-xs text-gray-400 mt-1">قياس مرونة الكاحل وسرعة الاستجابة اللامركزية للأوتار والأربطة</p>
+          </div>
+        </div>
       </div>
 
-      <div className="mb-8 p-6 bg-black/20 rounded-2xl border border-[var(--border-light)] relative">
+      {/* Video Uploader Frame */}
+      <div className="mb-6 p-6 bg-[#111827]/25 rounded-2xl border border-gray-800/80 relative">
         {!videoSrc && (
           <div className="flex flex-col md:flex-row gap-4 w-full">
-            <div className="flex-1 relative cursor-pointer">
+            <div className="flex-1 relative cursor-pointer group">
               <input
                 type="file"
                 accept="video/*"
@@ -714,12 +687,12 @@ export default function RSICalculator({
                 ref={cameraInputRef}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-              <div className="btn-orange-gradient text-center py-5 rounded-xl font-bold transition-all flex items-center justify-center gap-3">
+              <div className="btn-orange-gradient text-center py-6 rounded-2xl font-black transition-all flex items-center justify-center gap-3 shadow-lg active:scale-98">
                 <Zap size={20} />
-                افتح الكاميرا وصوّر
+                افتح الكاميرا وصوّر 📸
               </div>
             </div>
-            <div className="flex-1 relative cursor-pointer">
+            <div className="flex-1 relative cursor-pointer group">
               <input
                 type="file"
                 accept="video/*"
@@ -727,9 +700,9 @@ export default function RSICalculator({
                 ref={fileInputRef}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-              <div className="bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] text-[var(--text-primary)] text-center py-5 rounded-xl font-bold transition-all flex items-center justify-center gap-3">
-                <Play size={20} />
-                اختر فيديو من المعرض
+              <div className="bg-slate-900/60 hover:bg-slate-800 border border-gray-850 text-white text-center py-6 rounded-2xl font-black transition-all flex items-center justify-center gap-3 shadow-md active:scale-98">
+                <Play size={20} className="text-cyan-400" />
+                اختر فيديو من الاستوديو 📁
               </div>
             </div>
           </div>
@@ -739,12 +712,12 @@ export default function RSICalculator({
           <div className="flex flex-col items-center w-full relative">
             <button
               onClick={clearVideo}
-              className="absolute top-2 right-2 z-20 bg-red-600 hover:bg-red-500 text-white p-2.5 rounded-full shadow-lg transition-transform hover:scale-110"
+              className="absolute top-2 right-2 z-25 bg-red-650 hover:bg-red-500 text-white p-2.5 rounded-full shadow-lg transition-transform hover:scale-110 cursor-pointer border border-red-550/20"
             >
               <X size={16} />
             </button>
             
-            <div className="relative inline-block border-4 border-[var(--border-light)] rounded-2xl overflow-hidden mb-5 shadow-2xl bg-black max-w-full">
+            <div className="relative inline-block border-4 border-gray-800 rounded-3xl overflow-hidden mb-6 shadow-[0_15px_40px_rgba(0,0,0,0.5)] bg-black max-w-full">
               <video
                 ref={videoRef}
                 src={videoSrc}
@@ -758,109 +731,65 @@ export default function RSICalculator({
                 onTimeUpdate={handleTimeUpdate}
                 onSeeked={handleVideoSeeked}
                 onEnded={() => setIsPlaying(false)}
-
               />
             </div>
 
-            {/* Filmstrip Draggable Timeline */}
-            <div className="w-full bg-black/35 p-4 rounded-2xl border border-[var(--border-light)] mb-5 text-right" style={{ direction: 'rtl' }}>
-              <div className="flex items-center justify-between text-xs text-gray-400 mb-2 font-bold px-1">
-                <span>خط الزمن السينمائي (Filmstrip Timeline)</span>
-                <span className="text-cyan-400">اسحب المؤشرات لتحديد اللحظات بدقة 🚀</span>
+            {/* Premium Filmstrip Scrubber Timeline */}
+            <div className="w-full bg-[#0a1224]/50 p-4 rounded-2xl border border-gray-850 mb-5">
+              <div className="flex items-center justify-between text-[10px] text-gray-400 mb-2 font-bold px-1">
+                <span>خط زمن اختبار الـ RSI</span>
+                <span className="text-cyan-400">اسحب خط الزمن لتحديد لحظات الكبح والارتقاء ⏱️</span>
               </div>
+              
               <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 relative mb-4">
-                {/* Badges row for mobile (hidden on desktop) */}
-                <div className="flex justify-between items-center w-full md:hidden mb-1">
-                  {/* Current Time Badge */}
-                  {/* Current Time Badge */}
-                  <div className="flex items-center gap-1.5 bg-[var(--bg-input)] px-2.5 py-1 rounded-xl border border-[var(--border-light)]">
-                    <span className="text-[10px] text-gray-400">الوقت الحالي:</span>
-                    <span ref={currentTimeMobileRef} className="text-xs text-[var(--brand-text)] font-mono font-bold">{currentTime.toFixed(3)}s</span>
-                    <span ref={currentFrameMobileRef} className="text-[9px] text-gray-500 font-mono">F {Math.round(currentTime * (videoFps || 30))}</span>
+                {/* Time Display Badge */}
+                <div className="flex justify-between items-center w-full md:w-auto bg-slate-900/60 px-3 py-2 rounded-xl border border-gray-850 text-center shrink-0 gap-3">
+                  <div className="text-right">
+                    <span className="block text-[8px] text-gray-500 font-bold">الوقت الحالي</span>
+                    <span ref={currentTimeDesktopRef} className="text-xs font-black text-cyan-400 font-mono">{currentTime.toFixed(3)}s</span>
                   </div>
-                  
-                  {/* Duration Time Badge */}
-                  <div className="flex items-center gap-1.5 bg-[var(--bg-input)] px-2.5 py-1 rounded-xl border border-[var(--border-light)]">
-                    <span className="text-[10px] text-gray-400">الإجمالي:</span>
-                    <span className="text-xs text-gray-300 font-mono font-bold">{duration.toFixed(3)}s</span>
-                    <span className="text-[9px] text-gray-500 font-mono">F {Math.round(duration * (videoFps || 30))}</span>
+                  <div className="border-r border-gray-800 h-6"></div>
+                  <div className="text-right">
+                    <span className="block text-[8px] text-gray-500 font-bold">رقم الإطار</span>
+                    <span ref={currentFrameDesktopRef} className="text-xs font-bold text-gray-300 font-mono">F {Math.round(currentTime * (videoFps || 30))}</span>
                   </div>
-                </div>
-
-                {/* Current Time Badge for Desktop (hidden on mobile) */}
-                <div className="hidden md:flex flex-col text-xs text-[var(--brand-text)] font-mono bg-[var(--bg-input)] px-2.5 py-1.5 rounded-xl border border-[var(--border-light)] text-center shrink-0">
-                  <span ref={currentTimeDesktopRef}>{currentTime.toFixed(3)}s</span>
-                  <span ref={currentFrameDesktopRef} className="text-[9px] text-gray-500">F {Math.round(currentTime * (videoFps || 30))}</span>
                 </div>
                 
-                {/* Timeline Track Overhauled with Native HTML5 Slider */}
-                <div 
-                  ref={timelineTrackRef}
-                  className="relative w-full md:flex-1 h-12 bg-[#070b13] border border-cyan-950/80 rounded-2xl select-none flex items-center px-4"
-                >
-                  {/* Ruler-style ticks */}
+                {/* Timeline Slider Container */}
+                <div ref={timelineTrackRef} className="relative w-full md:flex-1 h-12 bg-[#050b16] border border-cyan-950/40 rounded-2xl select-none flex items-center px-4">
+                  {/* Ruler marks background */}
                   <div className="absolute inset-0 flex justify-between items-center px-4 pointer-events-none opacity-20">
-                    {Array.from({ length: 25 }).map((_, i) => {
-                      const isMajor = i % 5 === 0;
-                      return (
-                        <div 
-                          key={i} 
-                          className={`w-0.5 bg-cyan-500/80 rounded-full transition-all ${
-                            isMajor ? 'h-5 opacity-80' : 'h-2.5 opacity-40'
-                          }`}
-                        />
-                      );
-                    })}
+                    {Array.from({ length: 25 }).map((_, i) => (
+                      <div key={i} className={`w-0.5 bg-cyan-500/80 rounded-full ${i % 5 === 0 ? 'h-5 opacity-70' : 'h-2.5 opacity-30'}`} />
+                    ))}
                   </div>
 
-                  {/* Range Highlight overlay */}
+                  {/* Highlights range between Touchdown and Landing */}
                   {duration > 0 && touchdownTime > 0 && landingTime > touchdownTime && (
-                    <div 
-                      className="absolute top-2 bottom-2 bg-cyan-500/10 border-l border-r border-cyan-400/30 pointer-events-none"
-                      style={{
-                        right: `${(touchdownTime / duration) * 100}%`,
-                        left: `${100 - (landingTime / duration) * 100}%`
-                      }}
-                    />
+                    <div className="absolute top-2.5 bottom-2.5 bg-cyan-500/10 border-l border-r border-cyan-500/20 pointer-events-none" style={{ right: `${(touchdownTime / duration) * 100}%`, left: `${100 - (landingTime / duration) * 100}%` }} />
                   )}
 
-                  {/* Touchdown Marker */}
+                  {/* Touchdown indicator flag */}
                   {duration > 0 && touchdownTime > 0 && (
-                    <div 
-                      className="absolute top-0 bottom-0 w-0.5 bg-blue-500 shadow-[0_0_8px_#3b82f6] z-10 pointer-events-none"
-                      style={{ right: `${(touchdownTime / duration) * 100}%` }}
-                    >
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-blue-500 text-white text-[9px] font-black rounded border border-blue-300 shadow-[0_0_8px_rgba(59,130,246,0.6)] flex items-center gap-0.5 whitespace-nowrap">
-                        📥 ملامسة
-                      </div>
+                    <div className="absolute top-0 bottom-0 w-0.5 bg-blue-500 shadow-[0_0_8px_#3b82f6] z-10 pointer-events-none" style={{ right: `${(touchdownTime / duration) * 100}%` }}>
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-blue-500 text-white text-[8px] font-black rounded border border-blue-300 whitespace-nowrap">📥 ملامسة</div>
                     </div>
                   )}
 
-                  {/* Takeoff Marker */}
+                  {/* Takeoff indicator flag */}
                   {duration > 0 && takeoffTime > 0 && (
-                    <div 
-                      className="absolute top-0 bottom-0 w-0.5 bg-cyan-500 shadow-[0_0_8px_#06b6d4] z-10 pointer-events-none"
-                      style={{ right: `${(takeoffTime / duration) * 100}%` }}
-                    >
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-cyan-500 text-[#070a13] text-[9px] font-black rounded border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.6)] flex items-center gap-0.5 whitespace-nowrap">
-                        🚀 إقلاع
-                      </div>
+                    <div className="absolute top-0 bottom-0 w-0.5 bg-cyan-500 shadow-[0_0_8px_#06b6d4] z-10 pointer-events-none" style={{ right: `${(takeoffTime / duration) * 100}%` }}>
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-cyan-500 text-[#070a13] text-[8px] font-black rounded border border-cyan-400 whitespace-nowrap">🚀 إقلاع</div>
                     </div>
                   )}
 
-                  {/* Landing Marker */}
+                  {/* Landing indicator flag */}
                   {duration > 0 && landingTime > 0 && (
-                    <div 
-                      className="absolute top-0 bottom-0 w-0.5 bg-red-500 shadow-[0_0_8px_#ef4444] z-10 pointer-events-none"
-                      style={{ right: `${(landingTime / duration) * 100}%` }}
-                    >
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-red-500 text-white text-[9px] font-black rounded border border-red-400 shadow-[0_0_8px_rgba(239,68,68,0.6)] flex items-center gap-0.5 whitespace-nowrap">
-                        🛬 هبوط
-                      </div>
+                    <div className="absolute top-0 bottom-0 w-0.5 bg-red-500 shadow-[0_0_8px_#ef4444] z-10 pointer-events-none" style={{ right: `${(landingTime / duration) * 100}%` }}>
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-red-500 text-white text-[8px] font-black rounded border border-red-400 whitespace-nowrap">🛬 هبوط</div>
                     </div>
                   )}
 
-                  {/* Native Slider Styled as Timeline */}
                   <input 
                     type="range"
                     min="0.01"
@@ -868,99 +797,35 @@ export default function RSICalculator({
                     step="0.001"
                     value={currentTime}
                     dir="rtl"
-                    onMouseDown={() => {
-                      setIsDragging(true);
-                      if (videoRef.current) {
-                        videoRef.current.pause();
-                        setIsPlaying(false);
-                      }
-                    }}
-                    onTouchStart={() => {
-                      setIsDragging(true);
-                      if (videoRef.current) {
-                        videoRef.current.pause();
-                        setIsPlaying(false);
-                      }
-                    }}
-                    onMouseMove={(e) => {
+                    onMouseDown={() => { setIsDragging(true); if (videoRef.current) { videoRef.current.pause(); setIsPlaying(false); } }}
+                    onTouchStart={() => { setIsDragging(true); if (videoRef.current) { videoRef.current.pause(); setIsPlaying(false); } }}
+                    onInput={(e) => {
                       const val = parseFloat(e.target.value);
-                      if (videoRef.current) {
-                        videoRef.current.currentTime = val;
-                      }
+                      if (videoRef.current) videoRef.current.currentTime = val;
                       setCurrentTime(val);
-                      const tStr = val.toFixed(3) + 's';
-                      const fStr = 'F ' + Math.round(val * (videoFps || 30));
-                      if (currentTimeMobileRef.current) currentTimeMobileRef.current.innerText = tStr;
-                      if (currentFrameMobileRef.current) currentFrameMobileRef.current.innerText = fStr;
-                      if (currentTimeDesktopRef.current) currentTimeDesktopRef.current.innerText = tStr;
-                      if (currentFrameDesktopRef.current) currentFrameDesktopRef.current.innerText = fStr;
+                      if (currentTimeDesktopRef.current) currentTimeDesktopRef.current.innerText = val.toFixed(3) + 's';
+                      if (currentFrameDesktopRef.current) currentFrameDesktopRef.current.innerText = 'F ' + Math.round(val * (videoFps || 30));
                     }}
-                    onTouchMove={(e) => {
-                      const val = parseFloat(e.target.value);
-                      if (videoRef.current) {
-                        videoRef.current.currentTime = val;
-                      }
-                      setCurrentTime(val);
-                      const tStr = val.toFixed(3) + 's';
-                      const fStr = 'F ' + Math.round(val * (videoFps || 30));
-                      if (currentTimeMobileRef.current) currentTimeMobileRef.current.innerText = tStr;
-                      if (currentFrameMobileRef.current) currentFrameMobileRef.current.innerText = fStr;
-                      if (currentTimeDesktopRef.current) currentTimeDesktopRef.current.innerText = tStr;
-                      if (currentFrameDesktopRef.current) currentFrameDesktopRef.current.innerText = fStr;
-                    }}
-                    onMouseUp={() => {
-                      setIsDragging(false);
-                      if (videoRef.current && videoRef.current.paused) {
-                        videoRef.current.play().then(() => {
-                          if (videoRef.current) videoRef.current.pause();
-                        }).catch(() => {});
-                      }
-                    }}
-                    onTouchEnd={() => {
-                      setIsDragging(false);
-                      if (videoRef.current && videoRef.current.paused) {
-                        videoRef.current.play().then(() => {
-                          if (videoRef.current) videoRef.current.pause();
-                        }).catch(() => {});
-                      }
-                    }}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      if (videoRef.current) {
-                        videoRef.current.currentTime = val;
-                      }
-                      setCurrentTime(val);
-                      const tStr = val.toFixed(3) + 's';
-                      const fStr = 'F ' + Math.round(val * (videoFps || 30));
-                      if (currentTimeMobileRef.current) currentTimeMobileRef.current.innerText = tStr;
-                      if (currentFrameMobileRef.current) currentFrameMobileRef.current.innerText = fStr;
-                      if (currentTimeDesktopRef.current) currentTimeDesktopRef.current.innerText = tStr;
-                      if (currentFrameDesktopRef.current) currentFrameDesktopRef.current.innerText = fStr;
-                    }}
-                    className="timeline-slider w-full h-full opacity-100 bg-transparent absolute inset-0 z-30 px-4"
+                    onMouseUp={() => { setIsDragging(false); if (videoRef.current && videoRef.current.paused) videoRef.current.play().then(() => { if (videoRef.current) videoRef.current.pause(); }).catch(() => {}); }}
+                    onTouchEnd={() => { setIsDragging(false); if (videoRef.current && videoRef.current.paused) videoRef.current.play().then(() => { if (videoRef.current) videoRef.current.pause(); }).catch(() => {}); }}
+                    className="timeline-slider w-full h-full opacity-100 bg-transparent absolute inset-0 z-30 px-4 cursor-pointer"
                   />
                 </div>
-
-                {/* Duration Time Badge for Desktop (hidden on mobile) */}
-                <div className="hidden md:flex flex-col text-xs text-gray-400 font-mono bg-[var(--bg-input)] px-2.5 py-1.5 rounded-xl border border-[var(--border-light)] text-center shrink-0">
-                  <span>{duration.toFixed(3)}s</span>
-                  <span className="text-[9px] text-gray-500">F {Math.round(duration * (videoFps || 30))}</span>
-                </div>
               </div>
-              
-              {/* Controller Buttons Overhauled with -10 / -5 / -1 / +1 / +5 / +10 controls */}
-              <div className="flex justify-center items-center gap-2">
-                <button onClick={() => stepFrames(-10)} title="العودة 10 إطارات" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors font-mono text-xs font-bold w-10 h-10 flex items-center justify-center">-10</button>
-                <button onClick={() => stepFrames(-5)} title="العودة 5 إطارات" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors font-mono text-xs font-bold w-10 h-10 flex items-center justify-center">-5</button>
-                <button onClick={() => stepFrames(-1)} title="العودة إطار واحد" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors font-mono text-xs font-bold w-10 h-10 flex items-center justify-center">-1</button>
+
+              {/* Step Navigation Wheel Controls */}
+              <div className="flex justify-center items-center gap-1.5 flex-wrap">
+                <button onClick={() => stepFrames(-10)} className="w-10 h-10 rounded-xl bg-slate-900 border border-gray-850 text-white font-mono text-xs font-bold hover:bg-slate-800 cursor-pointer active:scale-95 transition-all">-10</button>
+                <button onClick={() => stepFrames(-5)} className="w-10 h-10 rounded-xl bg-slate-900 border border-gray-850 text-white font-mono text-xs font-bold hover:bg-slate-800 cursor-pointer active:scale-95 transition-all">-5</button>
+                <button onClick={() => stepFrames(-1)} className="w-10 h-10 rounded-xl bg-slate-900 border border-gray-850 text-white font-mono text-xs font-bold hover:bg-slate-800 cursor-pointer active:scale-95 transition-all">-1</button>
                 
-                <button onClick={togglePlay} className="px-6 py-2.5 btn-orange-gradient rounded-xl font-bold flex items-center justify-center gap-2">
-                  {isPlaying ? <Pause size={16}/> : <Play size={16}/>}
+                <button onClick={togglePlay} className="px-7 py-2.5 btn-orange-gradient rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95 transition-all w-24">
+                  {isPlaying ? <Pause size={14}/> : <Play size={14}/>}
                 </button>
                 
-                <button onClick={() => stepFrames(1)} title="التقدم إطار واحد" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors font-mono text-xs font-bold w-10 h-10 flex items-center justify-center">+1</button>
-                <button onClick={() => stepFrames(5)} title="التقدم 5 إطارات" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors font-mono text-xs font-bold w-10 h-10 flex items-center justify-center">+5</button>
-                <button onClick={() => stepFrames(10)} title="التقدم 10 إطارات" className="p-2 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] rounded-xl text-white transition-colors font-mono text-xs font-bold w-10 h-10 flex items-center justify-center">+10</button>
+                <button onClick={() => stepFrames(1)} className="w-10 h-10 rounded-xl bg-slate-900 border border-gray-850 text-white font-mono text-xs font-bold hover:bg-slate-800 cursor-pointer active:scale-95 transition-all">+1</button>
+                <button onClick={() => stepFrames(5)} className="w-10 h-10 rounded-xl bg-slate-900 border border-gray-850 text-white font-mono text-xs font-bold hover:bg-slate-800 cursor-pointer active:scale-95 transition-all">+5</button>
+                <button onClick={() => stepFrames(10)} className="w-10 h-10 rounded-xl bg-slate-900 border border-gray-850 text-white font-mono text-xs font-bold hover:bg-slate-800 cursor-pointer active:scale-95 transition-all">+10</button>
               </div>
             </div>
 
@@ -968,99 +833,116 @@ export default function RSICalculator({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-xl">
               <button
                 onClick={() => { setTouchdownTime(currentTime); setShowResults(false); }}
-                className={`px-4 py-3 rounded-2xl font-bold transition-all border ${
+                className={`px-4 py-3 rounded-xl font-black text-xs transition-all border cursor-pointer ${
                   touchdownTime > 0
-                    ? 'bg-blue-600/30 text-blue-400 border-blue-500'
-                    : 'bg-[var(--bg-input)] hover:bg-[var(--border-color)] text-[var(--text-primary)] border-[var(--border-light)]'
+                    ? 'bg-blue-600/20 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.15)]'
+                    : 'bg-slate-900/60 hover:bg-slate-800 text-gray-300 border-gray-850'
                 }`}
               >
-                1. ملامسة الأرض 🦶
+                1. لحظة ملامسة الأرض 📥
               </button>
               <button
                 onClick={() => { setTakeoffTime(currentTime); setShowResults(false); }}
-                className={`px-4 py-3 rounded-2xl font-bold transition-all border ${
+                className={`px-4 py-3 rounded-xl font-black text-xs transition-all border cursor-pointer ${
                   takeoffTime > 0
-                    ? 'bg-cyan-600/30 text-cyan-400 border-cyan-500'
-                    : 'bg-[var(--bg-input)] hover:bg-[var(--border-color)] text-[var(--text-primary)] border-[var(--border-light)]'
+                    ? 'bg-cyan-600/20 text-cyan-400 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
+                    : 'bg-slate-900/60 hover:bg-slate-800 text-gray-300 border-gray-850'
                 }`}
               >
                 2. لحظة الإقلاع 🚀
               </button>
               <button
                 onClick={() => { setLandingTime(currentTime); setShowResults(false); }}
-                className={`px-4 py-3 rounded-2xl font-bold transition-all border ${
+                className={`px-4 py-3 rounded-xl font-black text-xs transition-all border cursor-pointer ${
                   landingTime > 0
-                    ? 'bg-red-600/30 text-red-400 border-red-500'
-                    : 'bg-[var(--bg-input)] hover:bg-[var(--border-color)] text-[var(--text-primary)] border-[var(--border-light)]'
+                    ? 'bg-red-600/20 text-red-400 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.15)]'
+                    : 'bg-slate-900/60 hover:bg-slate-800 text-gray-300 border-gray-850'
                 }`}
               >
-                3. الهبوط النهائي 🛬
+                3. لحظة الهبوط 🛬
               </button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="bg-black/20 p-5 rounded-2xl border border-[var(--border-light)] mb-6 space-y-4">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      {/* Settings Grid Panel */}
+      <div className="glass-card p-5 mb-6 space-y-4 text-xs font-bold">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4">
           <div>
-            <label className="block text-xs text-gray-400 mb-1">FPS الكاميرا</label>
+            <label className="block text-[10px] text-gray-400 mb-1">FPS الكاميرا</label>
             <input
               type="number"
               value={cameraFps}
               onChange={(e) => setCameraFps(Number(e.target.value))}
-              className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2.5 text-white outline-none font-mono focus:border-[var(--brand-main)]"
+              className="glass-input w-full p-2.5 font-mono"
             />
           </div>
+          
           <div>
-            <label className="block text-xs text-gray-400 mb-1">FPS ملف الفيديو</label>
+            <label className="block text-[10px] text-gray-400 mb-1">FPS ملف الفيديو</label>
             <input
               type="number"
               value={videoFps}
               onChange={(e) => setVideoFps(Number(e.target.value))}
-              className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-2.5 text-white outline-none font-mono focus:border-[var(--brand-main)]"
+              className="glass-input w-full p-2.5 font-mono"
             />
           </div>
-          <div>
-            <label className="block text-xs text-gray-400 mb-1 text-center">الملامسة (s)</label>
-            <div className="w-full bg-black/40 border border-cyan-500/30 rounded-xl p-2.5 text-cyan-400 font-mono font-bold text-center">
-              {touchdownTime.toFixed(3)}
+
+          {/* FPS Auto-detect toggle switch (Default: OFF) */}
+          <div className="flex flex-col justify-end">
+            <div className="glass-input flex items-center justify-between h-[41px] px-3">
+              <span className="text-[10px] text-gray-450 font-bold">كشف FPS تلقائياً:</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setFpsAutoDetectEnabled(!fpsAutoDetectEnabled);
+                  if (!fpsAutoDetectEnabled && videoRef.current) {
+                    detectVideoFps(videoRef.current);
+                  }
+                }}
+                className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors duration-200 outline-none cursor-pointer ${
+                  fpsAutoDetectEnabled ? 'bg-cyan-500' : 'bg-gray-700'
+                }`}
+              >
+                <span
+                  className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-all duration-200 ${
+                    fpsAutoDetectEnabled ? 'mr-5' : 'mr-1'
+                  }`}
+                />
+              </button>
             </div>
           </div>
+
           <div>
-            <label className="block text-xs text-gray-400 mb-1 text-center">الإقلاع (s)</label>
-            <div className="w-full bg-black/40 border border-teal-500/30 rounded-xl p-2.5 text-teal-400 font-mono font-bold text-center">
-              {takeoffTime.toFixed(3)}
-            </div>
+            <label className="block text-[10px] text-gray-400 mb-1 text-center">الملامسة (s)</label>
+            <div className="glass-input w-full p-2.5 text-blue-400 font-mono font-bold text-center border-blue-500/20">{touchdownTime.toFixed(3)}</div>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1 text-center">الهبوط (s)</label>
-            <div className="w-full bg-black/40 border border-red-500/30 rounded-xl p-2.5 text-red-400 font-mono font-bold text-center">
-              {landingTime.toFixed(3)}
-            </div>
+            <label className="block text-[10px] text-gray-400 mb-1 text-center">الإقلاع (s)</label>
+            <div className="glass-input w-full p-2.5 text-teal-400 font-mono font-bold text-center border-teal-500/20">{takeoffTime.toFixed(3)}</div>
+          </div>
+          <div>
+            <label className="block text-[10px] text-gray-400 mb-1 text-center">الهبوط (s)</label>
+            <div className="glass-input w-full p-2.5 text-red-400 font-mono font-bold text-center border-red-500/20">{landingTime.toFixed(3)}</div>
           </div>
         </div>
 
-        {/* Time Calculation Method & Custom Frame Duration */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-[var(--border-light)] pt-4 text-right" style={{ direction: 'rtl' }}>
+        {/* Time Calculation selector & Advisor */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-cyan-950/20 pt-4" style={{ direction: 'rtl' }}>
           <div className="space-y-3">
             <div>
-              <label className="block text-[10px] text-gray-400 mb-1">طريقة حساب الوقت (Time Calculation)</label>
-              <div className="grid grid-cols-2 gap-2 p-1 bg-black/30 rounded-xl border border-[var(--border-light)]">
+              <label className="block text-[10px] text-gray-500 mb-1">طريقة حساب الوقت (Time Calculation)</label>
+              <div className="flex bg-black/25 rounded-xl border border-cyan-950/20 p-1">
                 {[
-                  { id: 'fps', name: '⏱️ تلقائي من FPS' },
-                  { id: 'manual', name: '✏️ زمن إطار مخصص' }
+                  { id: 'fps', name: '⏱️ حساب تلقائي من الـ FPS' },
+                  { id: 'manual', name: '✏️ كتابة زمن إطار يدوي' }
                 ].map(method => (
                   <button
                     key={method.id}
                     type="button"
-                    onClick={() => {
-                      setTimeCalculationMethod(method.id);
-                      if (method.id === 'fps') {
-                        setIsFrameDurationManual(false);
-                      }
-                    }}
-                    className={`py-1.5 px-1 text-[10px] font-bold rounded-lg transition-all ${timeCalculationMethod === method.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
+                    onClick={() => { setTimeCalculationMethod(method.id); if (method.id === 'fps') setIsFrameDurationManual(false); }}
+                    className={`flex-1 py-1.5 px-1 text-[10px] font-black rounded-lg transition-all cursor-pointer ${timeCalculationMethod === method.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/25' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
                   >
                     {method.name}
                   </button>
@@ -1068,44 +950,37 @@ export default function RSICalculator({
               </div>
             </div>
 
-            {/* AI Frame Duration Advisor in RSI */}
+            {/* AI Advisor */}
             {aiDetectedFrameDuration && (
-              <div className="bg-emerald-950/15 border border-emerald-500/25 p-3 rounded-xl flex flex-col gap-1.5 text-right animate-fade-in">
+              <div className="bg-emerald-950/15 border border-emerald-500/20 p-3.5 rounded-xl flex flex-col gap-1.5 animate-fade-in">
                 <div className="flex items-center gap-1.5 text-emerald-400 justify-between">
-                  <div className="flex items-center gap-1.5 flex-row-reverse">
+                  <div className="flex items-center gap-1.5">
                     <Sparkles size={14} className="animate-pulse" />
-                    <span className="text-[10px] font-extrabold">مستشار الإطارات الذكي (AI Analyzer)</span>
+                    <span className="text-[10px] font-black">مستشار الإطارات المساعد (AI Analyzer)</span>
                   </div>
-                  <span className="text-[8px] bg-emerald-500/20 text-emerald-400 px-1 rounded font-bold">نشط</span>
+                  <span className="text-[8px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-black">نشط</span>
                 </div>
-                <div className="text-[9px] text-gray-400 leading-normal">
-                  تم قياس الفارق الفعلي بين الإطارات للفيديو تلقائياً بالذكاء الاصطناعي:
-                  <span className="text-white font-mono font-bold block mt-1 text-center bg-black/40 py-1 rounded border border-emerald-500/10">
-                    {aiDetectedFrameDuration} ثانية ({ (1 / aiDetectedFrameDuration).toFixed(2) } إطار/ثانية)
+                <div className="text-[9px] text-gray-400 leading-relaxed">
+                  تم رصد الفاصل الزمني الفعلي للإطارات بالذكاء الاصطناعي:
+                  <span className="text-white font-mono font-black block mt-1.5 text-center bg-black/40 py-1.5 rounded border border-emerald-500/10">
+                    {aiDetectedFrameDuration} ثانية ({ (1 / aiDetectedFrameDuration).toFixed(2) } FPS)
                   </span>
                 </div>
                 {timeCalculationMethod !== 'manual' ? (
                   <button
                     type="button"
-                    onClick={() => {
-                      setTimeCalculationMethod('manual');
-                      setManualFrameDuration(aiDetectedFrameDuration);
-                      setIsFrameDurationManual(true);
-                    }}
-                    className="w-full mt-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/35 py-1 px-2 rounded-xl text-[9px] font-bold transition-all"
+                    onClick={() => { setTimeCalculationMethod('manual'); setManualFrameDuration(aiDetectedFrameDuration); setIsFrameDurationManual(true); }}
+                    className="w-full mt-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/35 border border-emerald-500/30 py-1.5 px-2 rounded-lg text-[9px] font-black transition-all cursor-pointer"
                   >
-                    ⚡ استخدام زمن الإطار الذكي وتعديله يدوياً
+                    ⚡ استخدام زمن الإطار المقاس وتعديله يدوياً
                   </button>
                 ) : (
                   <button
                     type="button"
-                    onClick={() => {
-                      setManualFrameDuration(aiDetectedFrameDuration);
-                      setIsFrameDurationManual(true);
-                    }}
-                    className="w-full mt-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/35 py-1 px-2 rounded-xl text-[9px] font-bold transition-all"
+                    onClick={() => { setManualFrameDuration(aiDetectedFrameDuration); setIsFrameDurationManual(true); }}
+                    className="w-full mt-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/35 border border-emerald-500/30 py-1.5 px-2 rounded-lg text-[9px] font-black transition-all cursor-pointer"
                   >
-                    ↺ تعيين قيمة الإطار الذكي المقترحة
+                    ↺ تطبيق قيمة الإطار الذكي المقترحة
                   </button>
                 )}
               </div>
@@ -1113,154 +988,147 @@ export default function RSICalculator({
           </div>
           
           {timeCalculationMethod === 'manual' && (
-            <div className="bg-cyan-950/10 border border-cyan-500/20 p-3 rounded-xl animate-fade-in space-y-1 self-start">
+            <div className="bg-cyan-950/10 border border-cyan-500/25 p-3 rounded-xl animate-fade-in space-y-1.5 self-start">
               <div className="flex justify-between items-center text-[10px] text-gray-400">
-                <span className="font-bold">زمن الإطار الفعلي (ثانية):</span>
+                <span className="font-bold">زمن إطار الفيديو الفعلي (ثانية):</span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsFrameDurationManual(false);
-                    setManualFrameDuration(parseFloat((1 / cameraFps).toFixed(6)));
-                  }}
-                  className="text-[8px] text-cyan-400 font-bold bg-cyan-950/50 border border-cyan-500/20 px-1.5 py-0.5 rounded hover:bg-cyan-900/30"
+                  onClick={() => { setIsFrameDurationManual(false); setManualFrameDuration(parseFloat((1 / cameraFps).toFixed(6))); }}
+                  className="text-[8px] text-cyan-400 font-bold bg-cyan-950/50 border border-cyan-500/20 px-2 py-0.5 rounded hover:bg-cyan-900/30 cursor-pointer"
                 >
-                  إعادة ضبط للتلقائي ↺
+                  إعادة تعيين للتلقائي ↺
                 </button>
               </div>
               <input
                 type="number"
                 step="0.000001"
                 value={manualFrameDuration}
-                onChange={(e) => {
-                  setManualFrameDuration(e.target.value);
-                  setIsFrameDurationManual(true);
-                }}
-                className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-1.5 px-3 text-xs text-white outline-none font-mono focus:border-[var(--brand-main)]"
+                onChange={(e) => { setManualFrameDuration(e.target.value); setIsFrameDurationManual(true); }}
+                className="glass-input w-full p-2 px-3 text-xs font-mono"
               />
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex justify-center mb-8">
+      {/* Trigger button */}
+      <div className="flex justify-center mb-6">
         <button
           onClick={handleAnalyze}
-          className="px-14 py-4 btn-orange-gradient rounded-2xl font-black text-xl shadow-lg transition-transform hover:scale-105"
+          className="px-14 py-4 btn-orange-gradient rounded-2xl font-black text-lg shadow-lg active:scale-98 transition-transform hover:scale-[1.02] cursor-pointer"
         >
-          تحليل مؤشر القوة RSI
+          تحليل واستخراج مؤشر RSI ⏱️
         </button>
       </div>
 
+      {/* Results HUD Display */}
       {showResults && stats && (
-        <div className="space-y-6 border-t border-[var(--border-light)] pt-6 text-right">
+        <div className="space-y-6 border-t border-gray-800/80 pt-6 animate-fade-in">
           
-          <div className="flex justify-between items-center border-b border-cyan-500/25 pb-2">
-            <div className="text-xs font-bold text-cyan-400">
-              🚀 شاشة نتائج الـ Cockpit HUD لمؤشر RSI
+          <div className="flex justify-between items-center border-b border-cyan-500/20 pb-3">
+            <div className="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+              <Sparkles size={14} /> شاشة نتائج التحليل الحركي لمؤشر RSI
             </div>
-            <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-lg border border-cyan-500/20">
+            
+            <div className="flex items-center gap-1.5 bg-black/45 p-1 rounded-xl border border-gray-850">
               <button
                 type="button"
                 onClick={() => setDisplayUnit('cm')}
-                className={`px-2 py-0.5 text-[9px] font-bold rounded transition-all duration-200 ${displayUnit === 'cm' ? 'bg-cyan-500 text-[#070a13] shadow shadow-cyan-500/30' : 'text-gray-400 hover:text-white bg-transparent'}`}
+                className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${displayUnit === 'cm' ? 'bg-cyan-500/25 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
               >
                 سم (Cm)
               </button>
               <button
                 type="button"
                 onClick={() => setDisplayUnit('in')}
-                className={`px-2 py-0.5 text-[9px] font-bold rounded transition-all duration-200 ${displayUnit === 'in' ? 'bg-cyan-500 text-[#070a13] shadow shadow-cyan-500/30' : 'text-gray-400 hover:text-white bg-transparent'}`}
+                className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${displayUnit === 'in' ? 'bg-cyan-500/25 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
               >
                 بوصة (Inches)
               </button>
             </div>
           </div>
 
-          <div className="flex flex-col items-center justify-center p-6 bg-black/40 rounded-3xl border border-cyan-500/30 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent pointer-events-none animate-pulse"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
             
-            <div className="relative w-44 h-44 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle cx="88" cy="88" r="72" fill="none" stroke="rgba(6,182,212,0.08)" strokeWidth="12" />
-                <circle 
-                  cx="88" 
-                  cy="88" 
-                  r="72" 
-                  fill="none" 
-                  stroke="url(#rsiTealGradient)" 
-                  strokeWidth="12" 
-                  strokeLinecap="round"
-                  strokeDasharray={452}
-                  strokeDashoffset={452 - (452 * Math.min(1.0, parseFloat(stats.rsi)/4.0))} 
-                  style={{ transition: "stroke-dashoffset 1.2s ease-out" }}
-                />
-                <defs>
-                  <linearGradient id="rsiTealGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#00f5d4" />
-                    <stop offset="100%" stopColor="#06b6d4" />
-                  </linearGradient>
-                </defs>
-              </svg>
+            {/* Primary Radial RSI score ring */}
+            <div className="bg-[#111827]/30 border border-gray-850 p-6 rounded-3xl flex flex-col items-center justify-center text-center relative overflow-hidden shadow-lg lg:col-span-1">
+              <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent pointer-events-none"></div>
+              <span className="text-xs font-bold text-gray-450 mb-6 block uppercase tracking-wider">مؤشر القوة التفاعلية الأخير</span>
               
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                  مؤشر القوة التفاعلية (RSI)
-                </span>
-                <span className="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(0,245,212,0.6)] font-mono my-1">
-                  <AnimatedCounter value={stats.rsi} decimals={2} />
-                </span>
-                <span className="text-[10px] text-cyan-400 font-bold">
-                  Score
-                </span>
+              <div className="relative w-40 h-40 flex items-center justify-center bg-black/15 rounded-full border border-gray-850 shadow-inner">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="41" fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="6" />
+                  <circle 
+                    cx="50" 
+                    cy="50" 
+                    r="41" 
+                    fill="none" 
+                    stroke="url(#rsiTealProgress)" 
+                    strokeWidth="6" 
+                    strokeLinecap="round"
+                    strokeDasharray="257.61"
+                    strokeDashoffset={257.61 - (257.61 * Math.min(1.0, parseFloat(stats.rsi)/4.0))} 
+                    className="transition-all duration-1000"
+                  />
+                  <defs>
+                    <linearGradient id="rsiTealProgress" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#00f5d4" />
+                      <stop offset="100%" stopColor="#06b6d4" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                
+                <div className="absolute inset-0 flex flex-col items-center justify-center mt-1">
+                  <span className="text-4xl font-black text-white font-mono leading-none drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+                    <AnimatedCounter value={stats.rsi} decimals={2} />
+                  </span>
+                  <span className="text-[9px] text-gray-500 font-extrabold uppercase mt-1">RSI Score</span>
+                </div>
               </div>
             </div>
+
+            {/* Performance breakdown indicators */}
+            <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-slate-900/40 border border-gray-850 p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] text-gray-400 font-bold">زمن التلامس (Tc)</span>
+                <span className="text-xl font-black text-white font-mono block mt-2">
+                  <AnimatedCounter value={stats.contactTime} decimals={3} /> <span className="text-xs text-gray-500 font-normal">s</span>
+                </span>
+                <span className="text-[8px] text-gray-500 mt-1 block">زمن ملامسة الصدمة</span>
+              </div>
+              <div className="bg-slate-900/40 border border-gray-850 p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] text-gray-400 font-bold">زمن الطيران (Tf)</span>
+                <span className="text-xl font-black text-white font-mono block mt-2">
+                  <AnimatedCounter value={stats.flightTime} decimals={3} /> <span className="text-xs text-gray-500 font-normal">s</span>
+                </span>
+                <span className="text-[8px] text-gray-500 mt-1 block">زمن التحليق العمودي</span>
+              </div>
+              <div className="bg-slate-900/40 border border-gray-850 p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] text-gray-400 font-bold">الارتفاع الميكانيكي</span>
+                <span className="text-xl font-black text-white font-mono block mt-2">
+                  <AnimatedCounter value={displayUnit === 'in' ? stats.heightInches : stats.heightCm} decimals={1} /> <span className="text-xs text-gray-500 font-normal">{displayUnit === 'in' ? 'in' : 'cm'}</span>
+                </span>
+                <span className="text-[8px] text-gray-500 mt-1 block">صعود مركز الجاذبية</span>
+              </div>
+              <div className="bg-slate-900/40 border border-gray-850 p-4 rounded-2xl flex flex-col justify-between border-emerald-500/25 relative overflow-hidden">
+                <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none"></div>
+                <span className="text-[10px] text-gray-400 font-bold relative z-10">صلابة الأوتار</span>
+                <span className="text-xl font-black text-emerald-400 font-mono block mt-2 relative z-10">
+                  <AnimatedCounter value={stats.legStiffness} decimals={1} /> <span className="text-xs text-emerald-500/50 font-normal">kN/m</span>
+                </span>
+                <span className="text-[8px] text-gray-500 mt-1 block relative z-10">Stiffness (صلابة المفصل)</span>
+              </div>
+            </div>
+
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 text-center">
-            <div className="bg-[var(--bg-surface)] p-3.5 rounded-2xl border border-[var(--border-light)]">
-              <span className="block text-[10px] text-gray-400 mb-1 font-bold">زمن التلامس (Tc)</span>
-              <span className="text-lg font-black text-white font-mono">
-                <AnimatedCounter value={stats.contactTime} decimals={3} />
-                <span className="text-[9px] text-gray-400 mr-0.5">s</span>
-              </span>
+          {/* Biomechanical Grade Capsule */}
+          <div className="bg-black/15 border border-gray-850 rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-2">
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <Info size={14} className="text-cyan-400" />
+              <span>التقييم البيوميكانيكي الوظيفي للجهاز الحركي والأوتار</span>
             </div>
-            <div className="bg-[var(--bg-surface)] p-3.5 rounded-2xl border border-[var(--border-light)]">
-              <span className="block text-[10px] text-gray-400 mb-1 font-bold">زمن الطيران (Tf)</span>
-              <span className="text-lg font-black text-white font-mono">
-                <AnimatedCounter value={stats.flightTime} decimals={3} />
-                <span className="text-[9px] text-gray-400 mr-0.5">s</span>
-              </span>
-            </div>
-            <div className="bg-[var(--bg-surface)] p-3.5 rounded-2xl border border-[var(--border-light)]">
-              <span className="block text-[10px] text-gray-400 mb-1 font-bold">الارتفاع (Height)</span>
-              <span className="text-lg font-black text-white font-mono">
-                <AnimatedCounter value={displayUnit === 'in' ? stats.heightInches : stats.heightCm} decimals={1} />
-                <span className="text-[9px] text-gray-400 mr-0.5">{displayUnit === 'in' ? 'in' : 'cm'}</span>
-              </span>
-            </div>
-            <div className="bg-[var(--bg-surface)] p-3.5 rounded-2xl border border-teal-500/40 relative overflow-hidden">
-              <div className="absolute inset-0 bg-teal-600/5"></div>
-              <span className="block text-[10px] text-gray-400 mb-1 relative z-10 font-bold">المؤشر المعدل</span>
-              <span className="text-lg font-black text-teal-400 relative z-10 font-mono">
-                <AnimatedCounter value={stats.rsiMod} decimals={2} />
-              </span>
-            </div>
-            <div className="bg-[var(--bg-surface)] p-3.5 rounded-2xl border-emerald-500/40 relative overflow-hidden">
-              <div className="absolute inset-0 bg-emerald-600/5"></div>
-              <span className="block text-[10px] text-gray-400 mb-1 relative z-10 font-bold">صلابة الأوتار</span>
-              <span className="text-lg font-black text-emerald-400 relative z-10 font-mono">
-                <AnimatedCounter value={stats.legStiffness} decimals={1} />
-                <span className="text-[9px] text-gray-400 mr-0.5">kN/m</span>
-              </span>
-            </div>
-          </div>
-
-          <div className="bg-black/20 border border-[var(--border-light)] rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-2">
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <Info size={16} />
-              <span>التقييم الفسيولوجي لمرونة الأوتار (Dynamic Tendon Behavior)</span>
-            </div>
-            <p className={`text-xl font-black ${getRSIEval(stats.rsi).color}`}>
+            <p className={`text-lg font-black px-4 py-2 rounded-xl border ${getRSIEval(stats.rsi).color}`}>
               {getRSIEval(stats.rsi).text}
             </p>
           </div>
@@ -1268,10 +1136,10 @@ export default function RSICalculator({
           <button
             onClick={saveMeasurement}
             disabled={isSaving}
-            className="w-full py-4 bg-[var(--bg-input)] hover:bg-[var(--border-color)] border border-[var(--border-light)] text-[var(--text-primary)] rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2"
+            className="w-full py-4 btn-orange-gradient rounded-xl font-black text-base shadow-lg transition-transform hover:scale-[1.01] active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Save size={18} />
-            {isSaving ? 'جاري حفظ النتيجة...' : 'حفظ النتيجة في ملف اللاعب'}
+            <Save size={16} />
+            {isSaving ? 'جاري حفظ الاختبار...' : 'حفظ نتيجة الـ RSI في سجل ملف اللاعب'}
           </button>
         </div>
       )}
