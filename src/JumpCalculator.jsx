@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, ChevronDown, ChevronUp, Moon, Sun, Award, Info, AlertTriangle, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, ChevronDown, ChevronUp, Moon, Sun, Award, Info, AlertTriangle, ShieldCheck, Sparkles, Users, Trophy } from 'lucide-react';
 import { useJumpMechanics } from './useJumpMechanics';
 import { supabase } from './supabaseClient'; 
 import PlayerProfile from './PlayerProfile'; 
@@ -8,7 +8,7 @@ import RSICalculator from './RSICalculator';
 import FVPCalculator from './FVPCalculator';
 import TeamDashboard from './TeamDashboard';
 import JumpTestingConsole from './JumpTestingConsole'; 
-
+import Leaderboard from './Leaderboard';
 // Animated counter helper
 const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
   const [count, setCount] = useState(0);
@@ -1324,6 +1324,7 @@ export default function JumpCalculator() {
     { id: 'calculator', name: 'Vertical Jump', icon: Activity },
     { id: 'rsi', name: 'RSI Calculator', icon: Zap },
     { id: 'fvp', name: 'FVP Curve', icon: LineChart },
+    { id: 'leaderboard', name: 'Leaderboard', icon: Trophy },
     { id: 'profile', name: 'Athlete Profile', icon: UserCircle }
   ];
 
@@ -1489,6 +1490,13 @@ export default function JumpCalculator() {
                   onEditPlayer={handleEditPlayer}
                 />
               </motion.div>
+            ) : activeTab === 'leaderboard' ? (
+              <motion.div key="leaderboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                <Leaderboard 
+                  onSelectPlayer={handleSelectPlayerFromDashboard} 
+                  onChangeTab={setActiveTab} 
+                />
+              </motion.div>
             ) : activePlayer ? (
               <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
                 
@@ -1504,7 +1512,13 @@ export default function JumpCalculator() {
 
                 {activeTab === 'rsi' && <RSICalculator activePlayer={activePlayer} selectedPlayerId={selectedPlayerId} onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])} />}
                 {activeTab === 'fvp' && <FVPCalculator activePlayer={activePlayer} selectedPlayerId={selectedPlayerId} />}
-                {activeTab === 'profile' && <PlayerProfile activePlayer={activePlayer} playerHistory={playerHistory} />}
+                {activeTab === 'profile' && (
+                  <PlayerProfile 
+                    activePlayer={activePlayer} 
+                    playerHistory={playerHistory} 
+                    onHistoryChange={(newHistory) => setPlayerHistory(newHistory)} 
+                  />
+                )}
               </motion.div>
             ) : (
               <motion.div key="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="glass-panel p-16 text-center text-gray-400 shadow-2xl flex flex-col items-center justify-center transition-colors duration-500">
@@ -1524,7 +1538,7 @@ export default function JumpCalculator() {
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-          const isDisabled = tab.id !== 'team' && !activePlayer;
+          const isDisabled = tab.id !== 'team' && tab.id !== 'leaderboard' && !activePlayer;
           return (
             <button
               key={tab.id}

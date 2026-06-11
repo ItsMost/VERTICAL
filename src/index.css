@@ -235,3 +235,20 @@ input[type="range"].timeline-slider::-moz-range-thumb {
   box-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
   border: 1px solid #000;
 }
+
+/* Force Cairo Font Family globally */
+body, button, input, select, textarea, text, span, div, p, h1, h2, h3, h4, h5, h6, table, th, td, label {
+  font-family: 'Cairo', system-ui, -apple-system, sans-serif !important;
+}
+
+/* Add custom scroll clearing spacer classes */
+.bottom-dock-clearance {
+  height: 120px;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  .bottom-dock-clearance {
+    height: 140px;
+    width: 100%;
+  }
+}

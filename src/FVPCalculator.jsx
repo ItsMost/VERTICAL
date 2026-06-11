@@ -540,8 +540,8 @@ export default function FVPCalculator({ activePlayer }) {
     { weight: 20, flightTime: '' },
     { weight: 30, flightTime: '' }
   ]);
-  const [seasonPeriod, setSeasonPeriod] = useState('Off-Season');
-  const [trainingAge, setTrainingAge] = useState('Intermediate (1-3 years)');
+  const [seasonPeriod, setSeasonPeriod] = useState('off_season');
+  const [trainingAge, setTrainingAge] = useState('intermediate');
   
   const [fvpResult, setFvpResult] = useState(null);
 
@@ -612,40 +612,40 @@ export default function FVPCalculator({ activePlayer }) {
     if (V0 < 3.0 && f0_rel >= 24) {
         // Velocity Deficit
         diagnosis = "عجز في السرعة (Velocity Deficit)";
-        if (seasonPeriod === 'In-Season' || seasonPeriod === 'Competition-Phase') {
-            advice = `اللاعب يمتلك قوة هيكلية ممتازة ولكنه يعاني من عجز حاد في السرعة حركياً. ونظراً لكوننا حالياً في فترة المنافسات/داخل الموسم (${seasonPeriod})، يُنصح بتجنب الأحمال التدريبية الثقيلة لتجنب الإجهاد البدني المتراكم. يجب التركيز الكامل على تدريبات البلايومترك السريع والخفيف (Fast/Light Plyometrics) والوثبات البالستية بوزن الجسم لزيادة القدرة وسرعة الارتقاء الحركي الميكانيكي.`;
+        if (seasonPeriod === 'in_season' || seasonPeriod === 'competition_phase') {
+            advice = `اللاعب يمتلك قوة هيكلية ممتازة ولكنه يعاني من عجز حاد في السرعة حركياً. ونظراً لكوننا حالياً في فترة المنافسات/داخل الموسم، يُنصح بتجنب الأحمال التدريبية الثقيلة لتجنب الإجهاد البدني المتراكم. يجب التركيز الكامل على تدريبات البلايومترك السريع والخفيف (Fast/Light Plyometrics) والوثبات البالستية بوزن الجسم لزيادة القدرة وسرعة الارتقاء الحركي الميكانيكي.`;
         } else {
-            advice = `اللاعب يمتلك قوة هيكلية ممتازة ولكن سرعته الحركية متدنية. ونظراً لأننا في فترة الإعداد خارج الموسم (${seasonPeriod})، يوصى بتمارين القوة الانفجارية والقدرة البالستية متوسطة الأحمال (30-40% من أقصى وزن) مثل قفز القرفصاء المحمل (Loaded Squat Jumps) لبناء القدرة السريعة تدريجياً.`;
+            advice = `اللاعب يمتلك قوة هيكلية ممتازة ولكن سرعته الحركية متدنية. ونظراً لأننا في فترة الإعداد خارج الموسم، يوصى بتمارين القوة الانفجارية والقدرة البالستية متوسطة الأحمال (30-40% من أقصى وزن) مثل قفز القرفصاء المحمل (Loaded Squat Jumps) لبناء القدرة السريعة تدريجياً.`;
         }
         color = "text-blue-400 border-blue-500 bg-blue-900/20";
     } else if (f0_rel < 24 && V0 >= 3.0) {
         // Force Deficit
         diagnosis = "عجز في القوة (Force Deficit)";
-        if (seasonPeriod === 'In-Season' || seasonPeriod === 'Competition-Phase') {
-            advice = `اللاعب سريع للغاية ذو حركة مطاطية مرنة، ولكنه يفتقر للقوة المطلقة الكافية للتغلب على مقاومة الأحمال. نظراً للتواجد داخل الموسم/المنافسات (${seasonPeriod})، يوصى بتطبيق تدريبات التحميل الرياضي المركب (Complex Training) والتدريب المتباين (Contrast Training) لدمج تمرين قوة خفيف مع ارتداد فوري دون تراكم الإجهاد البدني.`;
+        if (seasonPeriod === 'in_season' || seasonPeriod === 'competition_phase') {
+            advice = `اللاعب سريع للغاية ذو حركة مطاطية مرنة، ولكنه يفتقر للقوة المطلقة الكافية للتغلب على مقاومة الأحمال. نظراً للتواجد داخل الموسم/المنافسات، يوصى بتطبيق تدريبات التحميل الرياضي المركب (Complex Training) والتدريب المتباين (Contrast Training) لدمج تمرين قوة خفيف مع ارتداد فوري دون تراكم الإجهاد البدني.`;
         } else {
-            advice = `يعاني اللاعب من عجز واضح في القوة الأساسية رغم تمتعه بسرعة حركية جيدة. فترة الإعداد خارج الموسم (${seasonPeriod}) هي التوقيت المثالي للتركيز على تدريبات المقاومة الثقيلة لزيادة القوة القصوى (Heavy Resistance Training >80% 1RM) مثل القرفصاء الخلفي (Back Squats) والرفعة المميتة (Deadlifts) لبناء قاعدة القوة.`;
+            advice = `يعاني اللاعب من عجز واضح في القوة الأساسية رغم تمتعه بسرعة حركية جيدة. فترة الإعداد خارج الموسم هي التوقيت المثالي للتركيز على تدريبات المقاومة الثقيلة لزيادة القوة القصوى (Heavy Resistance Training >80% 1RM) مثل القرفصاء الخلفي (Back Squats) والرفعة المميتة (Deadlifts) لبناء قاعدة القوة.`;
         }
         color = "text-orange-400 border-orange-500 bg-orange-900/20";
     } else if (f0_rel < 24 && V0 < 3.0) {
         // Weak/General Deficit
         diagnosis = "عجز عام (General Deficit)";
-        if (seasonPeriod === 'In-Season' || seasonPeriod === 'Competition-Phase') {
+        if (seasonPeriod === 'in_season' || seasonPeriod === 'competition_phase') {
             advice = `يظهر اللاعب عجزاً عاماً متزامناً في القوة والسرعة. نظراً للتواجد داخل الموسم، يجب التركيز على صيانة البنية البدنية والوقاية من الإصابات مع تخفيف أحجام وثبات القفز لتجنب التحميل الزائد للمفاصل.`;
         } else {
-            advice = `يعاني اللاعب من نقص عام في القوة العضلية والسرعة الحركية على حد سواء. فترة الإعداد الحالية (${seasonPeriod}) تتطلب البدء الفوري ببناء قاعدة القوة العامة والكتلة العضلية الداعمة للمفاصل ثم تدرج القوة الانفجارية لاحقاً.`;
+            advice = `يعاني اللاعب من نقص عام في القوة العضلية والسرعة الحركية على حد سواء. فترة الإعداد الحالية تتطلب البدء الفوري ببناء قاعدة القوة العامة والكتلة العضلية الداعمة للمفاصل ثم تدرج القوة الانفجارية لاحقاً.`;
         }
         color = "text-red-400 border-red-500 bg-red-900/20";
     } else {
         // Balanced
         diagnosis = "ملف متوازن (Well-Balanced Profile)";
-        advice = `يمتلك اللاعب توازناً بيوميكانيكياً رائعاً ومثالياً بين القوة والسرعة. يُنصح بالاستمرار في التدريبات المختلطة المتنوعة للحفاظ على زوايا المنحنى وتطوير القدرة القصوى (Pmax).`;
+        advice = `يمتلك اللاعب توازناً بيوميكانيكياً رائعاً ومثالياً بين القوة والسرعة. يُنصح بالاستمرار في التدريبات المختلطة المتنوع للحفاظ على زوايا المنحنى وتطوير القدرة القصوى (Pmax).`;
         color = "text-emerald-400 border-emerald-500 bg-emerald-900/20";
     }
 
-    if (trainingAge === 'Beginner (<1 year)') {
+    if (trainingAge === 'beginner') {
         advice += " (تنبيه ميكانيكي حركي: نظراً لكون العمر التدريبي للاعب مبتدئ/ناشئ، تجب الأولوية التامة لسلامة الحركة وإتقان تكنيك الأداء والنزول قبل زيادة أي أحمال خارجية.)";
-    } else if (trainingAge === 'Advanced (>3 years)') {
+    } else if (trainingAge === 'advanced') {
         advice += " (تنويه: بما أن العمر التدريبي للاعب متقدم، يمكن دمج تدريبات بلايومترك عالية الشدة وتدريبات تباين متطورة لتحقيق الاستفادة الميكانيكية القصوى.)";
     }
 
@@ -1557,6 +1557,31 @@ export default function FVPCalculator({ activePlayer }) {
                               strokeWidth="3.5" 
                               style={{ filter: 'drop-shadow(0px 0px 4px rgba(234, 88, 12, 0.4))' }}
                             />
+
+                            {/* Textual deficit status overlay on the SVG plot */}
+                            <g>
+                              <rect 
+                                x="4%" 
+                                y="4%" 
+                                width="42%" 
+                                height="16%" 
+                                rx="6" 
+                                fill="rgba(10, 18, 36, 0.85)" 
+                                stroke="#06b6d4" 
+                                strokeWidth="1.5" 
+                                style={{ filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.5))' }}
+                              />
+                              <text 
+                                x="25%" 
+                                y="13.5%" 
+                                fill="#00f5d4" 
+                                fontSize="9" 
+                                fontWeight="900" 
+                                textAnchor="middle"
+                              >
+                                حالة اللاعب: {fvpResult.diagnosis}
+                              </text>
+                            </g>
 
                             {/* Plotted load points */}
                             {fvpResult.points.map((pt, i) => {

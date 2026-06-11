@@ -1,11 +1,210 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, TrendingUp, Clock, Zap, ArrowUpCircle, AlertCircle, BookOpen, X, ShieldAlert, Award, User, Scale, Calendar, Trophy, FileText, ChevronLeft, Target } from 'lucide-react';
+import { Download, TrendingUp, Clock, Zap, ArrowUpCircle, AlertCircle, BookOpen, X, ShieldAlert, Award, User, Scale, Calendar, Trophy, FileText, ChevronLeft, Target, Plus, Trash2, Edit3 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { supabase } from './supabaseClient';
 
-export default function PlayerProfile({ activePlayer, playerHistory }) {
+export default function PlayerProfile({ activePlayer, playerHistory, onHistoryChange }) {
   const [activeTab, setActiveTab] = useState('overview'); // overview, biomechanics, critique, history
   const [showBenchmarks, setShowBenchmarks] = useState(false);
+
+  // Manual entry modal states
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [isEditingMeasurement, setIsEditingMeasurement] = useState(false);
+  const [editingJumpId, setEditingJumpId] = useState(null);
+
+  // Print language selection states
+  const [printLang, setPrintLang] = useState('ar');
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+
+  const handlePrintReport = (lang) => {
+    setPrintLang(lang);
+    setIsPrintModalOpen(false);
+    setTimeout(() => {
+      window.print();
+    }, 250);
+  };
+
+  const [manualForm, setManualForm] = useState({
+    testType: 'sj_no_arms',
+    created_at: new Date().toISOString().substring(0, 10),
+    jumpHeightCm: '',
+    flightTimeSec: '',
+    contactTimeSec: '',
+    rsiScore: '',
+    meanForceNewtons: '',
+    peakPowerWatts: ''
+  });
+
+  const handleManualFormChange = (field, value) => {
+    let updated = { ...manualForm, [field]: value };
+    const weight = parseFloat(activePlayer?.weight_kg) || 72;
+    const legLength = parseFloat(activePlayer?.leg_length_m) || 1.0;
+
+    const calcFlightTime = (heightCm) => {
+      return Math.sqrt((8 * (parseFloat(heightCm) / 100)) / 9.81);
+    };
+
+    const calcHeight = (flightSec) => {
+      return 1.22625 * Math.pow(parseFloat(flightSec), 2) * 100;
+    };
+
+    if (field === 'jumpHeightCm') {
+      const hVal = parseFloat(value);
+      if (hVal > 0) {
+        updated.flightTimeSec = calcFlightTime(hVal).toFixed(3);
+        const peakPower = 61.9 * hVal + 36.0 * weight - 1822;
+        updated.peakPowerWatts = peakPower > 0 ? peakPower.toFixed(0) : '0';
+
+        const pushDistance = legLength * 0.45;
+        const takeoffForce = weight * 9.81 * ((hVal / 100) / pushDistance + 1);
+        updated.meanForceNewtons = takeoffForce > 0 ? takeoffForce.toFixed(0) : '0';
+
+        if (updated.testType === 'rsi' && parseFloat(updated.contactTimeSec) > 0) {
+          updated.rsiScore = ((hVal / 100) / parseFloat(updated.contactTimeSec)).toFixed(2);
+        }
+      } else {
+        updated.flightTimeSec = '';
+        updated.peakPowerWatts = '';
+        updated.meanForceNewtons = '';
+        updated.rsiScore = '';
+      }
+    } else if (field === 'flightTimeSec') {
+      const ftVal = parseFloat(value);
+      if (ftVal > 0) {
+        const height = calcHeight(ftVal);
+        updated.jumpHeightCm = height.toFixed(1);
+
+        const peakPower = 61.9 * height + 36.0 * weight - 1822;
+        updated.peakPowerWatts = peakPower > 0 ? peakPower.toFixed(0) : '0';
+
+        const pushDistance = legLength * 0.45;
+        const takeoffForce = weight * 9.81 * ((height / 100) / pushDistance + 1);
+        updated.meanForceNewtons = takeoffForce > 0 ? takeoffForce.toFixed(0) : '0';
+
+        if (updated.testType === 'rsi' && parseFloat(updated.contactTimeSec) > 0) {
+          updated.rsiScore = ((height / 100) / parseFloat(updated.contactTimeSec)).toFixed(2);
+        }
+      } else {
+        updated.jumpHeightCm = '';
+        updated.peakPowerWatts = '';
+        updated.meanForceNewtons = '';
+        updated.rsiScore = '';
+      }
+    } else if (field === 'contactTimeSec') {
+      const ctVal = parseFloat(value);
+      const hVal = parseFloat(updated.jumpHeightCm);
+      if (ctVal > 0 && hVal > 0) {
+        updated.rsiScore = ((hVal / 100) / ctVal).toFixed(2);
+      } else {
+        updated.rsiScore = '';
+      }
+    } else if (field === 'testType') {
+      if (value !== 'rsi') {
+        updated.contactTimeSec = '';
+        updated.rsiScore = '';
+      }
+    }
+
+    setManualForm(updated);
+  };
+
+  const handleOpenManualEntryModal = (jump = null) => {
+    if (jump) {
+      setIsEditingMeasurement(true);
+      setEditingJumpId(jump.id);
+      setManualForm({
+        testType: jump.test_type,
+        created_at: new Date(jump.created_at).toISOString().substring(0, 10),
+        jumpHeightCm: jump.jump_height_cm,
+        flightTimeSec: jump.flight_time_sec,
+        contactTimeSec: jump.contact_time_sec || '',
+        rsiScore: jump.rsi_score || '',
+        meanForceNewtons: jump.mean_force_newtons || '',
+        peakPowerWatts: jump.peak_power_watts || ''
+      });
+    } else {
+      setIsEditingMeasurement(false);
+      setEditingJumpId(null);
+      setManualForm({
+        testType: 'sj_no_arms',
+        created_at: new Date().toISOString().substring(0, 10),
+        jumpHeightCm: '',
+        flightTimeSec: '',
+        contactTimeSec: '',
+        rsiScore: '',
+        meanForceNewtons: '',
+        peakPowerWatts: ''
+      });
+    }
+    setIsManualModalOpen(true);
+  };
+
+  const handleSaveManualEntry = async (e) => {
+    e.preventDefault();
+    if (!activePlayer) return;
+
+    const record = {
+      player_id: activePlayer.id,
+      test_type: manualForm.testType,
+      created_at: new Date(manualForm.created_at).toISOString(),
+      jump_height_cm: parseFloat(manualForm.jumpHeightCm) || 0,
+      flight_time_sec: parseFloat(manualForm.flightTimeSec) || 0,
+      contact_time_sec: manualForm.testType === 'rsi' ? parseFloat(manualForm.contactTimeSec) || null : null,
+      rsi_score: manualForm.testType === 'rsi' ? parseFloat(manualForm.rsiScore) || null : null,
+      peak_power_watts: parseFloat(manualForm.peakPowerWatts) || 0,
+      mean_force_newtons: parseFloat(manualForm.meanForceNewtons) || 0,
+      takeoff_velocity_ms: Math.sqrt(2 * 9.81 * (parseFloat(manualForm.jumpHeightCm) / 100)) || 0
+    };
+
+    if (isEditingMeasurement && editingJumpId) {
+      const { data, error } = await supabase
+        .from('lab_jump_measurements')
+        .update(record)
+        .eq('id', editingJumpId)
+        .select();
+
+      if (!error && data) {
+        alert("✅ تم تحديث القياس بنجاح!");
+        const updatedHistory = playerHistory.map(j => j.id === editingJumpId ? data[0] : j);
+        if (onHistoryChange) onHistoryChange(updatedHistory);
+        setIsManualModalOpen(false);
+      } else {
+        alert("خطأ في تحديث القياس: " + error.message);
+      }
+    } else {
+      const { data, error } = await supabase
+        .from('lab_jump_measurements')
+        .insert([record])
+        .select();
+
+      if (!error && data) {
+        alert("✅ تم إضافة القياس بنجاح!");
+        const updatedHistory = [...playerHistory, data[0]];
+        if (onHistoryChange) onHistoryChange(updatedHistory);
+        setIsManualModalOpen(false);
+      } else {
+        alert("خطأ في إضافة القياس: " + error.message);
+      }
+    }
+  };
+
+  const handleDeleteJump = async (id) => {
+    if (!window.confirm("هل أنت متأكد من رغبتك في حذف هذا القياس نهائياً؟")) return;
+
+    const { error } = await supabase
+      .from('lab_jump_measurements')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      alert("✅ تم حذف القياس بنجاح!");
+      const updatedHistory = playerHistory.filter(j => j.id !== id);
+      if (onHistoryChange) onHistoryChange(updatedHistory);
+    } else {
+      alert("خطأ في حذف القياس: " + error.message);
+    }
+  };
 
   if (!activePlayer) return null;
 
@@ -126,6 +325,126 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
   const latestRsiVal = latestRsiJump ? parseFloat(latestRsiJump.rsi_score) : 0;
   const evalRsi = evaluateMetric('rsi', latestRsiVal || maxRsi);
 
+  // Biomechanical unified diagnostics variables
+  const getLatestTestHeight = (type) => {
+    const list = playerHistory.filter(j => j.test_type === type);
+    return list.length > 0 ? parseFloat(list[list.length - 1].jump_height_cm) : 0;
+  };
+
+  const getLatestTestRsi = () => {
+    const list = playerHistory.filter(j => j.test_type === 'rsi');
+    return list.length > 0 ? parseFloat(list[list.length - 1].rsi_score) : 0;
+  };
+
+  const sjNoArms = getLatestTestHeight('sj_no_arms');
+  const cmjNoArms = getLatestTestHeight('cmj_no_arms');
+  const sjArms = getLatestTestHeight('sj_arms');
+  const cmjArms = getLatestTestHeight('cmj_arms');
+  const approachJump = getLatestTestHeight('approach');
+  const latestRsi = getLatestTestRsi() || latestRsiVal || maxRsi;
+
+  const eur = sjNoArms > 0 ? cmjNoArms / sjNoArms : 0;
+  const armSwing = cmjNoArms > 0 ? ((cmjArms - cmjNoArms) / cmjNoArms) * 100 : 0;
+  const velocityConversion = cmjArms > 0 ? ((approachJump - cmjArms) / cmjArms) * 100 : 0;
+
+  const generateUnifiedDiagnostic = () => {
+    if (!sjNoArms && !cmjNoArms && !sjArms && !cmjArms && !approachJump) {
+      return "يرجى تسجيل نتائج الاختبارات الخمسة المحددة (Squat Jump و CMJ مع وبدون يدين و Approach Jump) للحصول على تقرير تشخيصي متكامل.";
+    }
+
+    let report = "";
+    
+    // Tendons & Ankle stiffness
+    if (eur > 0 && eur < 1.05) {
+      report += "🔴 يعاني اللاعب من عجز واضح في مطاطية الأوتار واستغلال الدورة المطاطية الانقباضية (Tendon Elastic Deficit)؛ حيث أن ارتفاع قفزته مع الهبوط المتتابع لا يزيد عن قفزة البدء من الثبات. يُنصح بالتركيز الفوري على تدريبات البلايومترك السريع (Fast SSC) مثل الحجل السريع وقفز الحواجز المنخفضة لبناء طاقة ارتداد الكاحل.\n\n";
+    } else if (eur > 1.15) {
+      report += "🟢 يمتلك اللاعب قدرة مطاطية ممتازة في الأوتار، ولكنه يعاني من نقص في القوة العضلية الانقباضية الصرفة (Concentric Force Deficit)؛ قفزات الثبات لديه ضعيفة مقارنة بالقفز الارتدادي. يُنصح بشدة بإدخال تدريبات القوة القصوى للأرجل بوزن ثقيل (>80% 1RM) مثل القرفصاء الخلفي والرفعة المميتة لإنشاء قاعدة قوة ثابتة.\n\n";
+    } else if (eur >= 1.05 && eur <= 1.15) {
+      report += "✨ يُظهر اللاعب توازناً ممتازاً في الكفاءة المطاطية (EUR)؛ الأوتار تعمل بانسجام تام مع ألياف العضلات الانقباضية لاسترداد وتخزين الطاقة.\n\n";
+    }
+
+    // Arm coordination
+    if (cmjNoArms > 0 && cmjArms > 0) {
+      if (armSwing < 10) {
+        report += "⚠️ يُسجل اللاعب مساهمة ضعيفة لحركة الذراعين (<10%)؛ هناك غياب واضح للتنسيق الحركي بين الأطراف العلوية والسفلية (Poor Arm-Leg Coordination) أو ضعف في عضلات الكتف والظهر. يجب التركيز على تكنيك أرجحة الذراعين وتطوير سرعة انقباض الجزء العلوي من الجسم.\n\n";
+      } else if (armSwing > 15) {
+        report += "🔵 يستعين اللاعب بأرجحة الذراعين بنسبة عالية (>15%) للتعويض عن ضعف نسبي في عضلات الأرجل؛ يعتمد بشكل أساسي على الدفع الحركي للجزء العلوي. يُنصح بتدريبات تقوية الجزء السفلي المنفصلة.\n\n";
+      } else {
+        report += "✨ أرجحة الذراعين ومساهمتها الحركية تقع في النسبة الرياضية المثالية (10% - 15%)، مما يعكس توافقاً عصبياً عضلياً رائعاً.\n\n";
+      }
+    }
+
+    // Speed / Velocity conversion
+    if (cmjArms > 0 && approachJump > 0) {
+      if (velocityConversion < 10) {
+        report += "🔴 يُعاني اللاعب من عجز في التحويل الأفقي للعمودي (Velocity/Conversion Deficit)؛ لا يمكنه الاستفادة من سرعة الجري والاقتراب لزيادة ارتفاع قفزته. يتطلب ذلك تمارين تحسين الخطوة قبل الأخيرة (Penultimate Step) والارتقاء الأفقي السريع، وتدريبات الحجل والوثب الأفقي الديناميكي.\n\n";
+      } else {
+        report += "✨ تحويل السرعة الأفقية إلى عمودية في الاقتراب يقع في النطاق المثالي الممتاز (+10%)، مما يعني استغلالاً ميكانيكياً ممتازاً لقوة الاندفاع الحركي.\n\n";
+      }
+    }
+
+    // Drop Jump RSI status
+    if (latestRsi > 0) {
+      if (latestRsi < 1.5) {
+        report += "⚠️ مؤشر القوة الارتدادية (RSI) منخفض؛ يعكس ضعفاً في صلابة المفاصل (Ankle Stiffness) وزمن تلامس طويل مع الأرض. يحتاج اللاعب لتدريبات قفز بلايومترك هبوطي (Drop Jumps) بارتفاعات منخفضة (20-30 سم) لتقصير زمن التلامس.\n\n";
+      } else if (latestRsi > 2.2) {
+        report += "👑 مؤشر القوة التفاعلية (RSI) ممتاز؛ يعكس مستويات نخبة في صلابة الأوتار وقدرة انفجارية عالية وسرعة استجابة عصبية عضلية مذهلة.\n\n";
+      }
+    }
+
+    return report;
+  };
+
+  const generateUnifiedDiagnosticEN = () => {
+    if (!sjNoArms && !cmjNoArms && !sjArms && !cmjArms && !approachJump) {
+      return "Please log all 5 vertical jump tests (Squat Jump and CMJ with & without arms, and Approach Jump) to generate an integrated biomechanical report.";
+    }
+
+    let report = "";
+    
+    // Tendons & Ankle stiffness
+    if (eur > 0 && eur < 1.05) {
+      report += "🔴 The athlete exhibits a Tendon Elastic Deficit; CMJ height does not exceed SJ height. Focus on fast SSC plyometrics (e.g., depth jumps, fast pogo jumps) to increase tendon stiffness and elastic recoil.\n\n";
+    } else if (eur > 1.15) {
+      report += "🟢 The athlete possesses excellent tendon elasticity but has a Concentric Force Deficit. SJ is weak compared to rebound jumps. Focus on high-intensity lower-body strength training (>80% 1RM squats, deadlifts) to build force output.\n\n";
+    } else if (eur >= 1.05 && eur <= 1.15) {
+      report += "✨ The athlete shows an optimal Elastic Utilization Ratio (EUR). The tendon system works in perfect harmony with concentric muscle fibers to store and release energy.\n\n";
+    }
+
+    // Arm coordination
+    if (cmjNoArms > 0 && cmjArms > 0) {
+      if (armSwing < 10) {
+        report += "⚠️ Weak arm swing contribution (<10%) indicating poor upper-lower body motor coordination. Focus on arm swing mechanics, timing, and shoulder power.\n\n";
+      } else if (armSwing > 15) {
+        report += "🔵 High arm swing contribution (>15%), suggesting the athlete relies heavily on upper body momentum to compensate for relative lower body strength deficits. Focus on lower body strength development.\n\n";
+      } else {
+        report += "✨ Arm swing contribution is in the optimal range (10% - 15%), showing great neuromuscular coordination.\n\n";
+      }
+    }
+
+    // Speed / Velocity conversion
+    if (cmjArms > 0 && approachJump > 0) {
+      if (velocityConversion < 10) {
+        report += "🔴 Velocity Conversion Deficit (<10%). The athlete fails to transfer horizontal approach speed into vertical jump height. Emphasize penultimate step mechanics, horizontal bounds, and rapid takeoff drills.\n\n";
+      } else {
+        report += "✨ Velocity conversion is excellent (+10%), representing efficient transfer of horizontal kinetic momentum to vertical lift.\n\n";
+      }
+    }
+
+    // Drop Jump RSI status
+    if (latestRsi > 0) {
+      if (latestRsi < 1.5) {
+        report += "⚠️ Reactive Strength Index (RSI) is low, indicating long ground contact times and poor ankle stiffness. Implement depth jumps from low box heights (20-30 cm) focusing on short contact times.\n\n";
+      } else if (latestRsi > 2.2) {
+        report += "👑 Reactive Strength Index (RSI) is elite, showing high ankle stiffness, explosive tendon response, and excellent reactive capacity.\n\n";
+      }
+    }
+
+    return report;
+  };
+
+  const unifiedDiagnosticText = generateUnifiedDiagnostic();
+
   // Calculate overall rating (Biomechanical Score)
   const overallRating = maxRsi > 0 
     ? Math.round((evalHeight.progress + evalFlight.progress + evalPower.progress + evalRsi.progress) / 4)
@@ -241,7 +560,7 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
             <button onClick={() => setShowBenchmarks(true)} className="px-4 py-3 bg-slate-900/80 hover:bg-slate-800 text-gray-300 border border-slate-800 rounded-xl font-bold flex items-center justify-center gap-2 transition-all text-xs cursor-pointer shadow-md">
               <BookOpen size={14} className="text-cyan-400" /> الجداول المعيارية
             </button>
-            <button onClick={() => window.print()} className="px-5 py-3 btn-orange-gradient rounded-xl font-black flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] text-xs cursor-pointer shadow-lg">
+             <button onClick={() => setIsPrintModalOpen(true)} className="px-5 py-3 btn-orange-gradient rounded-xl font-black flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] text-xs cursor-pointer shadow-lg">
               <Download size={14} /> تصدير تقرير PDF
             </button>
           </div>
@@ -649,8 +968,80 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
             {activeTab === 'critique' && (
               <motion.div key="critique" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="space-y-6">
                 
-                <div className="glass-panel p-6 shadow-lg text-right">
-                  <h4 className="text-lg font-black text-white mb-4 border-b border-gray-800/80 pb-2.5 flex items-center gap-2">
+                {/* 1. Integrated Diagnostics Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {/* EUR Card */}
+                  <div className="glass-card p-5 border border-cyan-500/20 shadow-inner flex flex-col justify-between text-right">
+                    <div>
+                      <span className="text-[10px] text-cyan-400 font-bold block mb-1">مؤشر الاستغلال المطاطي للأوتار (Elastic Utilization Ratio)</span>
+                      <h4 className="text-2xl font-black text-white font-mono">{eur > 0 ? eur.toFixed(2) : '—'}</h4>
+                      <p className="text-[9px] text-gray-400 mt-1 leading-normal">النسبة بين CMJ (بدون يدين) و Squat Jump. المعدل المرجعي العلمي: 1.05 - 1.15.</p>
+                    </div>
+                    <div className="mt-4 pt-2.5 border-t border-gray-850 flex justify-between items-center text-[10px]">
+                      <span className="text-gray-500">التقييم الميكانيكي:</span>
+                      <span className={`font-black ${
+                        eur === 0 ? 'text-gray-500' :
+                        eur < 1.05 ? 'text-red-400' :
+                        eur > 1.15 ? 'text-orange-400' : 'text-emerald-400'
+                      }`}>
+                        {eur === 0 ? 'غير متوفر' :
+                         eur < 1.05 ? 'عجز أوتار (Tendon Deficit) ⚠️' :
+                         eur > 1.15 ? 'عجز قوة عضلية (Force Deficit) 🏋️‍♂️' : 'كفاءة ممتازة (Optimal) ✨'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Arm Swing Card */}
+                  <div className="glass-card p-5 border border-cyan-500/20 shadow-inner flex flex-col justify-between text-right">
+                    <div>
+                      <span className="text-[10px] text-cyan-400 font-bold block mb-1">مساهمة الذراعين الحركية (Arm Swing Contribution)</span>
+                      <h4 className="text-2xl font-black text-white font-mono">{armSwing > 0 ? `${armSwing.toFixed(1)}%` : '—'}</h4>
+                      <p className="text-[9px] text-gray-400 mt-1 leading-normal">نسبة الزيادة الميكانيكية بفضل أرجحة اليدين. المعدل المرجعي: 10% - 15%.</p>
+                    </div>
+                    <div className="mt-4 pt-2.5 border-t border-gray-850 flex justify-between items-center text-[10px]">
+                      <span className="text-gray-500">التقييم الحركي:</span>
+                      <span className={`font-black ${
+                        armSwing === 0 ? 'text-gray-500' :
+                        armSwing < 10 ? 'text-red-400' :
+                        armSwing > 15 ? 'text-orange-400' : 'text-emerald-400'
+                      }`}>
+                        {armSwing === 0 ? 'غير متوفر' :
+                         armSwing < 10 ? 'تنسيق ذراعين ضعيف ⚠️' :
+                         armSwing > 15 ? 'اعتماد مفرط على اليدين 🔄' : 'تنسيق مثالي (Optimal) ✨'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Speed Conversion Card */}
+                  <div className="glass-card p-5 border border-cyan-500/20 shadow-inner flex flex-col justify-between text-right">
+                    <div>
+                      <span className="text-[10px] text-cyan-400 font-bold block mb-1">مؤشر تحويل السرعة الأفقية (Velocity Conversion)</span>
+                      <h4 className="text-2xl font-black text-white font-mono">{velocityConversion > 0 ? `${velocityConversion.toFixed(1)}%` : '—'}</h4>
+                      <p className="text-[9px] text-gray-400 mt-1 leading-normal">الزيادة الناتجة عن الاقتراب الحركي (Approach vs CMJ). النطاق المستهدف: +10% فما فوق.</p>
+                    </div>
+                    <div className="mt-4 pt-2.5 border-t border-gray-850 flex justify-between items-center text-[10px]">
+                      <span className="text-gray-500">تقييم التحويل:</span>
+                      <span className={`font-black ${
+                        velocityConversion === 0 ? 'text-gray-500' :
+                        velocityConversion < 10 ? 'text-red-400' : 'text-emerald-400'
+                      }`}>
+                        {velocityConversion === 0 ? 'غير متوفر' :
+                         velocityConversion < 10 ? 'عجز سرعة/اقتراب ⚠️' : 'تحويل ممتاز للسرعة ✨'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Comprehensive Biomechanical Report Card */}
+                <div className="glass-panel p-6 shadow-xl text-right">
+                  <h4 className="text-sm font-black text-white mb-4 border-b border-gray-800/80 pb-2.5 flex items-center gap-2">
+                    📝 التقرير التشخيصي المتكامل للأداء والبدء الحركي
+                  </h4>
+                  <div className="bg-black/20 border border-gray-850 p-5 rounded-2xl mb-6 text-xs text-gray-300 leading-relaxed whitespace-pre-line">
+                    {unifiedDiagnosticText}
+                  </div>
+
+                  <h4 className="text-sm font-black text-white mb-4 border-b border-gray-800/80 pb-2.5 flex items-center gap-2">
                     🔬 التقييم العضلي العصبي ونقاط التطوير الموجهة
                   </h4>
                   
@@ -697,7 +1088,15 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
             {/* TAB 4: COMPLETE HISTORY LOG */}
             {activeTab === 'history' && (
               <motion.div key="history" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="glass-panel p-5 shadow-lg overflow-hidden">
-                <h4 className="text-base font-black text-white mb-4 border-b border-gray-800/80 pb-2.5">سجل قياسات اللاعب الكاملة</h4>
+                <div className="flex justify-between items-center mb-4 border-b border-gray-800/80 pb-2.5">
+                  <h4 className="text-base font-black text-white">سجل قياسات اللاعب الكاملة</h4>
+                  <button 
+                    onClick={() => handleOpenManualEntryModal()} 
+                    className="px-3 py-1.5 bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 hover:bg-cyan-600/35 transition-all cursor-pointer shadow-md"
+                  >
+                    <Plus size={14} /> تسجيل رقم يدوي
+                  </button>
+                </div>
                 
                 <div className="overflow-x-auto">
                   <table className="w-full text-right text-xs">
@@ -710,20 +1109,39 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
                         <th className="pb-3 text-center">زمن التلامس (s)</th>
                         <th className="pb-3 text-center">القدرة القصوى (W)</th>
                         <th className="pb-3 text-center">مؤشر RSI</th>
+                        <th className="pb-3 text-center">التحكم</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {playerHistory.slice().reverse().map((jump) => (
-                        <tr key={jump.id} className="border-b border-gray-850 hover:bg-black/10 transition-colors">
-                          <td className="py-3.5 font-mono text-gray-400">{new Date(jump.created_at).toLocaleDateString('ar-EG')}</td>
-                          <td className="py-3.5 text-center font-bold text-cyan-400">{jump.test_type === 'rsi' ? 'Drop Jump (RSI)' : 'Standard CMJ'}</td>
-                          <td className="py-3.5 text-center font-mono font-black text-white">{parseFloat(jump.jump_height_cm).toFixed(1)}</td>
-                          <td className="py-3.5 text-center font-mono text-gray-300">{parseFloat(jump.flight_time_sec).toFixed(3)}</td>
-                          <td className="py-3.5 text-center font-mono text-gray-300">{jump.contact_time_sec ? parseFloat(jump.contact_time_sec).toFixed(3) : '—'}</td>
-                          <td className="py-3.5 text-center font-mono text-gray-300">{jump.peak_power_watts && parseFloat(jump.peak_power_watts) > 0 ? parseFloat(jump.peak_power_watts).toFixed(0) : '—'}</td>
-                          <td className="py-3.5 text-center font-mono font-black text-teal-400">{jump.rsi_score ? parseFloat(jump.rsi_score).toFixed(2) : '—'}</td>
-                        </tr>
-                      ))}
+                      {playerHistory.slice().reverse().map((jump) => {
+                        const testNamesArabic = { 
+                          sj_no_arms: 'Squat Jump (بدون يدين)', 
+                          cmj_no_arms: 'CMJ (بدون يدين)', 
+                          sj_arms: 'Squat Jump (باليدين)', 
+                          cmj_arms: 'CMJ (باليدين)', 
+                          approach: 'الاقتراب (Approach)', 
+                          rsi: 'الوثب الساقط (RSI)', 
+                          standard: 'CMJ معتاد' 
+                        };
+                        const testName = testNamesArabic[jump.test_type] || jump.test_type || 'وثبة عامة';
+                        return (
+                          <tr key={jump.id} className="border-b border-gray-855 hover:bg-black/10 transition-colors">
+                            <td className="py-3.5 font-mono text-gray-400">{new Date(jump.created_at).toLocaleDateString('ar-EG')}</td>
+                            <td className="py-3.5 text-center font-bold text-cyan-400">{testName}</td>
+                            <td className="py-3.5 text-center font-mono font-black text-white">{parseFloat(jump.jump_height_cm).toFixed(1)}</td>
+                            <td className="py-3.5 text-center font-mono text-gray-300">{parseFloat(jump.flight_time_sec).toFixed(3)}</td>
+                            <td className="py-3.5 text-center font-mono text-gray-300">{jump.contact_time_sec ? parseFloat(jump.contact_time_sec).toFixed(3) : '—'}</td>
+                            <td className="py-3.5 text-center font-mono text-gray-300">{jump.peak_power_watts && parseFloat(jump.peak_power_watts) > 0 ? parseFloat(jump.peak_power_watts).toFixed(0) : '—'}</td>
+                            <td className="py-3.5 text-center font-mono font-black text-teal-400">{jump.rsi_score ? parseFloat(jump.rsi_score).toFixed(2) : '—'}</td>
+                            <td className="py-3.5 text-center">
+                              <div className="flex justify-center gap-2">
+                                <button onClick={() => handleOpenManualEntryModal(jump)} className="p-1 hover:text-cyan-400 text-gray-500 transition-all cursor-pointer" title="تعديل"><Edit3 size={13} /></button>
+                                <button onClick={() => handleDeleteJump(jump.id)} className="p-1 hover:text-red-400 text-gray-500 transition-all cursor-pointer" title="حذف"><Trash2 size={13} /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -819,51 +1237,298 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
           )}
         </AnimatePresence>
 
+        {/* Manual Entry Modal */}
+        <AnimatePresence>
+          {isManualModalOpen && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md text-right" style={{ direction: 'rtl' }}>
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }} 
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-[#0b1329] border border-cyan-950/40 rounded-3xl p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+              >
+                {/* Close Button */}
+                <button 
+                  type="button" 
+                  onClick={() => setIsManualModalOpen(false)} 
+                  className="absolute top-4 left-4 text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-gray-800 cursor-pointer animate-hover"
+                >
+                  <X size={16} />
+                </button>
+
+                <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 mb-4 pb-2 border-b border-gray-850 flex items-center gap-2">
+                  📝 {isEditingMeasurement ? 'تعديل قياس مسجل' : 'تسجيل قياس يدوي جديد'}
+                </h3>
+
+                <form onSubmit={handleSaveManualEntry} className="space-y-4">
+                  
+                  {/* Test Type Select */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 mb-1">نوع القياس / الاختبار</label>
+                    <select
+                      value={manualForm.testType}
+                      onChange={(e) => handleManualFormChange('testType', e.target.value)}
+                      className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50"
+                      required
+                    >
+                      <option value="sj_no_arms">Squat Jump (بدون يدين)</option>
+                      <option value="cmj_no_arms">CMJ (بدون يدين)</option>
+                      <option value="sj_arms">Squat Jump (باليدين)</option>
+                      <option value="cmj_arms">CMJ (باليدين)</option>
+                      <option value="approach">الاقتراب (Approach)</option>
+                      <option value="rsi">الوثب الساقط (RSI)</option>
+                      <option value="standard">CMJ معتاد</option>
+                    </select>
+                  </div>
+
+                  {/* Date Input */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 mb-1">تاريخ القياس</label>
+                    <input
+                      type="date"
+                      value={manualForm.created_at}
+                      onChange={(e) => handleManualFormChange('created_at', e.target.value)}
+                      className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 font-mono"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Jump Height (cm) */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 mb-1">ارتفاع الوثبة (سم)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="مثال: 45.5"
+                        value={manualForm.jumpHeightCm}
+                        onChange={(e) => handleManualFormChange('jumpHeightCm', e.target.value)}
+                        className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 font-mono"
+                        required
+                      />
+                    </div>
+
+                    {/* Flight Time (seconds) */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 mb-1">زمن الطيران (ثانية)</label>
+                      <input
+                        type="number"
+                        step="0.001"
+                        placeholder="مثال: 0.610"
+                        value={manualForm.flightTimeSec}
+                        onChange={(e) => handleManualFormChange('flightTimeSec', e.target.value)}
+                        className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 font-mono"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Contact Time (only for RSI) */}
+                  {manualForm.testType === 'rsi' && (
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 mb-1">زمن التلامس مع الأرض (ثانية)</label>
+                      <input
+                        type="number"
+                        step="0.001"
+                        placeholder="مثال: 0.200"
+                        value={manualForm.contactTimeSec}
+                        onChange={(e) => handleManualFormChange('contactTimeSec', e.target.value)}
+                        className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 font-mono"
+                        required
+                      />
+                    </div>
+                  )}
+
+                  {/* Smart Calculations Output Grid */}
+                  <div className="bg-slate-950/40 border border-slate-900/60 rounded-2xl p-4 space-y-2.5">
+                    <span className="block text-[10px] text-cyan-400 font-bold mb-1">📊 الحسابات التلقائية المباشرة (Sayers & Harman Models):</span>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-[11px] leading-relaxed">
+                      <div className="flex justify-between items-center bg-black/20 p-2 rounded-lg border border-gray-850">
+                        <span className="text-gray-400">القدرة القصوى:</span>
+                        <span className="font-mono font-bold text-white">{manualForm.peakPowerWatts || '0'} W</span>
+                      </div>
+                      <div className="flex justify-between items-center bg-black/20 p-2 rounded-lg border border-gray-850">
+                        <span className="text-gray-400">متوسط القوة:</span>
+                        <span className="font-mono font-bold text-white">{manualForm.meanForceNewtons || '0'} N</span>
+                      </div>
+                      {manualForm.testType === 'rsi' && (
+                        <div className="flex justify-between items-center bg-black/20 p-2 rounded-lg border border-gray-850 col-span-2">
+                          <span className="text-teal-400 font-bold">مؤشر القوة التفاعلية (RSI):</span>
+                          <span className="font-mono font-bold text-teal-400">{manualForm.rsiScore || '0.00'}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions Buttons */}
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="submit"
+                      className="flex-1 py-2.5 btn-orange-gradient rounded-xl font-black text-xs cursor-pointer shadow-lg hover:scale-[1.01] transition-transform text-center"
+                    >
+                      حفظ القياس
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsManualModalOpen(false)}
+                      className="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-gray-300 border border-slate-800 rounded-xl font-bold text-xs cursor-pointer transition-colors"
+                    >
+                      إلغاء
+                    </button>
+                  </div>
+
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* PDF Language Selector Modal */}
+        <AnimatePresence>
+          {isPrintModalOpen && (
+            <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md text-right screen-only font-cairo" style={{ direction: 'rtl' }}>
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }} 
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-[#0b1329] border border-cyan-950/40 rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
+              >
+                {/* Close Button */}
+                <button 
+                  type="button" 
+                  onClick={() => setIsPrintModalOpen(false)} 
+                  className="absolute top-4 left-4 text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-gray-800 cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
+
+                <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 mb-4 pb-2 border-b border-gray-850 flex items-center gap-2">
+                  🖨️ لغة تصدير التقرير / Report Language
+                </h3>
+                <p className="text-xs text-gray-400 mb-6 leading-relaxed">
+                  اختر لغة طباعة التقرير الفني لملف اللاعب. سيتم تهيئة التنسيقات والاتجاهات تلقائياً بناءً على اختيارك.
+                </p>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Arabic Button */}
+                  <button
+                    type="button"
+                    onClick={() => handlePrintReport('ar')}
+                    className="p-5 bg-slate-900 hover:bg-cyan-950/20 hover:border-cyan-500/50 border border-gray-800 rounded-2xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer group"
+                  >
+                    <span className="text-2xl">🇪🇬</span>
+                    <span className="text-sm font-black text-white group-hover:text-cyan-400">التقرير بالعربية</span>
+                    <span className="text-[10px] text-gray-500">من اليمين إلى اليسار (RTL)</span>
+                  </button>
+
+                  {/* English Button */}
+                  <button
+                    type="button"
+                    onClick={() => handlePrintReport('en')}
+                    className="p-5 bg-slate-900 hover:bg-cyan-955/20 hover:border-cyan-500/50 border border-gray-800 rounded-2xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer group"
+                  >
+                    <span className="text-2xl">🇬🇧</span>
+                    <span className="text-sm font-black text-white group-hover:text-cyan-400">English Report</span>
+                    <span className="text-[10px] text-gray-500">Left to Right (LTR)</span>
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
       </div>
 
       {/* ======================================================== */}
       {/* PRINT-ONLY A4 REPORT SHEET (HIDDEN ON SCREEN)             */}
       {/* ======================================================== */}
-      <div className="hidden print-report-sheet text-right" style={{ display: 'none', direction: 'rtl' }}>
+      <div 
+        className="hidden print-report-sheet" 
+        style={{ display: 'none', direction: printLang === 'ar' ? 'rtl' : 'ltr' }}
+      >
         
         {/* Report Official Banner */}
-        <div className="print-header text-center flex justify-between items-center pb-5 mb-5 border-b-2 border-black">
-          <div className="text-right">
-            <h1 className="text-2xl font-black text-black">مختبر الأداء الرياضي والميكانيكا الحيوية 🧪</h1>
-            <p className="text-xs text-gray-700">تقرير قياسات الأداء الحركي والارتقاء المتكامل</p>
-          </div>
-          <div className="text-left text-xs font-mono text-gray-600">
-            <p>تاريخ استخراج التقرير: {new Date().toLocaleDateString('ar-EG')}</p>
-            <p>المشرف: رئيس الجهاز الفني</p>
-          </div>
+        <div className={`print-header flex justify-between items-center pb-5 mb-5 border-b-2 border-black ${printLang === 'ar' ? 'text-right' : 'text-left'}`}>
+          {printLang === 'ar' ? (
+            <>
+              <div className="text-right">
+                <h1 className="text-2xl font-black text-black">مختبر الأداء الرياضي والميكانيكا الحيوية 🧪</h1>
+                <p className="text-xs text-gray-700">تقرير قياسات الأداء الحركي والارتقاء المتكامل</p>
+              </div>
+              <div className="text-left text-xs font-mono text-gray-600">
+                <p>تاريخ استخراج التقرير: {new Date().toLocaleDateString('ar-EG')}</p>
+                <p>المشرف: رئيس الجهاز الفني</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-left">
+                <h1 className="text-2xl font-black text-black">Sports Performance & Biomechanics Lab 🧪</h1>
+                <p className="text-xs text-gray-700">Integrated Biomechanical & Vertical Jump Performance Report</p>
+              </div>
+              <div className="text-right text-xs font-mono text-gray-600">
+                <p>Report Date: {new Date().toLocaleDateString('en-US')}</p>
+                <p>Supervisor: Technical Director</p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Athlete specs */}
-        <div className="bg-gray-100 p-4 rounded-xl border border-gray-300 mb-6">
-          <h3 className="text-sm font-black text-black mb-3">بيانات اللاعب الشخصية والبدنية</h3>
+        <div className={`bg-gray-100 p-4 rounded-xl border border-gray-300 mb-6 ${printLang === 'ar' ? 'text-right' : 'text-left'}`}>
+          <h3 className="text-sm font-black text-black mb-3">
+            {printLang === 'ar' ? 'بيانات اللاعب الشخصية والبدنية' : 'Athlete Personal & Physical Metrics'}
+          </h3>
           <div className="grid grid-cols-3 gap-y-2 gap-x-4 text-xs">
-            <div><strong className="text-gray-700">الاسم الكامل:</strong> {activePlayer.full_name}</div>
-            <div><strong className="text-gray-700">الوزن:</strong> {activePlayer.weight_kg} كجم</div>
-            <div><strong className="text-gray-700">العمر:</strong> {age} سنوات</div>
-            <div><strong className="text-gray-700">النوع:</strong> {activePlayer.gender === 'female' ? 'أنثى' : 'ذكر'}</div>
-            <div><strong className="text-gray-700">طول القامة:</strong> {playerHeight} سم</div>
-            <div><strong className="text-gray-700">الوصول من الثبات:</strong> {playerStandingReach} سم</div>
+            {printLang === 'ar' ? (
+              <>
+                <div><strong className="text-gray-700">الاسم الكامل:</strong> {activePlayer.full_name}</div>
+                <div><strong className="text-gray-700">الوزن:</strong> {activePlayer.weight_kg} كجم</div>
+                <div><strong className="text-gray-700">العمر:</strong> {age} سنوات</div>
+                <div><strong className="text-gray-700">النوع:</strong> {activePlayer.gender === 'female' ? 'أنثى' : 'ذكر'}</div>
+                <div><strong className="text-gray-700">طول القامة:</strong> {playerHeight} سم</div>
+                <div><strong className="text-gray-700">الوصول من الثبات:</strong> {playerStandingReach} سم</div>
+              </>
+            ) : (
+              <>
+                <div><strong className="text-gray-700">Full Name:</strong> {activePlayer.full_name}</div>
+                <div><strong className="text-gray-700">Weight:</strong> {activePlayer.weight_kg} kg</div>
+                <div><strong className="text-gray-700">Age:</strong> {age} years</div>
+                <div><strong className="text-gray-700">Gender:</strong> {activePlayer.gender === 'female' ? 'Female' : 'Male'}</div>
+                <div><strong className="text-gray-700">Height:</strong> {playerHeight} cm</div>
+                <div><strong className="text-gray-700">Standing Reach:</strong> {playerStandingReach} cm</div>
+              </>
+            )}
           </div>
         </div>
 
         {/* Core numbers */}
-        <div className="mb-6">
-          <h3 className="text-sm font-black text-black mb-3">نتائج قياسات الاختبار الأخير</h3>
+        <div className={`mb-6 ${printLang === 'ar' ? 'text-right' : 'text-left'}`}>
+          <h3 className="text-sm font-black text-black mb-3">
+            {printLang === 'ar' ? 'نتائج قياسات الاختبار الأخير' : 'Latest Test Session Results'}
+          </h3>
           <table className="print-table text-xs">
             <thead>
-              <tr>
-                <th>ارتفاع الوثب (سم)</th>
-                <th>ارتفاع الوثب (إنش)</th>
-                <th>زمن الطيران المعلق (ثانية)</th>
-                <th>كثافة القدرة الميكانيكية (W/kg)</th>
-                <th>أقصى ارتفاع للوصول (سم)</th>
-                <th>مؤشر RSI الأقصى</th>
-              </tr>
+              {printLang === 'ar' ? (
+                <tr>
+                  <th>ارتفاع الوثب (سم)</th>
+                  <th>ارتفاع الوثب (إنش)</th>
+                  <th>زمن الطيران المعلق (ثانية)</th>
+                  <th>كثافة القدرة الميكانيكية (W/kg)</th>
+                  <th>أقصى ارتفاع للوصول (سم)</th>
+                  <th>مؤشر RSI الأقصى</th>
+                </tr>
+              ) : (
+                <tr>
+                  <th>Jump Height (cm)</th>
+                  <th>Jump Height (in)</th>
+                  <th>Flight Time (s)</th>
+                  <th>Relative Power (W/kg)</th>
+                  <th>Max Touch Reach (cm)</th>
+                  <th>Max RSI Index</th>
+                </tr>
+              )}
             </thead>
             <tbody>
               <tr>
@@ -879,53 +1544,177 @@ export default function PlayerProfile({ activePlayer, playerHistory }) {
         </div>
 
         {/* Mechanical equations */}
-        <div className="mb-6">
-          <h3 className="text-sm font-black text-black mb-3">تقديرات القدرة الانفجارية (Mechanical Power)</h3>
+        <div className={`mb-6 ${printLang === 'ar' ? 'text-right' : 'text-left'}`}>
+          <h3 className="text-sm font-black text-black mb-3">
+            {printLang === 'ar' ? 'تقديرات القدرة الانفجارية (Mechanical Power)' : 'Biomechanical Power Outputs (Sayers & Harman Models)'}
+          </h3>
           <div className="print-grid text-xs">
             <div className="border border-gray-300 p-3 rounded-lg bg-gray-50">
-              <p className="font-bold mb-1">Sayers Peak Power (القدرة القصوى)</p>
-              <p className="text-lg font-mono font-black text-black">{sayersPeak.toFixed(0)} <span className="text-xs font-normal">وات</span></p>
-            </div>
-            <div className="border border-gray-300 p-3 rounded-lg bg-gray-50">
-              <p className="font-bold mb-1">Harman Peak Power (القدرة القصوى)</p>
-              <p className="text-lg font-mono font-black text-black">{harmanPeak.toFixed(0)} <span className="text-xs font-normal">وات</span></p>
-            </div>
-          </div>
-        </div>
-
-        {/* Critique and Recommendations */}
-        <div className="mb-8">
-          <h3 className="text-sm font-black text-black mb-3">التشخيص والتوصيات الميكانيكية الحيوية</h3>
-          <div className="print-grid text-xs">
-            <div className="border border-gray-300 p-3 rounded-lg">
-              <p className="font-black text-emerald-800 mb-1">🌟 نقاط التميز الحركي:</p>
-              <p className="leading-relaxed text-gray-700">
-                {((relativePower || (harmanPeak / mass)) >= 50) 
-                  ? "يمتلك اللاعب طاقة انفجارية قوية ومعدلات قدرة ممتازة بالنسبة لوزنه الحركي الحالي. ويدعم ذلك سرعة ارتداده الرأسي وقدرته على الارتقاء السريع." 
-                  : "يتميز اللاعب باستقرار حركي جيد جداً وثبات واضح أثناء مراحل النزول القرفصائي والتحضير للارتقاء."}
+              <p className="font-bold mb-1">
+                {printLang === 'ar' ? 'Sayers Peak Power (القدرة القصوى)' : 'Sayers Peak Power'}
+              </p>
+              <p className="text-lg font-mono font-black text-black">
+                {sayersPeak.toFixed(0)} <span className="text-xs font-normal">{printLang === 'ar' ? 'وات' : 'Watts'}</span>
               </p>
             </div>
-            <div className="border border-gray-300 p-3 rounded-lg">
-              <p className="font-black text-amber-800 mb-1">⚡ نقاط التطوير البدني المستهدفة:</p>
-              <p className="leading-relaxed text-gray-700">
-                {((relativePower || (harmanPeak / mass)) < 50) 
-                  ? "يوصى بتدريب القوة القصوى للأطراف السفلية (تمارين القرفصاء والرفعة المميتة) لزيادة قدرته العامة." 
-                  : "يوصى ببرنامج بلايومترك مكثف لزيادة مرونة الكاحل والأوتار، وتقليل زمن احتكاك القدم بالأرض."}
+            <div className="border border-gray-300 p-3 rounded-lg bg-gray-50">
+              <p className="font-bold mb-1">
+                {printLang === 'ar' ? 'Harman Peak Power (القدرة القصوى)' : 'Harman Peak Power'}
+              </p>
+              <p className="text-lg font-mono font-black text-black">
+                {harmanPeak.toFixed(0)} <span className="text-xs font-normal">{printLang === 'ar' ? 'وات' : 'Watts'}</span>
               </p>
             </div>
           </div>
         </div>
 
-        {/* Validation signatures */}
+        {/* Diagnostics block */}
+        <div className={`mb-6 ${printLang === 'ar' ? 'text-right' : 'text-left'}`}>
+          <h3 className="text-sm font-black text-black mb-3">
+            {printLang === 'ar' ? 'التشخيص والتوصيات الميكانيكية الحيوية المتكاملة' : 'Integrated Biomechanical Diagnostics & Critique'}
+          </h3>
+          
+          {/* Diagnostic Metrics Row */}
+          <table className="print-table text-[10px] mb-4">
+            <thead>
+              {printLang === 'ar' ? (
+                <tr>
+                  <th>مؤشر الاستغلال المطاطي للأوتار (EUR)</th>
+                  <th>مساهمة الذراعين الحركية (Arm Swing)</th>
+                  <th>مؤشر تحويل السرعة الأفقية (Velocity Conversion)</th>
+                </tr>
+              ) : (
+                <tr>
+                  <th>Elastic Utilization Ratio (EUR)</th>
+                  <th>Arm Swing Contribution</th>
+                  <th>Velocity Conversion (Approach vs CMJ)</th>
+                </tr>
+              )}
+            </thead>
+            <tbody>
+              <tr>
+                <td className="font-mono font-bold text-sm">
+                  {eur > 0 ? eur.toFixed(2) : '—'}
+                  <div className="text-[9px] font-bold text-gray-700">
+                    {eur === 0 ? (printLang === 'ar' ? 'غير متوفر' : 'N/A') :
+                     eur < 1.05 ? (printLang === 'ar' ? 'عجز أوتار ⚠️' : 'Tendon Deficit ⚠️') :
+                     eur > 1.15 ? (printLang === 'ar' ? 'عجز قوة عضلية 🏋️‍♂️' : 'Force Deficit 🏋️‍♂️') : (printLang === 'ar' ? 'كفاءة ممتازة ✨' : 'Optimal ✨')}
+                  </div>
+                </td>
+                <td className="font-mono font-bold text-sm">
+                  {armSwing > 0 ? `${armSwing.toFixed(1)}%` : '—'}
+                  <div className="text-[9px] font-bold text-gray-700">
+                    {armSwing === 0 ? (printLang === 'ar' ? 'غير متوفر' : 'N/A') :
+                     armSwing < 10 ? (printLang === 'ar' ? 'تنسيق ذراعين ضعيف ⚠️' : 'Weak Arm Swing ⚠️') :
+                     armSwing > 15 ? (printLang === 'ar' ? 'اعتماد مفرط على اليدين 🔄' : 'High Arm Swing 🔄') : (printLang === 'ar' ? 'تنسيق مثالي ✨' : 'Optimal ✨')}
+                  </div>
+                </td>
+                <td className="font-mono font-bold text-sm">
+                  {velocityConversion > 0 ? `${velocityConversion.toFixed(1)}%` : '—'}
+                  <div className="text-[9px] font-bold text-gray-700">
+                    {velocityConversion === 0 ? (printLang === 'ar' ? 'غير متوفر' : 'N/A') :
+                     velocityConversion < 10 ? (printLang === 'ar' ? 'عجز سرعة/اقتراب ⚠️' : 'Velocity Deficit ⚠️') : (printLang === 'ar' ? 'تحويل ممتاز ✨' : 'Excellent ✨')}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Diagnostic Narrative Text */}
+          <div className="border border-gray-300 p-4 rounded-lg bg-gray-50 text-[11px] leading-relaxed whitespace-pre-line text-gray-800 font-mono">
+            {printLang === 'ar' ? unifiedDiagnosticText : generateUnifiedDiagnosticEN()}
+          </div>
+        </div>
+
+        {/* Complete Historical Jump Log */}
+        <div className={`mb-8 ${printLang === 'ar' ? 'text-right' : 'text-left'}`}>
+          <h3 className="text-sm font-black text-black mb-3">
+            {printLang === 'ar' ? 'سجل قياسات اللاعب التاريخي الكامل' : 'Complete Historical Jump Log'}
+          </h3>
+          <table className="print-table text-[10px]">
+            <thead>
+              {printLang === 'ar' ? (
+                <tr>
+                  <th>التاريخ</th>
+                  <th>نوع الاختبار</th>
+                  <th>الارتفاع (سم)</th>
+                  <th>الطيران (ثانية)</th>
+                  <th>التلامس (ثانية)</th>
+                  <th>القدرة (W)</th>
+                  <th>مؤشر RSI</th>
+                </tr>
+              ) : (
+                <tr>
+                  <th>Date</th>
+                  <th>Test Type</th>
+                  <th>Height (cm)</th>
+                  <th>Flight Time (s)</th>
+                  <th>Contact Time (s)</th>
+                  <th>Peak Power (W)</th>
+                  <th>RSI Score</th>
+                </tr>
+              )}
+            </thead>
+            <tbody>
+              {playerHistory.slice().reverse().map((jump) => {
+                const testNamesArabic = { 
+                  sj_no_arms: 'Squat Jump (بدون يدين)', 
+                  cmj_no_arms: 'CMJ (بدون يدين)', 
+                  sj_arms: 'Squat Jump (باليدين)', 
+                  cmj_arms: 'CMJ (باليدين)', 
+                  approach: 'الاقتراب (Approach)', 
+                  rsi: 'الوثب الساقط (RSI)', 
+                  standard: 'CMJ معتاد' 
+                };
+                const testNamesEnglish = { 
+                  sj_no_arms: 'Squat Jump (No Arms)', 
+                  cmj_no_arms: 'CMJ (No Arms)', 
+                  sj_arms: 'Squat Jump (Arms)', 
+                  cmj_arms: 'CMJ (Arms)', 
+                  approach: 'Approach Jump', 
+                  rsi: 'Drop Jump (RSI)', 
+                  standard: 'Standard CMJ' 
+                };
+                const testName = printLang === 'ar' 
+                  ? (testNamesArabic[jump.test_type] || jump.test_type) 
+                  : (testNamesEnglish[jump.test_type] || jump.test_type);
+                return (
+                  <tr key={jump.id}>
+                    <td className="font-mono">{new Date(jump.created_at).toLocaleDateString(printLang === 'ar' ? 'ar-EG' : 'en-US')}</td>
+                    <td className="font-bold">{testName}</td>
+                    <td className="font-mono">{parseFloat(jump.jump_height_cm).toFixed(1)}</td>
+                    <td className="font-mono">{parseFloat(jump.flight_time_sec).toFixed(3)}</td>
+                    <td className="font-mono">{jump.contact_time_sec ? parseFloat(jump.contact_time_sec).toFixed(3) : '—'}</td>
+                    <td className="font-mono">{jump.peak_power_watts && parseFloat(jump.peak_power_watts) > 0 ? parseFloat(jump.peak_power_watts).toFixed(0) : '—'}</td>
+                    <td className="font-mono font-bold">{jump.rsi_score ? parseFloat(jump.rsi_score).toFixed(2) : '—'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Validation signatures with Mahmoud Ali & Mostafa Ali */}
         <div className="mt-12 flex justify-between items-center text-xs pt-8 border-t border-dashed border-gray-400">
-          <div className="text-center w-48">
-            <p className="font-bold text-gray-800">توقيع أخصائي القياس الحركي</p>
-            <div className="h-16"></div>
+          <div className="text-center w-52">
+            <p className="font-black text-gray-900">
+              {printLang === 'ar' ? 'أخصائي القياس الحركي' : 'Biokinetic Specialist'}
+            </p>
+            <p className="text-xs text-gray-800 mt-1 font-bold">
+              {printLang === 'ar' ? 'محمود علي' : 'Mahmoud Ali'}
+            </p>
+            <div className="h-10"></div>
             <p className="text-gray-500">....................................</p>
           </div>
-          <div className="text-center w-48">
-            <p className="font-bold text-gray-800">اعتماد رئيس الجهاز الفني</p>
-            <div className="h-16"></div>
+          
+          <div className="text-center w-52">
+            <p className="font-black text-gray-900">
+              {printLang === 'ar' ? 'مساعد أخصائي القياس الحركي' : 'Assistant Biokinetic Specialist'}
+            </p>
+            <p className="text-xs text-gray-800 mt-1 font-bold">
+              {printLang === 'ar' ? 'مصطفى علي' : 'Mostafa Ali'}
+            </p>
+            <div className="h-10"></div>
             <p className="text-gray-500">....................................</p>
           </div>
         </div>

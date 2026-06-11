@@ -65,11 +65,17 @@ export default function JumpTestingConsole({
   const [standingReach, setStandingReach] = useState(230);
   const [maxTouchHeight, setMaxTouchHeight] = useState('');
 
-  const [saveJumpTag, setSaveJumpTag] = useState('cmj');
+  const [saveJumpTag, setSaveJumpTag] = useState('sj_no_arms');
   const [isSaving, setIsSaving] = useState(false);
 
   const [landingCorrectionMode, setLandingCorrectionMode] = useState('none');
   const [jumpPhases, setJumpPhases] = useState(null);
+  
+  // MediaPipe AI tracking states
+  const [scriptsLoaded, setScriptsLoaded] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(true);
+  const poseRef = useRef(null);
+  const flightDataRef = useRef([]);
   
   // FPS auto-detection state
   const [isFpsDetectionActive, setIsFpsDetectionActive] = useState(false);
@@ -129,6 +135,176 @@ export default function JumpTestingConsole({
       setManualFrameDuration(parseFloat((1 / cameraFps).toFixed(6)));
     }
   }, [cameraFps, isFrameDurationManual]);
+
+  // Load MediaPipe scripts on mount
+  useEffect(() => {
+    const loadScript = (src) => {
+      return new Promise((resolve) => {
+        if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+        const script = document.createElement('script'); script.src = src; script.crossOrigin = "anonymous"; script.onload = resolve;
+        document.body.appendChild(script);
+      });
+    };
+
+    const loadMediaPipe = async () => {
+      try {
+        await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js');
+        const checkInterval = setInterval(() => {
+          if (window.Pose && typeof window.Pose === 'function') {
+            clearInterval(checkInterval);
+            setScriptsLoaded(true);
+          }
+        }, 100);
+      } catch (error) { console.error(error); }
+    };
+    loadMediaPipe();
+  }, []);
+
+  // AI MediaPipe pose results tracker
+  useEffect(() => {
+    if (!scriptsLoaded) return;
+    const { Pose, POSE_CONNECTIONS, drawConnectors, drawLandmarks } = window;
+    const pose = new Pose({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
+    pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+    
+    pose.onResults((results) => {
+      const canvasCtx = canvasRef.current?.getContext('2d');
+      if (!canvasCtx || !canvasRef.current) return;
+      
+      // Auto sync canvas dimensions
+      if (results.image.width && canvasRef.current.width !== results.image.width) {
+        canvasRef.current.width = results.image.width;
+        canvasRef.current.height = results.image.height;
+      }
+      
+      canvasCtx.save();
+      canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      
+      // Draw standard calibration points overlay
+      const clicks = calibrationClicksRef.current;
+      if (clicks.length > 0) {
+        canvasCtx.fillStyle = '#fbbf24'; 
+        canvasCtx.strokeStyle = '#ffffff'; 
+        canvasCtx.lineWidth = 3;
+        clicks.forEach(click => {
+          canvasCtx.beginPath(); 
+          canvasCtx.arc(click.x, click.y, 8, 0, 2 * Math.PI); 
+          canvasCtx.fill(); 
+          canvasCtx.stroke();
+        });
+        if (clicks.length === 2) {
+          canvasCtx.beginPath(); 
+          canvasCtx.moveTo(clicks[0].x, clicks[0].y); 
+          canvasCtx.lineTo(clicks[1].x, clicks[1].y);
+          canvasCtx.strokeStyle = '#fbbf24'; 
+          canvasCtx.lineWidth = 3; 
+          canvasCtx.stroke();
+        }
+      }
+      
+      if (results.poseLandmarks) {
+        const lm = results.poseLandmarks;
+        const leftHip = lm[23];
+        const leftKnee = lm[25];
+        const leftAnkle = lm[27];
+        const leftShoulder = lm[11];
+        
+        const rightHip = lm[24];
+        const rightKnee = lm[26];
+        const rightAnkle = lm[28];
+        const rightShoulder = lm[12];
+
+        // Biomechanical Angle Tracking
+        let leftKneeAngle = 180;
+        let rightKneeAngle = 180;
+        let leftHipAngle = 180;
+        let rightHipAngle = 180;
+
+        const calculateAngle = (a, b, c) => {
+          const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+          let angle = Math.abs((radians * 180.0) / Math.PI);
+          if (angle > 180.0) angle = 360.0 - angle;
+          return angle;
+        };
+
+        if (leftHip && leftKnee && leftAnkle && leftHip.visibility > 0.5 && leftKnee.visibility > 0.5 && leftAnkle.visibility > 0.5) {
+          leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
+        }
+        if (rightHip && rightKnee && rightAnkle && rightHip.visibility > 0.5 && rightKnee.visibility > 0.5 && rightAnkle.visibility > 0.5) {
+          rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle);
+        }
+        if (leftShoulder && leftHip && leftKnee && leftShoulder.visibility > 0.5 && leftHip.visibility > 0.5 && leftKnee.visibility > 0.5) {
+          leftHipAngle = calculateAngle(leftShoulder, leftHip, leftKnee);
+        }
+        if (rightShoulder && rightHip && rightKnee && rightShoulder.visibility > 0.5 && rightHip.visibility > 0.5 && rightKnee.visibility > 0.5) {
+          rightHipAngle = calculateAngle(rightShoulder, rightHip, rightKnee);
+        }
+
+        // Draw skeleton overlay only if AI is enabled
+        if (aiEnabled) {
+          drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#00f5d4', lineWidth: 3 }); 
+          drawLandmarks(canvasCtx, results.poseLandmarks, { color: '#ffffff', lineWidth: 1 });
+
+          if (leftKnee && leftKnee.visibility > 0.5) {
+            const kx = leftKnee.x * canvasRef.current.width;
+            const ky = leftKnee.y * canvasRef.current.height;
+            canvasCtx.fillStyle = '#ff8c3a';
+            canvasCtx.font = 'bold 13px Cairo';
+            canvasCtx.fillText(`ركبة L: ${leftKneeAngle.toFixed(0)}°`, kx - 75, ky);
+          }
+          if (rightKnee && rightKnee.visibility > 0.5) {
+            const kx = rightKnee.x * canvasRef.current.width;
+            const ky = rightKnee.y * canvasRef.current.height;
+            canvasCtx.fillStyle = '#4ade80';
+            canvasCtx.font = 'bold 13px Cairo';
+            canvasCtx.fillText(`ركبة R: ${rightKneeAngle.toFixed(0)}°`, kx + 15, ky);
+          }
+        }
+
+        // Keep coordinates continuously if AI is enabled and video is playing
+        if (aiEnabled && videoRef.current && !videoRef.current.paused) {
+          const feetYPoints = [
+            lm[27]?.y || 0, lm[28]?.y || 0, 
+            lm[29]?.y || 0, lm[30]?.y || 0, 
+            lm[31]?.y || 0, lm[32]?.y || 0  
+          ].filter(y => y > 0);
+
+          if (feetYPoints.length > 0) {
+            const lowestY = Math.max(...feetYPoints); 
+            const avgHipY = ((leftHip?.y + rightHip?.y) / 2) * canvasRef.current.height;
+            
+            flightDataRef.current.push({ 
+              time: videoRef.current.currentTime, 
+              y: lowestY,
+              hipY: avgHipY,
+              leftKnee: leftKneeAngle,
+              rightKnee: rightKneeAngle,
+              leftHip: leftHipAngle,
+              rightHip: rightHipAngle
+            });
+          }
+        }
+      }
+      canvasCtx.restore();
+    });
+    
+    poseRef.current = pose;
+    let isProcessing = false;
+    const processFrame = async () => { 
+      const video = videoRef.current; 
+      if (video && !video.paused && !video.ended) { 
+        if (aiEnabled && !isProcessing && video.readyState >= 2) { 
+          isProcessing = true; 
+          await pose.send({ image: video }); 
+          isProcessing = false; 
+        } 
+      } 
+      reqRef.current = requestAnimationFrame(processFrame); 
+    };
+    processFrame();
+    return () => { cancelAnimationFrame(reqRef.current); pose.close(); };
+  }, [scriptsLoaded, aiEnabled]);
 
   // Mobile viewport detection listener
   useEffect(() => {
@@ -300,6 +476,8 @@ export default function JumpTestingConsole({
       setVideoSrc(URL.createObjectURL(file)); 
       setAiDetectedFrameDuration(null); 
       setIsFpsDetectionActive(false);
+      flightDataRef.current = [];
+      setJumpPhases(null);
     } 
   };
 
@@ -312,6 +490,347 @@ export default function JumpTestingConsole({
     setShowResults(false); 
     setAiDetectedFrameDuration(null); 
     setIsFpsDetectionActive(false);
+    flightDataRef.current = [];
+    setJumpPhases(null);
+  };
+
+  const autoDetectJump = () => {
+    const data = flightDataRef.current;
+    if (data.length < 15) return alert("يرجى تشغيل الفيديو بالكامل مع تفعيل الذكاء الاصطناعي لجمع إحداثيات القفزة.");
+    
+    const getAvgKneeAngleAt = (frameData) => {
+      if (!frameData) return 180;
+      const leftValid = frameData.leftKnee > 0 && frameData.leftKnee < 180;
+      const rightValid = frameData.rightKnee > 0 && frameData.rightKnee < 180;
+      if (leftValid && rightValid) return (frameData.leftKnee + frameData.rightKnee) / 2;
+      if (leftValid) return frameData.leftKnee;
+      if (rightValid) return frameData.rightKnee;
+      return 180;
+    };
+
+    // --- Step 1: Apply moving average smoothing to foot Y and hip Y data ---
+    const smoothed = data.map((d, i) => {
+      const start = Math.max(0, i - 2);
+      const end = Math.min(data.length - 1, i + 2);
+      let sumY = 0, sumHipY = 0, count = 0;
+      for (let k = start; k <= end; k++) {
+        sumY += data[k].y;
+        sumHipY += data[k].hipY;
+        count++;
+      }
+      return { 
+        ...d, 
+        y: sumY / count, 
+        hipY: sumHipY / count 
+      };
+    });
+    
+    // --- Step 2: Establish ground baseline and groundY ---
+    const sortedByY = [...smoothed].sort((a, b) => b.y - a.y);
+    const groundSampleCount = Math.max(3, Math.floor(smoothed.length * 0.1));
+    const groundY = sortedByY.slice(0, groundSampleCount).reduce((sum, d) => sum + d.y, 0) / groundSampleCount;
+    
+    const minY = Math.min(...smoothed.map(d => d.y));
+    const yRange = groundY - minY;
+    
+    let takeoffIndex = -1;
+    let landingIndex = -1;
+    let boxTouchdownIndex = -1;
+    
+    // --- Step 3: Event detection based on jump type ---
+    if (jumpType === 'dj') {
+      const tdThreshold = groundY - (yRange * 0.05);
+      for (let i = 0; i < smoothed.length; i++) {
+        if (smoothed[i].y >= tdThreshold) {
+          boxTouchdownIndex = i;
+          break;
+        }
+      }
+      if (boxTouchdownIndex === -1) boxTouchdownIndex = 0;
+      setBoxTouchdownTime(smoothed[boxTouchdownIndex].time);
+      
+      for (let i = boxTouchdownIndex + 3; i < smoothed.length; i++) {
+        if (smoothed[i].y < tdThreshold) {
+          takeoffIndex = i;
+          break;
+        }
+      }
+    } else {
+      const takeoffThreshold = groundY - Math.max(yRange * 0.15, 0.008);
+      for (let i = 2; i < smoothed.length; i++) {
+        const avgKnee = getAvgKneeAngleAt(smoothed[i]);
+        if (smoothed[i].y < takeoffThreshold && avgKnee > 150) {
+          takeoffIndex = i;
+          break;
+        }
+      }
+    }
+    
+    if (takeoffIndex === -1) {
+      takeoffIndex = Math.floor(smoothed.length * 0.4);
+    }
+    
+    const landingThreshold = groundY - Math.max(yRange * 0.08, 0.005);
+    for (let i = takeoffIndex + 5; i < smoothed.length; i++) {
+      if (smoothed[i].y >= landingThreshold) {
+        landingIndex = i;
+        break;
+      }
+    }
+    if (landingIndex === -1) {
+      landingIndex = Math.floor(smoothed.length * 0.7);
+    }
+    
+    const tStart = smoothed[takeoffIndex].time;
+    const tEnd = smoothed[landingIndex].time;
+    
+    setTakeoffTime(tStart);
+    setLandingTime(tEnd);
+    if (videoRef.current) {
+      videoRef.current.currentTime = tStart;
+    }
+    setCurrentTime(tStart);
+    
+    // --- Step 4: Trace other biomechanical events ---
+    let deepestSquatIndex = 0;
+    let maxHipY = -1;
+    const searchRangeEnd = takeoffIndex;
+    const searchRangeStart = jumpType === 'dj' ? boxTouchdownIndex : 0;
+    
+    for (let i = searchRangeStart; i <= searchRangeEnd; i++) {
+      if (smoothed[i] && smoothed[i].hipY > maxHipY) {
+        maxHipY = smoothed[i].hipY;
+        deepestSquatIndex = i;
+      }
+    }
+    
+    const standingFrames = smoothed.slice(0, Math.max(3, Math.floor(takeoffIndex * 0.15)));
+    const standingHipY = standingFrames.reduce((sum, d) => sum + d.hipY, 0) / Math.max(1, standingFrames.length);
+    
+    let movementStartIndex = 0;
+    for (let i = deepestSquatIndex; i >= 0; i--) {
+      if (smoothed[i] && smoothed[i].hipY <= standingHipY + 1.5) {
+        movementStartIndex = i;
+        break;
+      }
+    }
+    
+    let apexIndex = takeoffIndex;
+    let minHipY = 99999;
+    for (let i = takeoffIndex; i <= landingIndex; i++) {
+      if (smoothed[i] && smoothed[i].hipY < minHipY) {
+        minHipY = smoothed[i].hipY;
+        apexIndex = i;
+      }
+    }
+    
+    const landingFrameData = smoothed[landingIndex];
+    const avgLandingKnee = getAvgKneeAngleAt(landingFrameData);
+    
+    let correctionMs = 0;
+    if (avgLandingKnee < 165) {
+      const diff = 175 - avgLandingKnee;
+      correctionMs = Math.min(60, Math.max(0, Math.round(diff * 1.5)));
+    }
+    
+    let displacementCm = 0;
+    if (pixelsPerMeter && smoothed[deepestSquatIndex] && smoothed[apexIndex]) {
+      const dispPixels = Math.max(0, smoothed[deepestSquatIndex].hipY - smoothed[apexIndex].hipY);
+      displacementCm = (dispPixels / pixelsPerMeter) * 100;
+    }
+    
+    const points = smoothed.map((d, i) => {
+      const pixelDisp = standingHipY - d.hipY;
+      const cmDisp = pixelsPerMeter ? (pixelDisp / pixelsPerMeter) * 100 : pixelDisp * 0.15;
+      return {
+        frame: i,
+        time: d.time,
+        displacement: cmDisp
+      };
+    });
+    
+    setJumpPhases({
+      movementStart: smoothed[movementStartIndex] ? {
+        frame: movementStartIndex,
+        time: smoothed[movementStartIndex].time,
+        kneeAngle: getAvgKneeAngleAt(smoothed[movementStartIndex]),
+        hipDisplacement: 0
+      } : null,
+      deepestSquat: smoothed[deepestSquatIndex] ? {
+        frame: deepestSquatIndex,
+        time: smoothed[deepestSquatIndex].time,
+        kneeAngle: getAvgKneeAngleAt(smoothed[deepestSquatIndex]),
+        hipDisplacement: pixelsPerMeter ? ((smoothed[movementStartIndex].hipY - smoothed[deepestSquatIndex].hipY) / pixelsPerMeter) * 100 : -10
+      } : null,
+      takeoff: smoothed[takeoffIndex] ? {
+        frame: takeoffIndex,
+        time: smoothed[takeoffIndex].time,
+        kneeAngle: getAvgKneeAngleAt(smoothed[takeoffIndex]),
+        hipDisplacement: pixelsPerMeter ? ((smoothed[movementStartIndex].hipY - smoothed[takeoffIndex].hipY) / pixelsPerMeter) * 100 : 0
+      } : null,
+      apex: smoothed[apexIndex] ? {
+        frame: apexIndex,
+        time: smoothed[apexIndex].time,
+        kneeAngle: getAvgKneeAngleAt(smoothed[apexIndex]),
+        displacementCm: displacementCm,
+        hipDisplacement: displacementCm
+      } : null,
+      landing: smoothed[landingIndex] ? {
+        frame: landingIndex,
+        time: smoothed[landingIndex].time,
+        kneeAngle: avgLandingKnee,
+        hipDisplacement: 0
+      } : null,
+      boxTouchdown: jumpType === 'dj' && boxTouchdownTime > 0 ? {
+        frame: smoothed.findIndex(d => d.time >= boxTouchdownTime),
+        time: boxTouchdownTime
+      } : null,
+      kneeAngleAtLanding: avgLandingKnee,
+      correctionMs: correctionMs,
+      points: points
+    });
+    
+    if (pixelsPerMeter) {
+      setTrackedJumpHeight(displacementCm.toFixed(1));
+    }
+    
+    alert(`✅ تم تحديد مراحل الحركة بالذكاء الاصطناعي بنجاح! زاوية الركبة عند الهبوط: ${avgLandingKnee.toFixed(0)}° (تصحيح الهبوط: ${correctionMs}ms).`);
+  };
+
+  const calculateJumpPhasesFromData = () => {
+    const data = flightDataRef.current;
+    if (data.length < 5) return;
+    
+    const getAvgKneeAngleAt = (frameData) => {
+      if (!frameData) return 180;
+      const leftValid = frameData.leftKnee > 0 && frameData.leftKnee < 180;
+      const rightValid = frameData.rightKnee > 0 && frameData.rightKnee < 180;
+      if (leftValid && rightValid) return (frameData.leftKnee + frameData.rightKnee) / 2;
+      if (leftValid) return frameData.leftKnee;
+      if (rightValid) return frameData.rightKnee;
+      return 180;
+    };
+
+    const smoothed = data.map((d, i) => {
+      const start = Math.max(0, i - 2);
+      const end = Math.min(data.length - 1, i + 2);
+      let sumY = 0, sumHipY = 0, count = 0;
+      for (let k = start; k <= end; k++) {
+        sumY += data[k].y;
+        sumHipY += data[k].hipY;
+        count++;
+      }
+      return { 
+        ...d, 
+        y: sumY / count, 
+        hipY: sumHipY / count 
+      };
+    });
+
+    let takeoffIndex = smoothed.findIndex(d => d.time >= takeoffTime);
+    let landingIndex = smoothed.findIndex(d => d.time >= landingTime);
+    if (takeoffIndex === -1) takeoffIndex = Math.floor(smoothed.length * 0.4);
+    if (landingIndex === -1) landingIndex = Math.floor(smoothed.length * 0.7);
+
+    let deepestSquatIndex = 0;
+    let maxHipY = -1;
+    const searchRangeEnd = takeoffIndex;
+    const searchRangeStart = jumpType === 'dj' && boxTouchdownTime > 0 
+      ? smoothed.findIndex(d => d.time >= boxTouchdownTime) 
+      : 0;
+    
+    for (let i = Math.max(0, searchRangeStart); i <= searchRangeEnd; i++) {
+      if (smoothed[i] && smoothed[i].hipY > maxHipY) {
+        maxHipY = smoothed[i].hipY;
+        deepestSquatIndex = i;
+      }
+    }
+    
+    const standingFrames = smoothed.slice(0, Math.max(3, Math.floor(takeoffIndex * 0.15)));
+    const standingHipY = standingFrames.reduce((sum, d) => sum + d.hipY, 0) / Math.max(1, standingFrames.length);
+    
+    let movementStartIndex = 0;
+    for (let i = deepestSquatIndex; i >= 0; i--) {
+      if (smoothed[i] && smoothed[i].hipY <= standingHipY + 1.5) {
+        movementStartIndex = i;
+        break;
+      }
+    }
+    
+    let apexIndex = takeoffIndex;
+    let minHipY = 99999;
+    for (let i = takeoffIndex; i <= landingIndex; i++) {
+      if (smoothed[i] && smoothed[i].hipY < minHipY) {
+        minHipY = smoothed[i].hipY;
+        apexIndex = i;
+      }
+    }
+    
+    const landingFrameData = smoothed[landingIndex] || smoothed[smoothed.length - 1];
+    const avgLandingKnee = landingFrameData ? getAvgKneeAngleAt(landingFrameData) : 180;
+    
+    let correctionMs = 0;
+    if (avgLandingKnee < 165) {
+      const diff = 175 - avgLandingKnee;
+      correctionMs = Math.min(60, Math.max(0, Math.round(diff * 1.5)));
+    }
+    
+    let displacementCm = 0;
+    if (pixelsPerMeter && smoothed[deepestSquatIndex] && smoothed[apexIndex]) {
+      const dispPixels = Math.max(0, smoothed[deepestSquatIndex].hipY - smoothed[apexIndex].hipY);
+      displacementCm = (dispPixels / pixelsPerMeter) * 100;
+    }
+    
+    const points = smoothed.map((d, i) => {
+      const pixelDisp = standingHipY - d.hipY;
+      const cmDisp = pixelsPerMeter ? (pixelDisp / pixelsPerMeter) * 100 : pixelDisp * 0.15;
+      return {
+        frame: i,
+        time: d.time,
+        displacement: cmDisp
+      };
+    });
+    
+    setJumpPhases({
+      movementStart: smoothed[movementStartIndex] ? {
+        frame: movementStartIndex,
+        time: smoothed[movementStartIndex].time,
+        kneeAngle: getAvgKneeAngleAt(smoothed[movementStartIndex]),
+        hipDisplacement: 0
+      } : null,
+      deepestSquat: smoothed[deepestSquatIndex] ? {
+        frame: deepestSquatIndex,
+        time: smoothed[deepestSquatIndex].time,
+        kneeAngle: getAvgKneeAngleAt(smoothed[deepestSquatIndex]),
+        hipDisplacement: pixelsPerMeter ? ((smoothed[movementStartIndex].hipY - smoothed[deepestSquatIndex].hipY) / pixelsPerMeter) * 100 : -10
+      } : null,
+      takeoff: smoothed[takeoffIndex] ? {
+        frame: takeoffIndex,
+        time: smoothed[takeoffIndex].time,
+        kneeAngle: getAvgKneeAngleAt(smoothed[takeoffIndex]),
+        hipDisplacement: pixelsPerMeter ? ((smoothed[movementStartIndex].hipY - smoothed[takeoffIndex].hipY) / pixelsPerMeter) * 100 : 0
+      } : null,
+      apex: smoothed[apexIndex] ? {
+        frame: apexIndex,
+        time: smoothed[apexIndex].time,
+        kneeAngle: getAvgKneeAngleAt(smoothed[apexIndex]),
+        displacementCm: displacementCm,
+        hipDisplacement: displacementCm
+      } : null,
+      landing: smoothed[landingIndex] ? {
+        frame: landingIndex,
+        time: smoothed[landingIndex].time,
+        kneeAngle: avgLandingKnee,
+        hipDisplacement: 0
+      } : null,
+      boxTouchdown: jumpType === 'dj' && boxTouchdownTime > 0 ? {
+        frame: smoothed.findIndex(d => d.time >= boxTouchdownTime),
+        time: boxTouchdownTime
+      } : null,
+      kneeAngleAtLanding: avgLandingKnee,
+      correctionMs: correctionMs,
+      points: points
+    });
   };
 
   const togglePlay = () => {
@@ -509,7 +1028,17 @@ export default function JumpTestingConsole({
 
 
   const handleAnalyze = () => { 
-    if (takeoffTime === 0 || landingTime === 0) return alert("حدد الإقلاع والهبوط أولاً."); 
+    if (takeoffTime === 0 || landingTime === 0) {
+      if (flightDataRef.current.length > 10) {
+        autoDetectJump();
+      } else {
+        return alert("حدد الإقلاع والهبوط يدوياً أولاً، أو قم بتشغيل الفيديو بالكامل مع تفعيل الذكاء الاصطناعي لتتبع الحركة تلقائياً."); 
+      }
+    } else {
+      if (flightDataRef.current.length > 5) {
+        calculateJumpPhasesFromData();
+      }
+    }
     setShowResults(true); 
   };
 
@@ -951,6 +1480,22 @@ export default function JumpTestingConsole({
                     <label className="text-[9px] text-gray-400 mb-1 block">Camera FPS (FPS الكاميرا)</label>
                     <input type="number" value={cameraFps} onChange={(e) => setCameraFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-cyan-500" />
                   </div>
+                </div>
+
+                {/* AI tracking toggle */}
+                <div className="bg-black/15 border border-gray-850 p-3 rounded-2xl mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setAiEnabled(!aiEnabled)}
+                    className={`w-full py-2 px-3 text-[10px] font-bold rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      aiEnabled
+                        ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
+                        : 'bg-black/30 text-gray-400 border-gray-800 hover:text-white'
+                    }`}
+                  >
+                    <ScanEye size={14} className={aiEnabled ? 'animate-pulse' : ''} />
+                    {aiEnabled ? 'تتبع تلقائي بالذكاء الاصطناعي (مفعّل)' : 'تتبع تلقائي بالذكاء الاصطناعي (معطّل)'}
+                  </button>
                 </div>
 
                 {/* Limb & Scale Calibration Helper */}
@@ -1441,28 +1986,61 @@ export default function JumpTestingConsole({
                 <label className="block text-[10px] text-gray-400 font-bold mb-1">
                   تصنيف القفزة لحفظها (Jump Classification)
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setSaveJumpTag('cmj')}
-                    className={`py-2 px-3 text-[10px] font-bold rounded-xl border transition-all cursor-pointer ${
-                      saveJumpTag === 'cmj'
+                    onClick={() => setSaveJumpTag('sj_no_arms')}
+                    className={`py-2 px-2.5 text-[9px] font-bold rounded-xl border transition-all cursor-pointer ${
+                      saveJumpTag === 'sj_no_arms'
                         ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 shadow'
                         : 'bg-[var(--bg-input)] text-gray-400 border-gray-800 hover:text-white'
                     }`}
                   >
-                    🚀 قفزة من الثبات (CMJ)
+                    🏋️‍♂️ SJ (بدون يدين)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSaveJumpTag('cmj_no_arms')}
+                    className={`py-2 px-2.5 text-[9px] font-bold rounded-xl border transition-all cursor-pointer ${
+                      saveJumpTag === 'cmj_no_arms'
+                        ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 shadow'
+                        : 'bg-[var(--bg-input)] text-gray-400 border-gray-800 hover:text-white'
+                    }`}
+                  >
+                    🚀 CMJ (بدون يدين)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSaveJumpTag('sj_arms')}
+                    className={`py-2 px-2.5 text-[9px] font-bold rounded-xl border transition-all cursor-pointer ${
+                      saveJumpTag === 'sj_arms'
+                        ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 shadow'
+                        : 'bg-[var(--bg-input)] text-gray-400 border-gray-800 hover:text-white'
+                    }`}
+                  >
+                    🏋️‍♂️ SJ (بمساعدة اليدين)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSaveJumpTag('cmj_arms')}
+                    className={`py-2 px-2.5 text-[9px] font-bold rounded-xl border transition-all cursor-pointer ${
+                      saveJumpTag === 'cmj_arms'
+                        ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 shadow'
+                        : 'bg-[var(--bg-input)] text-gray-400 border-gray-800 hover:text-white'
+                    }`}
+                  >
+                    🚀 CMJ (بمساعدة اليدين)
                   </button>
                   <button
                     type="button"
                     onClick={() => setSaveJumpTag('approach')}
-                    className={`py-2 px-3 text-[10px] font-bold rounded-xl border transition-all cursor-pointer ${
+                    className={`col-span-2 py-2 px-3 text-[9px] font-bold rounded-xl border transition-all cursor-pointer ${
                       saveJumpTag === 'approach'
                         ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 shadow'
                         : 'bg-[var(--bg-input)] text-gray-400 border-gray-800 hover:text-white'
                     }`}
                   >
-                    🏃‍♂️ قفزة من الحركة (Approach)
+                    🏃‍♂️ قفزة الاقتراب الحركي (Approach Jump)
                   </button>
                 </div>
               </div>
@@ -1819,6 +2397,22 @@ export default function JumpTestingConsole({
                 </div>
               </div>
 
+              {/* AI Auto-Tracking Toggle (Mobile) */}
+              <div className="bg-black/15 border border-gray-850 p-2.5 rounded-2xl mb-1.5">
+                <button
+                  type="button"
+                  onClick={() => setAiEnabled(!aiEnabled)}
+                  className={`w-full py-2 px-3 text-[9px] font-bold rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    aiEnabled
+                      ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
+                      : 'bg-black/30 text-gray-400 border-gray-800 hover:text-white'
+                  }`}
+                >
+                  <ScanEye size={12} className={aiEnabled ? 'animate-pulse' : ''} />
+                  {aiEnabled ? 'تتبع تلقائي بالذكاء الاصطناعي (مفعّل)' : 'تتبع تلقائي بالذكاء الاصطناعي (معطّل)'}
+                </button>
+              </div>
+
               {/* Calibration */}
               <div className="bg-black/15 border border-gray-850 p-3 rounded-2xl space-y-3">
                 <span className="block text-[10px] text-cyan-400 font-bold border-b border-gray-800 pb-1">
@@ -2089,8 +2683,11 @@ export default function JumpTestingConsole({
               <div className="space-y-2 bg-black/25 border border-gray-855 p-3 rounded-2xl">
                 <label className="block text-[9px] text-gray-400 font-bold">تصنيف القفزة للحفظ</label>
                 <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setSaveJumpTag('cmj')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'cmj' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>CMJ</button>
-                  <button type="button" onClick={() => setSaveJumpTag('approach')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'approach' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>Approach</button>
+                  <button type="button" onClick={() => setSaveJumpTag('sj_no_arms')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'sj_no_arms' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>SJ (بدون يدين)</button>
+                  <button type="button" onClick={() => setSaveJumpTag('cmj_no_arms')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'cmj_no_arms' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>CMJ (بدون يدين)</button>
+                  <button type="button" onClick={() => setSaveJumpTag('sj_arms')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'sj_arms' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>SJ (باليدين)</button>
+                  <button type="button" onClick={() => setSaveJumpTag('cmj_arms')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'cmj_arms' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>CMJ (باليدين)</button>
+                  <button type="button" onClick={() => setSaveJumpTag('approach')} className={`col-span-2 py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'approach' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>قفزة اقتراب (Approach)</button>
                 </div>
               </div>
             )}
