@@ -522,6 +522,7 @@ export default function FVPCalculator({ activePlayer }) {
       redFlags,
       recommendations,
       smoothed,
+      velocity,
       i_start,
       i_prop_start,
       i_peak,
