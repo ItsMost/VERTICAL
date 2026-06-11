@@ -214,6 +214,7 @@ export default function FVPCalculator({ activePlayer }) {
   const [metricContactTime, setMetricContactTime] = useState('');
 
   const [ftcResult, setFtcResult] = useState(null);
+  const dt = ftcResult ? (1 / ftcResult.samplingRate) : 0.001;
 
   // Sync athlete weight if active player change
   useEffect(() => {
