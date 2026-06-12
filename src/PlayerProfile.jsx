@@ -4,7 +4,7 @@ import { Download, TrendingUp, Clock, Zap, ArrowUpCircle, AlertCircle, BookOpen,
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from './supabaseClient';
 
-export default function PlayerProfile({ activePlayer, playerHistory, onHistoryChange }) {
+export default function PlayerProfile({ activePlayer, playerHistory, onHistoryChange, language = 'ar' }) {
   const [activeTab, setActiveTab] = useState('overview'); // overview, biomechanics, critique, history
   const [showBenchmarks, setShowBenchmarks] = useState(false);
 
@@ -472,7 +472,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
     return report;
   };
 
-  const unifiedDiagnosticText = generateUnifiedDiagnostic();
+  const unifiedDiagnosticText = language === 'en' ? generateUnifiedDiagnosticEN() : generateUnifiedDiagnostic();
 
   const jumpTestsConfig = [
     {
@@ -587,22 +587,97 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
     }
   ];
 
+  const getTranslatedConfig = (lang) => {
+    return jumpTestsConfig.map(test => {
+      let desc = test.desc;
+      let importance = test.importance;
+      let tips = test.tips;
+      let name = lang === 'en' ? test.nameEn : test.nameAr.split('(')[0].trim();
+      let benchmarks = test.benchmarks;
+      
+      if (lang === 'en') {
+        if (test.type === 'sj_no_arms') {
+          desc = 'Squat jump testing without arm swing. Measures pure concentric muscle force output without utilizing elastic tendon energy.';
+          importance = 'Crucial for isolating concentric strength. Low scores point to raw force deficits.';
+          tips = [
+            'Pause squats from static position (3s pause).',
+            'Explosive strength from static start (Dead-stop / Pin Squats).',
+            'Heavy lower body pressing (Leg Press >85% 1RM).'
+          ];
+        } else if (test.type === 'cmj_no_arms') {
+          desc = 'Countermovement jump testing without arm swing. Measures Stretch-Shortening Cycle (SSC) efficiency and lower body elastic tendon capacity.';
+          importance = 'Helps determine elastic storage capacity without upper body assistance. Used to calculate EUR relative to Squat Jump.';
+          tips = [
+            'Rapid plyometric training (Countermovement Jumps with stick landing).',
+            'Rhythmic vertical bounding (Pogo Jumps).',
+            'Low box drop landing drills.'
+          ];
+        } else if (test.type === 'sj_arms') {
+          desc = 'Squat jump testing with full arm swing. Connects lower body concentric power with upper body coordination.';
+          importance = 'Measures motor coordination between arm swing and simple muscle force. Helps isolate arm coordination from tendon elasticity.';
+          tips = [
+            'Fast squats with upward hand drive.',
+            'Upper-lower body neuromuscular coordination exercises.',
+            'Weighted arm swings with light dumbbells.'
+          ];
+        } else if (test.type === 'cmj_arms') {
+          desc = 'Standard countermovement jump with arm swing. Represents standard vertical jump capacity.';
+          importance = 'The primary vertical leap for athletes. Integrates tendon elasticity, muscle power, and arm coordination for max height.';
+          tips = [
+            'Weighted jump squats (30% 1RM).',
+            'Max strength training (Back Squats 85%+ 1RM).',
+            'Single leg bounds and vertical drives.'
+          ];
+        } else if (test.type === 'approach') {
+          desc = 'Approach jump testing with 2+ steps approach. Measures coordination and transfer of horizontal speed to vertical height.';
+          importance = 'Vital for volleyball and basketball players during active gameplay. Assesses capacity to convert horizontal velocity to vertical leap.';
+          tips = [
+            'Penultimate step acceleration and fast takeoff drills.',
+            'Horizontal to vertical bounding and hurdle jumps.',
+            'Explosive sprinting and reactive drop jumps.'
+          ];
+        }
+        
+        benchmarks = test.benchmarks.map(b => {
+          let label = b.label;
+          if (label === 'نخبة أولمبية 👑') label = 'Olympic Elite 👑';
+          else if (label === 'ممتاز 🏆') label = 'Excellent 🏆';
+          else if (label === 'جيد ⭐') label = 'Good ⭐';
+          else if (label === 'مقبول ⚡') label = 'Acceptable ⚡';
+          else if (label === 'تحت المتوسط ⚠️') label = 'Below Average ⚠️';
+          
+          let value = b.value.replace('النساء:', 'Women:');
+          return { label, value };
+        });
+      }
+      
+      return {
+        ...test,
+        name,
+        desc,
+        importance,
+        benchmarks,
+        tips
+      };
+    });
+  };
+
   // Calculate overall rating (Biomechanical Score)
   const overallRating = maxRsi > 0 
     ? Math.round((evalHeight.progress + evalFlight.progress + evalPower.progress + evalRsi.progress) / 4)
     : Math.round((evalHeight.progress + evalFlight.progress + evalPower.progress) / 3);
 
   const tabs = [
-    { id: 'overview', name: 'الملخص الحركي', icon: Trophy },
-    { id: 'biomechanics', name: 'النماذج الحركية والقدرة', icon: Zap },
-    { id: 'critique', name: 'التشخيص ونقاط التطوير', icon: Target },
-    { id: 'history', name: 'سجل القياسات الكامل', icon: FileText }
+    { id: 'overview', name: language === 'en' ? 'Overview' : 'الملخص الحركي', icon: Trophy },
+    { id: 'biomechanics', name: language === 'en' ? 'Mechanical Models' : 'النماذج الحركية والقدرة', icon: Zap },
+    { id: 'critique', name: language === 'en' ? 'Diagnostics' : 'التشخيص ونقاط التطوير', icon: Target },
+    { id: 'history', name: language === 'en' ? 'History Log' : 'سجل القياسات الكامل', icon: FileText }
   ];
 
   const [selectedMetric, setSelectedMetric] = useState(null);
 
   return (
-    <div className="space-y-6 text-right relative" style={{ direction: "rtl" }}>
+    <div className={`space-y-6 relative ${language === 'en' ? 'text-left' : 'text-right'}`} style={{ direction: language === 'en' ? 'ltr' : 'rtl' }}>
       
       {/* Inject custom printable CSS styles */}
       <style dangerouslySetInnerHTML={{__html: `
@@ -685,16 +760,16 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
               {activePlayer.full_name ? activePlayer.full_name.split(' ').map(n => n[0]).slice(0, 2).join('') : 'P'}
             </div>
             
-            <div className="text-center sm:text-right">
+            <div className={`text-center ${language === 'en' ? 'sm:text-left' : 'sm:text-right'}`}>
               <div className="flex flex-wrap justify-center sm:justify-start items-center gap-3 mb-1.5">
                 <h2 className="text-3xl font-black text-white leading-none">{activePlayer.full_name}</h2>
                 {overallRating >= 85 ? (
                   <span className="bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 text-[10px] px-2.5 py-1 rounded-xl font-black flex items-center gap-1">
-                    <Award size={12} /> تصنيف النخبة
+                    <Award size={12} /> {language === 'en' ? 'Elite Rating' : 'تصنيف النخبة'}
                   </span>
                 ) : overallRating >= 70 ? (
                   <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] px-2.5 py-1 rounded-xl font-black flex items-center gap-1">
-                    <Award size={12} /> تصنيف ممتاز
+                    <Award size={12} /> {language === 'en' ? 'Excellent Rating' : 'تصنيف ممتاز'}
                   </span>
                 ) : (
                   <span className="bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 text-[10px] px-2.5 py-1 rounded-xl font-black flex items-center gap-1">
@@ -793,7 +868,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   
                   {/* Radial Bio-Score Ring Card */}
                   <div className="glass-panel p-6 flex flex-col items-center justify-center text-center shadow-lg relative overflow-hidden">
-                    <h3 className="text-sm font-bold text-gray-400 mb-6">الكفاءة البيوميكانيكية العامة</h3>
+                    <h3 className="text-sm font-bold text-gray-400 mb-6">{language === 'en' ? 'Overall Biomechanical Score' : 'الكفاءة البيوميكانيكية العامة'}</h3>
                     
                     <div className="relative w-36 h-36 flex items-center justify-center bg-black/10 rounded-full border border-gray-800/30 mb-6">
                       <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -826,7 +901,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
                     <p className={`text-sm font-extrabold mb-1.5 ${evalHeight.color}`}>{evalHeight.text}</p>
                     <p className="text-[10px] text-gray-450 leading-relaxed max-w-[200px]">
-                      مستوى اللياقة الميكانيكية للارتقاء بناءً على وزن اللاعب وزمن الطيران.
+                      {language === 'en' ? 'Jump mechanical fitness level based on weight and flight time.' : 'مستوى اللياقة الميكانيكية للارتقاء بناءً على وزن اللاعب وزمن الطيران.'}
                     </p>
                   </div>
 
@@ -1049,15 +1124,15 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     <span className="text-[10px] text-gray-500 font-bold">آخر قراءة مسجلة لكل نوع اختبار (اضغط للتفاصيل)</span>
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-                    {jumpTestsConfig.map((test) => {
+                    {getTranslatedConfig(language).map((test) => {
                       const valInches = parseFloat((test.value * 0.393701).toFixed(1));
                       const testEval = evaluateMetric('jump_in', valInches);
-                      const dateStr = test.record ? new Date(test.record.created_at).toLocaleDateString('ar-EG') : 'لم يقاس بعد';
+                      const dateStr = test.record ? new Date(test.record.created_at).toLocaleDateString(language === 'en' ? 'en-US' : 'ar-EG') : (language === 'en' ? 'Not measured yet' : 'لم يقاس بعد');
                       return (
                         <div 
                           key={test.type}
                           onClick={() => setSelectedMetric({
-                            title: test.nameAr,
+                            title: test.name,
                             value: test.value > 0 ? `${valInches}" (${test.value.toFixed(1)} cm)` : '—',
                             rating: testEval.text,
                             ratingColor: testEval.color,
@@ -1073,20 +1148,20 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                               <span className="text-[14px]">{test.icon}</span>
                               <span className="text-[9px] text-gray-400 font-bold max-w-[80px] text-left truncate" title={test.nameEn}>{test.nameEn}</span>
                             </div>
-                            <h4 className="text-[10px] text-gray-350 font-black mb-2 truncate" title={test.nameAr}>{test.nameAr.split('(')[0]}</h4>
+                            <h4 className="text-[10px] text-gray-350 font-black mb-2 truncate" title={test.name}>{test.name}</h4>
                             {test.value > 0 ? (
                               <div className="space-y-1">
                                 <div className="flex items-baseline gap-1 flex-wrap">
                                   <span className="text-xl sm:text-2xl font-black text-white font-mono">{valInches}</span>
                                   <span className="text-gray-500 text-[10px] font-bold">in</span>
-                                  <span className="text-gray-450 font-mono text-[10px] mr-1">({test.value.toFixed(1)} cm)</span>
+                                  <span className="text-gray-455 font-mono text-[10px] mr-1">({test.value.toFixed(1)} cm)</span>
                                 </div>
                                 <span className={`text-[10px] font-black block ${testEval.color}`}>{testEval.text}</span>
                               </div>
                             ) : (
                               <div className="py-2">
-                                <span className="text-xs text-gray-500 font-bold block">لم يقاس</span>
-                                <span className="text-[9px] text-gray-600 block">اضغط لعرض المعايير</span>
+                                <span className="text-xs text-gray-500 font-bold block">{language === 'en' ? 'Not Measured' : 'لم يقاس'}</span>
+                                <span className="text-[9px] text-gray-600 block">{language === 'en' ? 'Click to view benchmarks' : 'اضغط لعرض المعايير'}</span>
                               </div>
                             )}
                           </div>
@@ -1352,12 +1427,12 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
             {activeTab === 'history' && (
               <motion.div key="history" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="glass-panel p-5 shadow-lg overflow-hidden">
                 <div className="flex justify-between items-center mb-4 border-b border-gray-800/80 pb-2.5">
-                  <h4 className="text-base font-black text-white">سجل قياسات اللاعب الكاملة</h4>
+                  <h4 className="text-base font-black text-white">{language === 'en' ? 'Complete Athlete History Log' : 'سجل قياسات اللاعب الكاملة'}</h4>
                   <button 
                     onClick={() => handleOpenManualEntryModal()} 
                     className="px-3 py-1.5 bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 hover:bg-cyan-600/35 transition-all cursor-pointer shadow-md"
                   >
-                    <Plus size={14} /> تسجيل رقم يدوي
+                    <Plus size={14} /> {language === 'en' ? 'Log Manual Jump' : 'تسجيل رقم يدوي'}
                   </button>
                 </div>
                 
@@ -1365,14 +1440,14 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   <table className="w-full text-right text-xs" style={{ minWidth: '720px' }}>
                     <thead>
                       <tr className="border-b border-gray-800 text-gray-450 font-black">
-                        <th className="pb-3 text-right">التاريخ</th>
-                        <th className="pb-3 text-center">نوع الاختبار</th>
-                        <th className="pb-3 text-center">الارتفاع (cm)</th>
-                        <th className="pb-3 text-center">زمن الطيران (s)</th>
-                        <th className="pb-3 text-center">زمن التلامس (s)</th>
-                        <th className="pb-3 text-center">القدرة القصوى (W)</th>
-                        <th className="pb-3 text-center">مؤشر RSI</th>
-                        <th className="pb-3 text-center">التحكم</th>
+                        <th className={`pb-3 ${language === 'en' ? 'text-left' : 'text-right'}`}>{language === 'en' ? 'Date' : 'التاريخ'}</th>
+                        <th className="pb-3 text-center">{language === 'en' ? 'Test Type' : 'نوع الاختبار'}</th>
+                        <th className="pb-3 text-center">{language === 'en' ? 'Height (cm)' : 'الارتفاع (cm)'}</th>
+                        <th className="pb-3 text-center">{language === 'en' ? 'Flight Time (s)' : 'زمن الطيران (s)'}</th>
+                        <th className="pb-3 text-center">{language === 'en' ? 'Contact Time (s)' : 'زمن التلامس (s)'}</th>
+                        <th className="pb-3 text-center">{language === 'en' ? 'Peak Power (W)' : 'القدرة القصوى (W)'}</th>
+                        <th className="pb-3 text-center">{language === 'en' ? 'RSI Score' : 'مؤشر RSI'}</th>
+                        <th className="pb-3 text-center">{language === 'en' ? 'Actions' : 'التحكم'}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1386,10 +1461,21 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           rsi: 'الوثب الساقط (RSI)', 
                           standard: 'CMJ معتاد' 
                         };
-                        const testName = testNamesArabic[jump.test_type] || jump.test_type || 'وثبة عامة';
+                        const testNamesEnglish = {
+                          sj_no_arms: 'Squat Jump (No Arms)', 
+                          cmj_no_arms: 'CMJ (No Arms)', 
+                          sj_arms: 'Squat Jump (With Arms)', 
+                          cmj_arms: 'CMJ (With Arms)', 
+                          approach: 'Approach Jump', 
+                          rsi: 'Drop Jump (RSI)', 
+                          standard: 'Standard CMJ'
+                        };
+                        const testName = language === 'en'
+                          ? (testNamesEnglish[jump.test_type] || jump.test_type || 'General Jump')
+                          : (testNamesArabic[jump.test_type] || jump.test_type || 'وثبة عامة');
                         return (
                           <tr key={jump.id} className="border-b border-gray-855 hover:bg-black/10 transition-colors">
-                            <td className="py-3.5 font-mono text-gray-400">{new Date(jump.created_at).toLocaleDateString('ar-EG')}</td>
+                            <td className="py-3.5 font-mono text-gray-400">{new Date(jump.created_at).toLocaleDateString(language === 'en' ? 'en-US' : 'ar-EG')}</td>
                             <td className="py-3.5 text-center font-bold text-cyan-400">{testName}</td>
                             <td className="py-3.5 text-center font-mono font-black text-white">{parseFloat(jump.jump_height_cm).toFixed(1)}</td>
                             <td className="py-3.5 text-center font-mono text-gray-300">{parseFloat(jump.flight_time_sec).toFixed(3)}</td>
@@ -1796,7 +1882,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
               )}
             </thead>
             <tbody>
-              {jumpTestsConfig.map((test) => {
+              {getTranslatedConfig(printLang).map((test) => {
                 const rec = test.record;
                 const inHeight = rec ? parseFloat((parseFloat(rec.jump_height_cm) * 0.393701).toFixed(1)) : 0;
                 const recPower = rec ? (rec.peak_power_watts && parseFloat(rec.peak_power_watts) > 0 ? parseFloat(rec.peak_power_watts) : (60.7 * parseFloat(rec.jump_height_cm) + 45.3 * mass - 2055)) : 0;
@@ -1818,8 +1904,14 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
               })}
               <tr>
                 <td className="font-bold">{printLang === 'ar' ? 'الوثب الساقط (RSI)' : 'Drop Jump (RSI)'}</td>
-                <td className="font-mono">—</td>
-                <td className="font-mono">—</td>
+                <td className="font-mono font-bold">
+                  {rsiRecord ? `RSI: ${parseFloat(rsiRecord.rsi_score).toFixed(2)}` : '—'}
+                </td>
+                <td className="font-mono">
+                  {rsiRecord && rsiRecord.contact_time_sec 
+                    ? (printLang === 'ar' ? `Tc: ${parseFloat(rsiRecord.contact_time_sec).toFixed(3)} ث` : `Tc: ${parseFloat(rsiRecord.contact_time_sec).toFixed(3)} s`) 
+                    : '—'}
+                </td>
                 <td className="font-mono">{rsiRecord ? parseFloat(rsiRecord.flight_time_sec).toFixed(3) : '—'}</td>
                 <td className="font-mono">—</td>
                 <td className="font-mono">—</td>

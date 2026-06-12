@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 import { Users, Award, ChevronDown, ChevronUp, Activity, Zap, Play, BookOpen, AlertCircle, HelpCircle, User, Loader2, X, Scaling, Edit3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [], onEditPlayer }) {
+export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [], onEditPlayer, language = 'ar' }) {
   const [selectedCoachId, setSelectedCoachId] = useState('');
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -15,6 +15,179 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
   const [teamAverages, setTeamAverages] = useState({ cmj: null, approach: null, rsi: null });
+
+  const t = {
+    ar: {
+      title: 'لوحة تحكم الفريق Roster Dashboard',
+      subtitle: 'تتبع وتصنيف الأداء البيوميكانيكي لجميع اللاعبين بناءً على المعايير المصرية',
+      handbookBtn: 'دليل معايير النخبة المصرية 📖',
+      coachLabel: 'المدرب المسؤول:',
+      allPlayers: 'جميع اللاعبين (الكل)',
+      unassignedPlayers: 'لاعبون بدون مدرب',
+      chooseCoach: '-- اختر مدرباً --',
+      searchPlaceholder: 'ابحث عن لاعب بالاسم...',
+      all: 'الكل',
+      male: 'ذكور',
+      female: 'إناث',
+      loadingText: 'جاري تحميل قائمة الفريق وتحليل البيانات...',
+      noPlayersTitle: 'لا يوجد لاعبين مطبقين',
+      noPlayersDesc: 'لم يتم العثور على لاعبين يطابقون خيارات البحث الحالية. يرجى إضافة لاعبين جدد وتخصيص هذا المدرب لهم.',
+      cmjTitle: 'CMJ ثبات',
+      approachTitle: 'Approach حركي',
+      rsiTitle: 'RSI ارتداد',
+      cm: 'سم',
+      notMeasured: 'لم يقاس',
+      reach: 'الوصول:',
+      showAnalysis: 'عرض التحليل الميكانيكي الحيوي 📊',
+      hideAnalysis: 'إخفاء التحليل الحركي 📊',
+      detailedAnalysis: 'التحليل الحركي والبدني التفصيلي',
+      standardStatus: 'الوضع المعياري الحالي:',
+      biomechanicalDiag: 'التشخيص الميكانيكي الحيوي:',
+      trainingPresc: 'التوصيات التدريبية:',
+      startJumpBtn: 'بدء قياسات الارتقاء للاعب ⏱️',
+      juniorFlag: 'معامل ناشئين مفعّل (خصم 15% من الحدود) 👶',
+      ageYears: 'سنة',
+      genderFemale: 'لاعبة',
+      genderMale: 'لاعب',
+      kg: 'كجم',
+      height: 'الطول:',
+      standingReach: 'الوصول:',
+      modalTitle: 'دليل معايير الأداء والقياسات البيوميكانيكية',
+      modalMen: 'الرجال (Men)',
+      modalWomen: 'السيدات (Women)',
+      modalRsi: 'مؤشر الارتداد (RSI)',
+      modalJuniors: 'الناشئين (Juniors)',
+      menDesc: 'المعايير المعتمدة لتقييم قفز الثبات العمودي (CMJ) لفئة الرجال البالغين (الكبار):',
+      menElite: '🏆 النخبة (Elite)',
+      menEliteVal: 'أكثر من 34 إنش (86.4+ سم)',
+      menEliteDesc: 'يمثل تصنيف المحترفين الدوليين واللاعبين الأولمبيين.',
+      menExcellent: '⭐ ممتاز (Excellent)',
+      menExcellentVal: '30 إلى 33.9 إنش (76.2 - 86.1 سم)',
+      menExcellentDesc: 'كفاءة بدنية ممتازة للاعبي الدوري الممتاز والدرجة الأولى.',
+      menGood: '⚡ جيد (Good)',
+      menGoodVal: '26 إلى 29.9 إنش (66.0 - 75.9 سم)',
+      menGoodDesc: 'الحد المتوسط المقبول للرياضي المحترف في الرياضات الجماعية.',
+      menNeedsDev: '⚠️ يحتاج تطوير (Under-developed)',
+      menNeedsDevVal: 'أقل من 26 إنش (دون 66 سم)',
+      menNeedsDevDesc: 'يتطلب برنامجاً عاجلاً لتطوير إنتاج القوة الابتدائية والانفجارية.',
+      womenDesc: 'المعايير المعتمدة لتقييم قفز الثبات العمودي (CMJ) لفئة السيدات البالغات (الكبار):',
+      womenElite: '🏆 النخبة (Elite)',
+      womenEliteVal: 'أكثر من 26 إنش (66.0+ سم)',
+      womenEliteDesc: 'تصنيف اللاعبات الأولمبيات ومحترفات الصف الأول عالمياً.',
+      womenExcellent: '⭐ ممتاز (Excellent)',
+      womenExcellentVal: '22 إلى 25.9 إنش (55.8 - 65.7 سم)',
+      womenExcellentDesc: 'مستوى متميز جداً يلبي أعلى متطلبات المنافسة الاحترافية.',
+      womenGood: '⚡ جيد (Good)',
+      womenGoodVal: '18 إلى 21.9 إنش (45.7 - 55.6 سم)',
+      womenGoodDesc: 'الحد المقبول للاعبات الرياضات الجماعية في الدوري الممتاز.',
+      womenNeedsDev: '⚠️ يحتاج تطوير (Under-developed)',
+      womenNeedsDevVal: 'أقل من 18 إنش (دون 45.7 سم)',
+      womenNeedsDevDesc: 'يشير لعجز قوة ويتطلب تركيزاً مكثفاً على تدريبات RFD وقوة الساقين.',
+      rsiDesc: 'مؤشر القوة الارتدادية التفاعلية (Reactive Strength Index - RSI) يقيس كفاءة دورة التمدد والتقلص العضلي الصلبة (SSC) أثناء قفز الهبوط (Drop Jump):',
+      rsiElite: '🏆 النخبة (Elite)',
+      rsiEliteVal: 'RSI أعلى من 3.0',
+      rsiEliteDesc: 'صلابة وتفاعل أوتار فائق مع تلامس سريع جداً مع الأرض.',
+      rsiExcellent: '⭐ ممتاز (Excellent)',
+      rsiExcellentVal: 'RSI من 2.5 إلى 2.99',
+      rsiExcellentDesc: 'ارتداد عصبي عضلي سريع وقدرة تخزين طاقة مطاطية ممتازة.',
+      rsiGood: '⚡ جيد (Good)',
+      rsiGoodVal: 'RSI من 2.0 إلى 2.49',
+      rsiGoodDesc: 'مستوى حركي متوازن يضمن الحماية من إصابات الكاحل والركبة.',
+      rsiNeedsDev: '⚠️ يحتاج تطوير (Under-developed)',
+      rsiNeedsDevVal: 'RSI أقل من 2.0',
+      rsiNeedsDevDesc: 'يدل على بطء الامتصاص وتمدد الأربطة وزيادة خطر الإصابات.',
+      juniorsTitle: 'تطبيق معامل نضوج الناشئين (Junior Maturity Adjustment)',
+      juniorsDesc: 'من الناحية البيوميكانيكية، يمر الرياضيون تحت سن 17 عاماً بفترات نمو عظمي وتغيرات في مراكز ثقل الجسم، وبالتالي يقل تفعيلهم للمخازن المطاطية مقارنة بالكبار.',
+      juniorsFormula: 'لتحقيق إنصاف تقييمي، يطبق نظام "The Lab" تلقائياً معامل تصغير تبلغ قيمته 0.85 (خصم 15% من حدود الصعوبة) على جميع جداول التقييم عند استشعار تاريخ ميلاد يقل صاحبه عن 17 عاماً.',
+      juniorsLabel: 'حدود النخبة للناشئين = الحدود الأصلية × 0.85',
+      avgDiff: 'من المتوسط'
+    },
+    en: {
+      title: 'Team Roster Dashboard',
+      subtitle: 'Track and classify the biomechanical performance of all athletes based on standard criteria',
+      handbookBtn: 'Elite Standards Handbook 📖',
+      coachLabel: 'Responsible Coach:',
+      allPlayers: 'All Players (All)',
+      unassignedPlayers: 'Unassigned Players',
+      chooseCoach: '-- Choose Coach --',
+      searchPlaceholder: 'Search athlete by name...',
+      all: 'All',
+      male: 'Male',
+      female: 'Female',
+      loadingText: 'Loading roster and analyzing biomechanical performance...',
+      noPlayersTitle: 'No Athletes Match Criteria',
+      noPlayersDesc: 'No athletes were found matching the current filters. Please add new athletes and assign them to this coach.',
+      cmjTitle: 'Static CMJ',
+      approachTitle: 'Approach Jump',
+      rsiTitle: 'RSI Rebound',
+      cm: 'cm',
+      notMeasured: 'Not measured',
+      reach: 'Reach:',
+      showAnalysis: 'Show Biomechanical Analysis 📊',
+      hideAnalysis: 'Hide Biomechanical Analysis 📊',
+      detailedAnalysis: 'Detailed Biomechanical & Physical Analysis',
+      standardStatus: 'Current Benchmark Status:',
+      biomechanicalDiag: 'Biomechanical Diagnosis:',
+      trainingPresc: 'Training Recommendations:',
+      startJumpBtn: 'Start Jump Testing ⏱️',
+      juniorFlag: 'Junior maturity adjustment active (15% limit discount) 👶',
+      ageYears: 'years',
+      genderFemale: 'Female',
+      genderMale: 'Male',
+      kg: 'kg',
+      height: 'Height:',
+      standingReach: 'Reach:',
+      modalTitle: 'Biomechanical Performance & Benchmarks Handbook',
+      modalMen: 'Men',
+      modalWomen: 'Women',
+      modalRsi: 'RSI Rebound',
+      modalJuniors: 'Juniors',
+      menDesc: 'Approved benchmarks for evaluating Static Countermovement Jump (CMJ) in adult male athletes:',
+      menElite: '🏆 Elite',
+      menEliteVal: 'Over 34 inches (86.4+ cm)',
+      menEliteDesc: 'Represents international elite professionals and Olympic athletes.',
+      menExcellent: '⭐ Excellent',
+      menExcellentVal: '30 to 33.9 inches (76.2 - 86.1 cm)',
+      menExcellentDesc: 'Excellent physical efficiency for Premier League and high-division players.',
+      menGood: '⚡ Good',
+      menGoodVal: '26 to 29.9 inches (66.0 - 75.9 cm)',
+      menGoodDesc: 'Standard acceptable average for professional team sports athletes.',
+      menNeedsDev: '⚠️ Needs Development',
+      menNeedsDevVal: 'Less than 26 inches (under 66 cm)',
+      menNeedsDevDesc: 'Requires an urgent program targeting rate of force development (RFD).',
+      womenDesc: 'Approved benchmarks for evaluating Static Countermovement Jump (CMJ) in adult female athletes:',
+      womenElite: '🏆 Elite',
+      womenEliteVal: 'Over 26 inches (66.0+ cm)',
+      womenEliteDesc: 'Represents international elite and Olympic level female athletes.',
+      womenExcellent: '⭐ Excellent',
+      womenExcellentVal: '22 to 25.9 inches (55.8 - 65.7 cm)',
+      womenExcellentDesc: 'Outstanding capacity satisfying the highest professional requirements.',
+      womenGood: '⚡ Good',
+      womenGoodVal: '18 to 21.9 inches (45.7 - 55.6 cm)',
+      womenGoodDesc: 'Acceptable limit for elite female team sports players.',
+      womenNeedsDev: '⚠️ Needs Development',
+      womenNeedsDevVal: 'Less than 18 inches (under 45.7 cm)',
+      womenNeedsDevDesc: 'Indicates force deficit; requires lower-limb strength and RFD development.',
+      rsiDesc: 'Reactive Strength Index (RSI) measures Stretch-Shortening Cycle (SSC) efficiency and tendon stiffness during a Drop Jump (DJ):',
+      rsiElite: '🏆 Elite',
+      rsiEliteVal: 'RSI over 3.0',
+      rsiEliteDesc: 'Exceptional tendon stiffness and fast ground contact times.',
+      rsiExcellent: '⭐ Excellent',
+      rsiExcellentVal: 'RSI from 2.5 to 2.99',
+      rsiExcellentDesc: 'Rapid neuromuscular rebound and superb elastic storage capacity.',
+      rsiGood: '⚡ Good',
+      rsiGoodVal: 'RSI from 2.0 to 2.49',
+      rsiGoodDesc: 'Balanced reactive level providing protection against lower limb injuries.',
+      rsiNeedsDev: '⚠️ Needs Development',
+      rsiNeedsDevVal: 'RSI under 2.0',
+      rsiNeedsDevDesc: 'Indicates slow force absorption and higher susceptibility to ligament injury.',
+      juniorsTitle: 'Junior Maturity Adjustment Application',
+      juniorsDesc: 'From a biomechanical standpoint, athletes under the age of 17 undergo bone growth phases and structural changes, reducing elastic storage recruitment compared to adults.',
+      juniorsFormula: 'To ensure evaluation equity, the system automatically applies a 0.85 scaling factor (15% limit discount) on all difficulty benchmarks for junior athletes.',
+      juniorsLabel: 'Junior Elite Limits = Adult Limits × 0.85',
+      avgDiff: 'of average'
+    }
+  }[language];
 
   // Fetch all measurements to calculate team averages
   useEffect(() => {
@@ -177,13 +350,13 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
     if (isPositive) {
       return (
         <span className="text-[9px] px-1.5 py-0.5 mt-1 rounded-md font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-800/30 block text-center">
-          +{absDiff}% من المتوسط 📈
+          +{absDiff}% {language === 'en' ? 'of avg 📈' : 'من المتوسط 📈'}
         </span>
       );
     } else {
       return (
         <span className="text-[9px] px-1.5 py-0.5 mt-1 rounded-md font-bold bg-orange-950/40 text-orange-400 border border-orange-800/30 block text-center">
-          -{absDiff}% من المتوسط 📉
+          -{absDiff}% {language === 'en' ? 'of avg 📉' : 'من المتوسط 📉'}
         </span>
       );
     }
@@ -227,10 +400,19 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
     return Math.round(totalPoints / testsCount);
   };
 
+  const getBorderGlowClass = (score) => {
+    const isEn = language === 'en';
+    if (score >= 90) return isEn ? 'border-l-4 border-l-cyan-500 border-r-0' : 'border-r-4 border-r-cyan-500 border-l-0';
+    if (score >= 75) return isEn ? 'border-l-4 border-l-emerald-500 border-r-0' : 'border-r-4 border-r-emerald-500 border-l-0';
+    if (score >= 60) return isEn ? 'border-l-4 border-l-yellow-500 border-r-0' : 'border-r-4 border-r-yellow-500 border-l-0';
+    if (score > 0) return isEn ? 'border-l-4 border-l-orange-500 border-r-0' : 'border-r-4 border-r-orange-500 border-l-0';
+    return isEn ? 'border-l-4 border-l-gray-800 border-r-0' : 'border-r-4 border-r-gray-800 border-l-0';
+  };
+
   // Status rating helper (incorporates 15% youth discount if age < 17)
   const getStatus = (heightCm, type, gender, age) => {
     if (heightCm === undefined || heightCm === null || isNaN(heightCm) || parseFloat(heightCm) <= 0) {
-      return { text: 'غير مسجل', color: 'text-gray-500 bg-gray-500/10 border-gray-750/20' };
+      return { text: language === 'en' ? 'Not Recorded' : 'غير مسجل', color: 'text-gray-500 bg-gray-500/10 border-gray-755/20' };
     }
 
     const isYouth = age < 17;
@@ -245,15 +427,15 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
       const goodThresh = (isFemale ? 18 : 26) * discount;
 
       if (heightInches >= eliteThresh) {
-        return { text: 'النخبة 🏆', color: 'text-cyan-400 bg-cyan-950/40 border-cyan-800/40' };
+        return { text: language === 'en' ? 'Elite 🏆' : 'النخبة 🏆', color: 'text-cyan-400 bg-cyan-950/40 border-cyan-800/40' };
       }
       if (heightInches >= excellentThresh) {
-        return { text: 'ممتاز ⭐', color: 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40' };
+        return { text: language === 'en' ? 'Excellent ⭐' : 'ممتاز ⭐', color: 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40' };
       }
       if (heightInches >= goodThresh) {
-        return { text: 'جيد ⚡', color: 'text-yellow-400 bg-yellow-950/40 border-yellow-800/40' };
+        return { text: language === 'en' ? 'Good ⚡' : 'جيد ⚡', color: 'text-yellow-400 bg-yellow-950/40 border-yellow-800/40' };
       }
-      return { text: 'يحتاج تطوير ⚠️', color: 'text-orange-500 bg-orange-950/40 border-orange-900/40' };
+      return { text: language === 'en' ? 'Needs Development ⚠️' : 'يحتاج تطوير ⚠️', color: 'text-orange-500 bg-orange-950/40 border-orange-900/40' };
     } else if (type === 'rsi') {
       const rsiVal = parseFloat(heightCm);
       const eliteThresh = 3.0 * discount;
@@ -261,15 +443,15 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
       const goodThresh = 2.0 * discount;
 
       if (rsiVal >= eliteThresh) {
-        return { text: 'النخبة 🏆', color: 'text-cyan-400 bg-cyan-950/40 border-cyan-800/40' };
+        return { text: language === 'en' ? 'Elite 🏆' : 'النخبة 🏆', color: 'text-cyan-400 bg-cyan-950/40 border-cyan-800/40' };
       }
       if (rsiVal >= excellentThresh) {
-        return { text: 'ممتاز ⭐', color: 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40' };
+        return { text: language === 'en' ? 'Excellent ⭐' : 'ممتاز ⭐', color: 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40' };
       }
       if (rsiVal >= goodThresh) {
-        return { text: 'جيد ⚡', color: 'text-yellow-400 bg-yellow-950/40 border-yellow-800/40' };
+        return { text: language === 'en' ? 'Good ⚡' : 'جيد ⚡', color: 'text-yellow-400 bg-yellow-950/40 border-yellow-800/40' };
       }
-      return { text: 'يحتاج تطوير ⚠️', color: 'text-orange-500 bg-orange-950/40 border-orange-900/40' };
+      return { text: language === 'en' ? 'Needs Development ⚠️' : 'يحتاج تطوير ⚠️', color: 'text-orange-500 bg-orange-950/40 border-orange-900/40' };
     }
 
     return { text: '—', color: 'text-gray-500' };
@@ -300,12 +482,18 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
       const cmjStatus = getStatus(cmjScore, 'cmj', gender, age).text;
       if (rsiScore > 0) {
         const rsiStatus = getStatus(rsiScore, 'rsi', gender, age).text;
-        positionText = `اللاعب يقع في فئة (${cmjStatus.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim()}) بالنسبة للقفز العمودي من الثبات، وفئة (${rsiStatus.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim()}) بالنسبة لمؤشر القوة التفاعلية (RSI).`;
+        positionText = language === 'en'
+          ? `Athlete falls under the (${cmjStatus.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim()}) category for Static CMJ, and (${rsiStatus.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim()}) category for Reactive Strength Index (RSI).`
+          : `اللاعب يقع في فئة (${cmjStatus.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim()}) بالنسبة للقفز العمودي من الثبات، وفئة (${rsiStatus.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim()}) بالنسبة لمؤشر القوة التفاعلية (RSI).`;
       } else {
-        positionText = `اللاعب يقع في فئة (${cmjStatus.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim()}) بالنسبة للقفز العمودي من الثبات. لم يتم تسجيل اختبار الـ RSI له حتى الآن.`;
+        positionText = language === 'en'
+          ? `Athlete falls under the (${cmjStatus.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim()}) category for Static CMJ. No RSI tests have been recorded yet.`
+          : `اللاعب يقع في فئة (${cmjStatus.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim()}) بالنسبة للقفز العمودي من الثبات. لم يتم تسجيل اختبار الـ RSI له حتى الآن.`;
       }
     } else {
-      positionText = 'لا توجد اختبارات قفز عمودي مسجلة للاعب حالياً لإجراء التصنيف المعياري.';
+      positionText = language === 'en'
+        ? 'No vertical jump tests recorded for this athlete to perform benchmark classification.'
+        : 'لا توجد اختبارات قفز عمودي مسجلة للاعب حالياً لإجراء التصنيف المعياري.';
     }
 
     // 2. Biomechanical Diagnosis
@@ -313,23 +501,41 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
       const diffCm = approachScore - cmjScore;
       
       if (diffCm < 10) {
-        diagnosisText = `يعاني اللاعب من "عجز في توظيف القوة المطاطية والتوافق الحركي أثناء الاقتراب" (Elastic/Coordination Efficiency Deficit). قفزة الاقتراب الحركية (Approach Jump) بلغت ${approachScore.toFixed(1)} سم وهي أعلى بـ ${diffCm.toFixed(1)} سم فقط من القفزة من الثبات (${cmjScore.toFixed(1)} سم). بيوميكانيكياً، يجب أن يتجاوز الفارق 10-15 سم (4-6 إنشات) على الأقل. هذا النقص يشير إلى أن اللاعب لا يستفيد بكفاءة من طاقة الحركة الأفقية وسرعة الاقتراب لتحويلها إلى قوة رأسية، مع ضعف في تفعيل دورة التمدد والتقلص العضلي (Stretch-Shortening Cycle).`;
-        prescriptionText = 'تطوير القوة الانفجارية المرنة باستخدام تدريبات البلايومترك السريع (Fast Plyometrics)، والقفز من الحركة مع التركيز على توافق الأطراف وسرعة الامتصاص والدفع الرأسي. يوصى بإدراج تدريبات تسارع الخطوة الأخيرة والارتقاء الحركي الموجه.';
+        diagnosisText = language === 'en'
+          ? `Athlete suffers from "Elastic/Coordination Efficiency Deficit" during approach. Approach jump reached ${approachScore.toFixed(1)} cm, which is only ${diffCm.toFixed(1)} cm higher than Static CMJ (${cmjScore.toFixed(1)} cm). Biomechanically, the difference should exceed 10-15 cm (4-6 inches). This indicates inefficient utilization of horizontal velocity, weak stretch-shortening cycle (SSC) recruitment, and coordination issues.`
+          : `يعاني اللاعب من "عجز في توظيف القوة المطاطية والتوافق الحركي أثناء الاقتراب" (Elastic/Coordination Efficiency Deficit). قفزة الاقتراب الحركية (Approach Jump) بلغت ${approachScore.toFixed(1)} سم وهي أعلى بـ ${diffCm.toFixed(1)} سم فقط من القفزة من الثبات (${cmjScore.toFixed(1)} سم). بيوميكانيكياً، يجب أن يتجاوز الفارق 10-15 سم (4-6 إنشات) على الأقل. هذا النقص يشير إلى أن اللاعب لا يستفيد بكفاءة من طاقة الحركة الأفقية وسرعة الاقتراب لتحويلها إلى قوة رأسية، مع ضعف في تفعيل دورة التمدد والتقلص العضلي (Stretch-Shortening Cycle).`;
+        prescriptionText = language === 'en'
+          ? 'Develop explosive-elastic power using fast plyometric drills, jumps from movement focusing on limb coordination, quick absorption, and vertical drive. Incorporate last-step acceleration and guided approach takeoff drills.'
+          : 'تطوير القوة الانفجارية المرنة باستخدام تدريبات البلايومترك السريع (Fast Plyometrics)، والقفز من الحركة مع التركيز على توافق الأطراف وسرعة الامتصاص والدفع الرأسي. يوصى بإدراج تدريبات تسارع الخطوة الأخيرة والارتقاء الحركي الموجه.';
       } else {
-        diagnosisText = `يظهر اللاعب كفاءة حركية ممتازة في الاستفادة من طاقة الحركة الأفقية. قفزة الاقتراب الحركية بلغت ${approachScore.toFixed(1)} سم بفارق إيجابي يبلغ ${diffCm.toFixed(1)} سم عن قفزة الثبات (${cmjScore.toFixed(1)} سم)، وهو ما يقع في النطاق البيوميكانيكي الأمثل (+10 سم فما فوق). يعكس هذا توافقاً عصبياً عضلياً رائعاً وقدرة عالية على تخزين وإطلاق طاقة الارتداد (SSC) أثناء الارتقاء الحركي.`;
-        prescriptionText = 'الاستمرار على البرنامج الحالي مع دمج تدريبات بلايومترك عالية الشدة (High-Intensity Plyometrics) للمحافظة على صلابة الأوتار، وتحسين زوايا الانطلاق وتوجيه الدفع لزيادة الكفاءة.';
+        diagnosisText = language === 'en'
+          ? `Athlete shows excellent coordination and efficiency in utilizing horizontal velocity. Approach jump reached ${approachScore.toFixed(1)} cm (+${diffCm.toFixed(1)} cm difference over Static CMJ of ${cmjScore.toFixed(1)} cm), which is in the optimal biomechanical range (+10 cm and above). This reflects great neuromuscular coordination and high capacity to store and release elastic energy (SSC) during approach takeoff.`
+          : `يظهر اللاعب كفاءة حركية ممتازة في الاستفادة من طاقة الحركة الأفقية. قفزة الاقتراب الحركية بلغت ${approachScore.toFixed(1)} سم بفارق إيجابي يبلغ ${diffCm.toFixed(1)} سم عن قفزة الثبات (${cmjScore.toFixed(1)} سم)، وهو ما يقع في النطاق البيوميكانيكي الأمثل (+10 سم فما فوق). يعكس هذا توافقاً عصبياً عضلياً رائعاً وقدرة عالية على تخزين وإطلاق طاقة الارتداد (SSC) أثناء الارتقاء الحركي.`;
+        prescriptionText = language === 'en'
+          ? 'Continue the current program while integrating High-Intensity Plyometrics to maintain tendon stiffness, and improve takeoff angles and drive direction for enhanced efficiency.'
+          : 'الاستمرار على البرنامج الحالي مع دمج تدريبات بلايومترك عالية الشدة (High-Intensity Plyometrics) للمحافظة على صلابة الأوتار، وتحسين زوايا الانطلاق وتوجيه الدفع لزيادة الكفاءة.';
       }
     } else if (cmjScore > 0) {
-      diagnosisText = `تم تسجيل القفزة من الثبات فقط (${cmjScore.toFixed(1)} سم). الفحص البيوميكانيكي غير مكتمل لعدم توفر قفزة حركة (Approach Jump). من الضروري إجراء اختبار قفزة الاقتراب لتحديد الفارق الديناميكي وتشخيص ما إذا كان اللاعب يعاني من عجز مطاطي أو توافقي.`;
+      diagnosisText = language === 'en'
+        ? `Only Static CMJ was recorded (${cmjScore.toFixed(1)} cm). Biomechanical examination is incomplete due to the lack of an Approach Jump. It is necessary to perform the approach jump test to determine the dynamic difference and diagnose potential elastic or coordination deficits.`
+        : `تم تسجيل القفزة من الثبات فقط (${cmjScore.toFixed(1)} سم). الفحص البيوميكانيكي غير مكتمل لعدم توفر قفزة حركة (Approach Jump). من الضروري إجراء اختبار قفزة الاقتراب لتحديد الفارق الديناميكي وتشخيص ما إذا كان اللاعب يعاني من عجز مطاطي أو توافقي.`;
       
       if (rsiScore > 0 && rsiScore < 2.0) {
-        prescriptionText = 'التركيز على تقوية صلابة المفصل الكاحلي (Ankle Stiffness) والحد من زمن التلامس مع الأرض باستخدام قفزات Pogo قصيرة متكررة، وقفز الحبل السريع، وتدريبات الكاحل المقاومة لزيادة مؤشر الـ RSI.';
+        prescriptionText = language === 'en'
+          ? 'Focus on strengthening ankle joint stiffness and minimizing ground contact time using short repeated Pogo jumps, fast jump rope, and resistive ankle exercises to increase RSI.'
+          : 'التركيز على تقوية صلابة المفصل الكاحلي (Ankle Stiffness) والحد من زمن التلامس مع الأرض باستخدام قفزات Pogo قصيرة متكررة، وقفز الحبل السريع، وتدريبات الكاحل المقاومة لزيادة مؤشر الـ RSI.';
       } else {
-        prescriptionText = 'التركيز على تمارين القوة العضلية القصوى والانفجارية للقسم السفلي (تمارين القرفصاء والرفعة المميتة) لزيادة إنتاج القوة الابتدائية (Rate of Force Development).';
+        prescriptionText = language === 'en'
+          ? 'Focus on lower body maximum strength and explosive power exercises (Squats and Deadlifts) to increase the Rate of Force Development (RFD).'
+          : 'التركيز على تمارين القوة العضلية القصوى والانفجارية للقسم السفلي (تمارين القرفصاء والرفعة المميتة) لزيادة إنتاج القوة الابتدائية (Rate of Force Development).';
       }
     } else {
-      diagnosisText = 'يرجى تسجيل قياسات القفز من الثبات (CMJ) وقفز الارتقاء من الحركة (Approach Jump) للبدء in تشخيص الكفاءة الميكانيكية للاعب.';
-      prescriptionText = 'يتطلب تشخيص اللاعب البدء بإجراء دورة قياس كاملة للقفز العمودي ومؤشر الارتداد.';
+      diagnosisText = language === 'en'
+        ? 'Please record Static CMJ and Approach Jump measurements to begin diagnosing the athlete\'s mechanical efficiency.'
+        : 'يرجى تسجيل قياسات القفز من الثبات (CMJ) وقفز الارتقاء من الحركة (Approach Jump) للبدء في تشخيص الكفاءة الميكانيكية للاعب.';
+      prescriptionText = language === 'en'
+        ? 'Diagnosing the athlete requires initiating a complete measurement cycle for vertical jumps and the reactive strength index.'
+        : 'يتطلب تشخيص اللاعب البدء بإجراء دورة قياس كاملة للقفز العمودي ومؤشر الارتداد.';
     }
 
     return { positionText, diagnosisText, prescriptionText };
@@ -342,45 +548,45 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
   });
 
   return (
-    <div className="glass-panel p-4 md:p-6 shadow-2xl transition-all duration-300 text-right animate-fade-in" style={{ direction: 'rtl' }}>
+    <div className={`glass-panel p-4 md:p-6 shadow-2xl transition-all duration-300 ${language === 'en' ? 'text-left' : 'text-right'} animate-fade-in`} style={{ direction: language === 'en' ? 'ltr' : 'rtl' }}>
       
       {/* Top Controls: Header & Coach Dropdown */}
-      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 border-b border-gray-800/60 pb-5 mb-6">
-        <div className="flex items-center gap-3">
+      <div className={`flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 border-b border-gray-800/60 pb-5 mb-6 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+        <div className={`flex items-center gap-3 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
           <div className="p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/20 text-cyan-400">
             <Users size={24} />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-white">لوحة تحكم الفريق Roster Dashboard</h2>
-            <p className="text-xs text-gray-400 mt-1">تتبع وتصنيف الأداء البيوميكانيكي لجميع اللاعبين بناءً على المعايير المصرية</p>
+            <h2 className="text-2xl font-black text-white">{t.title}</h2>
+            <p className="text-xs text-gray-400 mt-1">{t.subtitle}</p>
           </div>
         </div>
 
         {/* Coach Dropdown & Handbook Button */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
           <button
             onClick={() => setShowHandbookModal(true)}
             className="px-4 py-3 bg-cyan-950/40 hover:bg-cyan-600 text-cyan-400 hover:text-white border border-cyan-800/30 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer"
           >
-            <BookOpen size={14} /> دليل معايير النخبة المصرية 📖
+            <BookOpen size={14} /> {t.handbookBtn}
           </button>
           
-          <div className="flex items-center gap-3 relative">
-            <label className="text-xs font-bold text-gray-400 shrink-0">المدرب المسؤول:</label>
+          <div className={`flex items-center gap-3 relative ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+            <label className="text-xs font-bold text-gray-400 shrink-0">{t.coachLabel}</label>
             <div className="relative flex-1 sm:flex-initial">
               <button
                 type="button"
                 onClick={() => setIsCoachDropdownOpen(!isCoachDropdownOpen)}
-                className="w-full sm:w-60 bg-[#111827]/60 border border-gray-800 text-xs text-white p-3 px-4 rounded-xl outline-none font-bold focus:border-cyan-500 flex items-center justify-between gap-2 cursor-pointer text-right min-w-[15rem]"
+                className={`w-full sm:w-60 bg-[#111827]/60 border border-gray-800 text-xs text-white p-3 px-4 rounded-xl outline-none font-bold focus:border-cyan-500 flex items-center justify-between gap-2 cursor-pointer ${language === 'en' ? 'text-left' : 'text-right'} min-w-[15rem]`}
               >
                 <span>
                   {selectedCoachId === 'all' 
-                    ? 'جميع اللاعبين (الكل)' 
+                    ? t.allPlayers 
                     : selectedCoachId === 'unassigned' 
-                      ? 'لاعبون بدون مدرب' 
-                      : (coaches.find(c => c.id === selectedCoachId)?.full_name || '-- اختر مدرباً --')}
+                      ? t.unassignedPlayers 
+                      : (coaches.find(c => c.id === selectedCoachId)?.full_name || t.chooseCoach)}
                 </span>
-                <ChevronDown size={14} className={`text-gray-400 transition-transform duration-205 ${isCoachDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-gray-400 transition-transform duration-250 ${isCoachDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               <AnimatePresence>
@@ -396,7 +602,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute left-0 right-0 z-50 mt-1.5 bg-[#0b1429]/95 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md max-h-72 overflow-y-auto w-full min-w-[15rem]"
+                      className={`absolute ${language === 'en' ? 'left-0' : 'right-0'} z-50 mt-1.5 bg-[#0b1429]/95 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md max-h-72 overflow-y-auto w-full min-w-[15rem]`}
                     >
                       <button
                         type="button"
@@ -404,9 +610,9 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                           setSelectedCoachId('all');
                           setIsCoachDropdownOpen(false);
                         }}
-                        className={`w-full px-4 py-3 text-right text-xs hover:bg-cyan-500/10 transition-colors block border-b border-gray-800/40 ${selectedCoachId === 'all' ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-450 font-bold'}`}
+                        className={`w-full px-4 py-3 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-cyan-500/10 transition-colors block border-b border-gray-800/40 ${selectedCoachId === 'all' ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-450 font-bold'}`}
                       >
-                        جميع اللاعبين (الكل)
+                        {t.allPlayers}
                       </button>
                       <button
                         type="button"
@@ -414,9 +620,9 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                           setSelectedCoachId('unassigned');
                           setIsCoachDropdownOpen(false);
                         }}
-                        className={`w-full px-4 py-3 text-right text-xs hover:bg-cyan-500/10 transition-colors block border-b border-gray-800/40 ${selectedCoachId === 'unassigned' ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-450 font-bold'}`}
+                        className={`w-full px-4 py-3 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-cyan-500/10 transition-colors block border-b border-gray-800/40 ${selectedCoachId === 'unassigned' ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-450 font-bold'}`}
                       >
-                        لاعبون بدون مدرب
+                        {t.unassignedPlayers}
                       </button>
                       {coaches.map(c => (
                         <button
@@ -426,7 +632,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                             setSelectedCoachId(c.id);
                             setIsCoachDropdownOpen(false);
                           }}
-                          className={`w-full px-4 py-3 text-right text-xs hover:bg-cyan-500/10 transition-colors block border-b border-gray-800/40 last:border-b-0 ${selectedCoachId === c.id ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-300'}`}
+                          className={`w-full px-4 py-3 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-cyan-500/10 transition-colors block border-b border-gray-800/40 last:border-b-0 ${selectedCoachId === c.id ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-300'}`}
                         >
                           {c.full_name}
                         </button>
@@ -442,16 +648,16 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
 
       {/* Roster Search and Filter Options */}
       <div className="bg-[#111827]/25 border border-gray-800/60 p-4 rounded-2xl mb-6">
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+        <div className={`flex flex-col sm:flex-row items-center gap-4 w-full ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
           <div className="relative flex-1 w-full">
             <input
               type="text"
-              placeholder="ابحث عن لاعب بالاسم..."
+              placeholder={t.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#111827]/40 border border-gray-800 text-xs text-white p-3 pr-10 rounded-xl outline-none font-bold focus:border-cyan-500 text-right placeholder-gray-500"
+              className={`w-full bg-[#111827]/40 border border-gray-800 text-xs text-white p-3 ${language === 'en' ? 'pl-10 text-left' : 'pr-10 text-right'} rounded-xl outline-none font-bold focus:border-cyan-500 placeholder-gray-500`}
             />
-            <span className="absolute right-3 top-3.5 text-gray-500 text-sm">🔍</span>
+            <span className={`absolute ${language === 'en' ? 'left-3' : 'right-3'} top-3.5 text-gray-500 text-sm`}>🔍</span>
           </div>
           
           <div className="flex gap-2 w-full sm:w-auto shrink-0">
@@ -459,19 +665,19 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
               onClick={() => setGenderFilter('all')}
               className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${genderFilter === 'all' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-[#111827]/20 border-gray-800 text-gray-405 hover:text-white'}`}
             >
-              الكل
+              {t.all}
             </button>
             <button
               onClick={() => setGenderFilter('male')}
               className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${genderFilter === 'male' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-[#111827]/20 border-gray-800 text-gray-405 hover:text-white'}`}
             >
-              ذكور
+              {t.male}
             </button>
             <button
               onClick={() => setGenderFilter('female')}
               className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${genderFilter === 'female' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-[#111827]/20 border-gray-800 text-gray-405 hover:text-white'}`}
             >
-              إناث
+              {t.female}
             </button>
           </div>
         </div>
@@ -481,18 +687,18 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
           <Loader2 className="animate-spin text-cyan-500" size={40} />
-          <span className="text-xs font-bold">جاري تحميل قائمة الفريق وتحليل البيانات...</span>
+          <span className="text-xs font-bold">{t.loadingText}</span>
         </div>
       ) : filteredPlayers.length === 0 ? (
         <div className="text-center py-20 text-gray-500 border border-dashed border-gray-800 rounded-3xl p-8">
           <AlertCircle size={48} className="mx-auto text-yellow-500/40 mb-3" />
-          <h3 className="text-lg font-bold text-white mb-1">لا يوجد لاعبين مطبقين</h3>
+          <h3 className="text-lg font-bold text-white mb-1">{t.noPlayersTitle}</h3>
           <p className="text-xs max-w-sm mx-auto leading-relaxed text-gray-400">
-            لم يتم العثور على لاعبين يطابقون خيارات البحث الحالية. يرجى إضافة لاعبين جدد وتخصيص هذا المدرب لهم.
+            {t.noPlayersDesc}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-3.5 w-full max-w-4xl mx-auto">
           {filteredPlayers.map(player => {
             const age = getPlayerAge(player.date_of_birth);
             const playerHeight = localStorage.getItem(`player_height_${player.id}`) || '—';
@@ -519,61 +725,63 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
             const critique = getBiomechanicalCritique(player, scores);
             const rating = getBiomechanicalRating(scores, player, age);
 
+            const initials = player.full_name 
+              ? player.full_name.trim().split(/\s+/).map(n => n[0]).join('').slice(0, 2).toUpperCase() 
+              : '??';
+
             return (
               <div 
                 key={player.id} 
-                className={`bg-[#111827]/40 backdrop-blur-xl border rounded-3xl p-5 hover:border-cyan-500/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all duration-300 flex flex-col justify-between relative overflow-hidden group ${
+                className={`bg-[#111827]/40 backdrop-blur-xl border rounded-2xl hover:border-cyan-500/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all duration-300 flex flex-col relative overflow-hidden group ${
                   isExpanded ? 'border-cyan-500/40 shadow-[0_0_25px_rgba(6,182,212,0.1)]' : 'border-gray-800'
-                }`}
+                } ${getBorderGlowClass(rating)}`}
               >
-                {/* Visual glow indicator border */}
-                <div className={`absolute top-0 right-0 left-0 h-1 bg-gradient-to-l transition-all duration-300 opacity-60 ${
-                  rating >= 90 ? 'from-cyan-500 to-blue-500' : rating >= 75 ? 'from-emerald-500 to-teal-500' : rating >= 60 ? 'from-yellow-500 to-amber-500' : rating > 0 ? 'from-orange-500 to-red-500' : 'from-gray-700 to-gray-800'
-                }`} />
-
-                <div>
-                  {/* Card Header */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
-                        <User size={20} />
+                {/* Compact Row Header */}
+                <div 
+                  onClick={() => toggleExpand(player.id)}
+                  className={`flex items-center justify-between p-4 cursor-pointer select-none ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
+                >
+                  <div className={`flex items-center gap-3 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+                    <div className="w-10 h-10 rounded-xl bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0 font-black text-sm">
+                      {initials}
+                    </div>
+                    <div className={`flex flex-col ${language === 'en' ? 'text-left' : 'text-right'}`}>
+                      <div className={`flex items-center gap-2 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+                        <h4 className="font-extrabold text-white text-sm leading-tight">{player.full_name}</h4>
+                        {onEditPlayer && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditPlayer(player);
+                            }}
+                            className="p-1 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all cursor-pointer"
+                            title={language === 'en' ? 'Edit athlete details' : 'تعديل بيانات اللاعب'}
+                          >
+                            <Edit3 size={13} />
+                          </button>
+                        )}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-extrabold text-white text-base leading-tight">{player.full_name}</h4>
-                          {onEditPlayer && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEditPlayer(player);
-                              }}
-                              className="p-1 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all cursor-pointer"
-                              title="تعديل بيانات اللاعب"
-                            >
-                              <Edit3 size={13} />
-                            </button>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-gray-455 mt-1 font-semibold flex items-center gap-1.5 flex-wrap">
-                          <span>{age} سنة</span>
-                          <span>•</span>
-                          <span>{player.gender === 'female' ? 'لاعبة' : 'لاعب'}</span>
-                          <span>•</span>
-                          <span>{player.weight_kg} كجم</span>
-                          <span>•</span>
-                          <span>الطول: {playerHeight} سم</span>
-                          <span>•</span>
-                          <span>الوصول: {playerStandingReach} سم</span>
-                        </div>
+                      <div className={`text-[10px] text-gray-400 mt-1 font-semibold flex items-center gap-1.5 flex-wrap ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+                        <span>{age} {t.ageYears}</span>
+                        <span>•</span>
+                        <span>{player.gender === 'female' ? t.genderFemale : t.genderMale}</span>
+                        <span>•</span>
+                        <span>{player.weight_kg} {t.kg}</span>
+                        <span>•</span>
+                        <span>{t.height} {playerHeight} {t.cm}</span>
+                        <span>•</span>
+                        <span>{t.standingReach} {playerStandingReach} {t.cm}</span>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Biomechanical score progress circle */}
+                  <div className={`flex items-center gap-4 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+                    {/* Overall Bio Score */}
                     {(() => {
                       const strokeDashoffset = 125.6 - (125.6 * rating) / 100;
                       return (
-                        <div className="relative w-14 h-14 shrink-0 flex items-center justify-center bg-black/20 rounded-full border border-gray-800/40">
+                        <div className="relative w-11 h-11 shrink-0 flex items-center justify-center bg-black/20 rounded-full border border-gray-800/40">
                           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 50 50">
                             <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
                             <circle 
@@ -590,181 +798,183 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                             />
                           </svg>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-[8px] text-gray-500 font-bold uppercase tracking-wider">Score</span>
-                            <span className="text-[11px] font-black text-white font-mono leading-none mt-0.5">{rating}%</span>
+                            <span className="text-[10px] font-black text-white font-mono leading-none">{rating}%</span>
                           </div>
                         </div>
                       );
                     })()}
+
+                    {/* Chevron Indicator */}
+                    <ChevronDown 
+                      size={18} 
+                      className={`text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 
+                    />
                   </div>
+                </div>
 
-                  {/* Youth/Junior Flag */}
-                  {age < 17 && (
-                    <div className="mb-3 px-3 py-1 bg-cyan-950/20 border border-cyan-800/30 rounded-xl text-[10px] font-bold text-cyan-400 flex items-center gap-1">
-                      <Scaling size={12} />
-                      <span>معامل ناشئين مفعّل (خصم 15% من الحدود) 👶</span>
-                    </div>
-                  )}
-
-                  {/* Metrics Dashboard */}
-                  <div className="grid grid-cols-3 gap-2 border-t border-b border-gray-800/60 py-3 my-4 bg-black/15 rounded-2xl px-2">
-                    {/* CMJ Mini Gauge */}
-                    <div className="flex flex-col items-center justify-between text-center">
-                      <span className="text-[9px] text-gray-455 font-extrabold block mb-1">CMJ ثبات</span>
-                      {cmjVal ? (
-                        <>
-                          <span className="text-xs font-black text-white font-mono leading-none">
-                            {cmjVal.toFixed(1)} <span className="text-[9px] text-gray-450 font-normal">سم</span>
-                          </span>
-                          <span className="text-[9px] text-gray-500 font-mono mt-0.5">({cmjInches}")</span>
-                          {maxReachCmj && (
-                            <span className="text-[9px] text-cyan-400 font-bold mt-1">
-                              الوصول: {maxReachCmj} سم
-                            </span>
-                          )}
-                          <span className={`text-[8px] px-1.5 py-0.5 mt-1.5 rounded-md font-bold leading-none ${cmjStatus.color}`}>
-                            {cmjStatus.text.replace(/[🏆⭐⚡⚠️]/g, '').trim()}
-                          </span>
-                          {getComparisonBadge(cmjVal, teamAverages.cmj)}
-                        </>
-                      ) : (
-                        <span className="text-[10px] text-gray-600 font-bold mt-1.5">لم يقاس</span>
-                      )}
-                    </div>
-
-                    {/* Approach Mini Gauge */}
-                    <div className="flex flex-col items-center justify-between text-center border-r border-l border-gray-800/80">
-                      <span className="text-[9px] text-gray-455 font-extrabold block mb-1">Approach حركي</span>
-                      {approachVal ? (
-                        <>
-                          <span className="text-xs font-black text-white font-mono leading-none">
-                            {approachVal.toFixed(1)} <span className="text-[9px] text-gray-450 font-normal">سم</span>
-                          </span>
-                          <span className="text-[9px] text-gray-500 font-mono mt-0.5">({approachInches}")</span>
-                          {maxReachApproach && (
-                            <span className="text-[9px] text-cyan-400 font-bold mt-1">
-                              الوصول: {maxReachApproach} سم
-                            </span>
-                          )}
-                          <span className={`text-[8px] px-1.5 py-0.5 mt-1.5 rounded-md font-bold leading-none ${approachStatus.color}`}>
-                            {approachStatus.text.replace(/[🏆⭐⚡⚠️]/g, '').trim()}
-                          </span>
-                          {getComparisonBadge(approachVal, teamAverages.approach)}
-                        </>
-                      ) : (
-                        <span className="text-[10px] text-gray-600 font-bold mt-1.5">لم يقاس</span>
-                      )}
-                    </div>
-
-                    {/* RSI Mini Gauge */}
-                    <div className="flex flex-col items-center justify-between text-center">
-                      <span className="text-[9px] text-gray-455 font-extrabold block mb-1">RSI ارتداد</span>
-                      {rsiVal ? (
-                        <>
-                          <span className="text-xs font-black text-white font-mono leading-none">
-                            {rsiVal.toFixed(2)}
-                          </span>
-                          <span className="text-[9px] text-gray-500 font-normal mt-0.5">Index</span>
-                          <span className={`text-[8px] px-1.5 py-0.5 mt-1.5 rounded-md font-bold leading-none ${rsiStatus.color}`}>
-                            {rsiStatus.text.replace(/[🏆⭐⚡⚠️]/g, '').trim()}
-                          </span>
-                          {getComparisonBadge(rsiVal, teamAverages.rsi)}
-                        </>
-                      ) : (
-                        <span className="text-[10px] text-gray-600 font-bold mt-1.5">لم يقاس</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Expand Analysis Button */}
-                  <button 
-                    onClick={() => toggleExpand(player.id)}
-                    className="w-full py-2 bg-black/25 hover:bg-black/40 border border-gray-800 text-gray-405 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 mb-2 cursor-pointer"
-                  >
-                    <span>{isExpanded ? 'إخفاء التحليل الحركي 📊' : 'عرض التحليل الميكانيكي الحيوي 📊'}</span>
-                    <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {/* Expandable Critique Section */}
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="border-t border-gray-800/80 bg-black/10 rounded-2xl overflow-hidden mt-3"
-                      >
-                        <div className="p-4 space-y-3.5 text-xs text-right leading-relaxed">
-                          
-                          <div className="flex items-center gap-2 border-b border-gray-800/60 pb-1.5 mb-2">
-                            <Award className="text-cyan-455" size={14} />
-                            <h4 className="font-extrabold text-xs text-gray-205">التحليل الحركي والبدني التفصيلي</h4>
+                {/* Collapsible Content */}
+                <AnimatePresence initial={false}>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeInOut' }}
+                      className="overflow-hidden border-t border-gray-800/80 bg-black/10"
+                    >
+                      <div className="p-4 space-y-4">
+                        {/* Youth/Junior Flag */}
+                        {age < 17 && (
+                          <div className={`px-3 py-1.5 bg-cyan-950/20 border border-cyan-500/15 rounded-xl text-[10px] font-bold text-cyan-400 flex items-center gap-1.5 w-full ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+                            <Scaling size={12} />
+                            <span>{t.juniorFlag}</span>
                           </div>
-                          
+                        )}
+
+                        {/* Metrics Dashboard */}
+                        <div className="grid grid-cols-3 gap-2 py-3 bg-black/15 rounded-xl px-2">
+                          {/* CMJ Mini Gauge */}
+                          <div className="flex flex-col items-center justify-between text-center">
+                            <span className="text-[9px] text-gray-400 font-extrabold block mb-1">{t.cmjTitle}</span>
+                            {cmjVal ? (
+                              <>
+                                <span className="text-xs font-black text-white font-mono leading-none">
+                                  {cmjVal.toFixed(1)} <span className="text-[9px] text-gray-500 font-normal">{t.cm}</span>
+                                </span>
+                                <span className="text-[9px] text-gray-500 font-mono mt-0.5">({cmjInches}")</span>
+                                {maxReachCmj && (
+                                  <span className="text-[9px] text-cyan-400 font-bold mt-1">
+                                    {t.reach} {maxReachCmj} {t.cm}
+                                  </span>
+                                )}
+                                <span className={`text-[8px] px-1.5 py-0.5 mt-1.5 rounded-md font-bold leading-none ${cmjStatus.color}`}>
+                                  {cmjStatus.text.replace(/[🏆⭐⚡⚠️]/g, '').trim()}
+                                </span>
+                                {getComparisonBadge(cmjVal, teamAverages.cmj)}
+                              </>
+                            ) : (
+                              <span className="text-[10px] text-gray-600 font-bold mt-1.5">{t.notMeasured}</span>
+                            )}
+                          </div>
+
+                          {/* Approach Mini Gauge */}
+                          <div className="flex flex-col items-center justify-between text-center border-r border-l border-gray-800/80">
+                            <span className="text-[9px] text-gray-400 font-extrabold block mb-1">{t.approachTitle}</span>
+                            {approachVal ? (
+                              <>
+                                <span className="text-xs font-black text-white font-mono leading-none">
+                                  {approachVal.toFixed(1)} <span className="text-[9px] text-gray-500 font-normal">{t.cm}</span>
+                                </span>
+                                <span className="text-[9px] text-gray-500 font-mono mt-0.5">({approachInches}")</span>
+                                {maxReachApproach && (
+                                  <span className="text-[9px] text-cyan-400 font-bold mt-1">
+                                    {t.reach} {maxReachApproach} {t.cm}
+                                  </span>
+                                )}
+                                <span className={`text-[8px] px-1.5 py-0.5 mt-1.5 rounded-md font-bold leading-none ${approachStatus.color}`}>
+                                  {approachStatus.text.replace(/[🏆⭐⚡⚠️]/g, '').trim()}
+                                </span>
+                                {getComparisonBadge(approachVal, teamAverages.approach)}
+                              </>
+                            ) : (
+                              <span className="text-[10px] text-gray-600 font-bold mt-1.5">{t.notMeasured}</span>
+                            )}
+                          </div>
+
+                          {/* RSI Mini Gauge */}
+                          <div className="flex flex-col items-center justify-between text-center">
+                            <span className="text-[9px] text-gray-400 font-extrabold block mb-1">{t.rsiTitle}</span>
+                            {rsiVal ? (
+                              <>
+                                <span className="text-xs font-black text-white font-mono leading-none">
+                                  {rsiVal.toFixed(2)}
+                                </span>
+                                <span className="text-[9px] text-gray-500 font-normal mt-0.5">Index</span>
+                                <span className={`text-[8px] px-1.5 py-0.5 mt-1.5 rounded-md font-bold leading-none ${rsiStatus.color}`}>
+                                  {rsiStatus.text.replace(/[🏆⭐⚡⚠️]/g, '').trim()}
+                                </span>
+                                {getComparisonBadge(rsiVal, teamAverages.rsi)}
+                              </>
+                            ) : (
+                              <span className="text-[10px] text-gray-600 font-bold mt-1.5">{t.notMeasured}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Detailed Critique Section */}
+                        <div className={`space-y-3.5 text-xs leading-relaxed ${language === 'en' ? 'text-left' : 'text-right'}`}>
+                          <div className={`flex items-center gap-2 border-b border-gray-800/60 pb-1.5 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+                            <Award className="text-cyan-400" size={14} />
+                            <h4 className="font-extrabold text-xs text-gray-200">{t.detailedAnalysis}</h4>
+                          </div>
+
                           <div className="space-y-2.5">
-                            <div className="bg-cyan-950/20 border border-cyan-500/15 p-3 rounded-xl flex items-start gap-2">
-                              <HelpCircle size={14} className="text-cyan-450 shrink-0 mt-0.5" />
-                              <div>
-                                <span className="block font-black text-cyan-450 mb-0.5">الوضع المعياري الحالي:</span>
+                            <div className={`bg-cyan-950/20 border border-cyan-500/15 p-3 rounded-xl flex items-start gap-2 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+                              <HelpCircle size={14} className="text-cyan-455 shrink-0 mt-0.5" />
+                              <div className={`flex-1 ${language === 'en' ? 'text-left' : 'text-right'}`}>
+                                <span className="block font-black text-cyan-455 mb-0.5">{t.standardStatus}</span>
                                 <p className="text-gray-300 font-semibold">{critique.positionText}</p>
                               </div>
                             </div>
 
-                            <div className="bg-amber-950/20 border border-amber-500/15 p-3 rounded-xl flex items-start gap-2">
+                            <div className={`bg-amber-950/20 border border-amber-500/15 p-3 rounded-xl flex items-start gap-2 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
                               <Activity size={14} className="text-amber-400 shrink-0 mt-0.5" />
-                              <div>
-                                <span className="block font-black text-amber-400 mb-0.5">التشخيص الميكانيكي الحيوي:</span>
+                              <div className={`flex-1 ${language === 'en' ? 'text-left' : 'text-right'}`}>
+                                <span className="block font-black text-amber-400 mb-0.5">{t.biomechanicalDiag}</span>
                                 <p className="text-gray-300 font-semibold">{critique.diagnosisText}</p>
                               </div>
                             </div>
 
-                            <div className="bg-emerald-950/20 border border-emerald-500/15 p-3 rounded-xl flex items-start gap-2">
+                            <div className={`bg-emerald-950/20 border border-emerald-500/15 p-3 rounded-xl flex items-start gap-2 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
                               <Zap size={14} className="text-emerald-450 shrink-0 mt-0.5" />
-                              <div>
-                                <span className="block font-black text-emerald-450 mb-0.5">التوصيات التدريبية:</span>
+                              <div className={`flex-1 ${language === 'en' ? 'text-left' : 'text-right'}`}>
+                                <span className="block font-black text-emerald-450 mb-0.5">{t.trainingPresc}</span>
                                 <p className="text-gray-300 font-semibold">{critique.prescriptionText}</p>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
 
-                {/* Footer action button */}
-                <div className="mt-4 pt-3 border-t border-gray-800/40">
-                  <button
-                    onClick={() => {
-                      onSelectPlayer(player);
-                      onChangeTab('calculator');
-                    }}
-                    className="w-full py-3 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-405 text-white rounded-xl text-xs font-black shadow-lg hover:shadow-orange-500/10 active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <Play size={12} fill="currentColor" />
-                    <span>بدء قياسات الارتقاء للاعب ⏱️</span>
-                  </button>
-                </div>
+                        {/* Testing Button */}
+                        <div className="pt-3 border-t border-gray-800/40">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectPlayer(player);
+                              onChangeTab('calculator');
+                            }}
+                            className="w-full py-3 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white rounded-xl text-xs font-black shadow-lg hover:shadow-orange-500/10 active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <Play size={12} fill="currentColor" />
+                            <span>{t.startJumpBtn}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Floating Benchmarks Handbook Handbook Modal */}
+      {/* Floating Benchmarks Handbook Modal */}
       {showHandbookModal && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in text-right" style={{ direction: 'rtl' }}>
+        <div 
+          className={`fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in ${language === 'en' ? 'text-left' : 'text-right'}`} 
+          style={{ direction: language === 'en' ? 'ltr' : 'rtl' }}
+        >
           <div className="bg-[#0b1429] border border-gray-800 rounded-3xl p-6 w-full max-w-2xl shadow-2xl relative">
             <button 
               onClick={() => setShowHandbookModal(false)} 
-              className="absolute top-4 left-4 text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-gray-800 cursor-pointer"
+              className={`absolute top-4 ${language === 'en' ? 'right-4' : 'left-4'} text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-gray-800 cursor-pointer`}
             >
               <X size={18} />
             </button>
             
             <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 mb-4 border-b border-gray-850 pb-2 flex items-center gap-2">
-              <BookOpen className="text-cyan-400" size={22} /> دليل معايير الأداء والقياسات البيوميكانيكية
+              <BookOpen className="text-cyan-400" size={22} /> {t.modalTitle}
             </h2>
             
             {/* Modal Tabs */}
@@ -773,25 +983,25 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                 onClick={() => setActiveHandbookTab('men')}
                 className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${activeHandbookTab === 'men' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:text-white'}`}
               >
-                الرجال (Men)
+                {t.modalMen}
               </button>
               <button 
                 onClick={() => setActiveHandbookTab('women')}
                 className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${activeHandbookTab === 'women' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:text-white'}`}
               >
-                السيدات (Women)
+                {t.modalWomen}
               </button>
               <button 
                 onClick={() => setActiveHandbookTab('rsi')}
                 className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${activeHandbookTab === 'rsi' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:text-white'}`}
               >
-                مؤشر الارتداد (RSI)
+                {t.modalRsi}
               </button>
               <button 
                 onClick={() => setActiveHandbookTab('juniors')}
                 className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${activeHandbookTab === 'juniors' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:text-white'}`}
               >
-                الناشئين (Juniors)
+                {t.modalJuniors}
               </button>
             </div>
 
@@ -799,29 +1009,29 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
             <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
               {activeHandbookTab === 'men' && (
                 <div className="space-y-4">
-                  <p className="text-xs text-gray-405 leading-relaxed">
-                    المعايير المعتمدة لتقييم قفز الثبات العمودي (CMJ) لفئة الرجال البالغين (الكبار):
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    {t.menDesc}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div className="bg-[#111827]/40 border border-cyan-500/20 p-3 rounded-2xl">
-                      <span className="text-cyan-400 font-extrabold block">🏆 النخبة (Elite)</span>
-                      <p className="text-gray-200 font-bold mt-1 text-sm">أكثر من 34 إنش (86.4+ سم)</p>
-                      <p className="text-[10px] text-gray-405 mt-1">يمثل تصنيف المحترفين الدوليين واللاعبين الأولمبيين.</p>
+                      <span className="text-cyan-400 font-extrabold block">{t.menElite}</span>
+                      <p className="text-gray-200 font-bold mt-1 text-sm">{t.menEliteVal}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{t.menEliteDesc}</p>
                     </div>
                     <div className="bg-[#111827]/40 border border-emerald-500/20 p-3 rounded-2xl">
-                      <span className="text-emerald-400 font-extrabold block">⭐ ممتاز (Excellent)</span>
-                      <p className="text-gray-200 font-bold mt-1 text-sm">30 إلى 33.9 إنش (76.2 - 86.1 سم)</p>
-                      <p className="text-[10px] text-gray-405 mt-1">كفاءة بدنية ممتازة للاعبي الدوري الممتاز والدرجة الأولى.</p>
+                      <span className="text-emerald-400 font-extrabold block">{t.menExcellent}</span>
+                      <p className="text-gray-200 font-bold mt-1 text-sm">{t.menExcellentVal}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{t.menExcellentDesc}</p>
                     </div>
                     <div className="bg-[#111827]/40 border border-yellow-500/20 p-3 rounded-2xl">
-                      <span className="text-yellow-400 font-extrabold block">⚡ جيد (Good)</span>
-                      <p className="text-gray-200 font-bold mt-1 text-sm">26 إلى 29.9 إنش (66.0 - 75.9 سم)</p>
-                      <p className="text-[10px] text-gray-405 mt-1">الحد المتوسط المقبول للرياضي المحترف في الرياضات الجماعية.</p>
+                      <span className="text-yellow-400 font-extrabold block">{t.menGood}</span>
+                      <p className="text-gray-200 font-bold mt-1 text-sm">{t.menGoodVal}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{t.menGoodDesc}</p>
                     </div>
                     <div className="bg-[#111827]/40 border border-orange-500/20 p-3 rounded-2xl">
-                      <span className="text-orange-500 font-extrabold block">⚠️ يحتاج تطوير (Under-developed)</span>
-                      <p className="text-gray-200 font-bold mt-1 text-sm">أقل من 26 إنش (دون 66 سم)</p>
-                      <p className="text-[10px] text-gray-405 mt-1">يتطلب برنامجاً عاجلاً لتطوير إنتاج القوة الابتدائية والانفجارية.</p>
+                      <span className="text-orange-500 font-extrabold block">{t.menNeedsDev}</span>
+                      <p className="text-gray-200 font-bold mt-1 text-sm">{t.menNeedsDevVal}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{t.menNeedsDevDesc}</p>
                     </div>
                   </div>
                 </div>
@@ -829,29 +1039,29 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
 
               {activeHandbookTab === 'women' && (
                 <div className="space-y-4">
-                  <p className="text-xs text-gray-405 leading-relaxed">
-                    المعايير المعتمدة لتقييم قفز الثبات العمودي (CMJ) لفئة السيدات البالغات (الكبار):
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    {t.womenDesc}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div className="bg-[#111827]/40 border border-cyan-500/20 p-3 rounded-2xl">
-                      <span className="text-cyan-400 font-extrabold block">🏆 النخبة (Elite)</span>
-                      <p className="text-gray-200 font-bold mt-1 text-sm">أكثر من 26 إنش (66.0+ سم)</p>
-                      <p className="text-[10px] text-gray-405 mt-1">تصنيف اللاعبات الأولمبيات ومحترفات الصف الأول عالمياً.</p>
+                      <span className="text-cyan-400 font-extrabold block">{t.womenElite}</span>
+                      <p className="text-gray-200 font-bold mt-1 text-sm">{t.womenEliteVal}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{t.womenEliteDesc}</p>
                     </div>
                     <div className="bg-[#111827]/40 border border-emerald-500/20 p-3 rounded-2xl">
-                      <span className="text-emerald-400 font-extrabold block">⭐ ممتاز (Excellent)</span>
-                      <p className="text-gray-200 font-bold mt-1 text-sm">22 إلى 25.9 إنش (55.8 - 65.7 سم)</p>
-                      <p className="text-[10px] text-gray-405 mt-1">مستوى متميز جداً يلبي أعلى متطلبات المنافسة الاحترافية.</p>
+                      <span className="text-emerald-400 font-extrabold block">{t.womenExcellent}</span>
+                      <p className="text-gray-200 font-bold mt-1 text-sm">{t.womenExcellentVal}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{t.womenExcellentDesc}</p>
                     </div>
                     <div className="bg-[#111827]/40 border border-yellow-500/20 p-3 rounded-2xl">
-                      <span className="text-yellow-400 font-extrabold block">⚡ جيد (Good)</span>
-                      <p className="text-gray-200 font-bold mt-1 text-sm">18 إلى 21.9 إنش (45.7 - 55.6 سم)</p>
-                      <p className="text-[10px] text-gray-405 mt-1">الحد المقبول للاعبات الرياضات الجماعية في الدوري الممتاز.</p>
+                      <span className="text-yellow-400 font-extrabold block">{t.womenGood}</span>
+                      <p className="text-gray-200 font-bold mt-1 text-sm">{t.womenGoodVal}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{t.womenGoodDesc}</p>
                     </div>
                     <div className="bg-[#111827]/40 border border-orange-500/20 p-3 rounded-2xl">
-                      <span className="text-orange-550 font-extrabold block">⚠️ يحتاج تطوير (Under-developed)</span>
-                      <p className="text-gray-200 font-bold mt-1 text-sm">أقل من 18 إنش (دون 45.7 سم)</p>
-                      <p className="text-[10px] text-gray-405 mt-1">يشير لعجز قوة ويتطلب تركيزاً مكثفاً على تدريبات RFD وقوة الساقين.</p>
+                      <span className="text-orange-500 font-extrabold block">{t.womenNeedsDev}</span>
+                      <p className="text-gray-200 font-bold mt-1 text-sm">{t.womenNeedsDevVal}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{t.womenNeedsDevDesc}</p>
                     </div>
                   </div>
                 </div>
@@ -859,29 +1069,29 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
 
               {activeHandbookTab === 'rsi' && (
                 <div className="space-y-4">
-                  <p className="text-xs text-gray-405 leading-relaxed">
-                    مؤشر القوة الارتدادية التفاعلية (Reactive Strength Index - RSI) يقيس كفاءة دورة التمدد والتقلص العضلي الصلبة (SSC) أثناء قفز الهبوط (Drop Jump):
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    {t.rsiDesc}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div className="bg-[#111827]/40 border border-cyan-500/20 p-3 rounded-2xl">
-                      <span className="text-cyan-400 font-extrabold block">🏆 النخبة (Elite)</span>
-                      <p className="text-gray-200 font-bold mt-1 text-sm">RSI أعلى من 3.0</p>
-                      <p className="text-[10px] text-gray-405 mt-1">صلابة وتفاعل أوتار فائق مع تلامس سريع جداً مع الأرض.</p>
+                      <span className="text-cyan-400 font-extrabold block">{t.rsiElite}</span>
+                      <p className="text-gray-200 font-bold mt-1 text-sm">{t.rsiEliteVal}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{t.rsiEliteDesc}</p>
                     </div>
                     <div className="bg-[#111827]/40 border border-emerald-500/20 p-3 rounded-2xl">
-                      <span className="text-emerald-400 font-extrabold block">⭐ ممتاز (Excellent)</span>
-                      <p className="text-gray-200 font-bold mt-1 text-sm">RSI من 2.5 إلى 2.99</p>
-                      <p className="text-[10px] text-gray-405 mt-1">ارتداد عصبي عضلي سريع وقدرة تخزين طاقة مطاطية ممتازة.</p>
+                      <span className="text-emerald-400 font-extrabold block">{t.rsiExcellent}</span>
+                      <p className="text-gray-200 font-bold mt-1 text-sm">{t.rsiExcellentVal}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{t.rsiExcellentDesc}</p>
                     </div>
                     <div className="bg-[#111827]/40 border border-yellow-500/20 p-3 rounded-2xl">
-                      <span className="text-yellow-400 font-extrabold block">⚡ جيد (Good)</span>
-                      <p className="text-gray-200 font-bold mt-1 text-sm">RSI من 2.0 إلى 2.49</p>
-                      <p className="text-[10px] text-gray-405 mt-1">مستوى حركي متوازن يضمن الحماية من إصابات الكاحل والركبة.</p>
+                      <span className="text-yellow-400 font-extrabold block">{t.rsiGood}</span>
+                      <p className="text-gray-200 font-bold mt-1 text-sm">{t.rsiGoodVal}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{t.rsiGoodDesc}</p>
                     </div>
                     <div className="bg-[#111827]/40 border border-orange-500/20 p-3 rounded-2xl">
-                      <span className="text-orange-550 font-extrabold block">⚠️ يحتاج تطوير (Under-developed)</span>
-                      <p className="text-gray-200 font-bold mt-1 text-sm">RSI أقل من 2.0</p>
-                      <p className="text-[10px] text-gray-405 mt-1">يدل على بطء الامتصاص وتمدد الأربطة وزيادة خطر الإصابات.</p>
+                      <span className="text-orange-500 font-extrabold block">{t.rsiNeedsDev}</span>
+                      <p className="text-gray-200 font-bold mt-1 text-sm">{t.rsiNeedsDevVal}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{t.rsiNeedsDevDesc}</p>
                     </div>
                   </div>
                 </div>
@@ -889,18 +1099,18 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
 
               {activeHandbookTab === 'juniors' && (
                 <div className="bg-cyan-950/25 border border-cyan-800/35 p-5 rounded-2xl space-y-3">
-                  <div className="flex items-center gap-2">
+                  <div className={`flex items-center gap-2 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
                     <Scaling className="text-cyan-400 shrink-0" size={20} />
-                    <h4 className="font-extrabold text-cyan-400 text-sm">تطبيق معامل نضوج الناشئين (Junior Maturity Adjustment)</h4>
+                    <h4 className="font-extrabold text-cyan-400 text-sm">{t.juniorsTitle}</h4>
                   </div>
                   <p className="text-xs text-gray-300 leading-relaxed font-semibold">
-                    من الناحية البيوميكانيكية، يمر الرياضيون تحت سن 17 عاماً بفترات نمو عظمي وتغيرات في مراكز ثقل الجسم، وبالتالي يقل تفعيلهم للمخازن المطاطية مقارنة بالكبار.
+                    {t.juniorsDesc}
                   </p>
                   <p className="text-xs text-gray-300 leading-relaxed font-bold">
-                    لتحقيق إنصاف تقييمي، يطبق نظام "The Lab" تلقائياً معامل تصغير تبلغ قيمته <span className="text-cyan-400 font-mono font-bold">0.85</span> (خصم 15% من حدود الصعوبة) على جميع جداول التقييم عند استشعار تاريخ ميلاد يقل صاحبه عن 17 عاماً.
+                    {t.juniorsFormula}
                   </p>
                   <div className="bg-black/35 p-3 rounded-xl border border-gray-800 font-mono text-[11px] text-cyan-300 text-center">
-                    {"حدود النخبة للناشئين = الحدود الأصلية × 0.85"}
+                    {t.juniorsLabel}
                   </div>
                 </div>
               )}
