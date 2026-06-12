@@ -1178,13 +1178,13 @@ export default function JumpTestingConsole({
       recorder.start();
       exportVideo.play();
 
-      const barHeight = canvas.height * 0.7;
-      const barY = canvas.height * 0.15;
+      const groundY = canvas.height * 0.78;
+      const topY = canvas.height * 0.15;
+      const barHeight = groundY - topY;
       const maxScaleCm = Math.max(50, Math.ceil((jumpHeight + 20) / 10) * 10);
 
       const getYForHeight = (h) => {
-        const ratio = h / maxScaleCm;
-        return (barY + barHeight) - (ratio * barHeight);
+        return groundY - (h / maxScaleCm) * barHeight;
       };
 
       const drawOverlay = () => {
@@ -1233,8 +1233,8 @@ export default function JumpTestingConsole({
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.moveTo(canvas.width - 45, barY);
-        ctx.lineTo(canvas.width - 45, barY + barHeight);
+        ctx.moveTo(canvas.width - 45, topY);
+        ctx.lineTo(canvas.width - 45, groundY);
         ctx.stroke();
 
         // Draw tick marks & values
@@ -1244,24 +1244,53 @@ export default function JumpTestingConsole({
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
         ctx.lineWidth = 1.5;
 
-        for (let h = 0; h <= maxScaleCm; h += 10) {
+        // Draw "cm" header unit above the ruler
+        ctx.fillStyle = '#06b6d4';
+        ctx.font = 'bold 11px Cairo';
+        ctx.fillText('cm', canvas.width - 55, topY - 8);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px Cairo';
+
+        for (let h = 0; h <= maxScaleCm; h += 2) {
           const y = getYForHeight(h);
+          if (y < topY || y > groundY) continue;
+
           ctx.beginPath();
-          ctx.moveTo(canvas.width - 55, y);
-          ctx.lineTo(canvas.width - 45, y);
-          ctx.stroke();
-          ctx.fillText(`${h} cm`, canvas.width - 65, y + 4);
+          if (h % 10 === 0) {
+            // Major Tick
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.moveTo(canvas.width - 58, y);
+            ctx.lineTo(canvas.width - 45, y);
+            ctx.stroke();
+            ctx.fillText(`${h}`, canvas.width - 64, y + 4);
+          } else if (h % 5 === 0) {
+            // Minor Tick
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.moveTo(canvas.width - 52, y);
+            ctx.lineTo(canvas.width - 45, y);
+            ctx.stroke();
+          } else {
+            // Sub-minor Tick
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.moveTo(canvas.width - 49, y);
+            ctx.lineTo(canvas.width - 45, y);
+            ctx.stroke();
+          }
         }
         ctx.restore();
 
         const yVal = getYForHeight(currentHeight);
-        const activeHeight = (barY + barHeight) - yVal;
+        const activeHeight = groundY - yVal;
         if (activeHeight > 0) {
           ctx.save();
           // Glow effect for the filling bar
           ctx.shadowColor = '#06b6d4';
           ctx.shadowBlur = 12;
-          const grad = ctx.createLinearGradient(0, barY + barHeight, 0, yVal);
+          const grad = ctx.createLinearGradient(0, groundY, 0, yVal);
           grad.addColorStop(0, '#06b6d4');
           grad.addColorStop(1, '#14b8a6');
           ctx.fillStyle = grad;
@@ -1287,7 +1316,7 @@ export default function JumpTestingConsole({
           ctx.restore();
         }
 
-        const labelY = barY - 30;
+        const labelY = topY - 30;
         ctx.save();
         ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
         ctx.shadowBlur = 6;

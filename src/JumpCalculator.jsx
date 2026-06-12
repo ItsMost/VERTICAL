@@ -1333,12 +1333,12 @@ export default function JumpCalculator() {
   };
 
   const tabs = [
-    { id: 'team', name: 'Roster Dashboard', icon: Users },
-    { id: 'calculator', name: 'Vertical Jump', icon: Activity },
-    { id: 'rsi', name: 'RSI Calculator', icon: Zap },
-    { id: 'fvp', name: 'FVP Curve', icon: LineChart },
-    { id: 'leaderboard', name: 'Leaderboard', icon: Trophy },
-    { id: 'profile', name: 'Athlete Profile', icon: UserCircle }
+    { id: 'team', name: 'Roster Dashboard', shortName: 'Roster', icon: Users },
+    { id: 'calculator', name: 'Vertical Jump', shortName: 'Jump', icon: Activity },
+    { id: 'rsi', name: 'RSI Calculator', shortName: 'RSI', icon: Zap },
+    { id: 'fvp', name: 'FVP Curve', shortName: 'FVP', icon: LineChart },
+    { id: 'profile', name: 'Athlete Profile', shortName: 'Profile', icon: UserCircle },
+    { id: 'leaderboard', name: 'Leaderboard', shortName: 'Leader', icon: Trophy }
   ];
 
   return (
@@ -1546,7 +1546,7 @@ export default function JumpCalculator() {
         </main>
 
         {/* ================= FLOATING GLASSMORPHIC DOCK NAVIGATION ================= */}
-        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-fit max-w-[95%] bg-[#0a1224]/85 backdrop-blur-xl border border-[var(--border-color)] rounded-full px-4 sm:px-6 py-2 sm:py-2.5 flex items-center gap-4 sm:gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-fit max-w-[98%] bg-[#0a1224]/85 backdrop-blur-xl border border-[var(--border-color)] rounded-full px-2.5 sm:px-6 py-1.5 sm:py-2.5 flex items-center gap-1.5 xs:gap-3 sm:gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -1556,15 +1556,16 @@ export default function JumpCalculator() {
               key={tab.id}
               disabled={isDisabled}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex flex-col items-center justify-center px-4 py-1 rounded-2xl transition-all duration-300 select-none
+              className={`relative flex flex-col items-center justify-center px-1.5 xs:px-3 sm:px-4 py-1 rounded-2xl transition-all duration-300 select-none
                 ${isActive 
                   ? 'text-cyan-400 scale-110 font-black' 
                   : isDisabled 
                     ? 'text-gray-600 cursor-not-allowed opacity-30' 
                     : 'text-gray-400 hover:text-white hover:scale-105'}`}
             >
-              <Icon size={20} />
-              <span className="text-[10px] mt-1 font-bold">{tab.name}</span>
+              <Icon className="w-4 h-4 sm:w-5 sm:h-5" size={undefined} />
+              <span className="hidden sm:inline text-[10px] mt-1 font-bold">{tab.name}</span>
+              <span className="inline sm:hidden text-[8px] xs:text-[9px] mt-1 font-bold">{tab.shortName}</span>
               {isActive && (
                 <motion.div 
                   layoutId="active-dock-indicator"
