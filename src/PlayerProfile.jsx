@@ -288,12 +288,24 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       date: new Date(jump.created_at).toLocaleDateString('ar-EG')
     }));
 
-  const heightCm = latestJump ? parseFloat(latestJump.jump_height_cm) : 0;
+  // Find the personal best vertical jump (highest jump height where test_type is not 'rsi')
+  const pbJump = playerHistory && playerHistory.length > 0
+    ? playerHistory.filter(j => j.test_type !== 'rsi' && parseFloat(j.jump_height_cm) > 0)
+        .reduce((best, current) => {
+          if (!best) return current;
+          return parseFloat(current.jump_height_cm) > parseFloat(best.jump_height_cm) ? current : best;
+        }, null)
+    : null;
+
+  // Use personal best jump for Visual Cockpit metrics, fallback to latest jump if none
+  const cockpitJump = pbJump || latestJump;
+
+  const heightCm = cockpitJump ? parseFloat(cockpitJump.jump_height_cm) : 0;
   const heightInches = parseFloat((heightCm * 0.393701).toFixed(1));
-  const flightTime = latestJump ? parseFloat(latestJump.flight_time_sec) : 0;
-  const velocity = latestJump ? parseFloat(latestJump.takeoff_velocity_ms) : 0;
-  const peakPower = latestJump ? parseFloat(latestJump.peak_power_watts) : 0;
-  const meanPower = latestJump ? parseFloat(latestJump.mean_power_watts) : 0;
+  const flightTime = cockpitJump ? parseFloat(cockpitJump.flight_time_sec) : 0;
+  const velocity = cockpitJump ? parseFloat(cockpitJump.takeoff_velocity_ms) : 0;
+  const peakPower = cockpitJump ? parseFloat(cockpitJump.peak_power_watts) : 0;
+  const meanPower = cockpitJump ? parseFloat(cockpitJump.mean_power_watts) : 0;
   const relativePower = activePlayer.weight_kg > 0 ? parseFloat((peakPower / activePlayer.weight_kg).toFixed(1)) : 0;
 
   const evalHeight = evaluateMetric('jump_in', heightInches);

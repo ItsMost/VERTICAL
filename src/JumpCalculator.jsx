@@ -1342,11 +1342,11 @@ export default function JumpCalculator() {
   ];
 
   return (
-    <div data-theme={colorMode} className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] p-4 md:p-6 pb-12 transition-all duration-300 text-shadow-contrast" style={{ direction: "rtl" }}>
-      <div className="w-full max-w-7xl mx-auto flex flex-col gap-6">
+    <div data-theme={colorMode} className="h-screen overflow-hidden flex flex-col bg-[var(--bg-base)] text-[var(--text-primary)] transition-all duration-300 text-shadow-contrast" style={{ direction: "rtl" }}>
+      <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col overflow-hidden p-4 md:p-6 pb-2 gap-4">
         
         {/* ================= TOP DYNAMIC CONTROL HUD ================= */}
-        <header className="relative z-[110] w-full bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-color)] p-4 rounded-3xl flex flex-col lg:flex-row items-center justify-between gap-4 shadow-xl">
+        <header className="relative z-[110] w-full bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-color)] p-4 rounded-3xl flex flex-col lg:flex-row items-center justify-between gap-4 shadow-xl shrink-0">
           {/* Logo & App Branding */}
           <div className="flex items-center justify-between lg:justify-start w-full lg:w-auto gap-4">
             <div className="flex items-center gap-3">
@@ -1492,7 +1492,7 @@ export default function JumpCalculator() {
         </header>
 
         {/* ================= MAIN CONTENT WORKSPACE ================= */}
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 min-w-0 overflow-y-auto pr-1 pb-24 md:pb-20">
           <AnimatePresence mode="wait">
             {activeTab === 'team' ? (
               <motion.div key="team" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
@@ -1544,10 +1544,9 @@ export default function JumpCalculator() {
             )}
           </AnimatePresence>
         </main>
-      </div>
 
-      {/* ================= FLOATING GLASSMORPHIC DOCK NAVIGATION ================= */}
-      <nav className="mt-8 mb-6 mx-auto w-fit bg-[#0a1224]/85 backdrop-blur-xl border border-[var(--border-color)] rounded-full px-6 py-2.5 flex items-center gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative z-[100]">
+        {/* ================= FLOATING GLASSMORPHIC DOCK NAVIGATION ================= */}
+        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-fit max-w-[95%] bg-[#0a1224]/85 backdrop-blur-xl border border-[var(--border-color)] rounded-full px-4 sm:px-6 py-2 sm:py-2.5 flex items-center gap-4 sm:gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -1577,6 +1576,7 @@ export default function JumpCalculator() {
           );
         })}
       </nav>
+      </div>
 
       {/* New Athlete Modal Dialog */}
       <AnimatePresence>

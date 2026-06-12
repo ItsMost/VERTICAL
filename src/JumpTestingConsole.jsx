@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import useJumpMechanics from './useJumpMechanics';
 import { 
-  Activity, Zap, ScanEye, X, Play, Pause, Focus, Save, Award, HelpCircle, Scaling
+  Activity, Zap, ScanEye, X, Play, Pause, Focus, Save, Award, HelpCircle, Scaling, Video
 } from 'lucide-react';
 
 const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
@@ -67,6 +67,8 @@ export default function JumpTestingConsole({
 
   const [saveJumpTag, setSaveJumpTag] = useState('sj_no_arms');
   const [isSaving, setIsSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
 
   const [landingCorrectionMode, setLandingCorrectionMode] = useState('none');
   const [jumpPhases, setJumpPhases] = useState(null);
@@ -1112,6 +1114,217 @@ export default function JumpTestingConsole({
     localStorage.setItem(`standing_reach_${selectedPlayerId}`, val);
   };
 
+  const handleExportVideoWithOverlay = async () => {
+    if (!videoSrc) return alert("الرجاء تحميل فيديو أولاً.");
+    if (!stats || !stats.heightCm || takeoffTime <= 0 || landingTime <= 0) {
+      return alert("الرجاء تحديد زمن الإقلاع والهبوط واستخراج التحليل أولاً.");
+    }
+
+    try {
+      setIsExporting(true);
+      setExportProgress(0);
+
+      const exportVideo = document.createElement('video');
+      exportVideo.src = videoSrc;
+      exportVideo.muted = true;
+      exportVideo.playsInline = true;
+
+      await new Promise((resolve, reject) => {
+        exportVideo.onloadedmetadata = resolve;
+        exportVideo.onerror = reject;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = exportVideo.videoWidth || 1280;
+      canvas.height = exportVideo.videoHeight || 720;
+      const ctx = canvas.getContext('2d');
+
+      const jumpHeight = parseFloat(stats.heightCm) || 0;
+      const flightTime = parseFloat(stats.flightTime) || 0.5;
+
+      const paddingTime = 1.0;
+      const startTime = Math.max(0, takeoffTime - paddingTime);
+      const endTime = Math.min(exportVideo.duration, landingTime + paddingTime);
+
+      exportVideo.currentTime = startTime;
+      await new Promise((resolve) => {
+        exportVideo.onseeked = resolve;
+      });
+
+      const stream = canvas.captureStream(30);
+      let options = { mimeType: 'video/webm;codecs=vp9' };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: 'video/webm' };
+      }
+      const recorder = new MediaRecorder(stream, options);
+      const chunks = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `TheLab_Jump_${activePlayer?.full_name || 'Athlete'}_${jumpHeight.toFixed(1)}cm.webm`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setIsExporting(false);
+      };
+
+      recorder.start();
+      exportVideo.play();
+
+      const barHeight = canvas.height * 0.7;
+      const barY = canvas.height * 0.15;
+      const maxScaleCm = Math.max(50, Math.ceil((jumpHeight + 20) / 10) * 10);
+
+      const getYForHeight = (h) => {
+        const ratio = h / maxScaleCm;
+        return (barY + barHeight) - (ratio * barHeight);
+      };
+
+      const drawOverlay = () => {
+        if (exportVideo.paused || exportVideo.ended || exportVideo.currentTime >= endTime) {
+          recorder.stop();
+          exportVideo.pause();
+          return;
+        }
+
+        ctx.drawImage(exportVideo, 0, 0, canvas.width, canvas.height);
+
+        ctx.strokeStyle = 'rgba(6, 182, 212, 0.08)';
+        ctx.lineWidth = 1;
+        for (let h = 10; h <= maxScaleCm; h += 10) {
+          const y = getYForHeight(h);
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+
+        const t = exportVideo.currentTime;
+        let currentHeight = 0;
+        const t_takeoff = takeoffTime;
+        const t_flight = landingTime - takeoffTime;
+        const t_peak = t_takeoff + 0.5 * t_flight;
+
+        if (t < t_takeoff) {
+          currentHeight = 0;
+        } else if (t >= t_takeoff && t < t_peak) {
+          const tau = t - t_takeoff;
+          const t_half = 0.5 * t_flight;
+          const progressRatio = tau / t_half;
+          currentHeight = jumpHeight * (2 * progressRatio - progressRatio * progressRatio);
+        } else {
+          currentHeight = jumpHeight;
+        }
+
+        ctx.fillStyle = 'rgba(7, 10, 19, 0.65)';
+        ctx.fillRect(canvas.width - 150, 0, 150, canvas.height);
+        ctx.strokeStyle = 'rgba(6, 182, 212, 0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - 150, 0);
+        ctx.lineTo(canvas.width - 150, canvas.height);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - 45, barY);
+        ctx.lineTo(canvas.width - 45, barY + barHeight);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.font = 'bold 11px Cairo';
+        ctx.textAlign = 'right';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 1;
+
+        for (let h = 0; h <= maxScaleCm; h += 10) {
+          const y = getYForHeight(h);
+          ctx.beginPath();
+          ctx.moveTo(canvas.width - 55, y);
+          ctx.lineTo(canvas.width - 45, y);
+          ctx.stroke();
+          ctx.fillText(`${h} cm`, canvas.width - 65, y + 4);
+        }
+
+        const yVal = getYForHeight(currentHeight);
+        const activeHeight = (barY + barHeight) - yVal;
+        if (activeHeight > 0) {
+          const grad = ctx.createLinearGradient(0, barY + barHeight, 0, yVal);
+          grad.addColorStop(0, '#06b6d4');
+          grad.addColorStop(1, '#14b8a6');
+          ctx.fillStyle = grad;
+          ctx.fillRect(canvas.width - 42, yVal, 10, activeHeight);
+
+          ctx.shadowColor = '#06b6d4';
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(canvas.width - 45, yVal - 1, 16, 3);
+          ctx.shadowBlur = 0;
+        }
+
+        if (t >= t_peak) {
+          ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(0, getYForHeight(jumpHeight));
+          ctx.lineTo(canvas.width - 150, getYForHeight(jumpHeight));
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        const labelY = barY - 30;
+        ctx.fillStyle = 'rgba(10, 18, 36, 0.85)';
+        ctx.strokeStyle = '#06b6d4';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(canvas.width - 135, labelY - 15, 115, 28, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 13px Cairo';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${currentHeight.toFixed(1)} cm`, canvas.width - 77, labelY + 3);
+
+        if (t >= t_peak) {
+          ctx.shadowColor = '#f59e0b';
+          ctx.shadowBlur = 8;
+          ctx.fillStyle = '#f59e0b';
+          ctx.font = '900 10px Cairo';
+          ctx.fillText('PEAK JUMP 👑', canvas.width - 77, labelY - 22);
+          ctx.shadowBlur = 0;
+        }
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.font = '10px Cairo';
+        ctx.textAlign = 'center';
+        ctx.fillText('THE LAB v2.0', canvas.width - 77, canvas.height - 20);
+
+        const elapsed = exportVideo.currentTime - startTime;
+        const total = endTime - startTime;
+        const progress = Math.min(99, Math.round((elapsed / total) * 100));
+        setExportProgress(progress);
+
+        requestAnimationFrame(drawOverlay);
+      };
+
+      requestAnimationFrame(drawOverlay);
+
+    } catch (err) {
+      alert("حدث خطأ أثناء تصدير الفيديو: " + err.message);
+      setIsExporting(false);
+    }
+  };
+
   const renderDesktopView = () => {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -2047,10 +2260,18 @@ export default function JumpTestingConsole({
             )}
 
             {/* Save results controls */}
-            <div className="pt-4">
-              <button onClick={saveMeasurement} disabled={isSaving} className="w-full py-4 btn-orange-gradient flex items-center justify-center gap-2 font-black text-sm rounded-2xl cursor-pointer">
+            <div className="pt-4 flex flex-col sm:flex-row gap-4">
+              <button onClick={saveMeasurement} disabled={isSaving} className="flex-1 py-4 btn-orange-gradient flex items-center justify-center gap-2 font-black text-sm rounded-2xl cursor-pointer">
                 <Save size={18} />
                 {isSaving ? 'جاري الحفظ...' : 'حفظ النتيجة في سجل اللاعب'}
+              </button>
+              <button 
+                onClick={handleExportVideoWithOverlay} 
+                disabled={isExporting} 
+                className="flex-1 py-4 bg-cyan-600/30 border border-cyan-500/50 hover:bg-cyan-600/50 text-cyan-400 flex items-center justify-center gap-2 font-black text-sm rounded-2xl cursor-pointer transition-all disabled:opacity-50"
+              >
+                <Video size={18} />
+                {isExporting ? `جاري التصدير (${exportProgress}%)...` : 'تصدير فيديو التحليل 🎥'}
               </button>
             </div>
           </div>
@@ -2693,10 +2914,18 @@ export default function JumpTestingConsole({
             )}
 
             {/* Save Button */}
-            <div className="pt-2">
+            <div className="pt-2 flex flex-col gap-2">
               <button onClick={saveMeasurement} disabled={isSaving} className="w-full py-3.5 btn-orange-gradient flex items-center justify-center gap-2 font-black text-xs rounded-xl cursor-pointer">
                 <Save size={16} />
                 {isSaving ? 'جاري الحفظ...' : 'حفظ النتيجة في سجل اللاعب'}
+              </button>
+              <button 
+                onClick={handleExportVideoWithOverlay} 
+                disabled={isExporting} 
+                className="w-full py-3.5 bg-cyan-600/30 border border-cyan-500/50 hover:bg-cyan-600/50 text-cyan-400 flex items-center justify-center gap-2 font-black text-xs rounded-xl cursor-pointer transition-all disabled:opacity-50"
+              >
+                <Video size={16} />
+                {isExporting ? `جاري التصدير (${exportProgress}%)...` : 'تصدير فيديو التحليل 🎥'}
               </button>
             </div>
           </div>
@@ -2708,6 +2937,44 @@ export default function JumpTestingConsole({
   return (
     <div className="glass-panel p-4 md:p-6 shadow-2xl transition-all duration-300 relative text-right animate-fade-in" style={{ direction: 'rtl' }}>
       {isMobile ? renderMobileView() : renderDesktopView()}
+
+      {/* Fullscreen Export Progress Overlay */}
+      {isExporting && (
+        <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md text-white p-6">
+          <div className="bg-[#0b1329] border border-cyan-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(6,182,212,0.15)] animate-fade-in">
+            <div className="relative w-20 h-20">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="34"
+                  stroke="rgba(255,255,255,0.05)"
+                  strokeWidth="6"
+                  fill="transparent"
+                />
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="34"
+                  stroke="#06b6d4"
+                  strokeWidth="6"
+                  fill="transparent"
+                  strokeDasharray={2 * Math.PI * 34}
+                  strokeDashoffset={2 * Math.PI * 34 * (1 - exportProgress / 100)}
+                  className="transition-all duration-200"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center font-black text-lg text-cyan-400 font-mono">
+                {exportProgress}%
+              </div>
+            </div>
+            <h3 className="text-lg font-black text-white mt-2">جاري تصدير فيديو التحليل 🎥</h3>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              يرجى الانتظار بينما نقوم بتركيب شريط الارتفاع المضيء والمنحنى الميكانيكي الحيوي على الفيديو الخاص بك...
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
