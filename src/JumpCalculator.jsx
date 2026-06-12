@@ -1442,11 +1442,11 @@ export default function JumpCalculator() {
               <button
                 type="button"
                 onClick={() => setIsSelectorOpen(!isSelectorOpen)}
-                className="w-full bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-xl py-2.5 pr-10 pl-3 outline-none focus:ring-2 focus:ring-[var(--brand-main)] transition-all cursor-pointer font-bold text-right text-xs flex items-center justify-between"
+                className={`w-full bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-xl py-2.5 ${language === 'en' ? 'pl-10 pr-3 text-left' : 'pr-10 pl-3 text-right'} outline-none focus:ring-2 focus:ring-[var(--brand-main)] transition-all cursor-pointer font-bold text-xs flex items-center justify-between`}
               >
-                <span className="flex items-center gap-2">
+                <span className={`flex items-center gap-2 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
                   <UserCircle size={16} className="text-gray-400" />
-                  {activePlayer ? activePlayer.full_name : '-- اختر رياضي للبدء --'}
+                  {activePlayer ? activePlayer.full_name : (language === 'en' ? '-- Select athlete to start --' : '-- اختر رياضي للبدء --')}
                 </span>
                 <ChevronDown size={14} className={`text-gray-400 transition-transform ${isSelectorOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -1455,7 +1455,7 @@ export default function JumpCalculator() {
                 {isSelectorOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsSelectorOpen(false)} />
-                    <div className="absolute right-0 z-50 mt-1.5 w-full bg-[#0b1429]/95 border border-[var(--border-color)] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md max-h-72 overflow-y-auto">
+                    <div className={`absolute ${language === 'en' ? 'left-0' : 'right-0'} z-50 mt-1.5 w-full bg-[#0b1429]/95 border border-[var(--border-color)] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md max-h-72 overflow-y-auto`}>
                       {coaches.map(coach => {
                         const coachPlayers = players.filter(p => p.coach_id === coach.id);
                         const isExpanded = !!expandedCoaches[coach.id];
@@ -1464,7 +1464,7 @@ export default function JumpCalculator() {
                             <button
                               type="button"
                               onClick={() => toggleCoachSelector(coach.id)}
-                              className="w-full px-3 py-2 bg-black/20 hover:bg-black/40 flex items-center justify-between text-xs font-bold text-cyan-400"
+                              className={`w-full px-3 py-2 bg-black/20 hover:bg-black/40 flex items-center justify-between text-xs font-bold text-cyan-400 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
                             >
                               <span>👤 {coach.full_name} ({coachPlayers.length})</span>
                               <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -1480,13 +1480,13 @@ export default function JumpCalculator() {
                                       handlePlayerSelect({ target: { value: p.id } });
                                       setIsSelectorOpen(false);
                                     }}
-                                    className={`w-full px-5 py-2 text-right text-xs hover:bg-cyan-500/10 transition-colors block ${selectedPlayerId === p.id ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-300'}`}
+                                    className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-cyan-500/10 transition-colors block ${selectedPlayerId === p.id ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-300'}`}
                                   >
                                     {p.full_name}
                                   </button>
                                 ))}
                                 {coachPlayers.length === 0 && (
-                                  <span className="block px-5 py-2 text-[10px] text-gray-500 text-right">لا يوجد لاعبين مسجلين للمدرب</span>
+                                  <span className={`block px-5 py-2 text-[10px] text-gray-500 ${language === 'en' ? 'text-left' : 'text-right'}`}>{language === 'en' ? 'No registered athletes for coach' : 'لا يوجد لاعبين مسجلين للمدرب'}</span>
                                 )}
                               </div>
                             )}
@@ -1502,9 +1502,9 @@ export default function JumpCalculator() {
                             <button
                               type="button"
                               onClick={() => toggleCoachSelector('unassigned')}
-                              className="w-full px-3 py-2 bg-black/20 hover:bg-black/40 flex items-center justify-between text-xs font-bold text-gray-400"
+                              className={`w-full px-3 py-2 bg-black/20 hover:bg-black/40 flex items-center justify-between text-xs font-bold text-gray-400 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
                             >
-                              <span>👤 لاعبون بدون مدرب ({unassignedPlayers.length})</span>
+                              <span>👤 {language === 'en' ? 'Unassigned athletes' : 'لاعبون بدون مدرب'} ({unassignedPlayers.length})</span>
                               <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                             </button>
                             {isExpanded && (
@@ -1517,7 +1517,7 @@ export default function JumpCalculator() {
                                       handlePlayerSelect({ target: { value: p.id } });
                                       setIsSelectorOpen(false);
                                     }}
-                                    className={`w-full px-5 py-2 text-right text-xs hover:bg-cyan-500/10 transition-colors block ${selectedPlayerId === p.id ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-300'}`}
+                                    className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-cyan-500/10 transition-colors block ${selectedPlayerId === p.id ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-300'}`}
                                   >
                                     {p.full_name}
                                   </button>
@@ -1601,9 +1601,13 @@ export default function JumpCalculator() {
             ) : (
               <motion.div key="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="glass-panel p-16 text-center text-gray-400 shadow-2xl flex flex-col items-center justify-center transition-colors duration-500">
                 <ScanEye size={64} className="text-cyan-500 mb-4 opacity-50 animate-pulse" />
-                <h2 className="text-2xl font-black text-[var(--text-primary)] mb-2">مرحباً بك في مختبر الأداء 🧪</h2>
+                <h2 className="text-2xl font-black text-[var(--text-primary)] mb-2">
+                  {language === 'en' ? 'Welcome to Performance Lab 🧪' : 'مرحباً بك في مختبر الأداء 🧪'}
+                </h2>
                 <p className="max-w-md mx-auto leading-relaxed">
-                  الرجاء اختيار لاعب من القائمة بالأعلى أو تسجيل لاعب جديد لبدء اختبارات الميكانيكا الحيوية والقدرة الحركية.
+                  {language === 'en' 
+                    ? 'Please select an athlete from the dropdown list above or register a new one to begin biomechanics and physical capacity testing.' 
+                    : 'الرجاء اختيار لاعب من القائمة بالأعلى أو تسجيل لاعب جديد لبدء اختبارات الميكانيكا الحيوية والقدرة الحركية.'}
                 </p>
               </motion.div>
             )}
