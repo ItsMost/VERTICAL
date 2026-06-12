@@ -1223,27 +1223,26 @@ export default function JumpTestingConsole({
           currentHeight = jumpHeight;
         }
 
-        ctx.fillStyle = 'rgba(7, 10, 19, 0.65)';
-        ctx.fillRect(canvas.width - 150, 0, 150, canvas.height);
-        ctx.strokeStyle = 'rgba(6, 182, 212, 0.2)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(canvas.width - 150, 0);
-        ctx.lineTo(canvas.width - 150, canvas.height);
-        ctx.stroke();
+        // Draw vertical scale line on the right margin with dark text outline/shadow for readability
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.moveTo(canvas.width - 45, barY);
         ctx.lineTo(canvas.width - 45, barY + barHeight);
         ctx.stroke();
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.font = 'bold 11px Cairo';
+        // Draw tick marks & values
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Cairo';
         ctx.textAlign = 'right';
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.lineWidth = 1.5;
 
         for (let h = 0; h <= maxScaleCm; h += 10) {
           const y = getYForHeight(h);
@@ -1253,61 +1252,75 @@ export default function JumpTestingConsole({
           ctx.stroke();
           ctx.fillText(`${h} cm`, canvas.width - 65, y + 4);
         }
+        ctx.restore();
 
         const yVal = getYForHeight(currentHeight);
         const activeHeight = (barY + barHeight) - yVal;
         if (activeHeight > 0) {
+          ctx.save();
+          // Glow effect for the filling bar
+          ctx.shadowColor = '#06b6d4';
+          ctx.shadowBlur = 12;
           const grad = ctx.createLinearGradient(0, barY + barHeight, 0, yVal);
           grad.addColorStop(0, '#06b6d4');
           grad.addColorStop(1, '#14b8a6');
           ctx.fillStyle = grad;
           ctx.fillRect(canvas.width - 42, yVal, 10, activeHeight);
 
-          ctx.shadowColor = '#06b6d4';
-          ctx.shadowBlur = 10;
+          // Glowing white cap
           ctx.fillStyle = '#ffffff';
           ctx.fillRect(canvas.width - 45, yVal - 1, 16, 3);
-          ctx.shadowBlur = 0;
+          ctx.restore();
         }
 
         if (t >= t_peak) {
-          ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
-          ctx.lineWidth = 1.5;
-          ctx.setLineDash([4, 4]);
+          ctx.save();
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+          ctx.shadowBlur = 4;
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
           ctx.beginPath();
           ctx.moveTo(0, getYForHeight(jumpHeight));
-          ctx.lineTo(canvas.width - 150, getYForHeight(jumpHeight));
+          ctx.lineTo(canvas.width, getYForHeight(jumpHeight));
           ctx.stroke();
-          ctx.setLineDash([]);
+          ctx.restore();
         }
 
         const labelY = barY - 30;
-        ctx.fillStyle = 'rgba(10, 18, 36, 0.85)';
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 6;
+        ctx.fillStyle = 'rgba(10, 18, 36, 0.9)';
         ctx.strokeStyle = '#06b6d4';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.roundRect(canvas.width - 135, labelY - 15, 115, 28, 6);
+        ctx.roundRect(canvas.width - 135, labelY - 15, 115, 28, 8);
         ctx.fill();
         ctx.stroke();
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = '900 13px Cairo';
+        ctx.font = '900 14px Cairo';
         ctx.textAlign = 'center';
         ctx.fillText(`${currentHeight.toFixed(1)} cm`, canvas.width - 77, labelY + 3);
 
         if (t >= t_peak) {
           ctx.shadowColor = '#f59e0b';
-          ctx.shadowBlur = 8;
+          ctx.shadowBlur = 10;
           ctx.fillStyle = '#f59e0b';
-          ctx.font = '900 10px Cairo';
+          ctx.font = '900 11px Cairo';
           ctx.fillText('PEAK JUMP 👑', canvas.width - 77, labelY - 22);
-          ctx.shadowBlur = 0;
         }
+        ctx.restore();
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.font = '10px Cairo';
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+        ctx.shadowBlur = 4;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.font = 'bold 11px Cairo';
         ctx.textAlign = 'center';
         ctx.fillText('THE LAB v2.0', canvas.width - 77, canvas.height - 20);
+        ctx.restore();
 
         const elapsed = exportVideo.currentTime - startTime;
         const total = endTime - startTime;
