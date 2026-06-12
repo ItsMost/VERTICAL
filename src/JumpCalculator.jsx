@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, ChevronDown, ChevronUp, Moon, Sun, Award, Info, AlertTriangle, ShieldCheck, Sparkles, Users, Trophy } from 'lucide-react';
+import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, ChevronDown, ChevronUp, Moon, Sun, Award, Info, AlertTriangle, ShieldCheck, Sparkles, Users, Trophy, Globe } from 'lucide-react';
 import { useJumpMechanics } from './useJumpMechanics';
 import { supabase } from './supabaseClient'; 
 import PlayerProfile from './PlayerProfile'; 
@@ -37,6 +37,13 @@ const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
 export default function JumpCalculator() {
   const [activeTab, setActiveTab] = useState('team'); 
   const [colorMode, setColorMode] = useState('dark'); 
+  const [language, setLanguage] = useState(() => localStorage.getItem('app_language') || 'ar');
+
+  useEffect(() => {
+    localStorage.setItem('app_language', language);
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = language;
+  }, [language]); 
 
   const [players, setPlayers] = useState([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
@@ -1341,52 +1348,97 @@ export default function JumpCalculator() {
     { id: 'leaderboard', name: 'Leaderboard', shortName: 'Leader', icon: Trophy }
   ];
 
+    const getTabName = (tab) => {
+      if (language === 'ar') {
+        if (tab.id === 'team') return 'لوحة اللاعبين';
+        if (tab.id === 'calculator') return 'الوثب الرأسي';
+        if (tab.id === 'rsi') return 'مؤشر RSI';
+        if (tab.id === 'fvp') return 'منحنى FVP';
+        if (tab.id === 'profile') return 'ملف اللاعب';
+        if (tab.id === 'leaderboard') return 'المتصدرين';
+      }
+      return tab.name;
+    };
+
+    const getTabShortName = (tab) => {
+      if (language === 'ar') {
+        if (tab.id === 'team') return 'اللاعبين';
+        if (tab.id === 'calculator') return 'الوثب';
+        if (tab.id === 'rsi') return 'RSI';
+        if (tab.id === 'fvp') return 'FVP';
+        if (tab.id === 'profile') return 'الملف';
+        if (tab.id === 'leaderboard') return 'المتصدرين';
+      }
+      return tab.shortName;
+    };
+
   return (
-    <div data-theme={colorMode} className="h-screen overflow-hidden flex flex-col bg-[var(--bg-base)] text-[var(--text-primary)] transition-all duration-300 text-shadow-contrast" style={{ direction: "rtl" }}>
-      <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col overflow-hidden p-4 md:p-6 pb-2 gap-4">
+    <div data-theme={colorMode} className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] transition-all duration-300 text-shadow-contrast pb-28 flex flex-col" style={{ direction: language === 'ar' ? 'rtl' : 'ltr' }}>
+      <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col p-4 md:p-6 pb-2 gap-4">
         
         {/* ================= TOP DYNAMIC CONTROL HUD ================= */}
-        <header className="relative z-[110] w-full bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-color)] p-4 rounded-3xl flex flex-col lg:flex-row items-center justify-between gap-4 shadow-xl shrink-0">
+        <header className="relative z-[110] w-full bg-[var(--bg-panel)] backdrop-blur-md border border-[var(--border-color)] p-4 rounded-3xl flex flex-col lg:flex-row items-center justify-between gap-4 shadow-xl">
           {/* Logo & App Branding */}
           <div className="flex items-center justify-between lg:justify-start w-full lg:w-auto gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-400/30 shrink-0">
                 <span className="text-xl font-bold font-mono">🧪</span>
               </div>
               <div>
-                <h1 className="text-lg font-black text-white tracking-wide font-mono">The Lab v2.0</h1>
-                <p className="text-[10px] text-cyan-400 font-bold">مختبر الأداء الرياضي والميكانيكا الحيوية</p>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent font-sans">
+                    PeakForce Lab
+                  </h1>
+                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-cyan-950/80 border border-cyan-800/40 text-cyan-400 uppercase tracking-widest font-mono shadow-sm">
+                    v2.0
+                  </span>
+                </div>
+                <p className="text-[9px] sm:text-[10px] text-cyan-400/80 font-bold">
+                  {language === 'ar' ? 'مختبر الأداء الرياضي والميكانيكا الحيوية' : 'Athletic Performance & Biomechanics Lab'}
+                </p>
               </div>
             </div>
-            {/* Color Mode Toggle on Mobile */}
-            <button 
-              onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} 
-              className="lg:hidden p-2 rounded-xl bg-[var(--bg-input)] text-[var(--text-secondary)] hover:text-white transition-all border border-[var(--border-light)] shadow-sm"
-            >
-              {colorMode === 'dark' ? <Sun size={16}/> : <Moon size={16}/>}
-            </button>
+            {/* Theme & Language Toggles on Mobile */}
+            <div className="lg:hidden flex items-center gap-2">
+              <button 
+                onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')} 
+                className="px-2 py-1 bg-[var(--bg-input)] text-cyan-400 border border-[var(--border-light)] rounded-lg text-[10px] font-black shadow-sm"
+              >
+                {language === 'ar' ? 'EN' : 'عربي'}
+              </button>
+              <button 
+                onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} 
+                className="p-1.5 rounded-xl bg-[var(--bg-input)] text-[var(--text-secondary)] hover:text-white transition-all border border-[var(--border-light)] shadow-sm"
+              >
+                {colorMode === 'dark' ? <Sun size={14}/> : <Moon size={14}/>}
+              </button>
+            </div>
           </div>
 
           {/* HUD Control Strips */}
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto justify-end">
+          <div className="flex flex-row sm:flex-nowrap items-center gap-2 w-full lg:w-auto justify-end">
             {/* Quick Action: Register Coach */}
             <button
               onClick={() => setShowCoachModal(true)}
-              className="w-full sm:w-auto px-4 py-2.5 bg-black/35 hover:bg-cyan-600/15 text-cyan-400 border border-cyan-800/30 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md"
+              className="p-2.5 sm:px-4 sm:py-2.5 bg-black/35 hover:bg-cyan-600/15 text-cyan-400 border border-cyan-800/30 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer shrink-0"
+              title={language === 'ar' ? 'إضافة مدرب' : 'Add Coach'}
             >
-              <Plus size={14} /> إضافة كابتن
+              <Users size={14} className="sm:w-3.5 sm:h-3.5" />
+              <span className="hidden sm:inline">{language === 'ar' ? 'إضافة مدرب' : 'Add Coach'}</span>
             </button>
 
             {/* Quick Action: Add Athlete */}
             <button
               onClick={() => setShowNewPlayerForm(true)}
-              className="w-full sm:w-auto px-4 py-2.5 bg-black/35 hover:bg-cyan-600/15 text-cyan-400 border border-cyan-800/30 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md"
+              className="p-2.5 sm:px-4 sm:py-2.5 bg-black/35 hover:bg-cyan-600/15 text-cyan-400 border border-cyan-800/30 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer shrink-0"
+              title={language === 'ar' ? 'تسجيل لاعب' : 'Add Athlete'}
             >
-              <Plus size={14} /> تسجيل لاعب جديد
+              <Plus size={14} className="sm:w-3.5 sm:h-3.5" />
+              <span className="hidden sm:inline">{language === 'ar' ? 'تسجيل لاعب' : 'Add Athlete'}</span>
             </button>
 
             {/* Player Accordion Dropdown Selector */}
-            <div className="relative w-full sm:w-64 z-[120]">
+            <div className="relative flex-1 sm:flex-initial sm:w-64 z-[120]">
               <button
                 type="button"
                 onClick={() => setIsSelectorOpen(!isSelectorOpen)}
@@ -1481,6 +1533,15 @@ export default function JumpCalculator() {
               </AnimatePresence>
             </div>
 
+            {/* Desktop Language Toggle */}
+            <button 
+              onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')} 
+              className="hidden lg:flex items-center gap-1.5 p-2.5 rounded-xl bg-[var(--bg-input)] text-[var(--text-secondary)] hover:text-white transition-all border border-[var(--border-light)] shadow-sm font-bold text-xs"
+            >
+              <Globe size={15} />
+              <span>{language === 'ar' ? 'English' : 'العربية'}</span>
+            </button>
+
             {/* Desktop Theme Toggle */}
             <button 
               onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} 
@@ -1492,7 +1553,7 @@ export default function JumpCalculator() {
         </header>
 
         {/* ================= MAIN CONTENT WORKSPACE ================= */}
-        <main className="flex-1 min-w-0 overflow-y-auto pr-1 pb-24 md:pb-20">
+        <main className="flex-1 min-w-0 pr-1">
           <AnimatePresence mode="wait">
             {activeTab === 'team' ? (
               <motion.div key="team" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
@@ -1501,6 +1562,7 @@ export default function JumpCalculator() {
                   onChangeTab={setActiveTab} 
                   coaches={coaches}
                   onEditPlayer={handleEditPlayer}
+                  language={language}
                 />
               </motion.div>
             ) : activeTab === 'leaderboard' ? (
@@ -1508,6 +1570,7 @@ export default function JumpCalculator() {
                 <Leaderboard 
                   onSelectPlayer={handleSelectPlayerFromDashboard} 
                   onChangeTab={setActiveTab} 
+                  language={language}
                 />
               </motion.div>
             ) : activePlayer ? (
@@ -1520,16 +1583,18 @@ export default function JumpCalculator() {
                     onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])}
                     displayUnit={displayUnit}
                     setDisplayUnit={setDisplayUnit}
+                    language={language}
                   />
                 )}
 
-                {activeTab === 'rsi' && <RSICalculator activePlayer={activePlayer} selectedPlayerId={selectedPlayerId} onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])} />}
-                {activeTab === 'fvp' && <FVPCalculator activePlayer={activePlayer} selectedPlayerId={selectedPlayerId} />}
+                {activeTab === 'rsi' && <RSICalculator activePlayer={activePlayer} selectedPlayerId={selectedPlayerId} onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])} language={language} />}
+                {activeTab === 'fvp' && <FVPCalculator activePlayer={activePlayer} selectedPlayerId={selectedPlayerId} language={language} />}
                 {activeTab === 'profile' && (
                   <PlayerProfile 
                     activePlayer={activePlayer} 
                     playerHistory={playerHistory} 
                     onHistoryChange={(newHistory) => setPlayerHistory(newHistory)} 
+                    language={language}
                   />
                 )}
               </motion.div>
@@ -1564,8 +1629,8 @@ export default function JumpCalculator() {
                     : 'text-gray-400 hover:text-white hover:scale-105'}`}
             >
               <Icon className="w-4 h-4 sm:w-5 sm:h-5" size={undefined} />
-              <span className="hidden sm:inline text-[10px] mt-1 font-bold">{tab.name}</span>
-              <span className="inline sm:hidden text-[8px] xs:text-[9px] mt-1 font-bold">{tab.shortName}</span>
+              <span className="hidden sm:inline text-[10px] mt-1 font-bold">{getTabName(tab)}</span>
+              <span className="inline sm:hidden text-[8px] xs:text-[9px] mt-1 font-bold">{getTabShortName(tab)}</span>
               {isActive && (
                 <motion.div 
                   layoutId="active-dock-indicator"

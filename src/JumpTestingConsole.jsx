@@ -1152,10 +1152,21 @@ export default function JumpTestingConsole({
       });
 
       const stream = canvas.captureStream(30);
-      let options = { mimeType: 'video/webm;codecs=vp9' };
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options = { mimeType: 'video/webm' };
+      const mimeTypes = [
+        'video/mp4;codecs=avc1',
+        'video/mp4',
+        'video/webm;codecs=vp9',
+        'video/webm'
+      ];
+      let selectedMimeType = 'video/webm';
+      for (const mime of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(mime)) {
+          selectedMimeType = mime;
+          break;
+        }
       }
+      const extension = selectedMimeType.includes('mp4') ? 'mp4' : 'webm';
+      let options = { mimeType: selectedMimeType };
       const recorder = new MediaRecorder(stream, options);
       const chunks = [];
 
@@ -1164,11 +1175,11 @@ export default function JumpTestingConsole({
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
+        const blob = new Blob(chunks, { type: selectedMimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `TheLab_Jump_${activePlayer?.full_name || 'Athlete'}_${jumpHeight.toFixed(1)}cm.webm`;
+        a.download = `TheLab_Jump_${activePlayer?.full_name || 'Athlete'}_${jumpHeight.toFixed(1)}cm.${extension}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

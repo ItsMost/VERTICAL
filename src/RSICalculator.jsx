@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
-import { Zap, Play, Pause, X, Save, Info, ChevronRight, ChevronLeft, Activity, ChevronsRight, ChevronsLeft, Sparkles, Clock, ArrowUpCircle, ShieldAlert, Award } from 'lucide-react';
+import { Zap, Play, Pause, X, Save, Info, ChevronRight, ChevronLeft, Activity, ChevronsRight, ChevronsLeft, Sparkles, Clock, ArrowUpCircle, ShieldAlert, Award, Video } from 'lucide-react';
 
 // Animated counter helper
 const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
@@ -44,6 +44,8 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
   const [isSaving, setIsSaving] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
 
   const [stats, setStats] = useState(null);
 
@@ -399,6 +401,364 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
       alert('حدث خطأ أثناء حفظ النتيجة.');
     }
     setIsSaving(false);
+  };
+
+  const handleExportVideoWithOverlay = async () => {
+    if (!videoSrc) return alert("الرجاء تحميل فيديو أولاً.");
+    if (!stats || !stats.rsi || touchdownTime <= 0 || takeoffTime <= 0 || landingTime <= 0) {
+      return alert("الرجاء تحديد أوقات الهبوط والإقلاع والطيران واستخراج التحليل أولاً.");
+    }
+
+    try {
+      setIsExporting(true);
+      setExportProgress(0);
+
+      const exportVideo = document.createElement('video');
+      exportVideo.src = videoSrc;
+      exportVideo.muted = true;
+      exportVideo.playsInline = true;
+
+      await new Promise((resolve, reject) => {
+        exportVideo.onloadedmetadata = resolve;
+        exportVideo.onerror = reject;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = exportVideo.videoWidth || 1280;
+      canvas.height = exportVideo.videoHeight || 720;
+      const ctx = canvas.getContext('2d');
+
+      const rsiScore = parseFloat(stats.rsi) || 0;
+      const contactTimeVal = parseFloat(stats.contactTime) || 0.15;
+      const flightTimeVal = parseFloat(stats.flightTime) || 0.5;
+      const jumpHeight = parseFloat(stats.heightCm) || 0;
+
+      const paddingTime = 1.0;
+      const startTime = Math.max(0, touchdownTime - paddingTime);
+      const endTime = Math.min(exportVideo.duration, landingTime + paddingTime);
+
+      exportVideo.currentTime = startTime;
+      await new Promise((resolve) => {
+        exportVideo.onseeked = resolve;
+      });
+
+      const stream = canvas.captureStream(30);
+      const mimeTypes = [
+        'video/mp4;codecs=avc1',
+        'video/mp4',
+        'video/webm;codecs=vp9',
+        'video/webm'
+      ];
+      let selectedMimeType = 'video/webm';
+      for (const mime of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(mime)) {
+          selectedMimeType = mime;
+          break;
+        }
+      }
+      const extension = selectedMimeType.includes('mp4') ? 'mp4' : 'webm';
+      let options = { mimeType: selectedMimeType };
+      const recorder = new MediaRecorder(stream, options);
+      const chunks = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: selectedMimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `PeakForce_RSI_${activePlayer?.full_name || 'Athlete'}_${rsiScore.toFixed(2)}.${extension}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setIsExporting(false);
+      };
+
+      recorder.start();
+      exportVideo.play();
+
+      const groundY = canvas.height * 0.78;
+      const topY = canvas.height * 0.15;
+      const barHeight = groundY - topY;
+      const maxScaleCm = Math.max(50, Math.ceil((jumpHeight + 20) / 10) * 10);
+
+      const getYForHeight = (h) => {
+        return groundY - (h / maxScaleCm) * barHeight;
+      };
+
+      const drawOverlay = () => {
+        if (exportVideo.paused || exportVideo.ended || exportVideo.currentTime >= endTime) {
+          recorder.stop();
+          exportVideo.pause();
+          return;
+        }
+
+        ctx.drawImage(exportVideo, 0, 0, canvas.width, canvas.height);
+
+        // 1. Transparent grid lines
+        ctx.strokeStyle = 'rgba(6, 182, 212, 0.08)';
+        ctx.lineWidth = 1;
+        for (let h = 10; h <= maxScaleCm; h += 10) {
+          const y = getYForHeight(h);
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+
+        const t = exportVideo.currentTime;
+        let currentTc = 0;
+        let currentTf = 0;
+        let currentHeight = 0;
+        
+        const ratio = videoFps / cameraFps;
+
+        if (t < touchdownTime) {
+          currentTc = 0;
+          currentTf = 0;
+          currentHeight = 0;
+        } else if (t >= touchdownTime && t < takeoffTime) {
+          currentTc = (t - touchdownTime) * ratio;
+          currentTf = 0;
+          currentHeight = 0;
+        } else if (t >= takeoffTime && t < landingTime) {
+          currentTc = contactTimeVal;
+          currentTf = (t - takeoffTime) * ratio;
+          
+          const t_flight = landingTime - takeoffTime;
+          const t_peak = takeoffTime + 0.5 * t_flight;
+          if (t < t_peak) {
+            const tau = t - takeoffTime;
+            const t_half = 0.5 * t_flight;
+            const progressRatio = tau / t_half;
+            currentHeight = jumpHeight * (2 * progressRatio - progressRatio * progressRatio);
+          } else {
+            currentHeight = jumpHeight;
+          }
+        } else {
+          currentTc = contactTimeVal;
+          currentTf = flightTimeVal;
+          currentHeight = jumpHeight;
+        }
+
+        // 2. Draw vertical scale line on the right margin with dark text outline/shadow for readability
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - 45, topY);
+        ctx.lineTo(canvas.width - 45, groundY);
+        ctx.stroke();
+
+        // Draw tick marks & values
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Cairo';
+        ctx.textAlign = 'right';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.lineWidth = 1.5;
+
+        // Draw "cm" header unit above the ruler
+        ctx.fillStyle = '#06b6d4';
+        ctx.font = 'bold 11px Cairo';
+        ctx.fillText('cm', canvas.width - 55, topY - 8);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px Cairo';
+
+        for (let h = 0; h <= maxScaleCm; h += 2) {
+          const y = getYForHeight(h);
+          if (y < topY || y > groundY) continue;
+
+          ctx.beginPath();
+          if (h % 10 === 0) {
+            // Major Tick
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.moveTo(canvas.width - 58, y);
+            ctx.lineTo(canvas.width - 45, y);
+            ctx.stroke();
+            ctx.fillText(`${h}`, canvas.width - 64, y + 4);
+          } else if (h % 5 === 0) {
+            // Minor Tick
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.moveTo(canvas.width - 52, y);
+            ctx.lineTo(canvas.width - 45, y);
+            ctx.stroke();
+          } else {
+            // Sub-minor Tick
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.moveTo(canvas.width - 49, y);
+            ctx.lineTo(canvas.width - 45, y);
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+
+        // 3. Draw dynamic height filling bar
+        const yVal = getYForHeight(currentHeight);
+        const activeHeight = groundY - yVal;
+        if (activeHeight > 0) {
+          ctx.save();
+          ctx.shadowColor = '#06b6d4';
+          ctx.shadowBlur = 12;
+          const grad = ctx.createLinearGradient(0, groundY, 0, yVal);
+          grad.addColorStop(0, '#06b6d4');
+          grad.addColorStop(1, '#14b8a6');
+          ctx.fillStyle = grad;
+          ctx.fillRect(canvas.width - 42, yVal, 10, activeHeight);
+
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(canvas.width - 45, yVal - 1, 16, 3);
+          ctx.restore();
+        }
+
+        // 4. Draw horizontal dotted line at peak height
+        if (t >= takeoffTime && currentHeight >= jumpHeight * 0.98) {
+          ctx.save();
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+          ctx.shadowBlur = 4;
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(0, getYForHeight(jumpHeight));
+          ctx.lineTo(canvas.width, getYForHeight(jumpHeight));
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 5. Dual timers overlay (Tc & Tf) removed as requested to show only RSI
+
+        // 6. Draw PeakForce Lab watermark at top-right
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+        ctx.shadowBlur = 4;
+        ctx.fillStyle = '#06b6d4';
+        ctx.font = '900 13px Cairo';
+        ctx.textAlign = 'right';
+        ctx.fillText('PeakForce Lab', canvas.width - 60, 45);
+        ctx.restore();
+
+        // 7. Draw glowing RSI badge after takeoff
+        if (t >= takeoffTime) {
+          const badgeY = 85;
+          ctx.save();
+          ctx.shadowColor = '#f59e0b';
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = 'rgba(10, 18, 36, 0.95)';
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(canvas.width - 135, badgeY - 15, 115, 45, 8);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = '#f59e0b';
+          ctx.font = '900 10px Cairo';
+          ctx.textAlign = 'center';
+          ctx.fillText('RSI INDEX 🏆', canvas.width - 77, badgeY + 2);
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '900 18px font-mono';
+          ctx.fillText(rsiScore.toFixed(2), canvas.width - 77, badgeY + 23);
+          ctx.restore();
+        }
+
+        // 8. Draw central glassmorphic card after landing
+        if (t >= landingTime) {
+          const cardW = 320;
+          const cardH = 140;
+          const cardX = (canvas.width - cardW) / 2;
+          const cardY = (canvas.height - cardH) / 2;
+
+          ctx.save();
+          // Glow effect
+          ctx.shadowColor = 'rgba(6, 182, 212, 0.5)';
+          ctx.shadowBlur = 20;
+
+          // Glassmorphic background
+          ctx.fillStyle = 'rgba(11, 19, 43, 0.9)';
+          ctx.strokeStyle = 'rgba(6, 182, 212, 0.4)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.roundRect(cardX, cardY, cardW, cardH, 16);
+          ctx.fill();
+          ctx.stroke();
+
+          // Title
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = '#06b6d4';
+          ctx.font = 'bold 11px Cairo';
+          ctx.textAlign = 'center';
+          ctx.fillText('مؤشر القوة التفاعلية النهائي (Final RSI)', canvas.width / 2, cardY + 28);
+
+          // RSI score
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '900 36px font-mono';
+          ctx.fillText(rsiScore.toFixed(2), canvas.width / 2, cardY + 74);
+
+          // Rating evaluation
+          let ratingText = '';
+          let ratingColor = '#ef4444';
+          if (rsiScore >= 3.0) {
+            ratingText = 'النخبة (Elite) 🏆';
+            ratingColor = '#22d3ee';
+          } else if (rsiScore >= 2.5) {
+            ratingText = 'ممتاز (Excellent) ⭐';
+            ratingColor = '#34d399';
+          } else if (rsiScore >= 2.0) {
+            ratingText = 'جيد (Good) ⚡';
+            ratingColor = '#fbbf24';
+          } else {
+            ratingText = 'يحتاج تطوير (Under-developed) ⚠️';
+            ratingColor = '#f97316';
+          }
+          ctx.fillStyle = ratingColor;
+          ctx.font = 'bold 12px Cairo';
+          ctx.fillText(ratingText, canvas.width / 2, cardY + 108);
+
+          // Jump Height & Contact Time info inside card
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.font = 'bold 9px Cairo';
+          ctx.fillText(`الارتفاع: ${jumpHeight.toFixed(1)} سم | زمن التلامس: ${contactTimeVal.toFixed(3)} ث`, canvas.width / 2, cardY + 128);
+
+          ctx.restore();
+        }
+
+        // 7. Watermark
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+        ctx.shadowBlur = 4;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.font = 'bold 11px Cairo';
+        ctx.textAlign = 'center';
+        ctx.fillText('PeakForce Lab', canvas.width - 77, canvas.height - 20);
+        ctx.restore();
+
+        const elapsed = exportVideo.currentTime - startTime;
+        const total = endTime - startTime;
+        const progress = Math.min(99, Math.round((elapsed / total) * 100));
+        setExportProgress(progress);
+
+        requestAnimationFrame(drawOverlay);
+      };
+
+      requestAnimationFrame(drawOverlay);
+
+    } catch (err) {
+      alert("حدث خطأ أثناء تصدير فيديو RSI: " + err.message);
+      setIsExporting(false);
+    }
   };
 
   const detectVideoFps = (videoEl) => {
@@ -1136,14 +1496,62 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
             </p>
           </div>
 
-          <button
-            onClick={saveMeasurement}
-            disabled={isSaving}
-            className="w-full py-4 btn-orange-gradient rounded-xl font-black text-base shadow-lg transition-transform hover:scale-[1.01] active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Save size={16} />
-            {isSaving ? 'جاري حفظ الاختبار...' : 'حفظ نتيجة الـ RSI في سجل ملف اللاعب'}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 w-full">
+            <button
+              onClick={saveMeasurement}
+              disabled={isSaving}
+              className="flex-1 py-4 btn-orange-gradient rounded-xl font-black text-base shadow-lg transition-transform hover:scale-[1.01] active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Save size={16} />
+              {isSaving ? 'جاري حفظ الاختبار...' : 'حفظ نتيجة الـ RSI في سجل ملف اللاعب'}
+            </button>
+            <button
+              onClick={handleExportVideoWithOverlay}
+              disabled={isExporting}
+              className="flex-1 py-4 bg-cyan-600/30 border border-cyan-500/50 hover:bg-cyan-600/50 text-cyan-400 rounded-xl font-black text-base shadow-lg transition-transform hover:scale-[1.01] active:scale-98 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              <Video size={16} />
+              {isExporting ? `جاري التصدير (${exportProgress}%)...` : 'تصدير فيديو الـ RSI 🎥'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Export Progress Overlay */}
+      {isExporting && (
+        <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md text-white p-6">
+          <div className="bg-[#0b1329] border border-cyan-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(6,182,212,0.15)] animate-fade-in">
+            <div className="relative w-20 h-20">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="34"
+                  stroke="rgba(255,255,255,0.05)"
+                  strokeWidth="6"
+                  fill="transparent"
+                />
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="34"
+                  stroke="#06b6d4"
+                  strokeWidth="6"
+                  fill="transparent"
+                  strokeDasharray={2 * Math.PI * 34}
+                  strokeDashoffset={2 * Math.PI * 34 * (1 - exportProgress / 100)}
+                  className="transition-all duration-200"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center font-black text-lg text-cyan-400 font-mono">
+                {exportProgress}%
+              </div>
+            </div>
+            <h3 className="text-lg font-black text-white mt-2">جاري تصدير فيديو الـ RSI 🎥</h3>
+            <p className="text-xs text-gray-400 leading-relaxed font-sans">
+              يرجى الانتظار بينما نقوم بتركيب شريط الارتفاع الحركي وتوقيتات التلامس والطيران على الفيديو الخاص بك...
+            </p>
+          </div>
         </div>
       )}
     </div>

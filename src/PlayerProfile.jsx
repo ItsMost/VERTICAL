@@ -288,9 +288,9 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       date: new Date(jump.created_at).toLocaleDateString('ar-EG')
     }));
 
-  // Find the personal best vertical jump (highest jump height where test_type is not 'rsi')
+  // Find the personal best vertical jump (highest jump height from any test type)
   const pbJump = playerHistory && playerHistory.length > 0
-    ? playerHistory.filter(j => j.test_type !== 'rsi' && parseFloat(j.jump_height_cm) > 0)
+    ? playerHistory.filter(j => parseFloat(j.jump_height_cm) > 0)
         .reduce((best, current) => {
           if (!best) return current;
           return parseFloat(current.jump_height_cm) > parseFloat(best.jump_height_cm) ? current : best;
@@ -607,6 +607,17 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       {/* Inject custom printable CSS styles */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
+          html, body, #root, #root > div, main, .app-container {
+            height: auto !important;
+            min-height: auto !important;
+            overflow: visible !important;
+            position: static !important;
+            display: block !important;
+            width: 100% !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+          }
+
           /* Hide screen-only components */
           header, nav, .floating-dock, button, .tabs-container, .screen-only {
             display: none !important;
@@ -820,7 +831,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   </div>
 
                   {/* Core Metric Visual Cards */}
-                  <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="lg:col-span-2 grid grid-cols-2 gap-3 sm:gap-4">
                     
                     {/* Gauge Card: Jump Height */}
                     <div 
@@ -844,19 +855,19 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           'تدريبات الدفع الأفقي والعمودي الأحادي (Single Leg Bounds).'
                         ]
                       })}
-                      className="bg-[#111827]/30 border border-gray-850 p-5 rounded-3xl flex flex-col justify-between hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer select-none"
+                      className="bg-[#111827]/30 border border-gray-850 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer select-none"
                     >
                       <div>
                         <div className="flex justify-between items-center mb-3">
-                          <span className="text-[10px] text-gray-400 font-bold">الوثبة الانفجارية القصوى</span>
+                          <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold">الوثبة الانفجارية القصوى</span>
                           <span className="text-cyan-400 bg-cyan-950/20 border border-cyan-800/30 text-[9px] px-2 py-0.5 rounded-lg font-bold">CMJ</span>
                         </div>
-                        <div className="flex items-baseline gap-1.5 mb-1.5">
-                          <span className="text-4xl font-black text-white font-mono">{heightInches}</span>
-                          <span className="text-gray-400 font-bold text-xs">إنش</span>
-                          <span className="text-gray-500 text-xs font-mono mr-1.5">({heightCm} cm)</span>
+                        <div className="flex items-baseline gap-1 sm:gap-1.5 mb-1 sm:mb-1.5 flex-wrap">
+                          <span className="text-2xl sm:text-4xl font-black text-white font-mono">{heightInches}</span>
+                          <span className="text-gray-400 font-bold text-[10px] sm:text-xs">إنش</span>
+                          <span className="text-gray-500 text-[9px] sm:text-xs font-mono">({heightCm} cm)</span>
                         </div>
-                        <p className={`text-xs font-bold ${evalHeight.color}`}>{evalHeight.text}</p>
+                        <p className={`text-[10px] sm:text-xs font-bold ${evalHeight.color}`}>{evalHeight.text}</p>
                       </div>
                       
                       <div className="mt-4">
@@ -891,18 +902,18 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           'تدريبات القفز فوق الصناديق المتتالية لزيادة زمن التعليق الحركي.'
                         ]
                       })}
-                      className="bg-[#111827]/30 border border-gray-855 p-5 rounded-3xl flex flex-col justify-between hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer select-none"
+                      className="bg-[#111827]/30 border border-gray-855 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer select-none"
                     >
                       <div>
                         <div className="flex justify-between items-center mb-3">
-                          <span className="text-[10px] text-gray-400 font-bold">زمن الطيران المعلق</span>
+                          <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold">زمن الطيران المعلق</span>
                           <span className="text-teal-400 bg-teal-950/20 border border-teal-800/30 text-[9px] px-2 py-0.5 rounded-lg font-bold">Flight</span>
                         </div>
-                        <div className="flex items-baseline gap-1.5 mb-1.5">
-                          <span className="text-4xl font-black text-white font-mono">{flightTime.toFixed(3)}</span>
-                          <span className="text-gray-400 font-bold text-xs">ثانية</span>
+                        <div className="flex items-baseline gap-1 sm:gap-1.5 mb-1 sm:mb-1.5 flex-wrap">
+                          <span className="text-2xl sm:text-4xl font-black text-white font-mono">{flightTime.toFixed(3)}</span>
+                          <span className="text-gray-400 font-bold text-[10px] sm:text-xs">ثانية</span>
                         </div>
-                        <p className={`text-xs font-bold ${evalFlight.color}`}>{evalFlight.text}</p>
+                        <p className={`text-[10px] sm:text-xs font-bold ${evalFlight.color}`}>{evalFlight.text}</p>
                       </div>
                       
                       <div className="mt-4">
@@ -937,18 +948,18 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           'تحسين التكوين الجسماني وخفض نسبة الدهون لزيادة القوة النسبية.'
                         ]
                       })}
-                      className="bg-[#111827]/30 border border-gray-855 p-5 rounded-3xl flex flex-col justify-between hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer select-none"
+                      className="bg-[#111827]/30 border border-gray-855 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer select-none"
                     >
                       <div>
                         <div className="flex justify-between items-center mb-3">
-                          <span className="text-[10px] text-gray-400 font-bold">كثافة القدرة الميكانيكية</span>
+                          <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold">كثافة القدرة الميكانيكية</span>
                           <span className="text-purple-400 bg-purple-950/20 border border-purple-800/30 text-[9px] px-2 py-0.5 rounded-lg font-bold">W/kg</span>
                         </div>
-                        <div className="flex items-baseline gap-1.5 mb-1.5">
-                          <span className="text-4xl font-black text-white font-mono">{relativePower > 0 ? relativePower : (harmanPeak / mass).toFixed(1)}</span>
-                          <span className="text-gray-400 font-bold text-xs">W/kg</span>
+                        <div className="flex items-baseline gap-1 sm:gap-1.5 mb-1 sm:mb-1.5 flex-wrap">
+                          <span className="text-2xl sm:text-4xl font-black text-white font-mono">{relativePower > 0 ? relativePower : (harmanPeak / mass).toFixed(1)}</span>
+                          <span className="text-gray-400 font-bold text-[10px] sm:text-xs">W/kg</span>
                         </div>
-                        <p className={`text-xs font-bold ${evalPower.color}`}>{evalPower.text}</p>
+                        <p className={`text-[10px] sm:text-xs font-bold ${evalPower.color}`}>{evalPower.text}</p>
                       </div>
                       
                       <div className="mt-4">
@@ -984,18 +995,18 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           'الحجل السريع على ساق واحدة مع تثبيت الحوض والركبة لزيادة الصلابة.'
                         ]
                       })}
-                      className="bg-[#111827]/30 border border-gray-855 p-5 rounded-3xl flex flex-col justify-between hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer select-none"
+                      className="bg-[#111827]/30 border border-gray-855 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer select-none"
                     >
                       <div>
                         <div className="flex justify-between items-center mb-3">
-                          <span className="text-[10px] text-gray-400 font-bold">مؤشر الارتداد التفاعلي</span>
-                          <span className="text-yellow-455 bg-yellow-950/20 border border-yellow-800/30 text-[9px] px-2 py-0.5 rounded-lg font-bold">RSI</span>
+                          <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold">مؤشر الارتداد التفاعلي</span>
+                          <span className="text-yellow-500 bg-yellow-950/20 border border-yellow-800/30 text-[9px] px-2 py-0.5 rounded-lg font-bold">RSI</span>
                         </div>
-                        <div className="flex items-baseline gap-1.5 mb-1.5">
-                          <span className="text-4xl font-black text-white font-mono">{latestRsiVal > 0 ? latestRsiVal.toFixed(2) : (maxRsi > 0 ? maxRsi.toFixed(2) : '—')}</span>
-                          <span className="text-gray-400 font-bold text-xs">Index</span>
+                        <div className="flex items-baseline gap-1 sm:gap-1.5 mb-1 sm:mb-1.5 flex-wrap">
+                          <span className="text-2xl sm:text-4xl font-black text-white font-mono">{latestRsiVal > 0 ? latestRsiVal.toFixed(2) : (maxRsi > 0 ? maxRsi.toFixed(2) : '—')}</span>
+                          <span className="text-gray-400 font-bold text-[10px] sm:text-xs">Index</span>
                         </div>
-                        <p className={`text-xs font-bold ${evalRsi.color}`}>{evalRsi.text}</p>
+                        <p className={`text-[10px] sm:text-xs font-bold ${evalRsi.color}`}>{evalRsi.text}</p>
                       </div>
                       
                       <div className="mt-4">
@@ -1013,18 +1024,18 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 </div>
 
                 {/* Additional Volleyball/Basketball Specific KPIs */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  <div className="bg-black/25 border border-gray-800/60 p-4 rounded-2xl text-center">
-                    <span className="text-[10px] text-gray-500 font-bold block mb-1">الوصول الأقصى للارتقاء 🏐</span>
-                    <span className="text-2xl font-black text-cyan-400 font-mono">{maxReachCmj || '—'} <span className="text-xs text-gray-500">سم</span></span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+                  <div className="bg-black/25 border border-gray-800/60 p-3 sm:p-4 rounded-2xl text-center">
+                    <span className="text-[9px] sm:text-[10px] text-gray-500 font-bold block mb-1">الوصول الأقصى للارتقاء 🏐</span>
+                    <span className="text-xl sm:text-2xl font-black text-cyan-400 font-mono">{maxReachCmj || '—'} <span className="text-[10px] sm:text-xs text-gray-500">سم</span></span>
                   </div>
-                  <div className="bg-black/25 border border-gray-800/60 p-4 rounded-2xl text-center">
-                    <span className="text-[10px] text-gray-500 font-bold block mb-1">مؤشر الإنجاز البدني للوثب</span>
-                    <span className="text-2xl font-black text-white font-mono">{heightCm.toFixed(1)} <span className="text-xs text-gray-500">سم</span></span>
+                  <div className="bg-black/25 border border-gray-800/60 p-3 sm:p-4 rounded-2xl text-center">
+                    <span className="text-[9px] sm:text-[10px] text-gray-500 font-bold block mb-1">مؤشر الإنجاز البدني للوثب</span>
+                    <span className="text-xl sm:text-2xl font-black text-white font-mono">{heightCm.toFixed(1)} <span className="text-[10px] sm:text-xs text-gray-500">سم</span></span>
                   </div>
-                  <div className="bg-black/25 border border-gray-800/60 p-4 rounded-2xl text-center">
-                    <span className="text-[10px] text-gray-500 font-bold block mb-1">مقارنة بأداء الجولة السابقة</span>
-                    <span className={`text-2xl font-black font-mono flex items-center justify-center gap-1.5 ${trendPct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <div className="bg-black/25 border border-gray-800/60 p-3 sm:p-4 rounded-2xl text-center">
+                    <span className="text-[9px] sm:text-[10px] text-gray-500 font-bold block mb-1">مقارنة بأداء الجولة السابقة</span>
+                    <span className={`text-xl sm:text-2xl font-black font-mono flex items-center justify-center gap-1 sm:gap-1.5 ${trendPct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {trendPct >= 0 ? `+${trendPct.toFixed(1)}` : trendPct.toFixed(1)} 
                       <span className="text-xs">{trendPct >= 0 ? '📈' : '📉'}</span>
                     </span>
@@ -1037,7 +1048,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     <span>📊 مصفوفة اختبارات الوثب الخمسة (5-Jump Profile Matrix)</span>
                     <span className="text-[10px] text-gray-500 font-bold">آخر قراءة مسجلة لكل نوع اختبار (اضغط للتفاصيل)</span>
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                     {jumpTestsConfig.map((test) => {
                       const valInches = parseFloat((test.value * 0.393701).toFixed(1));
                       const testEval = evaluateMetric('jump_in', valInches);
@@ -1055,18 +1066,18 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                             benchmarks: test.benchmarks,
                             tips: test.tips
                           })}
-                          className="bg-black/20 border border-gray-800 hover:border-cyan-500/40 hover:bg-cyan-950/5 p-4 rounded-2xl flex flex-col justify-between transition-all cursor-pointer select-none"
+                          className="bg-black/20 border border-gray-850 hover:border-cyan-500/40 hover:bg-cyan-950/5 p-3.5 rounded-2xl flex flex-col justify-between transition-all cursor-pointer select-none"
                         >
                           <div>
                             <div className="flex justify-between items-center mb-2">
                               <span className="text-[14px]">{test.icon}</span>
                               <span className="text-[9px] text-gray-400 font-bold max-w-[80px] text-left truncate" title={test.nameEn}>{test.nameEn}</span>
                             </div>
-                            <h4 className="text-[10px] text-gray-300 font-black mb-2 truncate" title={test.nameAr}>{test.nameAr.split('(')[0]}</h4>
+                            <h4 className="text-[10px] text-gray-350 font-black mb-2 truncate" title={test.nameAr}>{test.nameAr.split('(')[0]}</h4>
                             {test.value > 0 ? (
                               <div className="space-y-1">
-                                <div className="flex items-baseline gap-1">
-                                  <span className="text-2xl font-black text-white font-mono">{valInches}</span>
+                                <div className="flex items-baseline gap-1 flex-wrap">
+                                  <span className="text-xl sm:text-2xl font-black text-white font-mono">{valInches}</span>
                                   <span className="text-gray-500 text-[10px] font-bold">in</span>
                                   <span className="text-gray-450 font-mono text-[10px] mr-1">({test.value.toFixed(1)} cm)</span>
                                 </div>
@@ -1075,7 +1086,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                             ) : (
                               <div className="py-2">
                                 <span className="text-xs text-gray-500 font-bold block">لم يقاس</span>
-                                <span className="text-[9px] text-gray-650 block">اضغط لعرض المعايير</span>
+                                <span className="text-[9px] text-gray-600 block">اضغط لعرض المعايير</span>
                               </div>
                             )}
                           </div>
@@ -1221,9 +1232,9 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
               <motion.div key="critique" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="space-y-6">
                 
                 {/* 1. Integrated Diagnostics Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
                   {/* EUR Card */}
-                  <div className="glass-card p-5 border border-cyan-500/20 shadow-inner flex flex-col justify-between text-right">
+                  <div className="glass-card p-4 sm:p-5 border border-cyan-500/20 shadow-inner flex flex-col justify-between text-right">
                     <div>
                       <span className="text-[10px] text-cyan-400 font-bold block mb-1">مؤشر الاستغلال المطاطي للأوتار (Elastic Utilization Ratio)</span>
                       <h4 className="text-2xl font-black text-white font-mono">{eur > 0 ? eur.toFixed(2) : '—'}</h4>
@@ -1244,7 +1255,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   </div>
 
                   {/* Arm Swing Card */}
-                  <div className="glass-card p-5 border border-cyan-500/20 shadow-inner flex flex-col justify-between text-right">
+                  <div className="glass-card p-4 sm:p-5 border border-cyan-500/20 shadow-inner flex flex-col justify-between text-right">
                     <div>
                       <span className="text-[10px] text-cyan-400 font-bold block mb-1">مساهمة الذراعين الحركية (Arm Swing Contribution)</span>
                       <h4 className="text-2xl font-black text-white font-mono">{armSwing > 0 ? `${armSwing.toFixed(1)}%` : '—'}</h4>
@@ -1265,7 +1276,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   </div>
 
                   {/* Speed Conversion Card */}
-                  <div className="glass-card p-5 border border-cyan-500/20 shadow-inner flex flex-col justify-between text-right">
+                  <div className="glass-card p-4 sm:p-5 border border-cyan-500/20 shadow-inner flex flex-col justify-between text-right">
                     <div>
                       <span className="text-[10px] text-cyan-400 font-bold block mb-1">مؤشر تحويل السرعة الأفقية (Velocity Conversion)</span>
                       <h4 className="text-2xl font-black text-white font-mono">{velocityConversion > 0 ? `${velocityConversion.toFixed(1)}%` : '—'}</h4>
@@ -1350,8 +1361,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   </button>
                 </div>
                 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-right text-xs">
+                <div className="overflow-x-auto no-scrollbar">
+                  <table className="w-full text-right text-xs" style={{ minWidth: '720px' }}>
                     <thead>
                       <tr className="border-b border-gray-800 text-gray-450 font-black">
                         <th className="pb-3 text-right">التاريخ</th>
