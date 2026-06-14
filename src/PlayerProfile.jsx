@@ -4,7 +4,7 @@ import { Download, TrendingUp, Clock, Zap, ArrowUpCircle, AlertCircle, BookOpen,
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from './supabaseClient';
 
-export default function PlayerProfile({ activePlayer, playerHistory, onHistoryChange, language = 'ar' }) {
+export default function PlayerProfile({ activePlayer, playerHistory, onHistoryChange, language = 'ar', onEditPlayer }) {
   const [activeTab, setActiveTab] = useState('overview'); // overview, biomechanics, critique, history
   const [showBenchmarks, setShowBenchmarks] = useState(false);
 
@@ -474,6 +474,161 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
   const unifiedDiagnosticText = language === 'en' ? generateUnifiedDiagnosticEN() : generateUnifiedDiagnostic();
 
+  const generateDetailedPrescription = () => {
+    const isEn = language === 'en';
+    
+    // Determine level
+    let level = "";
+    let levelBadge = "";
+    let levelColor = "";
+    
+    if (heightCm >= 65 || latestRsiVal >= 2.5 || relativePower >= 65) {
+      level = isEn ? "Elite Athlete (National/Professional Level)" : "لاعب فئة النخبة (مستوى محترف/منتخب)";
+      levelBadge = isEn ? "Elite" : "النخبة";
+      levelColor = "text-cyan-400 border-cyan-500/30 bg-cyan-500/10";
+    } else if (heightCm >= 50 || latestRsiVal >= 1.8 || relativePower >= 52) {
+      level = isEn ? "Advanced Athlete (High Performance Level)" : "لاعب متقدم (مستوى أداء عالٍ)";
+      levelBadge = isEn ? "Advanced" : "متقدم";
+      levelColor = "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
+    } else if (heightCm >= 35 || latestRsiVal >= 1.2 || relativePower >= 38) {
+      level = isEn ? "Intermediate Athlete (Developmental Level)" : "لاعب متوسط (مستوى تطويري)";
+      levelBadge = isEn ? "Intermediate" : "متوسط";
+      levelColor = "text-orange-400 border-orange-500/30 bg-orange-500/10";
+    } else {
+      level = isEn ? "Beginner / Needs Foundation (General Physical Prep)" : "لاعب مبتدئ / يحتاج تأسيس بدني عام";
+      levelBadge = isEn ? "Beginner" : "مبتدئ";
+      levelColor = "text-red-400 border-red-500/30 bg-red-500/10";
+    }
+
+    // Determine Strengths
+    const strengths = [];
+    if (eur >= 1.05 && eur <= 1.15) {
+      strengths.push(isEn ? "Optimal Muscle-Tendon Balance (EUR in 1.05-1.15 range)" : "توازن مثالي بين القوة العضلية ومطاطية الأوتار (EUR 1.05-1.15)");
+    } else if (eur > 1.15) {
+      strengths.push(isEn ? "Excellent Tendon Elasticity & Recoil capacity" : "مرونة أوتار ممتازة وقدرة ارتداد عالية");
+    }
+    if (armSwing >= 10 && armSwing <= 15) {
+      strengths.push(isEn ? "Optimal Arm-Leg Coordination (10%-15% arm swing boost)" : "توافق ممتاز بين حركة الذراعين والأرجل (10%-15% مساهمة الذراعين)");
+    }
+    if (velocityConversion >= 10) {
+      strengths.push(isEn ? "Efficient Horizontal-to-Vertical Speed Conversion" : "كفاءة عالية في تحويل السرعة الأفقية إلى عمودية في الاقتراب");
+    }
+    if (latestRsiVal >= 2.0) {
+      strengths.push(isEn ? "Elite Ankle Stiffness & Reactive Capacity (RSI >= 2.0)" : "صلابة كاحل ممتازة وقوة تفاعلية عالية (RSI >= 2.0)");
+    }
+    if (relativePower >= 52) {
+      strengths.push(isEn ? "High Relative Power-to-Weight Ratio" : "كثافة قدرة ميكانيكية عالية بالنسبة للوزن");
+    }
+    if (heightCm >= 55) {
+      strengths.push(isEn ? "Strong explosive vertical capacity" : "قدرة انفجارية عمودية قوية");
+    }
+    if (strengths.length === 0) {
+      strengths.push(isEn ? "Needs to build foundational capacity" : "يحتاج إلى بناء الأساسيات البيوميكانيكية العامة أولاً");
+    }
+
+    // Determine Primary Deficit, Prescription, Projection, and Timeline
+    let deficit = "";
+    let prescription = "";
+    let projection = "";
+    let timeline = "";
+    let deficitLabel = "";
+
+    // Prioritize deficits
+    if (heightCm < 35 || relativePower < 38 || (eur > 1.15 && heightCm < 50)) {
+      // Concentric Deficit
+      deficitLabel = isEn ? "Concentric Force Deficit" : "عجز في القوة العضلية الانقباضية الصافية";
+      deficit = isEn 
+        ? "The athlete lacks raw concentric force production. While tendon elasticity may be utilized, the muscular foundation is insufficient to generate high vertical takeoff velocity."
+        : "يعاني اللاعب من ضعف صريح في القوة الانقباضية الصافية للعضلات (Concentric Force)؛ حتى وإن كانت أوتاره مطاطية، فإنه يفتقر إلى الأساس العضلي القوي اللازم لدفع الأرض بقوة.";
+      
+      prescription = isEn
+        ? "Focus on heavy resistance training. Exercises: Back Squats (3-5 sets of 4-6 reps at >80% 1RM), Hex Bar Deadlifts, Leg Press. Focus on explosive intent during the concentric phase (intent to accelerate)."
+        : "التركيز على تمارين القوة القصوى والحديد لبناء كتلة عضلية فعالة. التمارين: Squats خلفي (3-5 مجموعات، 4-6 تكرارات بوزن >80% من 1RM)، Hex Bar Deadlifts، مع التركيز على تسريع الوزن بأقصى قوة في مرحلة الصعود.";
+      
+      projection = isEn
+        ? "Expected increase of +5 to +8 cm (+2.0\" to +3.1\") in standard CMJ height."
+        : "تحسن متوقع في قفزة CMJ بمقدار +5 إلى +8 سم (+2.0 إلى +3.1 إنش).";
+      
+      timeline = isEn ? "6 - 8 Weeks" : "6 - 8 أسابيع";
+    } else if (eur < 1.05 || (latestRsiVal > 0 && latestRsiVal < 1.5)) {
+      // Tendon / SSC Deficit
+      deficitLabel = isEn ? "Tendon Stiffness / SSC Deficit" : "ضعف في صلابة الأوتار ودورة التمدد والتقصير (SSC)";
+      deficit = isEn
+        ? "The athlete is 'muscle-bound' and relies heavily on slow, active muscle contraction rather than using the elastic stretch-shortening cycle (SSC) of the tendons. EUR index is low (<1.05)."
+        : "اللاعب يعتمد بالكامل على عضلاته ولديه ضعف صريح في كفاءة الأوتار ومطاطيتها واستغلال طاقة الارتداد (EUR < 1.05)، مما يزيد من زمن التلامس مع الأرض ويقلل من القوة الانفجارية السريعة.";
+      
+      prescription = isEn
+        ? "Focus on plyometrics and reactive stiffness. Exercises: Fast Pogo Jumps, Hurdle Hops, Drop Jumps (from 30cm box with minimal ground contact time < 0.2s), assisted jumps."
+        : "التركيز على تدريبات البلايومترك السريع لتنشيط الأوتار وزيادة صلابة الكاحل. التمارين: Pogo Jumps سريعة، Hurdle Hops، Drop Jumps (سقوط من صندوق 30 سم والقفز الفوري بأقل زمن تلامس < 0.2 ثانية).";
+      
+      projection = isEn
+        ? "Improvement of EUR ratio to the optimal 1.05-1.10 zone, and +0.3 to +0.5 increase in RSI score."
+        : "تحسن في مؤشر EUR ليصل للمدى المثالي (1.05-1.10) وزيادة في مؤشر RSI بمقدار +0.3 إلى +0.5 وحدة.";
+      
+      timeline = isEn ? "4 - 6 Weeks" : "4 - 6 أسابيع";
+    } else if (armSwing < 10) {
+      // Arm-Leg Coordination Deficit
+      deficitLabel = isEn ? "Upper-Lower Body Coordination Deficit" : "عجز التنسيق الحركي بين الذراعين والأرجل";
+      deficit = isEn
+        ? "Poor neuromuscular coordination. The athlete fails to synchronize the arm swing momentum with lower body takeoff drive, losing up to 10% of potential jump height."
+        : "ضعف التوافق العضلي العصبي؛ لا يستطيع اللاعب مزامنة سرعة أرجحة الذراعين مع الدفع الحركي للجزء السفلي عند الارتقاء، مما يفقده حوالي 10% من ارتفاع قفزته المحتمل.";
+      
+      prescription = isEn
+        ? "Focus on arm swing mechanics and timing. Exercises: Standing arm swing drills with light dumbbells (1-2 kg), wall jump drills focusing on arm extension, and conscious CMJ technique rehearsals."
+        : "تدريبات تحسين تكنيك وتوقيت أرجحة الذراعين. التمارين: أرجحة ذراعين من الثبات بأوزان خفيفة (1-2 كجم)، تدريبات القفز بجانب الحائط مع امتداد كامل للذراعين، تكرار قفزة CMJ مع التركيز على توقيت الدفع.";
+      
+      projection = isEn
+        ? "Immediate boost of +3 to +5 cm (+1.2\" to +2.0\") in vertical jump height through improved motor coordination."
+        : "زيادة فورية في ارتفاع القفز بمقدار +3 إلى +5 سم (+1.2 إلى +2.0 إنش) بمجرد إتقان التوافق العصبي الحركي للذراعين.";
+      
+      timeline = isEn ? "2 - 3 Weeks" : "2 - 3 أسابيع";
+    } else if (velocityConversion < 10 && approachJump > 0) {
+      // Velocity Conversion Deficit
+      deficitLabel = isEn ? "Horizontal-to-Vertical Velocity Conversion Deficit" : "عجز في تحويل السرعة الأفقية لعمودية";
+      deficit = isEn
+        ? "The athlete cannot transfer horizontal run-up momentum into vertical lift. This is usually due to weak deceleration capacity in the penultimate step or poor takeoff angle mechanics."
+        : "يعاني اللاعب من صعوبة تحويل سرعة الاقتراب والجري إلى ارتقاء رأسي عمودي؛ الخطوة قبل الأخيرة (Penultimate Step) تفتقر للفرملة السريعة والتحويل الزاوي الصحيح.";
+      
+      prescription = isEn
+        ? "Focus on deceleration, braking, and takeoff mechanics. Exercises: Penultimate step approach drills, single-leg jump takeoffs, horizontal bounds to immediate vertical leap, depth drops."
+        : "التركيز على تكنيك الخطوة قبل الأخيرة والفرملة السريعة. التمارين: تدريبات الاقتراب من خطوتين وثلاث خطوات، الحجل الأفقي ثم الارتقاء العمودي الفوري، وتدريبات ثبات وتكنيك الارتقاء الأحادي.";
+      
+      projection = isEn
+        ? "Expected increase of +6 to +10 cm (+2.4\" to +3.9\") in Approach Jump height."
+        : "تحسن متوقع في قفزة الاقتراب (Approach Jump) بمقدار +6 إلى +10 سم (+2.4 إلى +3.9 إنش).";
+      
+      timeline = isEn ? "6 Weeks" : "6 أسابيع";
+    } else {
+      // General Physical Base Deficit
+      deficitLabel = isEn ? "General Physical Base Deficit" : "الحاجة لبناء قاعدة إعداد بدني عام";
+      deficit = isEn
+        ? "Foundational strength and landing mechanics are suboptimal. Needs general physical conditioning to establish a baseline before specialized reactive training."
+        : "عناصر القوة العامة وتكنيك الهبوط بحاجة لتطوير؛ يجب تأسيس اللاعب بدنياً وتهيئة مفاصله حركياً لحمايته من الإصابات قبل البدء في تدريبات عالية الشدة.";
+      
+      prescription = isEn
+        ? "General physical preparation (GPP). Exercises: Core strengthening, bodyweight squats and lunges, goblet squats, landing mechanics training (jumping from a low box and holding a stable landing pose)."
+        : "برنامج إعداد بدني عام (GPP). التمارين: تقوية عضلات الجذع، squats و lunges بوزن الجسم، تمارين الهبوط السليم (القفز الخفيف والثبات لـ 3 ثوانٍ بوضع متوازن).";
+      
+      projection = isEn
+        ? "Improvement of +3 to +5 cm in jump height with significantly enhanced landing stability and reduced injury risk."
+        : "زيادة عامة في جودة الحركة وتكامل الارتقاء (+3 إلى +5 سم) مع تحسين ثبات الهبوط وتقليل مخاطر الإصابة.";
+      
+      timeline = isEn ? "8 - 10 Weeks" : "8 - 10 أسابيع";
+    }
+
+    return {
+      level,
+      levelBadge,
+      levelColor,
+      strengths,
+      deficitLabel,
+      deficit,
+      prescription,
+      projection,
+      timeline
+    };
+  };
+
   const jumpTestsConfig = [
     {
       type: 'sj_no_arms',
@@ -785,11 +940,19 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
           {/* Action buttons */}
           <div className="flex flex-wrap items-center justify-center lg:justify-end gap-3 z-10 shrink-0">
+            {onEditPlayer && (
+              <button 
+                onClick={() => onEditPlayer(activePlayer)} 
+                className="px-4 py-3 bg-slate-900/80 hover:bg-slate-800 text-gray-300 border border-slate-800 rounded-xl font-bold flex items-center justify-center gap-2 transition-all text-xs cursor-pointer shadow-md"
+              >
+                <Edit3 size={14} className="text-cyan-400" /> {language === 'en' ? 'Edit Profile' : 'تعديل البيانات'}
+              </button>
+            )}
             <button onClick={() => setShowBenchmarks(true)} className="px-4 py-3 bg-slate-900/80 hover:bg-slate-800 text-gray-300 border border-slate-800 rounded-xl font-bold flex items-center justify-center gap-2 transition-all text-xs cursor-pointer shadow-md">
-              <BookOpen size={14} className="text-cyan-400" /> الجداول المعيارية
+              <BookOpen size={14} className="text-cyan-400" /> {language === 'en' ? 'Normative Tables' : 'الجداول المعيارية'}
             </button>
              <button onClick={() => setIsPrintModalOpen(true)} className="px-5 py-3 btn-orange-gradient rounded-xl font-black flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] text-xs cursor-pointer shadow-lg">
-              <Download size={14} /> تصدير تقرير PDF
+              <Download size={14} /> {language === 'en' ? 'Export PDF Report' : 'تصدير تقرير PDF'}
             </button>
           </div>
         </div>
@@ -1206,26 +1369,97 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       {/* Middle & Right: Diagnostics details */}
                       <div className="lg:col-span-2 space-y-4">
                         <div className="p-4 rounded-xl border bg-black/10 border-gray-805 space-y-2">
-                          <span className="text-xs font-black text-white block">📋 تقييم التوازن البدني والفسيولوجي:</span>
-                          <p className="text-xs text-gray-300 leading-relaxed font-mono whitespace-pre-line">
-                            {generateUnifiedDiagnostic().split('\n\n')[0]}
+                          <span className="text-xs font-black text-white block">📋 {language === 'en' ? 'Physical & Physiological Balance Assessment:' : 'تقييم التوازن البدني والفسيولوجي:'}</span>
+                          <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-line">
+                            {unifiedDiagnosticText.split('\n\n')[0]}
                           </p>
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4 text-xs">
                           <div className="bg-black/20 p-3.5 rounded-xl border border-gray-850">
-                            <span className="text-[10px] text-gray-455 block mb-1">ارتفاع ثبات بدون أذرع (SJ)</span>
-                            <span className="text-base font-black text-white font-mono">{sjNoArms.toFixed(1)} <span className="text-xs text-gray-500 font-bold">سم</span></span>
+                            <span className="text-[10px] text-gray-455 block mb-1">{language === 'en' ? 'Squat Jump (SJ - No Arms)' : 'ارتفاع ثبات بدون أذرع (SJ)'}</span>
+                            <span className="text-base font-black text-white font-mono">{sjNoArms.toFixed(1)} <span className="text-xs text-gray-500 font-bold">{language === 'en' ? 'cm' : 'سم'}</span></span>
                           </div>
                           <div className="bg-black/20 p-3.5 rounded-xl border border-gray-850">
-                            <span className="text-[10px] text-gray-455 block mb-1">ارتفاع ارتداد بدون أذرع (CMJ)</span>
-                            <span className="text-base font-black text-white font-mono">{cmjNoArms.toFixed(1)} <span className="text-xs text-gray-500 font-bold">سم</span></span>
+                            <span className="text-[10px] text-gray-455 block mb-1">{language === 'en' ? 'Countermovement Jump (CMJ - No Arms)' : 'ارتفاع ارتداد بدون أذرع (CMJ)'}</span>
+                            <span className="text-base font-black text-white font-mono">{cmjNoArms.toFixed(1)} <span className="text-xs text-gray-500 font-bold">{language === 'en' ? 'cm' : 'سم'}</span></span>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
+
+                {/* Physical Profile & Actionable Training Prescription Card */}
+                {sjNoArms > 0 && cmjNoArms > 0 && (() => {
+                  const presc = generateDetailedPrescription();
+                  return (
+                    <div className="glass-panel p-6 shadow-lg border border-cyan-950/40 relative overflow-hidden mt-6">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
+                      
+                      <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
+                        📋 {language === 'en' ? 'Physical Profile & Actionable Training Prescription' : 'التحليل الحركي والوصفة التدريبية المتكاملة'}
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Left Column: Level & Timeline */}
+                        <div className="space-y-4">
+                          {/* Athlete Level Badge */}
+                          <div className="bg-black/30 border border-gray-800 p-5 rounded-2xl text-center flex flex-col justify-center items-center">
+                            <span className="text-xs text-gray-400 font-bold mb-2">{language === 'en' ? 'Overall Athlete Level' : 'المستوى البدني العام'}</span>
+                            <span className={`text-xs font-black px-4 py-2 rounded-xl border ${presc.levelColor} mb-2`}>
+                              {presc.levelBadge}
+                            </span>
+                            <p className="text-[10px] text-gray-400 leading-relaxed font-bold mt-1 text-center">
+                              {presc.level}
+                            </p>
+                          </div>
+
+                          {/* Projection & Timeline Badge */}
+                          <div className="bg-black/30 border border-gray-800 p-5 rounded-2xl text-center flex flex-col justify-center items-center">
+                            <span className="text-xs text-gray-400 font-bold mb-1">{language === 'en' ? 'Improvement Timeline' : 'التحسن والجدول الزمني'}</span>
+                            <span className="text-base font-black text-cyan-400 font-mono mb-1">{presc.timeline}</span>
+                            <p className="text-[10px] text-gray-400 leading-relaxed font-medium">
+                              {presc.projection}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Right Columns: Strengths & Deficit details */}
+                        <div className="lg:col-span-2 space-y-4">
+                          {/* Strengths List */}
+                          <div className="p-4 rounded-xl border bg-black/10 border-gray-800">
+                            <span className="text-xs font-black text-emerald-400 block mb-2">✨ {language === 'en' ? 'Biomechanical Strengths:' : 'نقاط القوة الميكانيكية الحركية:'}</span>
+                            <ul className="space-y-1 text-xs text-gray-300 list-disc list-inside">
+                              {presc.strengths.map((s, idx) => (
+                                <li key={idx} className="leading-relaxed font-medium">{s}</li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Primary Deficit Card */}
+                          <div className="p-4 rounded-xl border bg-black/10 border-gray-800 space-y-2">
+                            <span className="text-xs font-black text-orange-400 block">⚠️ {language === 'en' ? 'Primary Biomechanical Deficit:' : 'العجز الحركي الأساسي (عنق الزجاجة):'}</span>
+                            <p className="text-xs text-gray-300 font-bold">
+                              [{presc.deficitLabel}]
+                            </p>
+                            <p className="text-xs text-gray-400 leading-relaxed font-medium">
+                              {presc.deficit}
+                            </p>
+                          </div>
+
+                          {/* Actionable Training Prescription */}
+                          <div className="p-4 rounded-xl border bg-cyan-950/10 border-cyan-500/10 space-y-2">
+                            <span className="text-xs font-black text-cyan-400 block">💪 {language === 'en' ? 'Prescribed Training Intervention:' : 'البرنامج والتدخل التدريبي الموصى به:'}</span>
+                            <p className="text-xs text-gray-300 leading-relaxed font-medium">
+                              {presc.prescription}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
               </motion.div>
             )}

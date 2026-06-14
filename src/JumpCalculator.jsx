@@ -611,6 +611,41 @@ export default function JumpCalculator() {
     }
   };
 
+  const handleDeleteCoach = async (coachId, coachName) => {
+    const isEn = language === 'en';
+    const msg = isEn 
+      ? `Are you sure you want to delete coach "${coachName}"? All assigned athletes will become unassigned.`
+      : `هل أنت متأكد من حذف المدرب "${coachName}"؟ جميع اللاعبين التابعين له سيصبحون بدون مدرب.`;
+      
+    if (window.confirm(msg)) {
+      try {
+        const { error: updateError } = await supabase
+          .from('lab_players')
+          .update({ coach_id: null })
+          .eq('coach_id', coachId);
+          
+        if (updateError) throw updateError;
+        
+        const { error: deleteError } = await supabase
+          .from('lab_coaches')
+          .delete()
+          .eq('id', coachId);
+          
+        if (deleteError) throw deleteError;
+        
+        setCoaches(coaches.filter(c => c.id !== coachId));
+        setPlayers(players.map(p => p.coach_id === coachId ? { ...p, coach_id: null } : p));
+        if (activePlayer && activePlayer.coach_id === coachId) {
+          setActivePlayer(prev => ({ ...prev, coach_id: null }));
+        }
+        
+        alert(isEn ? "✅ Coach deleted successfully!" : "✅ تم حذف المدرب بنجاح!");
+      } catch (err) {
+        alert((isEn ? "Error deleting coach: " : "خطأ في حذف المدرب: ") + err.message);
+      }
+    }
+  };
+
   const renderPlayerOptions = () => {
     const grouped = {};
     coaches.forEach(coach => {
@@ -647,7 +682,7 @@ export default function JumpCalculator() {
     
     if (unassigned.length > 0) {
       elements.push(
-        <optgroup key="unassigned" label="لاعبون بدون مدرب" className="text-gray-900 bg-white font-bold">
+        <optgroup key="unassigned" label={language === 'en' ? 'Players without coach' : 'لاعبون بدون مدرب'} className="text-gray-900 bg-white font-bold">
           {unassigned.map(p => (
             <option key={p.id} value={p.id} className="text-gray-900 bg-white font-normal">{p.full_name}</option>
           ))}
@@ -1595,6 +1630,7 @@ export default function JumpCalculator() {
                     playerHistory={playerHistory} 
                     onHistoryChange={(newHistory) => setPlayerHistory(newHistory)} 
                     language={language}
+                    onEditPlayer={handleEditPlayer}
                   />
                 )}
               </motion.div>
@@ -1716,64 +1752,64 @@ export default function JumpCalculator() {
       {/* Edit Athlete Modal Dialog */}
       <AnimatePresence>
         {isEditingPlayer && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in" style={{ direction: 'rtl' }}>
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in" style={{ direction: language === 'en' ? 'ltr' : 'rtl' }}>
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-3xl p-6 w-full max-w-lg shadow-2xl relative">
-              <button type="button" onClick={() => setIsEditingPlayer(false)} className="absolute top-4 left-4 text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-[var(--border-light)]">
+              <button type="button" onClick={() => setIsEditingPlayer(false)} className={`absolute top-4 ${language === 'en' ? 'right-4' : 'left-4'} text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-[var(--border-light)]`}>
                 <X size={16} />
               </button>
               <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
-                <Edit3 className="text-cyan-400" size={20} /> تعديل بيانات اللاعب
+                <Edit3 className="text-cyan-400" size={20} /> {language === 'en' ? 'Edit Athlete Data' : 'تعديل بيانات اللاعب'}
               </h2>
-              <form onSubmit={handleUpdatePlayer} className="space-y-4 text-right">
+              <form onSubmit={handleUpdatePlayer} className="space-y-4" style={{ textAlign: language === 'en' ? 'left' : 'right' }}>
                 <div>
-                  <label className="text-[10px] text-gray-400 block mb-1 font-bold">الاسم الكامل</label>
+                  <label className="text-[10px] text-gray-400 block mb-1 font-bold">{language === 'en' ? 'Full Name' : 'الاسم الكامل'}</label>
                   <input required type="text" value={editPlayerForm.name} onChange={e => setEditPlayerForm({...editPlayerForm, name: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">سنة الميلاد</label>
+                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">{language === 'en' ? 'Birth Year' : 'سنة الميلاد'}</label>
                     <input required type="number" min="1950" max={new Date().getFullYear()} value={editPlayerForm.birthYear} onChange={e => setEditPlayerForm({...editPlayerForm, birthYear: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]" />
                   </div>
                   <div>
-                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">النوع</label>
+                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">{language === 'en' ? 'Gender' : 'النوع'}</label>
                     <select value={editPlayerForm.gender} onChange={e => setEditPlayerForm({...editPlayerForm, gender: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]">
-                      <option value="male" className="text-gray-900 bg-white">ذكر</option>
-                      <option value="female" className="text-gray-900 bg-white">أنثى</option>
+                      <option value="male" className="text-gray-900 bg-white">{language === 'en' ? 'Male' : 'ذكر'}</option>
+                      <option value="female" className="text-gray-900 bg-white">{language === 'en' ? 'Female' : 'أنثى'}</option>
                     </select>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">الوزن (kg)</label>
+                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">{language === 'en' ? 'Weight (kg)' : 'الوزن (kg)'}</label>
                     <input required type="number" step="0.1" value={editPlayerForm.weight} onChange={e => setEditPlayerForm({...editPlayerForm, weight: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]" />
                   </div>
                   <div>
-                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">طول الرجل (م)</label>
+                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">{language === 'en' ? 'Leg Length (m)' : 'طول الرجل (م)'}</label>
                     <input required type="number" step="0.01" value={editPlayerForm.leg} onChange={e => setEditPlayerForm({...editPlayerForm, leg: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">طول اللاعب (cm)</label>
+                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">{language === 'en' ? 'Height (cm)' : 'طول اللاعب (cm)'}</label>
                     <input type="number" value={editPlayerForm.height} onChange={e => setEditPlayerForm({...editPlayerForm, height: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]" />
                   </div>
                   <div>
-                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">الوصول من الثبات (cm)</label>
+                    <label className="text-[10px] text-gray-400 block mb-1 font-bold">{language === 'en' ? 'Standing Reach (cm)' : 'الوصول من الثبات (cm)'}</label>
                     <input type="number" value={editPlayerForm.standingReach} onChange={e => setEditPlayerForm({...editPlayerForm, standingReach: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] text-gray-400 block mb-1 font-bold">المدرب المسؤول</label>
+                  <label className="text-[10px] text-gray-400 block mb-1 font-bold">{language === 'en' ? 'Assigned Coach' : 'المدرب المسؤول'}</label>
                   <select value={editPlayerForm.coachId || ''} onChange={e => setEditPlayerForm({...editPlayerForm, coachId: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-2.5 text-xs text-[var(--text-primary)] rounded-xl outline-none focus:border-[var(--brand-main)]">
-                    <option value="" className="text-gray-900 bg-white">-- بدون مدرب --</option>
+                    <option value="" className="text-gray-900 bg-white">{language === 'en' ? '-- No Coach --' : '-- بدون مدرب --'}</option>
                     {coaches.map(c => (
                       <option key={c.id} value={c.id} className="text-gray-900 bg-white">{c.full_name}</option>
                     ))}
                   </select>
                 </div>
-                <div className="flex gap-3 mt-4">
-                  <button type="submit" className="flex-1 btn-orange-gradient py-3 rounded-xl text-xs font-bold shadow-md flex justify-center items-center gap-1.5"><Save size={14}/> حفظ التعديلات</button>
-                  <button type="button" onClick={() => handleDeletePlayer(editPlayerForm.id, editPlayerForm.name)} className="px-4 py-3 rounded-xl text-xs font-bold bg-red-950/40 border border-red-800/40 hover:bg-red-900/40 text-red-400 hover:text-red-300 transition-all flex justify-center items-center gap-1.5"><Trash2 size={14}/> حذف اللاعب</button>
+                <div className={`flex gap-3 mt-4 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+                  <button type="submit" className="flex-1 btn-orange-gradient py-3 rounded-xl text-xs font-bold shadow-md flex justify-center items-center gap-1.5"><Save size={14}/> {language === 'en' ? 'Save Changes' : 'حفظ التعديلات'}</button>
+                  <button type="button" onClick={() => handleDeletePlayer(editPlayerForm.id, editPlayerForm.name)} className="px-4 py-3 rounded-xl text-xs font-bold bg-red-950/40 border border-red-800/40 hover:bg-red-900/40 text-red-400 hover:text-red-300 transition-all flex justify-center items-center gap-1.5"><Trash2 size={14}/> {language === 'en' ? 'Delete Athlete' : 'حذف اللاعب'}</button>
                 </div>
               </form>
             </motion.div>
@@ -1783,30 +1819,51 @@ export default function JumpCalculator() {
 
       {/* Registration Dialog Modal */}
       {showCoachModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" style={{ direction: 'rtl' }}>
-          <div className="bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
-            <button onClick={() => setShowCoachModal(false)} className="absolute top-4 left-4 text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-[var(--border-light)]">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" style={{ direction: language === 'en' ? 'ltr' : 'rtl' }}>
+          <div className="bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-3xl p-6 w-full max-w-md shadow-2xl relative text-right" style={{ textAlign: language === 'en' ? 'left' : 'right' }}>
+            <button onClick={() => setShowCoachModal(false)} className={`absolute top-4 ${language === 'en' ? 'right-4' : 'left-4'} text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-[var(--border-light)]`}>
               <X size={16} />
             </button>
             <h2 className="text-lg font-black text-white mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
-              <Plus className="text-cyan-400" size={20} /> تسجيل مدرب جديد
+              <Plus className="text-cyan-400" size={20} /> {language === 'en' ? 'Register New Coach' : 'تسجيل مدرب جديد'}
             </h2>
             <form onSubmit={handleRegisterCoach} className="space-y-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-bold">اسم المدرب الكامل</label>
+                <label className="block text-xs text-gray-400 mb-1.5 font-bold">{language === 'en' ? 'Coach Full Name' : 'اسم المدرب الكامل'}</label>
                 <input 
                   required 
                   type="text" 
                   value={newCoachName} 
                   onChange={e => setNewCoachName(e.target.value)} 
                   className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] p-3 text-sm text-[var(--text-primary)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--brand-main)] focus:border-transparent transition-all" 
-                  placeholder="مثال: الكابتن أحمد علي"
+                  placeholder={language === 'en' ? 'e.g. Captain Ahmed Ali' : 'مثال: الكابتن أحمد علي'}
                 />
               </div>
               <button type="submit" className="w-full btn-orange-gradient py-3 rounded-xl font-bold text-sm shadow-lg flex justify-center items-center gap-2">
-                <Save size={18} /> حفظ بيانات المدرب
+                <Save size={18} /> {language === 'en' ? 'Save Coach Data' : 'حفظ بيانات المدرب'}
               </button>
             </form>
+
+            {coaches.length > 0 && (
+              <div className="mt-6 border-t border-[var(--border-light)] pt-4">
+                <h3 className="text-xs font-bold text-gray-400 mb-2">{language === 'en' ? 'Registered Coaches' : 'المدربون المسجلون'}</h3>
+                <div className="max-h-40 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                  {coaches.map(c => (
+                    <div key={c.id} className={`flex items-center justify-between bg-black/20 p-2.5 rounded-xl border border-[var(--border-light)] ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+                      <span className="text-xs text-white font-bold">{c.full_name}</span>
+                      <button 
+                        type="button" 
+                        onClick={() => handleDeleteCoach(c.id, c.full_name)}
+                        className="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer"
+                        title={language === 'en' ? 'Delete Coach' : 'حذف المدرب'}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

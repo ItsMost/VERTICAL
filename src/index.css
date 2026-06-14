@@ -21,7 +21,7 @@
   --glass-blur: blur(24px);
   --sans: 'Cairo', system-ui, sans-serif;
   --heading: 'Cairo', system-ui, sans-serif;
-  --mono: 'Outfit', ui-monospace, Consolas, monospace;
+  --mono: 'Outfit', 'Cairo', ui-monospace, Consolas, monospace;
 }
 
 [data-theme="light"] {
