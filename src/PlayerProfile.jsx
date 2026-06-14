@@ -288,8 +288,17 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       date: new Date(jump.created_at).toLocaleDateString('ar-EG')
     }));
 
-  // Find the personal best vertical jump (highest jump height from any test type)
+  // Find the personal best vertical jump for CMJ with arms (highest jump height from cmj_arms test type)
   const pbJump = playerHistory && playerHistory.length > 0
+    ? playerHistory.filter(j => j.test_type === 'cmj_arms' && parseFloat(j.jump_height_cm) > 0)
+        .reduce((best, current) => {
+          if (!best) return current;
+          return parseFloat(current.jump_height_cm) > parseFloat(best.jump_height_cm) ? current : best;
+        }, null)
+    : null;
+
+  // Fallback: If no cmj_arms exists, search for the highest jump of any test type
+  const fallbackPbJump = playerHistory && playerHistory.length > 0
     ? playerHistory.filter(j => parseFloat(j.jump_height_cm) > 0)
         .reduce((best, current) => {
           if (!best) return current;
@@ -297,8 +306,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
         }, null)
     : null;
 
-  // Use personal best jump for Visual Cockpit metrics, fallback to latest jump if none
-  const cockpitJump = pbJump || latestJump;
+  // Use CMJ with arms best jump for Visual Cockpit metrics, fallback to highest of any type, then latest
+  const cockpitJump = pbJump || fallbackPbJump || latestJump;
 
   const heightCm = cockpitJump ? parseFloat(cockpitJump.jump_height_cm) : 0;
   const heightInches = parseFloat((heightCm * 0.393701).toFixed(1));
