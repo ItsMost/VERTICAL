@@ -1393,71 +1393,329 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 {/* Physical Profile & Actionable Training Prescription Card */}
                 {sjNoArms > 0 && cmjNoArms > 0 && (() => {
                   const presc = generateDetailedPrescription();
+                  const isStandingReachValid = !isNaN(standingReachNum) && standingReachNum > 0;
+                  const maxTouch = isStandingReachValid ? (standingReachNum + heightCm) : null;
                   return (
-                    <div className="glass-panel p-6 shadow-lg border border-cyan-950/40 relative overflow-hidden mt-6">
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
-                      
-                      <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
-                        📋 {language === 'en' ? 'Physical Profile & Actionable Training Prescription' : 'التحليل الحركي والوصفة التدريبية المتكاملة'}
-                      </h3>
-                      
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Left Column: Level & Timeline */}
-                        <div className="space-y-4">
-                          {/* Athlete Level Badge */}
-                          <div className="bg-black/30 border border-gray-800 p-5 rounded-2xl text-center flex flex-col justify-center items-center">
-                            <span className="text-xs text-gray-400 font-bold mb-2">{language === 'en' ? 'Overall Athlete Level' : 'المستوى البدني العام'}</span>
-                            <span className={`text-xs font-black px-4 py-2 rounded-xl border ${presc.levelColor} mb-2`}>
-                              {presc.levelBadge}
-                            </span>
-                            <p className="text-[10px] text-gray-400 leading-relaxed font-bold mt-1 text-center">
-                              {presc.level}
-                            </p>
+                    <>
+                      <div className="glass-panel p-6 shadow-lg border border-cyan-950/40 relative overflow-hidden mt-6">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
+                        
+                        <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
+                          📋 {language === 'en' ? 'Physical Profile & Actionable Training Prescription' : 'التحليل الحركي والوصفة التدريبية المتكاملة'}
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                          {/* Left Column: Level & Timeline */}
+                          <div className="space-y-4">
+                            {/* Athlete Level Badge */}
+                            <div className="bg-black/30 border border-gray-800 p-5 rounded-2xl text-center flex flex-col justify-center items-center">
+                              <span className="text-xs text-gray-400 font-bold mb-2">{language === 'en' ? 'Overall Athlete Level' : 'المستوى البدني العام'}</span>
+                              <span className={`text-xs font-black px-4 py-2 rounded-xl border ${presc.levelColor} mb-2`}>
+                                {presc.levelBadge}
+                              </span>
+                              <p className="text-[10px] text-gray-400 leading-relaxed font-bold mt-1 text-center">
+                                {presc.level}
+                              </p>
+                            </div>
+
+                            {/* Projection & Timeline Badge */}
+                            <div className="bg-black/30 border border-gray-800 p-5 rounded-2xl text-center flex flex-col justify-center items-center">
+                              <span className="text-xs text-gray-400 font-bold mb-1">{language === 'en' ? 'Improvement Timeline' : 'التحسن والجدول الزمني'}</span>
+                              <span className="text-base font-black text-cyan-400 font-mono mb-1">{presc.timeline}</span>
+                              <p className="text-[10px] text-gray-400 leading-relaxed font-medium">
+                                {presc.projection}
+                              </p>
+                            </div>
                           </div>
 
-                          {/* Projection & Timeline Badge */}
-                          <div className="bg-black/30 border border-gray-800 p-5 rounded-2xl text-center flex flex-col justify-center items-center">
-                            <span className="text-xs text-gray-400 font-bold mb-1">{language === 'en' ? 'Improvement Timeline' : 'التحسن والجدول الزمني'}</span>
-                            <span className="text-base font-black text-cyan-400 font-mono mb-1">{presc.timeline}</span>
-                            <p className="text-[10px] text-gray-400 leading-relaxed font-medium">
-                              {presc.projection}
-                            </p>
-                          </div>
-                        </div>
+                          {/* Right Columns: Strengths & Deficit details */}
+                          <div className="lg:col-span-2 space-y-4">
+                            {/* Strengths List */}
+                            <div className="p-4 rounded-xl border bg-black/10 border-gray-800">
+                              <span className="text-xs font-black text-emerald-400 block mb-2">✨ {language === 'en' ? 'Biomechanical Strengths:' : 'نقاط القوة الميكانيكية الحركية:'}</span>
+                              <ul className="space-y-1 text-xs text-gray-300 list-disc list-inside">
+                                {presc.strengths.map((s, idx) => (
+                                  <li key={idx} className="leading-relaxed font-medium">{s}</li>
+                                ))}
+                              </ul>
+                            </div>
 
-                        {/* Right Columns: Strengths & Deficit details */}
-                        <div className="lg:col-span-2 space-y-4">
-                          {/* Strengths List */}
-                          <div className="p-4 rounded-xl border bg-black/10 border-gray-800">
-                            <span className="text-xs font-black text-emerald-400 block mb-2">✨ {language === 'en' ? 'Biomechanical Strengths:' : 'نقاط القوة الميكانيكية الحركية:'}</span>
-                            <ul className="space-y-1 text-xs text-gray-300 list-disc list-inside">
-                              {presc.strengths.map((s, idx) => (
-                                <li key={idx} className="leading-relaxed font-medium">{s}</li>
-                              ))}
-                            </ul>
-                          </div>
+                            {/* Primary Deficit Card */}
+                            <div className="p-4 rounded-xl border bg-black/10 border-gray-800 space-y-2">
+                              <span className="text-xs font-black text-orange-400 block">⚠️ {language === 'en' ? 'Primary Biomechanical Deficit:' : 'العجز الحركي الأساسي (عنق الزجاجة):'}</span>
+                              <p className="text-xs text-gray-300 font-bold">
+                                [{presc.deficitLabel}]
+                              </p>
+                              <p className="text-xs text-gray-400 leading-relaxed font-medium">
+                                {presc.deficit}
+                              </p>
+                            </div>
 
-                          {/* Primary Deficit Card */}
-                          <div className="p-4 rounded-xl border bg-black/10 border-gray-800 space-y-2">
-                            <span className="text-xs font-black text-orange-400 block">⚠️ {language === 'en' ? 'Primary Biomechanical Deficit:' : 'العجز الحركي الأساسي (عنق الزجاجة):'}</span>
-                            <p className="text-xs text-gray-300 font-bold">
-                              [{presc.deficitLabel}]
-                            </p>
-                            <p className="text-xs text-gray-400 leading-relaxed font-medium">
-                              {presc.deficit}
-                            </p>
-                          </div>
-
-                          {/* Actionable Training Prescription */}
-                          <div className="p-4 rounded-xl border bg-cyan-950/10 border-cyan-500/10 space-y-2">
-                            <span className="text-xs font-black text-cyan-400 block">💪 {language === 'en' ? 'Prescribed Training Intervention:' : 'البرنامج والتدخل التدريبي الموصى به:'}</span>
-                            <p className="text-xs text-gray-300 leading-relaxed font-medium">
-                              {presc.prescription}
-                            </p>
+                            {/* Actionable Training Prescription */}
+                            <div className="p-4 rounded-xl border bg-cyan-950/10 border-cyan-500/10 space-y-2">
+                              <span className="text-xs font-black text-cyan-400 block">💪 {language === 'en' ? 'Prescribed Training Intervention:' : 'البرنامج والتدخل التدريبي الموصى به:'}</span>
+                              <p className="text-xs text-gray-300 leading-relaxed font-medium">
+                                {presc.prescription}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+
+                      {/* Field-Specific Prediction Engine */}
+                      <div className="glass-panel p-6 shadow-lg border border-cyan-950/40 relative overflow-hidden mt-6">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
+                        
+                        <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
+                          🔮 {language === 'en' ? 'Field-Specific Prediction Engine' : 'محرك التنبؤ الميداني الذكي'}
+                        </h3>
+
+                        {!isStandingReachValid ? (
+                          <div className="bg-amber-950/20 border border-amber-500/30 p-4 rounded-xl text-center">
+                            <p className="text-xs text-amber-300 font-bold">
+                              ⚠️ {language === 'en' 
+                                ? 'Please edit the athlete\'s profile to add their Standing Reach to activate the Field-Specific Prediction Engine.' 
+                                : 'يرجى تعديل الملف الشخصي للاعب وإضافة طول ذراعه مفرودة (Standing Reach) لتفعيل محرك التنبؤ الميداني.'}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                            {/* Volleyball Net Card */}
+                            {(() => {
+                              const netHeight = activePlayer.gender === 'female' ? 224 : 243;
+                              const vbOffset = maxTouch - netHeight;
+                              const isAbove = vbOffset >= 0;
+                              return (
+                                <div className={`p-5 rounded-2xl border bg-black/30 flex flex-col justify-between transition-all duration-300 ${
+                                  isAbove 
+                                    ? 'border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
+                                    : 'border-orange-500/20'
+                                }`}>
+                                  <div>
+                                    <div className="flex justify-between items-center mb-3">
+                                      <span className="text-xs text-gray-400 font-bold">
+                                        {language === 'en' ? 'Volleyball Net Comparison' : 'مقارنة شبكة الكرة الطائرة'}
+                                      </span>
+                                      <span className={`text-[10px] px-2 py-0.5 rounded-lg font-bold ${
+                                        isAbove ? 'text-emerald-400 bg-emerald-950/30' : 'text-orange-400 bg-orange-950/30'
+                                      }`}>
+                                        {language === 'en' 
+                                          ? `Official Net: ${netHeight}cm` 
+                                          : `الارتفاع الرسمي: ${netHeight} سم`}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-baseline gap-1.5 mb-2">
+                                      <span className={`text-3xl font-black font-mono ${isAbove ? 'text-emerald-400' : 'text-orange-400'}`}>
+                                        {isAbove ? `+${vbOffset.toFixed(1)}` : vbOffset.toFixed(1)}
+                                      </span>
+                                      <span className="text-gray-400 font-bold text-xs">سم / cm</span>
+                                    </div>
+                                    <p className="text-xs text-gray-300 font-medium leading-relaxed">
+                                      {language === 'en' 
+                                        ? (isAbove 
+                                            ? `Exceeds the ${activePlayer.gender === 'female' ? "women's" : "men's"} volleyball net by ${vbOffset.toFixed(1)} cm.` 
+                                            : `Needs ${Math.abs(vbOffset).toFixed(1)} cm to reach the ${activePlayer.gender === 'female' ? "women's" : "men's"} volleyball net.`)
+                                        : (isAbove 
+                                            ? `يتجاوز ارتفاع شبكة ${activePlayer.gender === 'female' ? 'السيدات' : 'الرجال'} بمقدار +${vbOffset.toFixed(1)} سم.` 
+                                            : `يحتاج إلى ${Math.abs(vbOffset).toFixed(1)} سم للوصول لارتفاع شبكة ${activePlayer.gender === 'female' ? 'السيدات' : 'الرجال'}.`)}
+                                    </p>
+                                  </div>
+                                  <div className="mt-4 pt-3 border-t border-gray-800/50 flex justify-between items-center text-[10px] text-gray-500">
+                                    <span>{language === 'en' ? 'Max Touch reached:' : 'أقصى نقطة وصول:'}</span>
+                                    <span className="font-mono font-bold text-cyan-400">{maxTouch.toFixed(0)} سم / cm</span>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* Basketball Hoop Card */}
+                            {(() => {
+                              const bbHeight = 305;
+                              const bbOffset = maxTouch - bbHeight;
+                              const canDunk = bbOffset >= 0;
+                              return (
+                                <div className={`p-5 rounded-2xl border bg-black/30 flex flex-col justify-between transition-all duration-300 ${
+                                  canDunk 
+                                    ? 'border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.2)] bg-cyan-950/5' 
+                                    : 'border-amber-500/25 shadow-[0_0_10px_rgba(245,158,11,0.05)] bg-amber-950/5'
+                                }`}>
+                                  <div>
+                                    <div className="flex justify-between items-center mb-3">
+                                      <span className="text-xs text-gray-400 font-bold">
+                                        {language === 'en' ? 'Basketball Hoop Dunk Capacity' : 'القدرة على الدنك وحلقة السلة'}
+                                      </span>
+                                      <span className={`text-[10px] px-2 py-0.5 rounded-lg font-bold ${
+                                        canDunk ? 'text-cyan-400 bg-cyan-950/30' : 'text-amber-400 bg-amber-950/30'
+                                      }`}>
+                                        {language === 'en' ? 'Hoop Height: 305cm' : 'ارتفاع الحلقة: 305 سم'}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-baseline gap-1.5 mb-2">
+                                      <span className={`text-3xl font-black font-mono ${canDunk ? 'text-cyan-400 animate-pulse' : 'text-amber-500'}`}>
+                                        {canDunk ? `+${bbOffset.toFixed(1)}` : bbOffset.toFixed(1)}
+                                      </span>
+                                      <span className="text-gray-400 font-bold text-xs">سم / cm</span>
+                                    </div>
+                                    <p className="text-xs text-gray-300 font-medium leading-relaxed">
+                                      {language === 'en'
+                                        ? (canDunk 
+                                            ? `Dunk Capacity! Exceeds the official hoop height by ${bbOffset.toFixed(1)} cm.` 
+                                            : `Needs ${Math.abs(bbOffset).toFixed(1)} cm to reach the basketball hoop.`)
+                                        : (canDunk 
+                                            ? `يقدر يعمل دَنك Dunk ويعدي الحلقة بـ +${bbOffset.toFixed(1)} سم.` 
+                                            : `يحتاج إلى ${Math.abs(bbOffset).toFixed(1)} سم للوصول للحلقة 🏀`)}
+                                    </p>
+                                  </div>
+                                  <div className="mt-4 pt-3 border-t border-gray-800/50 flex justify-between items-center text-[10px] text-gray-500">
+                                    <span>{language === 'en' ? 'Dunk Potential:' : 'إمكانية الدنك:'}</span>
+                                    <span className={`font-bold uppercase ${canDunk ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                      {canDunk 
+                                        ? (language === 'en' ? '✓ Capable' : '✓ قادر') 
+                                        : (language === 'en' ? '✗ Under Height' : '✗ تحت الارتفاع')}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Athlete Motivation & Cueing System */}
+                      {(() => {
+                        const activeMotDeficit = (() => {
+                          const isPrimaryConcentricOrVelocity = 
+                            presc.deficitLabel === "Concentric Force Deficit" || 
+                            presc.deficitLabel === "عجز في القوة العضلية الانقباضية الصافية" ||
+                            presc.deficitLabel === "Horizontal-to-Vertical Velocity Conversion Deficit" || 
+                            presc.deficitLabel === "عجز في تحويل السرعة الأفقية لعمودية";
+
+                          const isPrimaryTendon = 
+                            presc.deficitLabel === "Tendon Stiffness / SSC Deficit" || 
+                            presc.deficitLabel === "ضعف في صلابة الأوتار ودورة التمدد والتقصير (SSC)";
+
+                          if (isPrimaryConcentricOrVelocity) return 'velocity';
+                          if (isPrimaryTendon) return 'elastic';
+                          if (velocityConversion < 10 || relativePower < 38) return 'velocity';
+                          if (eur < 1.05 || (latestRsiVal > 0 && latestRsiVal < 1.5) || (latestRsi > 0 && latestRsi < 1.5)) return 'elastic';
+                          return 'balanced';
+                        })();
+
+                        const motivationConfig = {
+                          velocity: {
+                            badgeText: language === 'en' ? "Velocity Deficit (Focus: Explosive RFD)" : "عجز في السرعة والانفجارية (التركيز: سرعة إطلاق القوة RFD)",
+                            badgeColor: "text-amber-400 border-amber-500/30 bg-amber-500/10",
+                            glowColor: "border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)] bg-amber-950/5",
+                            slangText: language === 'en'
+                              ? "You are extremely strong and your body's motor is huge, but we need to release power faster. In the upcoming period, we won't lift heavy weights; we will focus on light loads (30% to 50% 1RM) but with maximum explosive intent in every single repetition (Maximal Intent) to make your legs fly and snatch the jump in fractions of a second!"
+                              : "أنت قوي جداً وماتور جسمك ضخم، لكن ينقصنا أن نكون أسرع في إطلاق القوة. الفترة القادمة لن نرفع أوزاناً ثقيلة؛ سنركز على أحمال خفيفة (30% لـ 50%) ولكن بأقصى غل وانفجارية في كل تكرار (Maximal Intent) لتجعل رجلك تطير وتخطف النطة في أجزاء من الثانية!",
+                            exercises: [
+                              {
+                                name: language === 'en' ? "Loaded Jump Squats (30-50% 1RM)" : "Jump Squats محمل (30-50% 1RM)",
+                                cue: language === 'en' ? "Explode to the ceiling!" : "انفجر للسقف!"
+                              },
+                              {
+                                name: language === 'en' ? "Assisted Plyometrics (Banded)" : "تمارين بلايومترك بمساعدة (حبال المقاومة)",
+                                cue: language === 'en' ? "Fly up immediately!" : "طِير فوق فوراً!"
+                              },
+                              {
+                                name: language === 'en' ? "Medicine Ball Throws" : "رمي الكرة الطبية (Med Ball)",
+                                cue: language === 'en' ? "Snatch the jump!" : "اِخطف النطة!"
+                              }
+                            ]
+                          },
+                          elastic: {
+                            badgeText: language === 'en' ? "Elastic Deficit (Focus: Tendon Stiffness & SSC)" : "عجز في مطاطية الأوتار (التركيز: القوة التفاعلية والصلابة)",
+                            badgeColor: "text-cyan-400 border-cyan-500/30 bg-cyan-500/10",
+                            glowColor: "border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.1)] bg-cyan-950/5",
+                            slangText: language === 'en'
+                              ? "Your muscles are very strong from a standstill, but your tendons need to act like a spring to store reactive energy. We will focus on fast plyometrics and ankle stiffness to minimize your ground contact time!"
+                              : "عضلاتك قوية جداً من السكون، لكن أوتارك تحتاج أن تعمل كـ (السوستة) لتخزين الطاقة الارتدادية. سنركز على البلايمتركس السريع وتصلب الكاحل لتقليل زمن تلامس رجلك مع الأرض!",
+                            exercises: [
+                              {
+                                name: language === 'en' ? "Fast Pogo Jumps" : "قفز Pogo سريع",
+                                cue: language === 'en' ? "Touch and fly!" : "اِلمس واِطير!"
+                              },
+                              {
+                                name: language === 'en' ? "Hurdle Hops" : "القفز فوق الحواجز",
+                                cue: language === 'en' ? "Keep your legs like iron!" : "خلي رجلك حديد!"
+                              },
+                              {
+                                name: language === 'en' ? "Drop Jumps (30cm box)" : "قفز السقوط من صندوق 30 سم",
+                                cue: language === 'en' ? "Rebound like lightning!" : "الارتداد كالبرق!"
+                              }
+                            ]
+                          },
+                          balanced: {
+                            badgeText: language === 'en' ? "Optimal Balance (Focus: Maintenance & Coordination)" : "توازن ميكانيكي ممتاز (التركيز: الحفاظ على القمة والتحكم الحركي)",
+                            badgeColor: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
+                            glowColor: "border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)] bg-emerald-950/5",
+                            slangText: language === 'en'
+                              ? "Your body is in an excellent state of balance between explosive strength and tendon elasticity. Our goal now is to maintain this balance and develop complex motor coordination to sustain peak mechanical performance."
+                              : "جسمك في حالة توازن ممتازة بين القوة الانفجارية ومطاطية الأوتار. هدفنا الآن هو الحفاظ على هذا التوازن وتطوير التوافق الحركي المركب لضمان استمرار أعلى مستويات الأداء الميكانيكي.",
+                            exercises: [
+                              {
+                                name: language === 'en' ? "Combined Reactive Jumps (Pogo & CMJ Combo)" : "قفز ارتدادي مدمج (Pogo & CMJ Combo)",
+                                cue: language === 'en' ? "Maintain the rhythm!" : "حافظ على الريتم!"
+                              },
+                              {
+                                name: language === 'en' ? "Single-Leg Jump to Stable Landing" : "القفز أحادي الجانب مع الثبات",
+                                cue: language === 'en' ? "Solid as iron!" : "ثبات كالحديد!"
+                              },
+                              {
+                                name: language === 'en' ? "Full Approach Jumps" : "تمارين الاقتراب الكامل",
+                                cue: language === 'en' ? "Integrate speed and power!" : "تكامل القوة والسرعة!"
+                              }
+                            ]
+                          }
+                        };
+
+                        const currentConfig = motivationConfig[activeMotDeficit];
+
+                        return (
+                          <div className={`glass-panel p-6 shadow-lg border relative overflow-hidden mt-6 ${currentConfig.glowColor}`}>
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-slate-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
+                            
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800/80 pb-3 mb-4 gap-3">
+                              <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 flex items-center gap-2">
+                                ⚡ {language === 'en' ? 'Biomechanical Motivation & Cueing' : 'نظام التوجيه والتحفيز الحركي المخصص'}
+                              </h3>
+                              <span className={`text-[10px] sm:text-xs font-black px-3 py-1 rounded-xl border ${currentConfig.badgeColor} self-start sm:self-auto`}>
+                                {currentConfig.badgeText}
+                              </span>
+                            </div>
+
+                            <div className="space-y-4">
+                              {/* Slang Motivation Section */}
+                              <div className="bg-black/40 border border-gray-850 p-4.5 rounded-xl">
+                                <span className="text-[10px] font-black text-gray-400 block mb-1">
+                                  💬 {language === 'en' ? 'Coaching Message / Slang Motivation' : 'رسالة الكوتش الحماسية:'}
+                                </span>
+                                <p className="text-xs sm:text-sm text-gray-200 leading-relaxed font-semibold italic">
+                                  "{currentConfig.slangText}"
+                                </p>
+                              </div>
+
+                              {/* Exercises & Cues Table */}
+                              <div className="bg-black/20 border border-gray-850 rounded-xl overflow-hidden">
+                                <div className="grid grid-cols-2 bg-gray-900/60 p-3 text-[10px] font-black text-gray-450 border-b border-gray-850">
+                                  <div>{language === 'en' ? 'Recommended Exercise' : 'التمرين الموصى به'}</div>
+                                  <div>{language === 'en' ? 'Active Coaching Cue' : 'التوجيه الحركي اللفظي'}</div>
+                                </div>
+                                <div className="divide-y divide-gray-850/50">
+                                  {currentConfig.exercises.map((ex, idx) => (
+                                    <div key={idx} className="grid grid-cols-2 p-3 text-xs items-center">
+                                      <div className="font-bold text-gray-300">{ex.name}</div>
+                                      <div className="font-extrabold text-cyan-400 animate-pulse">{ex.cue}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </>
                   );
                 })()}
 
