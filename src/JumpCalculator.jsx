@@ -1619,10 +1619,11 @@ export default function JumpCalculator() {
                     displayUnit={displayUnit}
                     setDisplayUnit={setDisplayUnit}
                     language={language}
+                    playerHistory={playerHistory}
                   />
                 )}
 
-                {activeTab === 'rsi' && <RSICalculator activePlayer={activePlayer} selectedPlayerId={selectedPlayerId} onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])} language={language} />}
+                {activeTab === 'rsi' && <RSICalculator activePlayer={activePlayer} selectedPlayerId={selectedPlayerId} onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])} language={language} playerHistory={playerHistory} />}
                 {activeTab === 'fvp' && <FVPCalculator activePlayer={activePlayer} selectedPlayerId={selectedPlayerId} language={language} />}
                 {activeTab === 'profile' && (
                   <PlayerProfile 

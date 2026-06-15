@@ -428,6 +428,18 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       }
     }
 
+    // New summary recommendation block for weak tendon or strength performance
+    const isWeakTendon = (eur > 0 && eur < 1.05) || (latestRsi > 0 && latestRsi < 1.5);
+    const isWeakForce = (eur > 0 && eur > 1.15) || (cmjNoArms > 0 && cmjNoArms < 35);
+
+    if (isWeakTendon && isWeakForce) {
+      report += "💡 التوصية البدنية الأساسية (إعداد عام وتأسيس): اللاعب يمتلك ضعفاً عاماً في كل من مطاطية الأوتار (صلابة المفصل) والقوة العضلية الانقباضية الصافية. يُوصى بشدة ببرنامج إعداد بدني عام متكامل (GPP) يدمج تمارين الحديد الأساسية لزيادة قوة الأرجل مع تدريبات بلايومتركس تمهيدية خفيفة لبناء أساس حركي آمن للمفاصل والأوتار قبل زيادة أحمال القفز.\n\n";
+    } else if (isWeakTendon) {
+      report += "💡 التوصية البدنية الأساسية (تركيز أوتار ومطاطية): يظهر اللاعب نقصاً واضحاً في مطاطية الأوتار وصلابة الكاحل واستغلال الارتداد (Tendon/SSC Deficit). يُوصى بالتركيز المكثف على تمارين البلايومتركس السريعة (Fast SSC) كالحجل الخفيف (Pogo Jumps) وتدريبات قفز الحواجز المنخفضة، لتدريب أوتار الأرجل على تخزين طاقة الارتداد واستردادها بسرعة وتقصير زمن التلامس مع الأرض.\n\n";
+    } else if (isWeakForce) {
+      report += "💡 التوصية البدنية الأساسية (تركيز قوة عضلية): يعاني اللاعب من عجز واضح في القوة العضلية الانقباضية الصافية (Concentric Force Deficit). يُنصح بشدة بإدراج تدريبات القوة القصوى للجزء السفلي (كالقرفصاء الخلفي Squats والرفعة المميتة Deadlifts بأوزان >80% 1RM) لبناء أساس عضلي قوي يدعم دفع الأرض وإنتاج القدرة الانفجارية.\n\n";
+    }
+
     return report;
   };
 
@@ -476,6 +488,18 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       } else if (latestRsi > 2.2) {
         report += "👑 Reactive Strength Index (RSI) is elite, showing high ankle stiffness, explosive tendon response, and excellent reactive capacity.\n\n";
       }
+    }
+
+    // New summary recommendation block for weak tendon or strength performance
+    const isWeakTendon = (eur > 0 && eur < 1.05) || (latestRsi > 0 && latestRsi < 1.5);
+    const isWeakForce = (eur > 0 && eur > 1.15) || (cmjNoArms > 0 && cmjNoArms < 35);
+
+    if (isWeakTendon && isWeakForce) {
+      report += "💡 Key Recommendation (General Conditioning): The athlete exhibits general deficits in both tendon elasticity (reactive capacity) and raw muscular force. A comprehensive General Physical Preparation (GPP) phase is highly recommended, combining compound strength work with low-intensity plyometrics to establish a safe joint and tendon baseline.\n\n";
+    } else if (isWeakTendon) {
+      report += "💡 Key Recommendation (Tendon Stiffness): The athlete shows a clear deficit in tendon stiffness and elastic recoil (Tendon/SSC Deficit). Focus on fast-SSC plyometrics, light pogo hops, and rapid rebounds to train the tendons for efficient energy storage, recoil, and minimized ground contact times.\n\n";
+    } else if (isWeakForce) {
+      report += "💡 Key Recommendation (Muscular Strength): The athlete exhibits a concentric muscular force deficit. Heavy lower-body resistance training (e.g., squats and deadlifts at >80% 1RM) is strongly recommended to build a solid muscular engine to support takeoff thrust.\n\n";
     }
 
     return report;

@@ -33,7 +33,9 @@ export default function JumpTestingConsole({
   selectedPlayerId, 
   onSaveSuccess, 
   displayUnit, 
-  setDisplayUnit 
+  setDisplayUnit,
+  language = 'ar',
+  playerHistory
 }) {
   // Video & Playback States
   const [videoPreset, setVideoPreset] = useState('slow240');

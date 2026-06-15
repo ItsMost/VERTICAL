@@ -27,7 +27,7 @@ const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
   return <span className="font-mono">{count.toFixed(decimals)}</span>;
 };
 
-export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSuccess }) {
+export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSuccess, language = 'ar', playerHistory }) {
   const [cameraFps, setCameraFps] = useState(240);
   const [videoFps, setVideoFps] = useState(30);
 
@@ -498,8 +498,8 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
 
         ctx.drawImage(exportVideo, 0, 0, canvas.width, canvas.height);
 
-        // 1. Transparent grid lines
-        ctx.strokeStyle = 'rgba(6, 182, 212, 0.08)';
+        // 1. Transparent grid lines (Subtle Orange)
+        ctx.strokeStyle = 'rgba(255, 107, 0, 0.05)';
         ctx.lineWidth = 1;
         for (let h = 10; h <= maxScaleCm; h += 10) {
           const y = getYForHeight(h);
@@ -544,7 +544,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           currentHeight = jumpHeight;
         }
 
-        // 2. Draw vertical scale line on the right margin with dark text outline/shadow for readability
+        // 2. Draw vertical scale line on the right margin
         ctx.save();
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
         ctx.shadowBlur = 6;
@@ -566,7 +566,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         ctx.lineWidth = 1.5;
 
         // Draw "cm" header unit above the ruler
-        ctx.fillStyle = '#06b6d4';
+        ctx.fillStyle = '#ff6b00';
         ctx.font = 'bold 11px Cairo';
         ctx.fillText('cm', canvas.width - 55, topY - 8);
 
@@ -579,7 +579,6 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
 
           ctx.beginPath();
           if (h % 10 === 0) {
-            // Major Tick
             ctx.lineWidth = 2;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
             ctx.moveTo(canvas.width - 58, y);
@@ -587,14 +586,12 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
             ctx.stroke();
             ctx.fillText(`${h}`, canvas.width - 64, y + 4);
           } else if (h % 5 === 0) {
-            // Minor Tick
             ctx.lineWidth = 1.5;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
             ctx.moveTo(canvas.width - 52, y);
             ctx.lineTo(canvas.width - 45, y);
             ctx.stroke();
           } else {
-            // Sub-minor Tick
             ctx.lineWidth = 1;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
             ctx.moveTo(canvas.width - 49, y);
@@ -604,16 +601,16 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         }
         ctx.restore();
 
-        // 3. Draw dynamic height filling bar
+        // 3. Draw dynamic height filling bar (Orange-Red gradient)
         const yVal = getYForHeight(currentHeight);
         const activeHeight = groundY - yVal;
         if (activeHeight > 0) {
           ctx.save();
-          ctx.shadowColor = '#06b6d4';
+          ctx.shadowColor = '#ff6b00';
           ctx.shadowBlur = 12;
           const grad = ctx.createLinearGradient(0, groundY, 0, yVal);
-          grad.addColorStop(0, '#06b6d4');
-          grad.addColorStop(1, '#14b8a6');
+          grad.addColorStop(0, '#ff8c00');
+          grad.addColorStop(1, '#ff3c00');
           ctx.fillStyle = grad;
           ctx.fillRect(canvas.width - 42, yVal, 10, activeHeight);
 
@@ -623,11 +620,13 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         }
 
         // 4. Draw horizontal dotted line at peak height
-        if (t >= takeoffTime && currentHeight >= jumpHeight * 0.98) {
+        const t_flight_actual = landingTime - takeoffTime;
+        const t_peak_actual = takeoffTime + 0.5 * t_flight_actual;
+        if (t >= t_peak_actual) {
           ctx.save();
           ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
           ctx.shadowBlur = 4;
-          ctx.strokeStyle = '#f59e0b';
+          ctx.strokeStyle = '#ff3c00';
           ctx.lineWidth = 2;
           ctx.setLineDash([5, 5]);
           ctx.beginPath();
@@ -637,33 +636,71 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           ctx.restore();
         }
 
-        // 5. Dual timers overlay (Tc & Tf) removed as requested to show only RSI
+        // Circular height progress gauge on left margin
+        const circleX = 85;
+        const circleY = canvas.height * 0.45;
+        const circleRadius = 42;
+        const progressPct = jumpHeight > 0 ? Math.min(1.0, currentHeight / jumpHeight) : 0;
+        
+        ctx.save();
+        // Track circle
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(circleX, circleY, circleRadius, 0, 2 * Math.PI);
+        ctx.stroke();
 
-        // 6. Draw PeakForce Lab watermark at top-right
+        // Glowing progress arc
+        ctx.shadowColor = '#ff6b00';
+        ctx.shadowBlur = 12;
+        ctx.strokeStyle = '#ff6b00';
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(circleX, circleY, circleRadius, -Math.PI / 2, -Math.PI / 2 + progressPct * 2 * Math.PI);
+        ctx.stroke();
+        ctx.restore();
+
+        // Text inside circle
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Cairo';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 4;
+        ctx.fillText(`${(progressPct * 100).toFixed(0)}%`, circleX, circleY - 4);
+        
+        ctx.fillStyle = '#ff6b00';
+        ctx.font = '900 8px Cairo';
+        ctx.fillText(language === 'en' ? 'HEIGHT' : 'الارتفاع', circleX, circleY + 14);
+        ctx.restore();
+
+        // 5. Draw PeakForce Lab watermark at top-right
         ctx.save();
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
         ctx.shadowBlur = 4;
-        ctx.fillStyle = '#06b6d4';
+        ctx.fillStyle = '#ff6b00';
         ctx.font = '900 13px Cairo';
         ctx.textAlign = 'right';
         ctx.fillText('PeakForce Lab', canvas.width - 60, 45);
         ctx.restore();
 
-        // 7. Draw glowing RSI badge after takeoff
+        // 6. Draw glowing RSI badge after takeoff
         if (t >= takeoffTime) {
           const badgeY = 85;
           ctx.save();
-          ctx.shadowColor = '#f59e0b';
+          ctx.shadowColor = '#ff6b00';
           ctx.shadowBlur = 10;
           ctx.fillStyle = 'rgba(10, 18, 36, 0.95)';
-          ctx.strokeStyle = '#f59e0b';
+          ctx.strokeStyle = '#ff6b00';
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.roundRect(canvas.width - 135, badgeY - 15, 115, 45, 8);
           ctx.fill();
           ctx.stroke();
 
-          ctx.fillStyle = '#f59e0b';
+          ctx.fillStyle = '#ff6b00';
           ctx.font = '900 10px Cairo';
           ctx.textAlign = 'center';
           ctx.fillText('RSI INDEX 🏆', canvas.width - 77, badgeY + 2);
@@ -674,7 +711,151 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           ctx.restore();
         }
 
-        // 8. Draw central glassmorphic card after landing
+        // Centered Big Jump Height counting text (lower middle)
+        if (t >= takeoffTime && t < landingTime) {
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          const textX = canvas.width / 2;
+          const textY = canvas.height * 0.58;
+          
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+          ctx.shadowBlur = 6;
+          ctx.shadowOffsetX = 1;
+          ctx.shadowOffsetY = 1;
+          
+          if (t >= t_peak_actual) {
+            ctx.shadowColor = '#ff6b00';
+            ctx.shadowBlur = 15;
+            
+            ctx.fillStyle = '#ff6b00';
+            ctx.font = '900 11px Cairo';
+            ctx.fillText(language === 'en' ? 'MAX HEIGHT 👑' : 'الارتقاء الأقصى 👑', textX, textY - 32);
+            
+            ctx.font = '900 48px Cairo';
+            ctx.fillStyle = '#ffffff';
+          } else {
+            ctx.fillStyle = '#ff9800';
+            ctx.font = '900 42px Cairo';
+          }
+          
+          ctx.strokeStyle = '#070a13';
+          ctx.lineWidth = 8;
+          const displayText = `${currentHeight.toFixed(1)} cm`;
+          ctx.strokeText(displayText, textX, textY);
+          ctx.fillText(displayText, textX, textY);
+          ctx.restore();
+        }
+
+        // Glassmorphic HUD Bar
+        const hudW = canvas.width * 0.85;
+        const hudH = 58;
+        const hudX = (canvas.width - hudW) / 2;
+        const hudY = canvas.height - hudH - 25;
+
+        ctx.save();
+        ctx.shadowColor = 'rgba(255, 107, 0, 0.35)';
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = 'rgba(10, 18, 36, 0.88)';
+        ctx.strokeStyle = 'rgba(255, 107, 0, 0.45)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(hudX, hudY, hudW, hudH, 14);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        // Draw HUD details
+        ctx.save();
+        ctx.textBaseline = 'middle';
+        const cols = 4;
+        const colW = hudW / cols;
+
+        const activeTestName = language === 'en' ? 'RSI / Drop Jump' : 'مؤشر القوة التفاعلية (RSI)';
+
+        for (let i = 0; i < cols; i++) {
+          const startX = hudX + i * colW;
+          const centerX = startX + colW / 2;
+          const centerY = hudY + hudH / 2;
+
+          // Draw vertical separator
+          if (i > 0) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(startX, hudY + 12);
+            ctx.lineTo(startX, hudY + hudH - 12);
+            ctx.stroke();
+          }
+
+          let label = "";
+          let val = "";
+
+          if (i === 0) {
+            label = language === 'en' ? 'ATHLETE' : 'اللاعب';
+            val = activePlayer?.full_name || 'Athlete';
+          } else if (i === 1) {
+            label = language === 'en' ? 'WEIGHT' : 'الوزن';
+            val = `${activePlayer?.weight_kg || 70} kg`;
+          } else if (i === 2) {
+            label = language === 'en' ? 'DATE' : 'التاريخ';
+            val = new Date().toLocaleDateString(language === 'en' ? 'en-US' : 'ar-EG');
+          } else if (i === 3) {
+            label = language === 'en' ? 'TEST TYPE' : 'نوع الاختبار';
+            val = activeTestName;
+          }
+
+          // Draw Label
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#ff6b00';
+          ctx.font = '900 9px Cairo';
+          ctx.fillText(label, centerX, centerY - 10);
+
+          // Draw Value
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 12px Cairo';
+          ctx.fillText(val, centerX, centerY + 10);
+        }
+        ctx.restore();
+
+        // Pulsing Jump Number (Triggered at peak height)
+        if (t >= t_peak_actual) {
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          const jumpNumberX = canvas.width / 2;
+          const jumpNumberY = hudY - 32;
+          
+          const timeSincePeak = t - t_peak_actual;
+          let pulseScale = 1.0;
+          if (timeSincePeak > 0 && timeSincePeak < 1.5) {
+            pulseScale = 1.0 + 0.25 * Math.sin(timeSincePeak * 10) * Math.exp(-timeSincePeak * 2);
+          }
+          
+          ctx.shadowColor = '#ff6b00';
+          ctx.shadowBlur = 20;
+          
+          const fontSize = Math.round(36 * pulseScale);
+          ctx.font = `900 ${fontSize}px Cairo`;
+          ctx.fillStyle = '#ffffff';
+          ctx.strokeStyle = '#070a13';
+          ctx.lineWidth = 6;
+          
+          // Calculate next jump number based on playerHistory and 'rsi' test type
+          const currentTestJumps = playerHistory 
+            ? playerHistory.filter(j => j.test_type === 'rsi') 
+            : [];
+          const jumpNum = currentTestJumps.length + 1;
+          
+          const jumpText = language === 'en' ? `Jump #${jumpNum}` : `الوثبة رقم ${jumpNum}`;
+          ctx.strokeText(jumpText, jumpNumberX, jumpNumberY);
+          ctx.fillText(jumpText, jumpNumberX, jumpNumberY);
+          ctx.restore();
+        }
+
+        // 7. Draw central glassmorphic card after landing
         if (t >= landingTime) {
           const cardW = 320;
           const cardH = 140;
@@ -682,13 +863,12 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           const cardY = (canvas.height - cardH) / 2;
 
           ctx.save();
-          // Glow effect
-          ctx.shadowColor = 'rgba(6, 182, 212, 0.5)';
+          ctx.shadowColor = 'rgba(255, 107, 0, 0.5)';
           ctx.shadowBlur = 20;
 
           // Glassmorphic background
-          ctx.fillStyle = 'rgba(11, 19, 43, 0.9)';
-          ctx.strokeStyle = 'rgba(6, 182, 212, 0.4)';
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+          ctx.strokeStyle = 'rgba(255, 107, 0, 0.4)';
           ctx.lineWidth = 3;
           ctx.beginPath();
           ctx.roundRect(cardX, cardY, cardW, cardH, 16);
@@ -697,10 +877,10 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
 
           // Title
           ctx.shadowBlur = 0;
-          ctx.fillStyle = '#06b6d4';
+          ctx.fillStyle = '#ff6b00';
           ctx.font = 'bold 11px Cairo';
           ctx.textAlign = 'center';
-          ctx.fillText('مؤشر القوة التفاعلية النهائي (Final RSI)', canvas.width / 2, cardY + 28);
+          ctx.fillText(language === 'en' ? 'Final Reactive Strength Index (Final RSI)' : 'مؤشر القوة التفاعلية النهائي (Final RSI)', canvas.width / 2, cardY + 28);
 
           // RSI score
           ctx.fillStyle = '#ffffff';
@@ -709,18 +889,18 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
 
           // Rating evaluation
           let ratingText = '';
-          let ratingColor = '#ef4444';
+          let ratingColor = '#f97316';
           if (rsiScore >= 3.0) {
-            ratingText = 'النخبة (Elite) 🏆';
-            ratingColor = '#22d3ee';
+            ratingText = language === 'en' ? 'Elite 🏆' : 'النخبة (Elite) 🏆';
+            ratingColor = '#ff6b00';
           } else if (rsiScore >= 2.5) {
-            ratingText = 'ممتاز (Excellent) ⭐';
-            ratingColor = '#34d399';
+            ratingText = language === 'en' ? 'Excellent ⭐' : 'ممتاز (Excellent) ⭐';
+            ratingColor = '#ffa500';
           } else if (rsiScore >= 2.0) {
-            ratingText = 'جيد (Good) ⚡';
-            ratingColor = '#fbbf24';
+            ratingText = language === 'en' ? 'Good ⚡' : 'جيد (Good) ⚡';
+            ratingColor = '#ffb830';
           } else {
-            ratingText = 'يحتاج تطوير (Under-developed) ⚠️';
+            ratingText = language === 'en' ? 'Needs Development ⚠️' : 'يحتاج تطوير (Under-developed) ⚠️';
             ratingColor = '#f97316';
           }
           ctx.fillStyle = ratingColor;
@@ -730,19 +910,25 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           // Jump Height & Contact Time info inside card
           ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
           ctx.font = 'bold 9px Cairo';
-          ctx.fillText(`الارتفاع: ${jumpHeight.toFixed(1)} سم | زمن التلامس: ${contactTimeVal.toFixed(3)} ث`, canvas.width / 2, cardY + 128);
+          ctx.fillText(
+            language === 'en'
+              ? `Height: ${jumpHeight.toFixed(1)} cm | Contact Time: ${contactTimeVal.toFixed(3)} s`
+              : `الارتفاع: ${jumpHeight.toFixed(1)} سم | زمن التلامس: ${contactTimeVal.toFixed(3)} ث`, 
+            canvas.width / 2, 
+            cardY + 128
+          );
 
           ctx.restore();
         }
 
-        // 7. Watermark
+        // Watermark logo at bottom
         ctx.save();
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
         ctx.shadowBlur = 4;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillStyle = 'rgba(255, 107, 0, 0.4)';
         ctx.font = 'bold 11px Cairo';
-        ctx.textAlign = 'center';
-        ctx.fillText('PeakForce Lab', canvas.width - 77, canvas.height - 20);
+        ctx.textAlign = 'left';
+        ctx.fillText('PeakForce Lab', hudX + 8, hudY - 8);
         ctx.restore();
 
         const elapsed = exportVideo.currentTime - startTime;
