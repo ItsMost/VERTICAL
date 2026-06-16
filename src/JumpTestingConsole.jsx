@@ -1137,8 +1137,17 @@ export default function JumpTestingConsole({
       });
 
       const canvas = document.createElement('canvas');
-      canvas.width = exportVideo.videoWidth || 1280;
-      canvas.height = exportVideo.videoHeight || 720;
+      
+      // Upscaling feature: 1.5x or 2x upscale based on original video resolution
+      const originalWidth = exportVideo.videoWidth || 1280;
+      const originalHeight = exportVideo.videoHeight || 720;
+      let upscaleFactor = 1.5;
+      if (originalWidth < 1280 || originalHeight < 1280) {
+        upscaleFactor = 2.0;
+      }
+      
+      canvas.width = originalWidth * upscaleFactor;
+      canvas.height = originalHeight * upscaleFactor;
       const ctx = canvas.getContext('2d');
 
       const jumpHeight = parseFloat(stats.heightCm) || 0;
@@ -1191,13 +1200,15 @@ export default function JumpTestingConsole({
       recorder.start();
       exportVideo.play();
 
-      const groundY = canvas.height * 0.78;
-      const topY = canvas.height * 0.15;
+      const w = originalWidth;
+      const h = originalHeight;
+      const groundY = h * 0.78;
+      const topY = h * 0.15;
       const barHeight = groundY - topY;
       const maxScaleCm = Math.max(50, Math.ceil((jumpHeight + 20) / 10) * 10);
 
-      const getYForHeight = (h) => {
-        return groundY - (h / maxScaleCm) * barHeight;
+      const getYForHeight = (heightVal) => {
+        return groundY - (heightVal / maxScaleCm) * barHeight;
       };
 
       const drawOverlay = () => {
@@ -1207,17 +1218,10 @@ export default function JumpTestingConsole({
           return;
         }
 
-        ctx.drawImage(exportVideo, 0, 0, canvas.width, canvas.height);
-
-        ctx.strokeStyle = 'rgba(6, 182, 212, 0.08)';
-        ctx.lineWidth = 1;
-        for (let h = 10; h <= maxScaleCm; h += 10) {
-          const y = getYForHeight(h);
-          ctx.beginPath();
-          ctx.moveTo(0, y);
-          ctx.lineTo(canvas.width, y);
-          ctx.stroke();
-        }
+        // Draw video frame upscaled
+        ctx.save();
+        ctx.scale(upscaleFactor, upscaleFactor);
+        ctx.drawImage(exportVideo, 0, 0, w, h);
 
         const t = exportVideo.currentTime;
         let currentHeight = 0;
@@ -1236,7 +1240,69 @@ export default function JumpTestingConsole({
           currentHeight = jumpHeight;
         }
 
-        // Draw vertical scale line on the right margin with dark text outline/shadow for readability
+        // Draw pose skeleton connection lines if AI is enabled
+        if (aiEnabled) {
+          const { POSE_CONNECTIONS, drawConnectors, drawLandmarks } = window;
+          const history = poseHistoryRef.current;
+          const closest = history.find(hl => Math.abs(hl.time - t) < 0.04);
+          if (closest && closest.landmarks) {
+            if (drawConnectors && POSE_CONNECTIONS) {
+              drawConnectors(ctx, closest.landmarks, POSE_CONNECTIONS, { color: '#ff6b00', lineWidth: 3 });
+            }
+            if (drawLandmarks) {
+              drawLandmarks(ctx, closest.landmarks, { color: '#ffffff', lineWidth: 1 });
+            }
+
+            const lm = closest.landmarks;
+            const leftHip = lm[23];
+            const leftKnee = lm[25];
+            const leftAnkle = lm[27];
+            const rightHip = lm[24];
+            const rightKnee = lm[26];
+            const rightAnkle = lm[28];
+
+            const calculateAngle = (p1, p2, p3) => {
+              const rad = Math.atan2(p3.y - p2.y, p3.x - p2.x) - Math.atan2(p1.y - p2.y, p1.x - p2.x);
+              let angle = Math.abs((rad * 180) / Math.PI);
+              if (angle > 180) angle = 360 - angle;
+              return angle;
+            };
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 4;
+            ctx.font = 'bold 12px Cairo';
+
+            if (leftHip && leftKnee && leftAnkle && leftHip.visibility > 0.5 && leftKnee.visibility > 0.5 && leftAnkle.visibility > 0.5) {
+              const leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
+              const kx = leftKnee.x * w;
+              const ky = leftKnee.y * h;
+              ctx.fillStyle = '#ff6b00';
+              ctx.fillText(`${language === 'en' ? 'Knee L:' : 'ركبة L:'} ${leftKneeAngle.toFixed(0)}°`, kx - 70, ky);
+            }
+            if (rightHip && rightKnee && rightAnkle && rightHip.visibility > 0.5 && rightKnee.visibility > 0.5 && rightAnkle.visibility > 0.5) {
+              const rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle);
+              const kx = rightKnee.x * w;
+              const ky = rightKnee.y * h;
+              ctx.fillStyle = '#ffa500';
+              ctx.fillText(`${language === 'en' ? 'Knee R:' : 'ركبة R:'} ${rightKneeAngle.toFixed(0)}°`, kx + 15, ky);
+            }
+            ctx.restore();
+          }
+        }
+
+        // Draw horizontal grid lines in orange
+        ctx.strokeStyle = 'rgba(255, 107, 0, 0.05)';
+        ctx.lineWidth = 1;
+        for (let hc = 10; hc <= maxScaleCm; hc += 10) {
+          const y = getYForHeight(hc);
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+
+        // Draw vertical scale line on the right margin
         ctx.save();
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
         ctx.shadowBlur = 6;
@@ -1246,123 +1312,331 @@ export default function JumpTestingConsole({
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.moveTo(canvas.width - 45, topY);
-        ctx.lineTo(canvas.width - 45, groundY);
+        ctx.moveTo(w - 60, topY);
+        ctx.lineTo(w - 60, groundY);
         ctx.stroke();
 
         // Draw tick marks & values
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 12px Cairo';
+        ctx.font = '900 15px Cairo';
         ctx.textAlign = 'right';
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
         ctx.lineWidth = 1.5;
 
         // Draw "cm" header unit above the ruler
-        ctx.fillStyle = '#06b6d4';
-        ctx.font = 'bold 11px Cairo';
-        ctx.fillText('cm', canvas.width - 55, topY - 8);
+        ctx.fillStyle = '#ff6b00';
+        ctx.font = '900 13px Cairo';
+        ctx.fillText('cm', w - 70, topY - 8);
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 11px Cairo';
 
-        for (let h = 0; h <= maxScaleCm; h += 2) {
-          const y = getYForHeight(h);
+        for (let hc = 0; hc <= maxScaleCm; hc += 2) {
+          const y = getYForHeight(hc);
           if (y < topY || y > groundY) continue;
 
           ctx.beginPath();
-          if (h % 10 === 0) {
+          if (hc % 10 === 0) {
             // Major Tick
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-            ctx.moveTo(canvas.width - 58, y);
-            ctx.lineTo(canvas.width - 45, y);
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.moveTo(w - 75, y);
+            ctx.lineTo(w - 60, y);
             ctx.stroke();
-            ctx.fillText(`${h}`, canvas.width - 64, y + 4);
-          } else if (h % 5 === 0) {
+            
+            // Draw number with black outline/shadow
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 1)';
+            ctx.shadowBlur = 4;
+            ctx.fillText(`${hc}`, w - 82, y + 5);
+            ctx.restore();
+          } else if (hc % 5 === 0) {
             // Minor Tick
             ctx.lineWidth = 1.5;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
-            ctx.moveTo(canvas.width - 52, y);
-            ctx.lineTo(canvas.width - 45, y);
+            ctx.moveTo(w - 68, y);
+            ctx.lineTo(w - 60, y);
             ctx.stroke();
           } else {
             // Sub-minor Tick
             ctx.lineWidth = 1;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.moveTo(canvas.width - 49, y);
-            ctx.lineTo(canvas.width - 45, y);
+            ctx.moveTo(w - 64, y);
+            ctx.lineTo(w - 60, y);
             ctx.stroke();
           }
         }
         ctx.restore();
 
+        // Draw dynamic height filling bar (Neon Orange gradient) - WIDER (width = 20px)
         const yVal = getYForHeight(currentHeight);
         const activeHeight = groundY - yVal;
         if (activeHeight > 0) {
           ctx.save();
-          // Glow effect for the filling bar
-          ctx.shadowColor = '#06b6d4';
+          ctx.shadowColor = '#ff6b00';
           ctx.shadowBlur = 12;
           const grad = ctx.createLinearGradient(0, groundY, 0, yVal);
-          grad.addColorStop(0, '#06b6d4');
-          grad.addColorStop(1, '#14b8a6');
+          grad.addColorStop(0, '#ff8c00');
+          grad.addColorStop(1, '#ff3c00');
           ctx.fillStyle = grad;
-          ctx.fillRect(canvas.width - 42, yVal, 10, activeHeight);
+          // Draw wider bar
+          ctx.fillRect(w - 55, yVal, 20, activeHeight);
 
-          // Glowing white cap
+          // Glowing white cap (wider to fit the bar, 26px)
           ctx.fillStyle = '#ffffff';
-          ctx.fillRect(canvas.width - 45, yVal - 1, 16, 3);
+          ctx.fillRect(w - 58, yVal - 1.5, 26, 4);
           ctx.restore();
         }
+
+        // Circular height progress gauge on left margin
+        const circleX = 85;
+        const circleY = h * 0.45;
+        const circleRadius = 42;
+        const progressPct = jumpHeight > 0 ? Math.min(1.0, currentHeight / jumpHeight) : 0;
+        
+        ctx.save();
+        // Track circle
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(circleX, circleY, circleRadius, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        // Glowing progress arc
+        ctx.shadowColor = '#ff6b00';
+        ctx.shadowBlur = 12;
+        ctx.strokeStyle = '#ff6b00';
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(circleX, circleY, circleRadius, -Math.PI / 2, -Math.PI / 2 + progressPct * 2 * Math.PI);
+        ctx.stroke();
+        ctx.restore();
+
+        // Text inside circle
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Cairo';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 4;
+        ctx.fillText(`${(progressPct * 100).toFixed(0)}%`, circleX, circleY - 4);
+        
+        ctx.fillStyle = '#ff6b00';
+        ctx.font = '900 8px Cairo';
+        ctx.fillText(language === 'en' ? 'HEIGHT' : 'الارتفاع', circleX, circleY + 14);
+        ctx.restore();
+
+        // Draw top-right stats box - REDESIGNED, LARGER, MORE CHIC
+        const labelY = topY - 30;
+        ctx.save();
+        ctx.shadowColor = '#ff6b00';
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = 'rgba(10, 18, 36, 0.9)';
+        ctx.strokeStyle = '#ff6b00';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.roundRect(w - 170, labelY - 15, 140, 48, 12);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Label
+        ctx.fillStyle = '#ff6b00';
+        ctx.font = '900 9px Cairo';
+        ctx.fillText(language === 'en' ? 'LIVE HEIGHT' : 'الارتفاع المباشر', w - 100, labelY - 3);
+
+        // Value - LARGER FONT (20px)
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 20px Cairo';
+        ctx.fillText(`${currentHeight.toFixed(1)} cm`, w - 100, labelY + 16);
 
         if (t >= t_peak) {
           ctx.save();
+          ctx.shadowColor = '#ff6b00';
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = '#ff6b00';
+          ctx.font = '900 10px Cairo';
+          ctx.fillText(language === 'en' ? 'PEAK JUMP 👑' : 'الارتقاء الأقصى 👑', w - 100, labelY - 22);
+          ctx.restore();
+        }
+        ctx.restore();
+
+        // Centered Big Jump Height counting text (lower middle)
+        if (t >= t_takeoff) {
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          const textX = w / 2;
+          const textY = h * 0.58;
+          
           ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-          ctx.shadowBlur = 4;
-          ctx.strokeStyle = '#f59e0b';
-          ctx.lineWidth = 2;
-          ctx.setLineDash([5, 5]);
-          ctx.beginPath();
-          ctx.moveTo(0, getYForHeight(jumpHeight));
-          ctx.lineTo(canvas.width, getYForHeight(jumpHeight));
-          ctx.stroke();
+          ctx.shadowBlur = 6;
+          ctx.shadowOffsetX = 1;
+          ctx.shadowOffsetY = 1;
+          
+          if (t >= t_peak) {
+            ctx.shadowColor = '#ff6b00';
+            ctx.shadowBlur = 15;
+            
+            ctx.fillStyle = '#ff6b00';
+            ctx.font = '900 11px Cairo';
+            ctx.fillText(language === 'en' ? 'MAX HEIGHT 👑' : 'الارتقاء الأقصى 👑', textX, textY - 32);
+            
+            ctx.font = '900 48px Cairo';
+            ctx.fillStyle = '#ffffff';
+          } else {
+            ctx.fillStyle = '#ff9800';
+            ctx.font = '900 42px Cairo';
+          }
+          
+          ctx.strokeStyle = '#070a13';
+          ctx.lineWidth = 8;
+          const displayText = `${currentHeight.toFixed(1)} cm`;
+          ctx.strokeText(displayText, textX, textY);
+          ctx.fillText(displayText, textX, textY);
           ctx.restore();
         }
 
-        const labelY = topY - 30;
+        // Glassmorphic HUD Bar
+        const hudW = w * 0.85;
+        const hudH = 58;
+        const hudX = (w - hudW) / 2;
+        const hudY = h - hudH - 25;
+
         ctx.save();
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur = 6;
-        ctx.fillStyle = 'rgba(10, 18, 36, 0.9)';
-        ctx.strokeStyle = '#06b6d4';
+        ctx.shadowColor = 'rgba(255, 107, 0, 0.35)';
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = 'rgba(10, 18, 36, 0.88)';
+        ctx.strokeStyle = 'rgba(255, 107, 0, 0.45)';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.roundRect(canvas.width - 135, labelY - 15, 115, 28, 8);
+        ctx.roundRect(hudX, hudY, hudW, hudH, 14);
         ctx.fill();
         ctx.stroke();
+        ctx.restore();
 
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '900 14px Cairo';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${currentHeight.toFixed(1)} cm`, canvas.width - 77, labelY + 3);
+        // Draw HUD details
+        ctx.save();
+        ctx.textBaseline = 'middle';
+        const cols = 4;
+        const colW = hudW / cols;
 
-        if (t >= t_peak) {
-          ctx.shadowColor = '#f59e0b';
-          ctx.shadowBlur = 10;
-          ctx.fillStyle = '#f59e0b';
-          ctx.font = '900 11px Cairo';
-          ctx.fillText('PEAK JUMP 👑', canvas.width - 77, labelY - 22);
+        const testNamesArabic = { 
+          sj_no_arms: 'وثبة ثبات (بدون يدين)', 
+          cmj_no_arms: 'CMJ (بدون يدين)', 
+          sj_arms: 'وثبة ثبات (باليدين)', 
+          cmj_arms: 'CMJ (باليدين)', 
+          approach: 'الاقتراب (Approach)' 
+        };
+        const testNamesEnglish = { 
+          sj_no_arms: 'Squat Jump (No Arms)', 
+          cmj_no_arms: 'CMJ (No Arms)', 
+          sj_arms: 'Squat Jump (Arms)', 
+          cmj_arms: 'CMJ (Arms)', 
+          approach: 'Approach Jump' 
+        };
+        const activeTestName = language === 'en' 
+          ? (testNamesEnglish[saveJumpTag] || 'Vertical Jump') 
+          : (testNamesArabic[saveJumpTag] || 'وثب رأسي');
+
+        for (let i = 0; i < cols; i++) {
+          const startX = hudX + i * colW;
+          const centerX = startX + colW / 2;
+          const centerY = hudY + hudH / 2;
+
+          // Draw vertical separator
+          if (i > 0) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(startX, hudY + 12);
+            ctx.lineTo(startX, hudY + hudH - 12);
+            ctx.stroke();
+          }
+
+          let label = "";
+          let val = "";
+
+          if (i === 0) {
+            label = language === 'en' ? 'ATHLETE' : 'اللاعب';
+            val = activePlayer?.full_name || 'Athlete';
+          } else if (i === 1) {
+            label = language === 'en' ? 'WEIGHT' : 'الوزن';
+            val = `${bodyMass} kg`;
+          } else if (i === 2) {
+            label = language === 'en' ? 'DATE' : 'التاريخ';
+            val = new Date().toLocaleDateString(language === 'en' ? 'en-US' : 'ar-EG');
+          } else if (i === 3) {
+            label = language === 'en' ? 'TEST TYPE' : 'نوع الاختبار';
+            val = activeTestName;
+          }
+
+          // Draw Label
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#ff6b00';
+          ctx.font = '900 9px Cairo';
+          ctx.fillText(label, centerX, centerY - 10);
+
+          // Draw Value
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 12px Cairo';
+          ctx.fillText(val, centerX, centerY + 10);
         }
         ctx.restore();
 
+        // Pulsing Jump Number (Triggered at peak height)
+        if (t >= t_peak) {
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          const jumpNumberX = w / 2;
+          const jumpNumberY = hudY - 32;
+          
+          const timeSincePeak = t - t_peak;
+          let pulseScale = 1.0;
+          if (timeSincePeak > 0 && timeSincePeak < 1.5) {
+            pulseScale = 1.0 + 0.25 * Math.sin(timeSincePeak * 10) * Math.exp(-timeSincePeak * 2);
+          }
+          
+          ctx.shadowColor = '#ff6b00';
+          ctx.shadowBlur = 20;
+          
+          const fontSize = Math.round(36 * pulseScale);
+          ctx.font = `900 ${fontSize}px Cairo`;
+          ctx.fillStyle = '#ffffff';
+          ctx.strokeStyle = '#070a13';
+          ctx.lineWidth = 6;
+          
+          // Calculate next jump number based on playerHistory and saveJumpTag
+          const currentTestJumps = playerHistory 
+            ? playerHistory.filter(j => j.test_type === saveJumpTag) 
+            : [];
+          const jumpNum = currentTestJumps.length + 1;
+          
+          const jumpText = language === 'en' ? `Jump #${jumpNum}` : `الوثبة رقم ${jumpNum}`;
+          ctx.strokeText(jumpText, jumpNumberX, jumpNumberY);
+          ctx.fillText(jumpText, jumpNumberX, jumpNumberY);
+          ctx.restore();
+        }
+
+        // Watermark logo
         ctx.save();
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
         ctx.shadowBlur = 4;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillStyle = 'rgba(255, 107, 0, 0.4)';
         ctx.font = 'bold 11px Cairo';
-        ctx.textAlign = 'center';
-        ctx.fillText('THE LAB v2.0', canvas.width - 77, canvas.height - 20);
+        ctx.textAlign = 'left';
+        ctx.fillText('PeakForce Lab', hudX + 8, hudY - 8);
         ctx.restore();
+
+        ctx.restore(); // Restore upscale context scale
 
         const elapsed = exportVideo.currentTime - startTime;
         const total = endTime - startTime;

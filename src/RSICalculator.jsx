@@ -424,8 +424,17 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
       });
 
       const canvas = document.createElement('canvas');
-      canvas.width = exportVideo.videoWidth || 1280;
-      canvas.height = exportVideo.videoHeight || 720;
+      
+      // Upscaling feature: 1.5x or 2x upscale based on original video resolution
+      const originalWidth = exportVideo.videoWidth || 1280;
+      const originalHeight = exportVideo.videoHeight || 720;
+      let upscaleFactor = 1.5;
+      if (originalWidth < 1280 || originalHeight < 1280) {
+        upscaleFactor = 2.0;
+      }
+      
+      canvas.width = originalWidth * upscaleFactor;
+      canvas.height = originalHeight * upscaleFactor;
       const ctx = canvas.getContext('2d');
 
       const rsiScore = parseFloat(stats.rsi) || 0;
@@ -480,13 +489,15 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
       recorder.start();
       exportVideo.play();
 
-      const groundY = canvas.height * 0.78;
-      const topY = canvas.height * 0.15;
+      const w = originalWidth;
+      const h = originalHeight;
+      const groundY = h * 0.78;
+      const topY = h * 0.15;
       const barHeight = groundY - topY;
       const maxScaleCm = Math.max(50, Math.ceil((jumpHeight + 20) / 10) * 10);
 
-      const getYForHeight = (h) => {
-        return groundY - (h / maxScaleCm) * barHeight;
+      const getYForHeight = (heightVal) => {
+        return groundY - (heightVal / maxScaleCm) * barHeight;
       };
 
       const drawOverlay = () => {
@@ -496,16 +507,19 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           return;
         }
 
-        ctx.drawImage(exportVideo, 0, 0, canvas.width, canvas.height);
+        // Draw video frame upscaled
+        ctx.save();
+        ctx.scale(upscaleFactor, upscaleFactor);
+        ctx.drawImage(exportVideo, 0, 0, w, h);
 
         // 1. Transparent grid lines (Subtle Orange)
         ctx.strokeStyle = 'rgba(255, 107, 0, 0.05)';
         ctx.lineWidth = 1;
-        for (let h = 10; h <= maxScaleCm; h += 10) {
-          const y = getYForHeight(h);
+        for (let hc = 10; hc <= maxScaleCm; hc += 10) {
+          const y = getYForHeight(hc);
           ctx.beginPath();
           ctx.moveTo(0, y);
-          ctx.lineTo(canvas.width, y);
+          ctx.lineTo(w, y);
           ctx.stroke();
         }
 
@@ -554,54 +568,62 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.moveTo(canvas.width - 45, topY);
-        ctx.lineTo(canvas.width - 45, groundY);
+        ctx.moveTo(w - 60, topY);
+        ctx.lineTo(w - 60, groundY);
         ctx.stroke();
 
         // Draw tick marks & values
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 12px Cairo';
+        ctx.font = '900 15px Cairo';
         ctx.textAlign = 'right';
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
         ctx.lineWidth = 1.5;
 
         // Draw "cm" header unit above the ruler
         ctx.fillStyle = '#ff6b00';
-        ctx.font = 'bold 11px Cairo';
-        ctx.fillText('cm', canvas.width - 55, topY - 8);
+        ctx.font = '900 13px Cairo';
+        ctx.fillText('cm', w - 70, topY - 8);
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 11px Cairo';
 
-        for (let h = 0; h <= maxScaleCm; h += 2) {
-          const y = getYForHeight(h);
+        for (let hc = 0; hc <= maxScaleCm; hc += 2) {
+          const y = getYForHeight(hc);
           if (y < topY || y > groundY) continue;
 
           ctx.beginPath();
-          if (h % 10 === 0) {
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-            ctx.moveTo(canvas.width - 58, y);
-            ctx.lineTo(canvas.width - 45, y);
+          if (hc % 10 === 0) {
+            // Major Tick
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.moveTo(w - 75, y);
+            ctx.lineTo(w - 60, y);
             ctx.stroke();
-            ctx.fillText(`${h}`, canvas.width - 64, y + 4);
-          } else if (h % 5 === 0) {
+            
+            // Draw number with black outline/shadow
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 1)';
+            ctx.shadowBlur = 4;
+            ctx.fillText(`${hc}`, w - 82, y + 5);
+            ctx.restore();
+          } else if (hc % 5 === 0) {
+            // Minor Tick
             ctx.lineWidth = 1.5;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
-            ctx.moveTo(canvas.width - 52, y);
-            ctx.lineTo(canvas.width - 45, y);
+            ctx.moveTo(w - 68, y);
+            ctx.lineTo(w - 60, y);
             ctx.stroke();
           } else {
+            // Sub-minor Tick
             ctx.lineWidth = 1;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.moveTo(canvas.width - 49, y);
-            ctx.lineTo(canvas.width - 45, y);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx.moveTo(w - 64, y);
+            ctx.lineTo(w - 60, y);
             ctx.stroke();
           }
         }
         ctx.restore();
 
-        // 3. Draw dynamic height filling bar (Orange-Red gradient)
+        // 3. Draw dynamic height filling bar (Neon Orange gradient) - WIDER (width = 20px)
         const yVal = getYForHeight(currentHeight);
         const activeHeight = groundY - yVal;
         if (activeHeight > 0) {
@@ -612,33 +634,18 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           grad.addColorStop(0, '#ff8c00');
           grad.addColorStop(1, '#ff3c00');
           ctx.fillStyle = grad;
-          ctx.fillRect(canvas.width - 42, yVal, 10, activeHeight);
+          // Draw wider bar
+          ctx.fillRect(w - 55, yVal, 20, activeHeight);
 
+          // Glowing white cap (wider to fit the bar, 26px)
           ctx.fillStyle = '#ffffff';
-          ctx.fillRect(canvas.width - 45, yVal - 1, 16, 3);
-          ctx.restore();
-        }
-
-        // 4. Draw horizontal dotted line at peak height
-        const t_flight_actual = landingTime - takeoffTime;
-        const t_peak_actual = takeoffTime + 0.5 * t_flight_actual;
-        if (t >= t_peak_actual) {
-          ctx.save();
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-          ctx.shadowBlur = 4;
-          ctx.strokeStyle = '#ff3c00';
-          ctx.lineWidth = 2;
-          ctx.setLineDash([5, 5]);
-          ctx.beginPath();
-          ctx.moveTo(0, getYForHeight(jumpHeight));
-          ctx.lineTo(canvas.width, getYForHeight(jumpHeight));
-          ctx.stroke();
+          ctx.fillRect(w - 58, yVal - 1.5, 26, 4);
           ctx.restore();
         }
 
         // Circular height progress gauge on left margin
         const circleX = 85;
-        const circleY = canvas.height * 0.45;
+        const circleY = h * 0.45;
         const circleRadius = 42;
         const progressPct = jumpHeight > 0 ? Math.min(1.0, currentHeight / jumpHeight) : 0;
         
@@ -683,31 +690,35 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         ctx.fillStyle = '#ff6b00';
         ctx.font = '900 13px Cairo';
         ctx.textAlign = 'right';
-        ctx.fillText('PeakForce Lab', canvas.width - 60, 45);
+        ctx.fillText('PeakForce Lab', w - 60, 45);
         ctx.restore();
 
-        // 6. Draw glowing RSI badge after takeoff
+        // 6. Draw glowing RSI badge after takeoff - REDESIGNED, LARGER, MORE CHIC
         if (t >= takeoffTime) {
           const badgeY = 85;
           ctx.save();
           ctx.shadowColor = '#ff6b00';
-          ctx.shadowBlur = 10;
-          ctx.fillStyle = 'rgba(10, 18, 36, 0.95)';
+          ctx.shadowBlur = 15;
+          ctx.fillStyle = 'rgba(10, 18, 36, 0.9)';
           ctx.strokeStyle = '#ff6b00';
-          ctx.lineWidth = 2;
+          ctx.lineWidth = 2.5;
           ctx.beginPath();
-          ctx.roundRect(canvas.width - 135, badgeY - 15, 115, 45, 8);
+          ctx.roundRect(w - 170, badgeY - 15, 140, 48, 12);
           ctx.fill();
           ctx.stroke();
+          ctx.restore();
 
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
           ctx.fillStyle = '#ff6b00';
           ctx.font = '900 10px Cairo';
-          ctx.textAlign = 'center';
-          ctx.fillText('RSI INDEX 🏆', canvas.width - 77, badgeY + 2);
+          ctx.fillText('RSI INDEX 🏆', w - 100, badgeY - 3);
 
           ctx.fillStyle = '#ffffff';
-          ctx.font = '900 18px font-mono';
-          ctx.fillText(rsiScore.toFixed(2), canvas.width - 77, badgeY + 23);
+          ctx.font = '900 20px font-mono';
+          ctx.fillText(rsiScore.toFixed(2), w - 100, badgeY + 16);
           ctx.restore();
         }
 
@@ -717,13 +728,16 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
-          const textX = canvas.width / 2;
-          const textY = canvas.height * 0.58;
+          const textX = w / 2;
+          const textY = h * 0.58;
           
           ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
           ctx.shadowBlur = 6;
           ctx.shadowOffsetX = 1;
           ctx.shadowOffsetY = 1;
+          
+          const t_flight_actual = landingTime - takeoffTime;
+          const t_peak_actual = takeoffTime + 0.5 * t_flight_actual;
           
           if (t >= t_peak_actual) {
             ctx.shadowColor = '#ff6b00';
@@ -749,10 +763,10 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         }
 
         // Glassmorphic HUD Bar
-        const hudW = canvas.width * 0.85;
+        const hudW = w * 0.85;
         const hudH = 58;
-        const hudX = (canvas.width - hudW) / 2;
-        const hudY = canvas.height - hudH - 25;
+        const hudX = (w - hudW) / 2;
+        const hudY = h - hudH - 25;
 
         ctx.save();
         ctx.shadowColor = 'rgba(255, 107, 0, 0.35)';
@@ -820,12 +834,14 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         ctx.restore();
 
         // Pulsing Jump Number (Triggered at peak height)
+        const t_flight_actual = landingTime - takeoffTime;
+        const t_peak_actual = takeoffTime + 0.5 * t_flight_actual;
         if (t >= t_peak_actual) {
           ctx.save();
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
-          const jumpNumberX = canvas.width / 2;
+          const jumpNumberX = w / 2;
           const jumpNumberY = hudY - 32;
           
           const timeSincePeak = t - t_peak_actual;
@@ -859,8 +875,8 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         if (t >= landingTime) {
           const cardW = 320;
           const cardH = 140;
-          const cardX = (canvas.width - cardW) / 2;
-          const cardY = (canvas.height - cardH) / 2;
+          const cardX = (w - cardW) / 2;
+          const cardY = (h - cardH) / 2;
 
           ctx.save();
           ctx.shadowColor = 'rgba(255, 107, 0, 0.5)';
@@ -880,12 +896,12 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           ctx.fillStyle = '#ff6b00';
           ctx.font = 'bold 11px Cairo';
           ctx.textAlign = 'center';
-          ctx.fillText(language === 'en' ? 'Final Reactive Strength Index (Final RSI)' : 'مؤشر القوة التفاعلية النهائي (Final RSI)', canvas.width / 2, cardY + 28);
+          ctx.fillText(language === 'en' ? 'Final Reactive Strength Index (Final RSI)' : 'مؤشر القوة التفاعلية النهائي (Final RSI)', w / 2, cardY + 28);
 
           // RSI score
           ctx.fillStyle = '#ffffff';
           ctx.font = '900 36px font-mono';
-          ctx.fillText(rsiScore.toFixed(2), canvas.width / 2, cardY + 74);
+          ctx.fillText(rsiScore.toFixed(2), w / 2, cardY + 74);
 
           // Rating evaluation
           let ratingText = '';
@@ -905,7 +921,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           }
           ctx.fillStyle = ratingColor;
           ctx.font = 'bold 12px Cairo';
-          ctx.fillText(ratingText, canvas.width / 2, cardY + 108);
+          ctx.fillText(ratingText, w / 2, cardY + 108);
 
           // Jump Height & Contact Time info inside card
           ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
@@ -914,7 +930,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
             language === 'en'
               ? `Height: ${jumpHeight.toFixed(1)} cm | Contact Time: ${contactTimeVal.toFixed(3)} s`
               : `الارتفاع: ${jumpHeight.toFixed(1)} سم | زمن التلامس: ${contactTimeVal.toFixed(3)} ث`, 
-            canvas.width / 2, 
+            w / 2, 
             cardY + 128
           );
 
@@ -931,6 +947,8 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         ctx.fillText('PeakForce Lab', hudX + 8, hudY - 8);
         ctx.restore();
 
+        ctx.restore(); // Restore upscale context scale
+
         const elapsed = exportVideo.currentTime - startTime;
         const total = endTime - startTime;
         const progress = Math.min(99, Math.round((elapsed / total) * 100));
@@ -945,9 +963,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
       alert("حدث خطأ أثناء تصدير فيديو RSI: " + err.message);
       setIsExporting(false);
     }
-  };
-
-  const detectVideoFps = (videoEl) => {
+  };const detectVideoFps = (videoEl) => {
     if (!videoEl || !videoEl.duration) return;
     
     if (videoEl.requestVideoFrameCallback) {
