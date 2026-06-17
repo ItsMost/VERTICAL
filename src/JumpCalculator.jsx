@@ -387,10 +387,10 @@ export default function JumpCalculator() {
   }, [cameraFps, isFrameDurationManual]);
 
   // Load playerHeight and standingReach from localStorage on selection
-  useEffect(() => {
-    if (selectedPlayerId) {
-      const storedHeight = localStorage.getItem(`player_height_${selectedPlayerId}`);
-      const storedReach = localStorage.getItem(`standing_reach_${selectedPlayerId}`);
+    useEffect(() => {
+      if (selectedPlayerId) {
+        const storedHeight = activePlayer?.height_cm || localStorage.getItem(`player_height_${selectedPlayerId}`);
+        const storedReach = activePlayer?.standing_reach_cm || localStorage.getItem(`standing_reach_${selectedPlayerId}`);
       setPlayerHeight(storedHeight ? parseFloat(storedHeight) : 180);
       setStandingReach(storedReach ? parseFloat(storedReach) : 230);
     } else {
@@ -731,13 +731,15 @@ export default function JumpCalculator() {
     const formattedDate = `${newPlayer.birthYear}-01-01`;
     const coachId = newPlayer.coachId || null;
     const { data, error } = await supabase.from('lab_players').insert([{ 
-      full_name: newPlayer.name, 
-      date_of_birth: formattedDate, 
-      weight_kg: weight, 
-      leg_length_m: legLen, 
-      gender: newPlayer.gender,
-      coach_id: coachId 
-    }]).select();
+        full_name: newPlayer.name, 
+        date_of_birth: formattedDate, 
+        weight_kg: weight, 
+        leg_length_m: legLen, 
+        gender: newPlayer.gender,
+        coach_id: coachId,
+        height_cm: parseFloat(newPlayer.height) || null,
+        standing_reach_cm: parseFloat(newPlayer.standingReach) || null
+      }]).select();
     if (!error && data) {
       const createdPlayer = data[0];
       if (newPlayer.height) localStorage.setItem(`player_height_${createdPlayer.id}`, newPlayer.height);
@@ -772,8 +774,8 @@ export default function JumpCalculator() {
   };
 
   const handleEditPlayer = (player) => {
-    const pHeight = localStorage.getItem(`player_height_${player.id}`) || '180';
-    const pStandingReach = localStorage.getItem(`standing_reach_${player.id}`) || '230';
+      const pHeight = player.height_cm || localStorage.getItem(`player_height_${player.id}`) || '180';
+      const pStandingReach = player.standing_reach_cm || localStorage.getItem(`standing_reach_${player.id}`) || '230';
     setEditPlayerForm({ 
       id: player.id, 
       name: player.full_name, 
@@ -796,13 +798,15 @@ export default function JumpCalculator() {
     const formattedDate = `${editPlayerForm.birthYear}-01-01`;
     const coachId = editPlayerForm.coachId || null;
     const { data, error } = await supabase.from('lab_players').update({ 
-      full_name: editPlayerForm.name, 
-      date_of_birth: formattedDate, 
-      weight_kg: weight, 
-      leg_length_m: legLen, 
-      gender: editPlayerForm.gender,
-      coach_id: coachId
-    }).eq('id', editPlayerForm.id).select();
+        full_name: editPlayerForm.name, 
+        date_of_birth: formattedDate, 
+        weight_kg: weight, 
+        leg_length_m: legLen, 
+        gender: editPlayerForm.gender,
+        coach_id: coachId,
+        height_cm: parseFloat(editPlayerForm.height) || null,
+        standing_reach_cm: parseFloat(editPlayerForm.standingReach) || null
+      }).eq('id', editPlayerForm.id).select();
     if (!error && data) {
       const updatedPlayer = data[0];
       localStorage.setItem(`player_height_${updatedPlayer.id}`, editPlayerForm.height);

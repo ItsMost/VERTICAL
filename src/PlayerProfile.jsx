@@ -226,9 +226,47 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
   const birthYear = activePlayer.date_of_birth ? parseInt(activePlayer.date_of_birth.substring(0, 4)) : currentYear;
   const age = currentYear - birthYear;
 
-  // Load physical parameters from localStorage
-  const playerHeight = localStorage.getItem(`player_height_${activePlayer.id}`) || '—';
-  const playerStandingReach = localStorage.getItem(`standing_reach_${activePlayer.id}`) || '—';
+  // EUR evaluation helper
+  const getEurEvaluation = (val) => {
+    if (!val || isNaN(val) || val === 0) {
+      return {
+        textAr: 'غير متوفر',
+        textEn: 'N/A',
+        color: '#6b7280',
+        bgColor: '#f3f4f6',
+        borderColor: '#e5e7eb'
+      };
+    }
+    if (val >= 1.05 && val <= 1.15) {
+      return {
+        textAr: 'متوازن (عضلات وأوتار) ✨',
+        textEn: 'Balanced (Optimal) ✨',
+        color: '#0d9488',
+        bgColor: '#f0fdfa',
+        borderColor: '#ccfbf1'
+      };
+    } else if (val < 1.05) {
+      return {
+        textAr: 'ضعف أوتار / عضلات مسيطرة 🔴',
+        textEn: 'Tendon Deficit / Muscles Dominant 🔴',
+        color: '#dd6b20',
+        bgColor: '#fffaf0',
+        borderColor: '#fbd38d'
+      };
+    } else {
+      return {
+        textAr: 'الأوتار (العضلات تفتقر للقوة الصافية) ⚠️',
+        textEn: 'Tendon Dominant (Force Deficit) ⚠️',
+        color: '#b7791f',
+        bgColor: '#fffbeb',
+        borderColor: '#fef3c7'
+      };
+    }
+  };
+
+  // Load physical parameters from database or fallback to localStorage
+  const playerHeight = activePlayer.height_cm || localStorage.getItem(`player_height_${activePlayer.id}`) || '—';
+  const playerStandingReach = activePlayer.standing_reach_cm || localStorage.getItem(`standing_reach_${activePlayer.id}`) || '—';
   const standingReachNum = parseFloat(playerStandingReach);
 
   // Dynamic Benchmarking Engine
@@ -875,12 +913,12 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
   const [selectedMetric, setSelectedMetric] = useState(null);
 
-  const chartCmjArms = cmjArms > 0 ? cmjArms : 49.6;
-  const chartCmjNoArms = cmjNoArms > 0 ? cmjNoArms : 41.4;
-  const chartSjNoArms = sjNoArms > 0 ? sjNoArms : 40.4;
-  const chartNoArmsExtra = 40.1;
+  const hasHistory = cmjArms > 0 || cmjNoArms > 0 || sjNoArms > 0;
+  const chartCmjArms = cmjArms > 0 ? cmjArms : (hasHistory ? 0 : 49.6);
+  const chartCmjNoArms = cmjNoArms > 0 ? cmjNoArms : (hasHistory ? 0 : 41.4);
+  const chartSjNoArms = sjNoArms > 0 ? sjNoArms : (hasHistory ? 0 : 40.4);
 
-  const maxChartVal = Math.max(chartCmjArms, chartCmjNoArms, chartSjNoArms, chartNoArmsExtra, 50);
+  const maxChartVal = Math.max(chartCmjArms, chartCmjNoArms, chartSjNoArms, 50);
   const chartScale = 110 / maxChartVal;
 
   return (
@@ -888,6 +926,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       
       {/* Inject custom printable CSS styles */}
       <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+
         @media print {
           html, body, #root, #root > div, main, .app-container {
             height: auto !important;
@@ -905,10 +945,13 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
             display: none !important;
           }
           
+          body, .print-report-sheet, .print-report-sheet * {
+            font-family: 'Cairo', sans-serif !important;
+          }
+          
           body {
             background: #ffffff !important;
             color: #000000 !important;
-            font-family: 'Cairo', sans-serif !important;
             margin: 0 !important;
             padding: 0 !important;
           }
@@ -2573,9 +2616,21 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     </div>
                     <div className="text-right">
                       <span className="block text-base font-black text-orange-primary font-mono">{(eur > 0 ? eur : 1.03).toFixed(2)}</span>
-                      <span className="block text-[9px] font-black text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-200" style={{ color: '#dd6b20', borderColor: '#fbd38d', backgroundColor: '#fffaf0' }}>
-                        {printLang === 'ar' ? 'ضعف أوتار / عضلات مسيطرة 🔴' : 'Tendon Deficit / Muscles Dominant 🔴'}
-                      </span>
+                      {(() => {
+                        const evalRes = getEurEvaluation(eur > 0 ? eur : 1.03);
+                        return (
+                          <span 
+                            className="block text-[9px] font-black px-1.5 py-0.5 rounded border" 
+                            style={{ 
+                              color: evalRes.color, 
+                              borderColor: evalRes.borderColor, 
+                              backgroundColor: evalRes.bgColor 
+                            }}
+                          >
+                            {printLang === 'ar' ? evalRes.textAr : evalRes.textEn}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -2640,15 +2695,15 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     
                     {/* Bar 1: Current (CMJ with Arms) */}
                     <rect 
-                      x="40" 
+                      x="50" 
                       y={125 - (chartCmjArms * chartScale)} 
-                      width="35" 
+                      width="45" 
                       height={chartCmjArms * chartScale} 
                       fill="#ff6b00" 
                       rx="4" 
                     />
                     <text 
-                      x="57.5" 
+                      x="72.5" 
                       y={120 - (chartCmjArms * chartScale)} 
                       fontSize="9" 
                       fontWeight="900" 
@@ -2658,24 +2713,24 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     >
                       {chartCmjArms.toFixed(1)}
                     </text>
-                    <text x="57.5" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
+                    <text x="72.5" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
                       {printLang === 'ar' ? 'CMJ باليدين' : 'CMJ Arms'}
                     </text>
-                    <text x="57.5" y="150" fontSize="6" fontWeight="bold" textAnchor="middle" fill="#9ca3af">
+                    <text x="72.5" y="150" fontSize="6" fontWeight="bold" textAnchor="middle" fill="#9ca3af">
                       {printLang === 'ar' ? '(حالي)' : '(Current)'}
                     </text>
 
                     {/* Bar 2: Previous (CMJ no Arms) */}
                     <rect 
-                      x="110" 
+                      x="135" 
                       y={125 - (chartCmjNoArms * chartScale)} 
-                      width="35" 
+                      width="45" 
                       height={chartCmjNoArms * chartScale} 
                       fill="#4b5563" 
                       rx="4" 
                     />
                     <text 
-                      x="127.5" 
+                      x="157.5" 
                       y={120 - (chartCmjNoArms * chartScale)} 
                       fontSize="9" 
                       fontWeight="900" 
@@ -2685,24 +2740,24 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     >
                       {chartCmjNoArms.toFixed(1)}
                     </text>
-                    <text x="127.5" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
+                    <text x="157.5" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
                       {printLang === 'ar' ? 'CMJ بدون يدين' : 'CMJ No Arms'}
                     </text>
-                    <text x="127.5" y="150" fontSize="6" fontWeight="bold" textAnchor="middle" fill="#9ca3af">
+                    <text x="157.5" y="150" fontSize="6" fontWeight="bold" textAnchor="middle" fill="#9ca3af">
                       {printLang === 'ar' ? '(سابق)' : '(Prev)'}
                     </text>
 
                     {/* Bar 3: Previous (Squat Jump) */}
                     <rect 
-                      x="180" 
+                      x="220" 
                       y={125 - (chartSjNoArms * chartScale)} 
-                      width="35" 
+                      width="45" 
                       height={chartSjNoArms * chartScale} 
                       fill="#4b5563" 
                       rx="4" 
                     />
                     <text 
-                      x="197.5" 
+                      x="242.5" 
                       y={120 - (chartSjNoArms * chartScale)} 
                       fontSize="9" 
                       fontWeight="900" 
@@ -2712,37 +2767,10 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     >
                       {chartSjNoArms.toFixed(1)}
                     </text>
-                    <text x="197.5" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
+                    <text x="242.5" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
                       {printLang === 'ar' ? 'وثبة ثبات SJ' : 'Squat Jump'}
                     </text>
-                    <text x="197.5" y="150" fontSize="6" fontWeight="bold" textAnchor="middle" fill="#9ca3af">
-                      {printLang === 'ar' ? '(سابق)' : '(Prev)'}
-                    </text>
-
-                    {/* Bar 4: Previous (No Arms Extra) */}
-                    <rect 
-                      x="250" 
-                      y={125 - (chartNoArmsExtra * chartScale)} 
-                      width="35" 
-                      height={chartNoArmsExtra * chartScale} 
-                      fill="#9ca3af" 
-                      rx="4" 
-                    />
-                    <text 
-                      x="267.5" 
-                      y={120 - (chartNoArmsExtra * chartScale)} 
-                      fontSize="9" 
-                      fontWeight="900" 
-                      textAnchor="middle" 
-                      fill="#9ca3af" 
-                      fontFamily="monospace"
-                    >
-                      {chartNoArmsExtra.toFixed(1)}
-                    </text>
-                    <text x="267.5" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
-                      {printLang === 'ar' ? 'وثبة إضافية' : 'Extra Jump'}
-                    </text>
-                    <text x="267.5" y="150" fontSize="6" fontWeight="bold" textAnchor="middle" fill="#9ca3af">
+                    <text x="242.5" y="150" fontSize="6" fontWeight="bold" textAnchor="middle" fill="#9ca3af">
                       {printLang === 'ar' ? '(سابق)' : '(Prev)'}
                     </text>
                   </svg>
@@ -2751,19 +2779,72 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
             </div>
 
             {/* Diagnostic Callout Box - Shaded warning block in crimson */}
-            <div className="crimson-callout">
-              <h4 className="text-xs font-black text-red-700 flex items-center gap-1.5 mb-2 uppercase tracking-wider">
-                ⚠️ {printLang === 'ar' ? 'التشخيص الحركي وكفاءة الأوتار (EDR Diagnostic Report)' : 'EDR Tendon efficiency deficiency (<35%)'}
-              </h4>
-              <p className="text-xs leading-relaxed text-gray-850 whitespace-pre-line font-bold" style={{ fontFamily: 'Cairo, sans-serif', color: '#1a1a1a' }}>
-                {printLang === 'ar' 
-                  ? `• تشخيص كفاءة الأوتار (EDR): النسبة قليلة جداً وأقل من (35%)، وهذا معناه أن اللاعب يعتمد تماماً على ألياف العضلات ويمتلك قوة انقباضية concentric عالية جداً، ولكن يمتلك ضعفاً صريحاً في كفاءة الأوتار ومطاطيتها واستغلال دورة التمدد والتقصير (SSC).
-• التوصية الرياضية: ينصح بالتركيز الفوري والمكثف على تمارين البايومتركس السريع (Fast Plyometrics) مثل القفز الارتدادي والساقط، لرفع صلابة كاحل القدم وتنشيط وتطوير كفاءة مطاطية الأوتار وسرعة تخزين الطاقة الحركية وإطلاقها.` 
-                  : `• Tendon Efficiency Diagnosis (EDR): The ratio is deficient and below 35%. This indicates that the athlete relies heavily on muscular concentric power but lacks reactive tendon elasticity and SSC (Stretch-Shortening Cycle) efficiency.
+                        {/* Dynamic Diagnostic Callout Box */}
+            {(() => {
+              const eurVal = eur > 0 ? eur : 1.03;
+              const isTendonDeficit = eurVal < 1.05;
+              const isBalanced = eurVal >= 1.05 && eurVal <= 1.15;
+              const isForceDeficit = eurVal > 1.15;
+
+              let cardStyle = {
+                borderRight: '5px solid #dd6b20',
+                backgroundColor: '#fffaf0',
+                borderColor: '#fbd38d'
+              };
+              let titleColor = 'text-red-700';
+              let titleTextAr = 'التشخيص الحركي وكفاءة الأوتار (EUR Diagnostic Report)';
+              let titleTextEn = 'Tendon Efficiency & Elasticity Diagnosis (EUR)';
+
+              if (isBalanced) {
+                cardStyle = {
+                  borderRight: '5px solid #0d9488',
+                  backgroundColor: '#f0fdfa',
+                  borderColor: '#ccfbf1'
+                };
+                titleColor = 'text-teal-600';
+              } else if (isForceDeficit) {
+                cardStyle = {
+                  borderRight: '5px solid #d97706',
+                  backgroundColor: '#fef3c7',
+                  borderColor: '#fde68a'
+                };
+                titleColor = 'text-amber-700';
+              }
+
+              return (
+                <div style={{
+                  padding: '15px',
+                  borderRadius: '12px',
+                  marginBottom: '16px',
+                  borderTop: `1.5px solid ${cardStyle.borderColor}`,
+                  borderBottom: `1.5px solid ${cardStyle.borderColor}`,
+                  borderLeft: `1.5px solid ${cardStyle.borderColor}`,
+                  borderRight: cardStyle.borderRight,
+                  backgroundColor: cardStyle.backgroundColor
+                }}>
+                  <h4 className={`text-xs font-black flex items-center gap-1.5 mb-2 uppercase tracking-wider ${titleColor}`}>
+                    ⚠️ {printLang === 'ar' ? titleTextAr : titleTextEn}
+                  </h4>
+                  <p className="text-xs leading-relaxed text-gray-855 whitespace-pre-line font-bold" style={{ fontFamily: 'Cairo, sans-serif', color: '#1a1a1a' }}>
+                    {printLang === 'ar' ? (
+                      isBalanced ? `• تشخيص كفاءة الأوتار (EUR): النسبة متوازنة ومثالية (${eurVal.toFixed(2)})، مما يعني وجود تناغم ممتاز بين كفاءة مطاطية الأوتار والقوة الانقباضية العضلية للاعب.
+• التوصية الرياضية: ينصح بالاستمرار في التناوب المتوازن بين تدريبات القوة القصوى والتمارين الارتدادية (Plyometrics) للحفاظ على هذا التوازن الفسيولوجي المتميز.`
+                      : isForceDeficit ? `• تشخيص كفاءة الأوتار (EUR): النسبة مرتفعة جداً وتتخطى (1.15)، مما يعني أن اللاعب يعتمد بشكل مفرط على مطاطية الأوتار ورد الفعل الارتدادي، بينما يعاني من نقص صريح في القوة العضلية الصافية (Force Deficit).
+• التوصية الرياضية: ينصح بالتركيز الفوري على تمارين القوة العضلية القصوى (Maximal Strength Training) مثل رفع الأثقال و squat الأحمال الثقيلة، لرفع القدرة الانقباضية لألياف العضلات.`
+                      : `• تشخيص كفاءة الأوتار (EUR): النسبة قليلة جداً وأقل من (1.05)، وهذا معناه أن اللاعب يعتمد تماماً على ألياف العضلات ويمتلك قوة انقباضية concentric عالية جداً، ولكن يمتلك ضعفاً صريحاً في كفاءة الأوتار ومطاطيتها واستغلال دورة التمدد والتقصير (SSC).
+• التوصية الرياضية: ينصح بالتركيز الفوري والمكثف على تمارين البايومتركس السريع (Fast Plyometrics) مثل القفز الارتدادي والساقط، لرفع صلابة كاحل القدم وتنشيط وتطوير كفاءة مطاطية الأوتار وسرعة تخزين الطاقة الحركية وإطلاقها.`
+                    ) : (
+                      isBalanced ? `• Tendon Efficiency Diagnosis (EUR): The ratio is optimal and balanced (${eurVal.toFixed(2)}), representing excellent synergy between tendon reactive elasticity and active muscular concentric force.
+• Athletic Recommendation: Maintain a balanced combination of maximal strength training and plyometrics to sustain this optimal biomechanical baseline.`
+                      : isForceDeficit ? `• Tendon Efficiency Diagnosis (EUR): The ratio is elevated (${eurVal.toFixed(2)}). The athlete is highly reactive/tendon-dominant but exhibits a Force Deficit (lacks raw muscular concentric strength).
+• Athletic Recommendation: Prioritize maximal strength development (heavy squats, deadlifts, and loaded power training) to increase concentric muscular force capacity.`
+                      : `• Tendon Efficiency Diagnosis (EUR): The ratio is deficient and below 1.05 (${eurVal.toFixed(2)}). This indicates that the athlete relies heavily on muscular concentric power but lacks reactive tendon elasticity and SSC (Stretch-Shortening Cycle) efficiency.
 • Athletic Recommendation: Immediate focus on Fast Plyometrics (e.g., reactive depth jumps, ankle bounding) is highly recommended to build ankle stiffness and optimize tendon rebound efficiency.`
-                }
-              </p>
-            </div>
+                    )}
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* Jumps Comparison Table */}
             <div className="slate-card">
@@ -2811,6 +2892,23 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       </tr>
                     );
                   })}
+                  {/* Drop Jump (RSI) Row */}
+                  <tr>
+                    <td className="font-bold">{printLang === 'ar' ? 'الوثب الساقط (RSI)' : 'Drop Jump (RSI)'}</td>
+                    <td className="font-mono font-bold text-orange-primary">
+                      {rsiRecord ? `RSI: ${parseFloat(rsiRecord.rsi_score).toFixed(2)}` : '—'}
+                    </td>
+                    <td className="font-mono">
+                      {rsiRecord && rsiRecord.contact_time_sec 
+                        ? (printLang === 'ar' ? `Tc: ${parseFloat(rsiRecord.contact_time_sec).toFixed(3)} ث` : `Tc: ${parseFloat(rsiRecord.contact_time_sec).toFixed(3)} s`) 
+                        : '—'}
+                    </td>
+                    <td className="font-mono">
+                      {rsiRecord ? (printLang === 'ar' ? `Tf: ${parseFloat(rsiRecord.flight_time_sec).toFixed(3)} ث` : `Tf: ${parseFloat(rsiRecord.flight_time_sec).toFixed(3)} s`) : '—'}
+                    </td>
+                    <td className="font-mono">—</td>
+                    <td className="font-mono">—</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
