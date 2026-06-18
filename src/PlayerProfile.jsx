@@ -226,6 +226,82 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
   const birthYear = activePlayer.date_of_birth ? parseInt(activePlayer.date_of_birth.substring(0, 4)) : currentYear;
   const age = currentYear - birthYear;
 
+  // Leg length to cm helper
+  const getLegLengthCm = (val) => {
+    const num = parseFloat(val);
+    if (!num || isNaN(num)) return '—';
+    if (num > 5) return num.toFixed(0);
+    return (num * 100).toFixed(0);
+  };
+
+  // Arm Swing evaluation helper
+  const getArmSwingEvaluation = (val) => {
+    if (!val || isNaN(val) || val === 0) {
+      return {
+        textAr: 'غير متوفر',
+        textEn: 'N/A',
+        color: '#6b7280',
+        bgColor: '#f3f4f6',
+        borderColor: '#e5e7eb'
+      };
+    }
+    if (val < 10) {
+      return {
+        textAr: 'تنسيق ذراعين ضعيف ⚠️',
+        textEn: 'Poor Arm Coordination ⚠️',
+        color: '#e11d48',
+        bgColor: '#fff1f2',
+        borderColor: '#fecdd3'
+      };
+    } else if (val > 15) {
+      return {
+        textAr: 'اعتماد مفرط على اليدين 🔄',
+        textEn: 'High Arm Swing 🔄',
+        color: '#dd6b20',
+        bgColor: '#fffaf0',
+        borderColor: '#fbd38d'
+      };
+    } else {
+      return {
+        textAr: 'تنسيق مثالي (Optimal) ✨',
+        textEn: 'Optimal Coordination ✨',
+        color: '#0d9488',
+        bgColor: '#f0fdfa',
+        borderColor: '#ccfbf1'
+      };
+    }
+  };
+
+  // Velocity Conversion evaluation helper
+  const getVelocityConversionEvaluation = (val) => {
+    if (!val || isNaN(val) || val === 0) {
+      return {
+        textAr: 'غير متوفر',
+        textEn: 'N/A',
+        color: '#6b7280',
+        bgColor: '#f3f4f6',
+        borderColor: '#e5e7eb'
+      };
+    }
+    if (val >= 10) {
+      return {
+        textAr: 'تحويل ممتاز للسرعة ✨',
+        textEn: 'Excellent Speed Conversion ✨',
+        color: '#0d9488',
+        bgColor: '#f0fdfa',
+        borderColor: '#ccfbf1'
+      };
+    } else {
+      return {
+        textAr: 'عجز سرعة/اقتراب ⚠️',
+        textEn: 'Velocity Deficit ⚠️',
+        color: '#e11d48',
+        bgColor: '#fff1f2',
+        borderColor: '#fecdd3'
+      };
+    }
+  };
+
   // EUR evaluation helper
   const getEurEvaluation = (val) => {
     if (!val || isNaN(val) || val === 0) {
@@ -2542,9 +2618,38 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
             <div className="flex justify-between items-center border-b-2 border-gray-800 pb-4 mb-4">
               {printLang === 'ar' ? (
                 <>
-                  <div className="text-right">
-                    <h1 className="text-2xl font-black text-orange-primary flex items-center gap-2">مختبر الأداء الرياضي والميكانيكا الحيوية 🧪</h1>
-                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">تقرير قياسات الأداء الحركي والارتقاء المتكامل</p>
+                  <div className="flex items-center gap-3 text-right font-cairo">
+                    <svg width="45" height="45" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 4px 6px rgba(255, 107, 0, 0.25))' }}>
+                      <defs>
+                        <linearGradient id="grad-top" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#ff9a3c" />
+                          <stop offset="100%" stopColor="#ff6b00" />
+                        </linearGradient>
+                        <linearGradient id="grad-left" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#e05300" />
+                          <stop offset="100%" stopColor="#b33600" />
+                        </linearGradient>
+                        <linearGradient id="grad-right" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#4b5563" />
+                          <stop offset="100%" stopColor="#1f2937" />
+                        </linearGradient>
+                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                          <feGaussianBlur stdDeviation="3" result="blur" />
+                          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                      </defs>
+                      <polygon points="50,15 80,32 50,50 20,32" fill="url(#grad-top)" />
+                      <polygon points="20,32 50,50 50,85 20,67" fill="url(#grad-left)" />
+                      <polygon points="50,50 80,32 80,67 50,85" fill="url(#grad-right)" />
+                      <line x1="50" y1="15" x2="50" y2="50" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.4" />
+                      <line x1="20" y1="32" x2="50" y2="50" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.4" />
+                      <line x1="80" y1="32" x2="50" y2="50" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.4" />
+                      <circle cx="50" cy="50" r="5" fill="#ff6b00" filter="url(#glow)" stroke="#ffffff" strokeWidth="1" />
+                    </svg>
+                    <div>
+                      <h1 className="text-2xl font-black text-orange-primary">مختبر الأداء الرياضي والميكانيكا الحيوية</h1>
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">تقرير قياسات الأداء الحركي والارتقاء المتكامل</p>
+                    </div>
                   </div>
                   <div className="text-left text-[10px] font-mono text-gray-500">
                     <p>تاريخ الاستخراج: {new Date().toLocaleDateString('ar-EG')}</p>
@@ -2553,9 +2658,38 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 </>
               ) : (
                 <>
-                  <div className="text-left">
-                    <h1 className="text-2xl font-black text-orange-primary">Sports Performance & Biomechanics Lab 🧪</h1>
-                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Integrated Biomechanical & Vertical Jump Performance Report</p>
+                  <div className="flex items-center gap-3 text-left">
+                    <svg width="45" height="45" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 4px 6px rgba(255, 107, 0, 0.25))' }}>
+                      <defs>
+                        <linearGradient id="grad-top" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#ff9a3c" />
+                          <stop offset="100%" stopColor="#ff6b00" />
+                        </linearGradient>
+                        <linearGradient id="grad-left" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#e05300" />
+                          <stop offset="100%" stopColor="#b33600" />
+                        </linearGradient>
+                        <linearGradient id="grad-right" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#4b5563" />
+                          <stop offset="100%" stopColor="#1f2937" />
+                        </linearGradient>
+                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                          <feGaussianBlur stdDeviation="3" result="blur" />
+                          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                      </defs>
+                      <polygon points="50,15 80,32 50,50 20,32" fill="url(#grad-top)" />
+                      <polygon points="20,32 50,50 50,85 20,67" fill="url(#grad-left)" />
+                      <polygon points="50,50 80,32 80,67 50,85" fill="url(#grad-right)" />
+                      <line x1="50" y1="15" x2="50" y2="50" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.4" />
+                      <line x1="20" y1="32" x2="50" y2="50" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.4" />
+                      <line x1="80" y1="32" x2="50" y2="50" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.4" />
+                      <circle cx="50" cy="50" r="5" fill="#ff6b00" filter="url(#glow)" stroke="#ffffff" strokeWidth="1" />
+                    </svg>
+                    <div>
+                      <h1 className="text-2xl font-black text-orange-primary font-cairo">Sports Performance & Biomechanics Lab</h1>
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider font-cairo">Integrated Biomechanical & Vertical Jump Performance Report</p>
+                    </div>
                   </div>
                   <div className="text-right text-[10px] font-mono text-gray-500">
                     <p>Report Date: {new Date().toLocaleDateString('en-US')}</p>
@@ -2570,26 +2704,38 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
               <h3 className="text-xs font-black text-orange-primary mb-3 uppercase tracking-wider">
                 👤 {printLang === 'ar' ? 'بطاقة اللاعب التعريفية والبدنية' : 'Athlete Identity & Physical Specs'}
               </h3>
-              <div className="grid grid-cols-5 gap-4 text-xs">
+              <div className="grid grid-cols-7 gap-4 text-xs">
                 <div>
                   <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'الاسم:' : 'Name:'}</span>
-                  <span className="block font-black text-black text-sm">{activePlayer.full_name}</span>
+                  <span className="block font-black text-black text-[11px] truncate">{activePlayer.full_name}</span>
                 </div>
                 <div>
-                  <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'الوزن:' : 'Weight:'}</span>
-                  <span className="block font-black text-black text-sm font-mono">{activePlayer.weight_kg} kg</span>
+                  <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'النوع:' : 'Gender:'}</span>
+                  <span className="block font-black text-black text-[11px]">
+                    {printLang === 'ar' 
+                      ? (activePlayer.gender === 'female' ? 'أنثى' : 'ذكر') 
+                      : (activePlayer.gender === 'female' ? 'Female' : 'Male')}
+                  </span>
                 </div>
                 <div>
                   <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'العمر:' : 'Age:'}</span>
-                  <span className="block font-black text-black text-sm font-mono">{age} Years</span>
+                  <span className="block font-black text-black text-[11px] font-mono">{age} {printLang === 'ar' ? 'سنوات' : 'Years'}</span>
+                </div>
+                <div>
+                  <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'الوزن:' : 'Weight:'}</span>
+                  <span className="block font-black text-black text-[11px] font-mono">{activePlayer.weight_kg} kg</span>
+                </div>
+                <div>
+                  <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'طول الرجل:' : 'Leg Length:'}</span>
+                  <span className="block font-black text-black text-[11px] font-mono">{getLegLengthCm(activePlayer.leg_length_m)} cm</span>
                 </div>
                 <div>
                   <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'القامة:' : 'Height:'}</span>
-                  <span className="block font-black text-black text-sm font-mono">{playerHeight} cm</span>
+                  <span className="block font-black text-black text-[11px] font-mono">{playerHeight} cm</span>
                 </div>
                 <div>
-                  <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'الوصول من الثبات:' : 'Standing Reach:'}</span>
-                  <span className="block font-black text-black text-sm font-mono">{playerStandingReach} cm</span>
+                  <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'الوصول:' : 'Standing Reach:'}</span>
+                  <span className="block font-black text-black text-[11px] font-mono">{playerStandingReach} cm</span>
                 </div>
               </div>
             </div>
@@ -2646,9 +2792,21 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     </div>
                     <div className="text-right">
                       <span className="block text-base font-black text-gray-800 font-mono">{(armSwing > 0 ? armSwing : 19.9).toFixed(1)}%</span>
-                      <span className="block text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                        {printLang === 'ar' ? 'اعتماد مفرط على اليدين 🔄' : 'High Arm Swing 🔄'}
-                      </span>
+                      {(() => {
+                        const evalRes = getArmSwingEvaluation(armSwing > 0 ? armSwing : 19.9);
+                        return (
+                          <span 
+                            className="block text-[9px] font-black px-1.5 py-0.5 rounded border" 
+                            style={{ 
+                              color: evalRes.color, 
+                              borderColor: evalRes.borderColor, 
+                              backgroundColor: evalRes.bgColor 
+                            }}
+                          >
+                            {printLang === 'ar' ? evalRes.textAr : evalRes.textEn}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -2666,9 +2824,21 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       <span className="block text-xs font-black text-gray-800 font-mono">
                         {velocityConversion > 0 ? `${velocityConversion.toFixed(1)}%` : '—'}
                       </span>
-                      <span className="block text-[9px] font-black text-gray-650 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200">
-                        {printLang === 'ar' ? 'اعتماد ثقيل على العضلات' : 'Heavy reliance on muscles'}
-                      </span>
+                      {(() => {
+                        const evalRes = getVelocityConversionEvaluation(velocityConversion);
+                        return (
+                          <span 
+                            className="block text-[9px] font-black px-1.5 py-0.5 rounded border" 
+                            style={{ 
+                              color: evalRes.color, 
+                              borderColor: evalRes.borderColor, 
+                              backgroundColor: evalRes.bgColor 
+                            }}
+                          >
+                            {printLang === 'ar' ? evalRes.textAr : evalRes.textEn}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -2914,16 +3084,38 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
             </div>
 
             {/* Explanatory notes */}
-            <div className="slate-card flex justify-between gap-4 text-[10px] leading-relaxed text-gray-500">
+            <div className="slate-card flex justify-between gap-4 text-xs leading-relaxed text-gray-800 font-medium">
               {printLang === 'ar' ? (
                 <>
-                  <div>• أرجحة الذراعين: يستعين اللاعب بأرجحة الذراعين بنسبة عالية ({ (armSwing > 0 ? armSwing : 19.9).toFixed(1) }%) للتعويض عن الضعف النسبي في عضلات الأرجل. ينصح بتدريبات تقوية الجزء السفلي المنفصلة.</div>
-                  <div className="text-left font-mono">•Sayers PP: {sayersPeak.toFixed(0)} W | Harman PP: {harmanPeak.toFixed(0)} W</div>
+                  <div>
+                    • {(() => {
+                      const val = armSwing > 0 ? armSwing : 19.9;
+                      if (val > 15) {
+                        return `أرجحة الذراعين: يستعين اللاعب بأرجحة الذراعين بنسبة عالية (${val.toFixed(1)}%) للتعويض عن الضعف النسبي في عضلات الأرجل. يُنصح بتركيز التدريب على تقوية الأطراف السفلية بشكل منفصل لزيادة إنتاج القوة من الساقين.`;
+                      } else if (val < 10) {
+                        return `أرجحة الذراعين: مساهمة أرجحة الذراعين منخفضة (${val.toFixed(1)}%). هذا يشير إلى ضعف التنسيق الحركي بين النصفين العلوي والسفلي أو عدم كفاءة استخدام الذراعين لتوليد الزخم. يُنصح بتدريبات التوافق العصبي العضلي وتكنيك التأرجح.`;
+                      } else {
+                        return `أرجحة الذراعين: استخدام أرجحة الذراعين مثالي ومتوازن (${val.toFixed(1)}%). يُظهر اللاعب توافقاً حركياً ممتازاً بين الساقين والذراعين لنقل الزخم بشكل فعال دون اعتماد مفرط.`;
+                      }
+                    })()}
+                  </div>
+                  <div className="text-left font-mono shrink-0">•Sayers PP: {sayersPeak.toFixed(0)} W | Harman PP: {harmanPeak.toFixed(0)} W</div>
                 </>
               ) : (
                 <>
-                  <div>• Arm Swing Contribution: The athlete utilizes arm swing extensively ({ (armSwing > 0 ? armSwing : 19.9).toFixed(1) }%) to compensate for lower limb muscular deficits. Lower body strength conditioning is advised.</div>
-                  <div className="text-right font-mono">•Sayers PP: {sayersPeak.toFixed(0)} W | Harman PP: {harmanPeak.toFixed(0)} W</div>
+                  <div>
+                    • {(() => {
+                      const val = armSwing > 0 ? armSwing : 19.9;
+                      if (val > 15) {
+                        return `Arm Swing Contribution: The athlete utilizes arm swing extensively (${val.toFixed(1)}%) to compensate for lower limb muscular deficits. Lower body strength conditioning is advised.`;
+                      } else if (val < 10) {
+                        return `Arm Swing Contribution: Arm swing contribution is low (${val.toFixed(1)}%). This indicates sub-optimal motor coordination or inefficient momentum transfer. Neuromuscular coordination and swing technique training are recommended.`;
+                      } else {
+                        return `Arm Swing Contribution: Ideal and balanced arm swing usage (${val.toFixed(1)}%). The athlete shows excellent motor coordination and efficient momentum transfer.`;
+                      }
+                    })()}
+                  </div>
+                  <div className="text-right font-mono shrink-0">•Sayers PP: {sayersPeak.toFixed(0)} W | Harman PP: {harmanPeak.toFixed(0)} W</div>
                 </>
               )}
             </div>
@@ -2971,18 +3163,20 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 {printLang === 'ar' ? (
                   <>
                     <div><strong className="text-gray-700">الاسم الكامل:</strong> {activePlayer.full_name}</div>
-                    <div><strong className="text-gray-700">الوزن:</strong> {activePlayer.weight_kg} كجم</div>
-                    <div><strong className="text-gray-700">العمر:</strong> {age} سنوات</div>
                     <div><strong className="text-gray-700">النوع:</strong> {activePlayer.gender === 'female' ? 'أنثى' : 'ذكر'}</div>
+                    <div><strong className="text-gray-700">العمر:</strong> {age} سنوات</div>
+                    <div><strong className="text-gray-700">الوزن:</strong> {activePlayer.weight_kg} كجم</div>
+                    <div><strong className="text-gray-700">طول الرجل:</strong> {getLegLengthCm(activePlayer.leg_length_m)} سم</div>
                     <div><strong className="text-gray-700">طول القامة:</strong> {playerHeight} سم</div>
                     <div><strong className="text-gray-700">الوصول من الثبات:</strong> {playerStandingReach} سم</div>
                   </>
                 ) : (
                   <>
                     <div><strong className="text-gray-700">Full Name:</strong> {activePlayer.full_name}</div>
-                    <div><strong className="text-gray-700">Weight:</strong> {activePlayer.weight_kg} kg</div>
-                    <div><strong className="text-gray-700">Age:</strong> {age} years</div>
                     <div><strong className="text-gray-700">Gender:</strong> {activePlayer.gender === 'female' ? 'Female' : 'Male'}</div>
+                    <div><strong className="text-gray-700">Age:</strong> {age} years</div>
+                    <div><strong className="text-gray-700">Weight:</strong> {activePlayer.weight_kg} kg</div>
+                    <div><strong className="text-gray-700">Leg Length:</strong> {getLegLengthCm(activePlayer.leg_length_m)} cm</div>
                     <div><strong className="text-gray-700">Height:</strong> {playerHeight} cm</div>
                     <div><strong className="text-gray-700">Standing Reach:</strong> {playerStandingReach} cm</div>
                   </>
