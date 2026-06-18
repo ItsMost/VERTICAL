@@ -72,6 +72,7 @@ export default function JumpTestingConsole({
   const [isSaving, setIsSaving] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
+  const [exportStatus, setExportStatus] = useState('');
   const [exportedVideoUrl, setExportedVideoUrl] = useState(null);
   const [exportedVideoBlob, setExportedVideoBlob] = useState(null);
   const [exportedVideoName, setExportedVideoName] = useState('');
@@ -1151,38 +1152,26 @@ export default function JumpTestingConsole({
   };
 
   const handleExportVideoWithOverlay = async () => {
-    if (!videoSrc) return alert("الرجاء تحميل فيديو أولاً.");
+    if (!videoSrc || !videoRef.current) return alert("الرجاء تحميل فيديو أولاً.");
     if (!stats || !stats.heightCm || takeoffTime <= 0 || landingTime <= 0) {
       return alert("الرجاء تحديد زمن الإقلاع والهبوط واستخراج التحليل أولاً.");
     }
 
-    let exportVideo = null;
+    const exportVideo = videoRef.current;
+    
+    // Save original playback states
+    window.tempOriginalUserTime = exportVideo.currentTime;
+    window.tempOriginalMuted = exportVideo.muted;
+    window.tempOriginalLoop = exportVideo.loop;
+
     try {
       setIsExporting(true);
       setExportProgress(0);
+      setExportStatus(language === 'en' ? 'Preparing video player...' : 'جاري تهيئة مشغل الفيديو...');
 
-      exportVideo = document.createElement('video');
-      exportVideo.id = 'temp-export-video';
-      exportVideo.src = videoSrc;
+      // Mute audio and disable loop during export
       exportVideo.muted = true;
-      exportVideo.playsInline = true;
-      exportVideo.setAttribute('webkit-playsinline', 'true');
-      
-      // Hidden offscreen container style to satisfy iOS Safari unattached video restrictions
-      exportVideo.style.position = 'fixed';
-      exportVideo.style.top = '0';
-      exportVideo.style.left = '0';
-      exportVideo.style.width = '1px';
-      exportVideo.style.height = '1px';
-      exportVideo.style.opacity = '0.01';
-      exportVideo.style.pointerEvents = 'none';
-      exportVideo.style.zIndex = '-9999';
-      document.body.appendChild(exportVideo);
-
-      await new Promise((resolve, reject) => {
-        exportVideo.onloadedmetadata = resolve;
-        exportVideo.onerror = reject;
-      });
+      exportVideo.loop = false;
 
       const canvas = document.createElement('canvas');
       
@@ -1205,9 +1194,15 @@ export default function JumpTestingConsole({
       const startTime = Math.max(0, takeoffTime - paddingTime);
       const endTime = Math.min(exportVideo.duration, landingTime + paddingTime);
 
+      setExportStatus(language === 'en' ? 'Seeking to start position...' : 'جاري الانتقال إلى موضع البدء...');
+
       exportVideo.currentTime = startTime;
       await new Promise((resolve) => {
-        exportVideo.onseeked = resolve;
+        const onSeeked = () => {
+          exportVideo.removeEventListener('seeked', onSeeked);
+          resolve();
+        };
+        exportVideo.addEventListener('seeked', onSeeked);
       });
 
       // Draw the first frame immediately before captureStream to initialize tracks on iOS Safari
@@ -1216,7 +1211,11 @@ export default function JumpTestingConsole({
       ctx.drawImage(exportVideo, 0, 0, originalWidth, originalHeight);
       ctx.restore();
 
-      const stream = canvas.captureStream(30);
+      setExportStatus(language === 'en' ? 'Initializing recorder...' : 'جاري تهيئة مسجل الفيديو...');
+
+      const stream = (canvas.captureStream ? canvas.captureStream(30) : (canvas.webkitCaptureStream ? canvas.webkitCaptureStream(30) : null));
+      if (!stream) throw new Error(language === 'en' ? 'Canvas captureStream is not supported by this browser.' : 'خاصية التقاط الفيديو غير مدعومة في هذا المتصفح.');
+
       const mimeTypes = [
         'video/mp4;codecs=avc1',
         'video/mp4',
@@ -1245,10 +1244,11 @@ export default function JumpTestingConsole({
         const url = URL.createObjectURL(blob);
         const filename = `TheLab_Jump_${activePlayer?.full_name || 'Athlete'}_${jumpHeight.toFixed(1)}cm.${extension}`;
         
-        // Clean up from DOM
-        if (exportVideo && exportVideo.parentNode) {
-          exportVideo.parentNode.removeChild(exportVideo);
-        }
+        // Restore main video player state
+        exportVideo.muted = window.tempOriginalMuted;
+        exportVideo.loop = window.tempOriginalLoop;
+        exportVideo.pause();
+        exportVideo.currentTime = window.tempOriginalUserTime;
 
         // Trigger immediate download
         const a = document.createElement('a');
@@ -1264,10 +1264,16 @@ export default function JumpTestingConsole({
         setExportedVideoName(filename);
 
         setIsExporting(false);
+        setExportStatus('');
       };
 
+      setExportStatus(language === 'en' ? 'Starting video playback...' : 'جاري تشغيل الفيديو...');
+      
+      // Wait for playback to start to ensure decoding has initialized
+      await exportVideo.play();
+      
+      setExportStatus('');
       recorder.start();
-      exportVideo.play();
 
       const w = originalWidth;
       const h = originalHeight;
@@ -1720,13 +1726,17 @@ export default function JumpTestingConsole({
 
     } catch (err) {
       alert("حدث خطأ أثناء تصدير الفيديو: " + err.message);
-      setIsExporting(false);
       
-      // Clean up temporary video if it exists in DOM
-      const existing = document.getElementById('temp-export-video');
-      if (existing) {
-        existing.remove();
+      // Restore main video player state on error
+      if (videoRef.current) {
+        videoRef.current.muted = window.tempOriginalMuted;
+        videoRef.current.loop = window.tempOriginalLoop;
+        videoRef.current.pause();
+        videoRef.current.currentTime = window.tempOriginalUserTime;
       }
+      
+      setIsExporting(false);
+      setExportStatus('');
     }
   };
 
@@ -3374,7 +3384,12 @@ export default function JumpTestingConsole({
               </div>
             </div>
             <h3 className="text-lg font-black text-white mt-2">جاري تصدير فيديو التحليل 🎥</h3>
-            <p className="text-xs text-gray-400 leading-relaxed">
+            {exportStatus && (
+              <p className="text-sm text-cyan-400 font-bold animate-pulse mt-1">
+                {exportStatus}
+              </p>
+            )}
+            <p className="text-xs text-gray-400 leading-relaxed mt-2">
               يرجى الانتظار بينما نقوم بتركيب شريط الارتفاع المضيء والمنحنى الميكانيكي الحيوي على الفيديو الخاص بك...
             </p>
           </div>
