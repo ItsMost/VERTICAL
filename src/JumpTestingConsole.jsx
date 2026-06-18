@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import useJumpMechanics from './useJumpMechanics';
 import { 
-  Activity, Zap, ScanEye, X, Play, Pause, Focus, Save, Award, HelpCircle, Scaling, Video
+  Activity, Zap, ScanEye, X, Play, Pause, Focus, Save, Award, HelpCircle, Scaling, Video,
+  Share2, CheckCircle, Download
 } from 'lucide-react';
 
 const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
@@ -71,6 +72,9 @@ export default function JumpTestingConsole({
   const [isSaving, setIsSaving] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
+  const [exportedVideoUrl, setExportedVideoUrl] = useState(null);
+  const [exportedVideoBlob, setExportedVideoBlob] = useState(null);
+  const [exportedVideoName, setExportedVideoName] = useState('');
 
   const [landingCorrectionMode, setLandingCorrectionMode] = useState('none');
   const [jumpPhases, setJumpPhases] = useState(null);
@@ -1116,20 +1120,64 @@ export default function JumpTestingConsole({
     localStorage.setItem(`standing_reach_${selectedPlayerId}`, val);
   };
 
+  const handleShareVideo = async () => {
+    if (!exportedVideoBlob || !exportedVideoUrl) return;
+
+    const jumpHeight = stats?.heightCm ? parseFloat(stats.heightCm) : 0;
+    const athleteName = activePlayer?.full_name || (language === 'en' ? 'Athlete' : 'اللاعب');
+    const shareText = language === 'en'
+      ? `PeakForce Lab: ${athleteName} jumped ${jumpHeight.toFixed(1)}cm! Check out the biomechanical analysis.`
+      : `PeakForce Lab: اللاعب ${athleteName} سجل قفزة بارتفاع ${jumpHeight.toFixed(1)} سم! شاهد تحليل الأداء الحركي.`;
+
+    const file = new File([exportedVideoBlob], exportedVideoName, { type: exportedVideoBlob.type || 'video/mp4' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: language === 'en' ? 'PeakForce Lab - Jump Analysis' : 'PeakForce Lab - تحليل الوثب',
+          text: shareText,
+        });
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          alert(language === 'en' ? 'Sharing failed: ' + err.message : 'فشلت المشاركة: ' + err.message);
+        }
+      }
+    } else {
+      alert(language === 'en'
+        ? 'Your browser does not support direct sharing of video files. Please download the video and share it manually.'
+        : 'متصفحك لا يدعم مشاركة ملفات الفيديو مباشرة. يرجى حفظ الفيديو ومشاركته يدوياً.');
+    }
+  };
+
   const handleExportVideoWithOverlay = async () => {
     if (!videoSrc) return alert("الرجاء تحميل فيديو أولاً.");
     if (!stats || !stats.heightCm || takeoffTime <= 0 || landingTime <= 0) {
       return alert("الرجاء تحديد زمن الإقلاع والهبوط واستخراج التحليل أولاً.");
     }
 
+    let exportVideo = null;
     try {
       setIsExporting(true);
       setExportProgress(0);
 
-      const exportVideo = document.createElement('video');
+      exportVideo = document.createElement('video');
+      exportVideo.id = 'temp-export-video';
       exportVideo.src = videoSrc;
       exportVideo.muted = true;
       exportVideo.playsInline = true;
+      exportVideo.setAttribute('webkit-playsinline', 'true');
+      
+      // Hidden offscreen container style to satisfy iOS Safari unattached video restrictions
+      exportVideo.style.position = 'fixed';
+      exportVideo.style.top = '0';
+      exportVideo.style.left = '0';
+      exportVideo.style.width = '1px';
+      exportVideo.style.height = '1px';
+      exportVideo.style.opacity = '0.01';
+      exportVideo.style.pointerEvents = 'none';
+      exportVideo.style.zIndex = '-9999';
+      document.body.appendChild(exportVideo);
 
       await new Promise((resolve, reject) => {
         exportVideo.onloadedmetadata = resolve;
@@ -1162,10 +1210,17 @@ export default function JumpTestingConsole({
         exportVideo.onseeked = resolve;
       });
 
+      // Draw the first frame immediately before captureStream to initialize tracks on iOS Safari
+      ctx.save();
+      ctx.scale(upscaleFactor, upscaleFactor);
+      ctx.drawImage(exportVideo, 0, 0, originalWidth, originalHeight);
+      ctx.restore();
+
       const stream = canvas.captureStream(30);
       const mimeTypes = [
         'video/mp4;codecs=avc1',
         'video/mp4',
+        'video/quicktime',
         'video/webm;codecs=vp9',
         'video/webm'
       ];
@@ -1176,7 +1231,7 @@ export default function JumpTestingConsole({
           break;
         }
       }
-      const extension = selectedMimeType.includes('mp4') ? 'mp4' : 'webm';
+      const extension = (selectedMimeType.includes('mp4') || selectedMimeType.includes('quicktime')) ? 'mp4' : 'webm';
       let options = { mimeType: selectedMimeType };
       const recorder = new MediaRecorder(stream, options);
       const chunks = [];
@@ -1188,12 +1243,26 @@ export default function JumpTestingConsole({
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: selectedMimeType });
         const url = URL.createObjectURL(blob);
+        const filename = `TheLab_Jump_${activePlayer?.full_name || 'Athlete'}_${jumpHeight.toFixed(1)}cm.${extension}`;
+        
+        // Clean up from DOM
+        if (exportVideo && exportVideo.parentNode) {
+          exportVideo.parentNode.removeChild(exportVideo);
+        }
+
+        // Trigger immediate download
         const a = document.createElement('a');
         a.href = url;
-        a.download = `TheLab_Jump_${activePlayer?.full_name || 'Athlete'}_${jumpHeight.toFixed(1)}cm.${extension}`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+
+        // Update states to trigger the share success modal
+        setExportedVideoBlob(blob);
+        setExportedVideoUrl(url);
+        setExportedVideoName(filename);
+
         setIsExporting(false);
       };
 
@@ -1212,7 +1281,8 @@ export default function JumpTestingConsole({
       };
 
       const drawOverlay = () => {
-        if (exportVideo.paused || exportVideo.ended || exportVideo.currentTime >= endTime) {
+        // iOS Safari Fix: remove the check for exportVideo.paused as play() is asynchronous and starts paused
+        if (exportVideo.ended || exportVideo.currentTime >= endTime) {
           recorder.stop();
           exportVideo.pause();
           return;
@@ -1651,6 +1721,12 @@ export default function JumpTestingConsole({
     } catch (err) {
       alert("حدث خطأ أثناء تصدير الفيديو: " + err.message);
       setIsExporting(false);
+      
+      // Clean up temporary video if it exists in DOM
+      const existing = document.getElementById('temp-export-video');
+      if (existing) {
+        existing.remove();
+      }
     }
   };
 
@@ -3301,6 +3377,84 @@ export default function JumpTestingConsole({
             <p className="text-xs text-gray-400 leading-relaxed">
               يرجى الانتظار بينما نقوم بتركيب شريط الارتفاع المضيء والمنحنى الميكانيكي الحيوي على الفيديو الخاص بك...
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Export Success Modal */}
+      {exportedVideoUrl && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in" style={{ direction: 'rtl' }}>
+          <div className="bg-[#0b1329]/95 border border-cyan-500/30 p-6 md:p-8 rounded-3xl flex flex-col items-center gap-5 max-w-md w-full text-center shadow-[0_0_60px_rgba(6,182,212,0.25)] relative backdrop-blur-xl">
+            {/* Close button */}
+            <button 
+              onClick={() => {
+                URL.revokeObjectURL(exportedVideoUrl);
+                setExportedVideoUrl(null);
+                setExportedVideoBlob(null);
+                setExportedVideoName('');
+              }} 
+              className="absolute top-4 left-4 text-gray-400 hover:text-white bg-gray-800/40 hover:bg-gray-800 p-2 rounded-full cursor-pointer transition-all"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="w-14 h-14 bg-cyan-500/10 border border-cyan-500/30 rounded-2xl flex items-center justify-center text-cyan-400 mb-1">
+              <CheckCircle size={32} />
+            </div>
+
+            <h3 className="text-xl font-black text-white font-semibold">
+              {language === 'en' ? 'Video Exported Successfully! 🎉' : 'تم تصدير الفيديو بنجاح! 🎉'}
+            </h3>
+            
+            <p className="text-xs text-gray-400 leading-relaxed -mt-2">
+              {language === 'en' 
+                ? 'Your video analysis is ready. Preview it below, share it directly, or download it to your device.' 
+                : 'فيديو التحليل الخاص بك جاهز الآن. يمكنك معاينته بالأسفل، مشاركته مباشرة، أو تحميله على جهازك.'}
+            </p>
+
+            {/* Video Player Preview - autoplaying in a muted loop */}
+            <div className="w-full rounded-2xl overflow-hidden border border-gray-800 bg-black aspect-video relative">
+              <video 
+                src={exportedVideoUrl} 
+                controls 
+                playsInline 
+                autoPlay 
+                muted 
+                loop 
+                className="w-full h-full object-contain"
+              />
+            </div>
+
+            {/* Action Buttons - side-by-side Save and Share */}
+            <div className="grid grid-cols-2 gap-3 w-full mt-2">
+              {/* Share Button */}
+              <button 
+                onClick={handleShareVideo}
+                className="py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-black text-sm rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/20 active:scale-95"
+              >
+                <Share2 size={16} />
+                {language === 'en' ? 'Share Video' : 'مشاركة الفيديو'}
+              </button>
+
+              {/* Save (Download) Button */}
+              <a 
+                href={exportedVideoUrl} 
+                download={exportedVideoName}
+                className="py-3 bg-gray-800 border border-gray-750 hover:bg-gray-700 text-white font-black text-sm rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 text-center active:scale-95"
+              >
+                <Download size={16} />
+                {language === 'en' ? 'Save Video' : 'حفظ الفيديو'}
+              </a>
+            </div>
+
+            {/* iOS Helper Tip */}
+            <div className="w-full p-3 bg-cyan-950/30 border border-cyan-500/20 rounded-xl text-right">
+              <p className="text-[11px] text-cyan-300 leading-relaxed font-semibold">
+                {language === 'en'
+                  ? '💡 iPhone/iPad Users: To save the video directly to your Photos App (Gallery), click "Share Video" then select "Save Video" from the options list.'
+                  : '💡 لمستخدمي الآيفون والآيباد: لحفظ الفيديو مباشرة في ألبوم الصور (الاستوديو)، اضغط على "مشاركة الفيديو" ثم اختر "حفظ الفيديو" (Save Video) من القائمة.'}
+              </p>
+            </div>
           </div>
         </div>
       )}
