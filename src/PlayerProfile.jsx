@@ -447,13 +447,14 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
   const evalPower = evaluateMetric('relative_power', relativePower);
 
   // Sayers & Harman biomechanical models
-  const mass = activePlayer.weight_kg;
-  const sayersPeak = 60.7 * heightCm + 45.3 * mass - 2055;
-  const harmanPeak = 61.9 * heightCm + 36.0 * mass - 1822;
-  const harmanMean = 21.2 * heightCm + 23.0 * mass - 1393;
+  const mass = parseFloat(activePlayer.weight_kg) || 0;
+  const sayersPeak = (heightCm > 0 && mass > 0) ? (60.7 * heightCm + 45.3 * mass - 2055) : 0;
+  const harmanPeak = (heightCm > 0 && mass > 0) ? (61.9 * heightCm + 36.0 * mass - 1822) : 0;
+  const harmanMean = (heightCm > 0 && mass > 0) ? (21.2 * heightCm + 23.0 * mass - 1393) : 0;
 
   // Max touch reach (Standing reach + jump height)
-  const maxReachCmj = (standingReachNum && heightCm) ? (standingReachNum + heightCm).toFixed(0) : null;
+  const isStandingReachValid = !isNaN(standingReachNum) && standingReachNum > 0;
+  const maxReachCmj = (isStandingReachValid && heightCm > 0) ? (standingReachNum + heightCm).toFixed(0) : null;
   
   // Calculate average of history to check performance trend
   const cmjHistory = playerHistory.filter(j => j.test_type === 'standard');
@@ -3108,25 +3109,71 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       </tr>
                     );
                   })}
-                  {/* Drop Jump (RSI) Row */}
-                  <tr>
-                    <td className="font-bold">{printLang === 'ar' ? 'الوثب الساقط (RSI)' : 'Drop Jump (RSI)'}</td>
-                    <td className="font-mono font-bold text-orange-primary">
-                      {rsiRecord ? `RSI: ${parseFloat(rsiRecord.rsi_score).toFixed(2)}` : '—'}
-                    </td>
-                    <td className="font-mono">
-                      {rsiRecord && rsiRecord.contact_time_sec 
-                        ? (printLang === 'ar' ? `Tc: ${parseFloat(rsiRecord.contact_time_sec).toFixed(3)} ث` : `Tc: ${parseFloat(rsiRecord.contact_time_sec).toFixed(3)} s`) 
-                        : '—'}
-                    </td>
-                    <td className="font-mono">
-                      {rsiRecord ? (printLang === 'ar' ? `Tf: ${parseFloat(rsiRecord.flight_time_sec).toFixed(3)} ث` : `Tf: ${parseFloat(rsiRecord.flight_time_sec).toFixed(3)} s`) : '—'}
-                    </td>
-                    <td className="font-mono">—</td>
-                    <td className="font-mono">—</td>
-                  </tr>
                 </tbody>
               </table>
+            </div>
+
+            {/* 2-Column Section for Power Models & Drop Jump (RSI) */}
+            <div className="grid grid-cols-2 gap-4">
+              
+              {/* Mechanical Power Models */}
+              <div className="slate-card">
+                <h3 className="text-xs font-black text-orange-primary mb-3 uppercase tracking-wider">
+                  ⚡ {printLang === 'ar' ? 'تقديرات القدرة الانفجارية وكثافة القدرة' : 'Power Models & Relative Density'}
+                </h3>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between items-center border-b border-gray-100 pb-1.5">
+                    <span className="font-bold text-gray-800">{printLang === 'ar' ? 'سايرز (Sayers PP):' : 'Sayers Peak Power:'}</span>
+                    <div className="text-right">
+                      <span className="font-black text-orange-primary font-mono">{sayersPeak > 0 ? sayersPeak.toFixed(0) : '—'} W</span>
+                      <span className="block text-[10px] text-teal-655 font-bold font-mono">{sayersPeak > 0 && mass > 0 ? (sayersPeak / mass).toFixed(1) : '—'} W/kg</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-gray-800">{printLang === 'ar' ? 'هارمان (Harman PP):' : 'Harman Peak Power:'}</span>
+                    <div className="text-right">
+                      <span className="font-black text-gray-850 font-mono">{harmanPeak > 0 ? harmanPeak.toFixed(0) : '—'} W</span>
+                      <span className="block text-[10px] text-teal-655 font-bold font-mono">{harmanPeak > 0 && mass > 0 ? (harmanPeak / mass).toFixed(1) : '—'} W/kg</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Drop Jump (RSI) */}
+              <div className="slate-card">
+                <h3 className="text-xs font-black text-orange-primary mb-3 uppercase tracking-wider">
+                  🎯 {printLang === 'ar' ? 'مؤشر القوة الارتدادية (Drop Jump)' : 'Reactive Strength (Drop Jump)'}
+                </h3>
+                {rsiRecord ? (
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-gray-50/50 p-1.5 rounded-lg border border-gray-100/80 text-center">
+                      <span className="block text-[9px] text-gray-400 font-bold">{printLang === 'ar' ? 'مؤشر RSI:' : 'RSI Score:'}</span>
+                      <span className="text-sm font-black text-orange-primary font-mono">{parseFloat(rsiRecord.rsi_score).toFixed(2)}</span>
+                    </div>
+                    <div className="bg-gray-50/50 p-1.5 rounded-lg border border-gray-100/80 text-center">
+                      <span className="block text-[9px] text-gray-400 font-bold">{printLang === 'ar' ? 'زمن التلامس Tc:' : 'Contact Tc:'}</span>
+                      <span className="text-xs font-black text-gray-850 font-mono">{parseFloat(rsiRecord.contact_time_sec).toFixed(3)}s</span>
+                    </div>
+                    <div className="bg-gray-50/50 p-1.5 rounded-lg border border-gray-100/80 text-center">
+                      <span className="block text-[9px] text-gray-400 font-bold">{printLang === 'ar' ? 'زمن الطيران Tf:' : 'Flight Tf:'}</span>
+                      <span className="text-xs font-black text-gray-850 font-mono">{parseFloat(rsiRecord.flight_time_sec).toFixed(3)}s</span>
+                    </div>
+                    <div className="bg-gray-50/50 p-1.5 rounded-lg border border-gray-100/80 text-center">
+                      <span className="block text-[9px] text-gray-400 font-bold">{printLang === 'ar' ? 'الارتفاع المقدر:' : 'Est. Height:'}</span>
+                      {(() => {
+                        const tf = parseFloat(rsiRecord.flight_time_sec) || 0;
+                        const hCm = 1.22625 * Math.pow(tf, 2) * 100;
+                        return <span className="text-xs font-black text-gray-850 font-mono">{hCm.toFixed(1)} cm</span>;
+                      })()}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-xs text-gray-400 font-bold italic py-4">
+                    {printLang === 'ar' ? 'لا توجد بيانات وثب ساقط' : 'No Drop Jump data available'}
+                  </div>
+                )}
+              </div>
+
             </div>
 
             {/* Explanatory notes */}
@@ -3145,7 +3192,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       }
                     })()}
                   </div>
-                  <div className="text-left font-mono shrink-0">•Sayers PP: {sayersPeak.toFixed(0)} W | Harman PP: {harmanPeak.toFixed(0)} W</div>
+                  <div className="text-left font-mono shrink-0">•Sayers PP: {sayersPeak > 0 ? `${sayersPeak.toFixed(0)} W` : '—'} | Harman PP: {harmanPeak > 0 ? `${harmanPeak.toFixed(0)} W` : '—'}</div>
                 </>
               ) : (
                 <>
@@ -3161,7 +3208,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       }
                     })()}
                   </div>
-                  <div className="text-right font-mono shrink-0">•Sayers PP: {sayersPeak.toFixed(0)} W | Harman PP: {harmanPeak.toFixed(0)} W</div>
+                  <div className="text-right font-mono shrink-0">•Sayers PP: {sayersPeak > 0 ? `${sayersPeak.toFixed(0)} W` : '—'} | Harman PP: {harmanPeak > 0 ? `${harmanPeak.toFixed(0)} W` : '—'}</div>
                 </>
               )}
             </div>
@@ -3276,26 +3323,54 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       </tr>
                     );
                   })}
-                  <tr>
-                    <td className="font-bold">{printLang === 'ar' ? 'الوثب الساقط (RSI)' : 'Drop Jump (RSI)'}</td>
-                    <td className="font-mono font-bold">
-                      {rsiRecord ? `RSI: ${parseFloat(rsiRecord.rsi_score).toFixed(2)}` : '—'}
-                    </td>
-                    <td className="font-mono">
-                      {rsiRecord && rsiRecord.contact_time_sec 
-                        ? (printLang === 'ar' ? `Tc: ${parseFloat(rsiRecord.contact_time_sec).toFixed(3)} ث` : `Tc: ${parseFloat(rsiRecord.contact_time_sec).toFixed(3)} s`) 
-                        : '—'}
-                    </td>
-                    <td className="font-mono">{rsiRecord ? parseFloat(rsiRecord.flight_time_sec).toFixed(3) : '—'}</td>
-                    <td className="font-mono">—</td>
-                    <td className="font-mono">—</td>
-                    <td className="font-mono text-gray-700 text-[10px]">
-                      {rsiRecord ? new Date(rsiRecord.created_at).toLocaleDateString(printLang === 'ar' ? 'ar-EG' : 'en-US') : '—'}
-                    </td>
-                  </tr>
                 </tbody>
               </table>
             </div>
+
+            {/* Dedicated Reactive Strength Index (Drop Jump) Table for Simple Print */}
+            {rsiRecord && (
+              <div className="mb-6">
+                <h3 className="text-sm font-black text-black mb-3">
+                  {printLang === 'ar' ? 'اختبار الوثب الساقط ومؤشر القوة الارتدادية (RSI)' : 'Drop Jump & Reactive Strength Index (RSI)'}
+                </h3>
+                <table className="print-table text-xs">
+                  <thead>
+                    {printLang === 'ar' ? (
+                      <tr>
+                        <th>مؤشر القوة الارتدادية (RSI)</th>
+                        <th>زمن التلامس الأرضي (Tc)</th>
+                        <th>زمن الطيران (Tf)</th>
+                        <th>الارتفاع المقدر (سم)</th>
+                        <th>تاريخ القياس</th>
+                      </tr>
+                    ) : (
+                      <tr>
+                        <th>Reactive Strength Index (RSI)</th>
+                        <th>Ground Contact Time (Tc)</th>
+                        <th>Flight Time (Tf)</th>
+                        <th>Est. Jump Height (cm)</th>
+                        <th>Test Date</th>
+                      </tr>
+                    )}
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="font-mono font-bold text-orange-primary text-sm">{parseFloat(rsiRecord.rsi_score).toFixed(2)}</td>
+                      <td className="font-mono">{parseFloat(rsiRecord.contact_time_sec).toFixed(3)} s</td>
+                      <td className="font-mono">{parseFloat(rsiRecord.flight_time_sec).toFixed(3)} s</td>
+                      {(() => {
+                        const tf = parseFloat(rsiRecord.flight_time_sec) || 0;
+                        const hCm = 1.22625 * Math.pow(tf, 2) * 100;
+                        return <td className="font-mono">{hCm.toFixed(1)} cm</td>;
+                      })()}
+                      <td className="font-mono text-gray-700 text-[10px]">
+                        {new Date(rsiRecord.created_at).toLocaleDateString(printLang === 'ar' ? 'ar-EG' : 'en-US')}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Mechanical Power */}
             <div className={`mb-6 ${printLang === 'ar' ? 'text-right' : 'text-left'}`}>
@@ -3308,10 +3383,10 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     {printLang === 'ar' ? 'Sayers Peak Power (القدرة القصوى)' : 'Sayers Peak Power'}
                   </p>
                   <p className="text-lg font-mono font-black text-black">
-                    {sayersPeak.toFixed(0)} <span className="text-xs font-normal">{printLang === 'ar' ? 'وات' : 'Watts'}</span>
+                    {sayersPeak > 0 ? sayersPeak.toFixed(0) : '—'} <span className="text-xs font-normal">{printLang === 'ar' ? 'وات' : 'Watts'}</span>
                   </p>
-                  <p className="text-xs font-bold text-cyan-600 mt-1">
-                    {mass > 0 ? (sayersPeak / mass).toFixed(1) : '0'} <span className="font-normal">W/kg ({printLang === 'ar' ? 'القدرة النسبية' : 'Relative Power'})</span>
+                  <p className="text-xs font-bold text-cyan-650 mt-1">
+                    {sayersPeak > 0 && mass > 0 ? (sayersPeak / mass).toFixed(1) : '—'} <span className="font-normal">W/kg ({printLang === 'ar' ? 'القدرة النسبية' : 'Relative Power'})</span>
                   </p>
                 </div>
                 <div className="border border-gray-350 p-3 rounded-lg bg-gray-50">
@@ -3319,10 +3394,10 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     {printLang === 'ar' ? 'Harman Peak Power (القدرة القصوى)' : 'Harman Peak Power'}
                   </p>
                   <p className="text-lg font-mono font-black text-black">
-                    {harmanPeak.toFixed(0)} <span className="text-xs font-normal">{printLang === 'ar' ? 'وات' : 'Watts'}</span>
+                    {harmanPeak > 0 ? harmanPeak.toFixed(0) : '—'} <span className="text-xs font-normal">{printLang === 'ar' ? 'وات' : 'Watts'}</span>
                   </p>
-                  <p className="text-xs font-bold text-cyan-600 mt-1">
-                    {mass > 0 ? (harmanPeak / mass).toFixed(1) : '0'} <span className="font-normal">W/kg ({printLang === 'ar' ? 'القدرة النسبية' : 'Relative Power'})</span>
+                  <p className="text-xs font-bold text-cyan-655 mt-1">
+                    {harmanPeak > 0 && mass > 0 ? (harmanPeak / mass).toFixed(1) : '—'} <span className="font-normal">W/kg ({printLang === 'ar' ? 'القدرة النسبية' : 'Relative Power'})</span>
                   </p>
                 </div>
               </div>
