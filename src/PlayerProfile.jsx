@@ -553,6 +553,27 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       }
     }
 
+    // Peak Power (Relative) Diagnostic
+    if (relativePower > 0) {
+      const isMale = activePlayer.gender === 'male' || !activePlayer.gender;
+      const lowThreshold = isMale ? 50 : 38;
+      const eliteThreshold = isMale ? 65 : 52;
+      
+      report += `⚡ مؤشر كثافة القدرة الميكانيكية (Mechanical Power Density): ${relativePower.toFixed(1)} W/kg\n`;
+      if (relativePower < lowThreshold) {
+        report += `القدرة الانفجارية النسبية للاعب منخفضة (< ${lowThreshold} W/kg) مما يعني أن محرك الجسم ضعيف مقارنة بالكتلة التي يحملها. `;
+        if (eur > 1.15) {
+          report += `وبما أن مؤشر الاستغلال المطاطي (EUR) مرتفع، فإن اللاعب سريع وخفيف حركياً ولكنه يفتقر للقوة العضلية الانقباضية الصافية (Force Deficit). يُنصح بالتركيز على تدريبات القوة العضلية القصوى في الجيم مثل السكوات الثقيل والرفعات الأولمبية (Cleans/Snatches).\n\n`;
+        } else {
+          report += `وبما أن مؤشر الاستغلال المطاطي (EUR) منخفض، فإن اللاعب قد يكون قوياً عضلياً ولكنه بطيء وثقيل في نقل الحركة في الملعب (Velocity Deficit). يُنصح بالتركيز على تدريبات السرعة، البليومتركس السريع، والوثب بالأوزان الخفيفة (Loaded Jumps) بنسبة 20-30% من وزن الجسم لتعليم الجهاز العصبي نقل القوة بسرعة.\n\n`;
+        }
+      } else if (relativePower >= eliteThreshold) {
+        report += `اللاعب في منطقة النخبة الرياضية والقدرة الانفجارية الفائقة (Elite Category) بمعدل >= ${eliteThreshold} W/kg. جهازه العصبي وعضلاته يعملان بكفاءة هائلة. يُنصح ببرامج "الصيانة والتوجيه الحركي" (Transfer of Training) لربط هذه القدرة الكبيرة بمهارات اللعبة الخاصة (مثل توقيت حائط الصد أو الضرب الساحق).\n\n`;
+      } else {
+        report += `القدرة الانفجارية النسبية للاعب تقع في النطاق المتوسط الجيد. يُنصح بالاستمرار في تدريب القوة والسرعة المتوازن للحفاظ على تقدم الأداء.\n\n`;
+      }
+    }
+
     // New summary recommendation block for weak tendon or strength performance
     const isWeakTendon = (eur > 0 && eur < 1.05) || (latestRsi > 0 && latestRsi < 1.5);
     const isWeakForce = (eur > 0 && eur > 1.15) || (cmjNoArms > 0 && cmjNoArms < 35);
@@ -612,6 +633,27 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
         report += "⚠️ Reactive Strength Index (RSI) is low, indicating long ground contact times and poor ankle stiffness. Implement depth jumps from low box heights (20-30 cm) focusing on short contact times.\n\n";
       } else if (latestRsi > 2.2) {
         report += "👑 Reactive Strength Index (RSI) is elite, showing high ankle stiffness, explosive tendon response, and excellent reactive capacity.\n\n";
+      }
+    }
+
+    // Peak Power (Relative) Diagnostic
+    if (relativePower > 0) {
+      const isMale = activePlayer.gender === 'male' || !activePlayer.gender;
+      const lowThreshold = isMale ? 50 : 38;
+      const eliteThreshold = isMale ? 65 : 52;
+      
+      report += `⚡ Mechanical Power Density: ${relativePower.toFixed(1)} W/kg\n`;
+      if (relativePower < lowThreshold) {
+        report += `The athlete's relative explosive power is low (< ${lowThreshold} W/kg), indicating a weak motor engine relative to body mass. `;
+        if (eur > 1.15) {
+          report += `With a high EUR, the athlete is fast and springy but lacks raw muscular force (Force Deficit). Focus on maximal strength training, heavy squats, and Olympic lifts (Cleans/Snatches).\n\n`;
+        } else {
+          report += `With a low EUR, the athlete is strong in the gym but slow/heavy on the field (Velocity Deficit). Focus on velocity training, rapid plyometrics, and loaded jumps at 20-30% body weight to speed up rate of force development.\n\n`;
+        }
+      } else if (relativePower >= eliteThreshold) {
+        report += `The athlete is in the elite explosive power category (>= ${eliteThreshold} W/kg). Neuromuscular efficiency is highly optimized. Focus on maintenance and "Transfer of Training" to convert this raw power into sport-specific skills (e.g., block/spike timing).\n\n`;
+      } else {
+        report += `The athlete's relative power is in the good/moderate range. Maintain a balanced force-velocity profile program to continue progressive development.\n\n`;
       }
     }
 
@@ -1442,8 +1484,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         value: `${relativePower > 0 ? relativePower : (harmanPeak / mass).toFixed(1)} W/kg`,
                         rating: evalPower.text,
                         ratingColor: evalPower.color,
-                        desc: 'القدرة الميكانيكية المتولدة مقسومة على وزن اللاعب الفعلي. وهي أهم مقياس بيوميكانيكي يربط القوة بالوزن (Power-to-Weight Ratio).',
-                        importance: 'حاسم للسرعات الحركية العالية وبدء الانطلاق. زيادة نسبة القدرة للوزن تتيح تسارعاً رأسياً فائقاً دون إرهاق عضلات الأرجل بكتلة جسم زائدة.',
+                        desc: 'القدرة الميكانيكية المتولدة مقسومة على وزن اللاعب الفعلي. وهي أهم مقياس بيوميكانيكي يربط القوة بالوزن (Power-to-Weight Ratio) ويمثل كفاءة "المحرك" الداخلي لجسم اللاعب.\n\nمثال توضيحي للقدرة النسبية:\n- اللاعب (أ): وزنه 100 كجم، ينتج قدرة إجمالية 6000 وات.\n- اللاعب (ب): وزنه 70 كجم، ينتج قدرة إجمالية 4900 وات.\nعند قسمة القدرة على الوزن:\n- اللاعب (أ) = 60 W/kg\n- اللاعب (ب) = 70 W/kg\nعملياً اللاعب (ب) محركه أقوى بكثير بالنسبة لجسمه وهو من سيرتقي أعلى وأسرع بالملعب!',
+                        importance: 'حاسم للسرعات الحركية العالية وبدء الانطلاق. زيادة نسبة القدرة للوزن تتيح تسارعاً رأسياً فائقاً دون إرهاق عضلات الأرجل بكتلة جسم زائدة. اللاعبين ذوي القدرة النسبية العالية (> 65 W/kg) يتميزون بارتقاء سريع وانفجاري بالملعب.',
                         benchmarks: [
                           { label: 'قدرة متفجرة 👑', value: age < 17 ? '+55.3 W/kg' : '+65.0 W/kg (النساء: +52.0 W/kg)' },
                           { label: 'ممتاز ⭐', value: age < 17 ? '46.8 - 55.3 W/kg' : '55.0 - 64.9 W/kg (النساء: 45.0 - 51.9 W/kg)' },
@@ -2009,21 +2051,33 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           <span className="font-extrabold text-white block">Sayers Peak Power</span>
                           <span className="text-[9px] text-gray-500">مبني على وزن الجسم وارتفاع الوثب</span>
                         </div>
-                        <span className="font-mono font-black text-white text-base">{sayersPeak > 0 ? sayersPeak.toFixed(0) : '0'} <span className="text-xs text-gray-500 font-normal">Watt</span></span>
+                        <span className="font-mono font-black text-white text-base">
+                          {sayersPeak > 0 ? sayersPeak.toFixed(0) : '0'} <span className="text-[10px] text-gray-400 font-normal">W</span>
+                          <span className="mx-1.5 text-gray-600">|</span>
+                          {sayersPeak > 0 && mass > 0 ? (sayersPeak / mass).toFixed(1) : '0'} <span className="text-[10px] text-cyan-400 font-bold">W/kg</span>
+                        </span>
                       </div>
-                      <div className="flex justify-between items-center bg-black/15 p-3.5 rounded-xl border border-gray-850">
+                      <div className="flex justify-between items-center bg-black/15 p-3.5 rounded-xl border border-gray-855">
                         <div>
                           <span className="font-extrabold text-white block">Harman Peak Power</span>
                           <span className="text-[9px] text-gray-500">النموذج الذهبي لقياس القدرة المتفجرة القصوى</span>
                         </div>
-                        <span className="font-mono font-black text-white text-base">{harmanPeak > 0 ? harmanPeak.toFixed(0) : '0'} <span className="text-xs text-gray-500 font-normal">Watt</span></span>
+                        <span className="font-mono font-black text-white text-base">
+                          {harmanPeak > 0 ? harmanPeak.toFixed(0) : '0'} <span className="text-[10px] text-gray-400 font-normal">W</span>
+                          <span className="mx-1.5 text-gray-600">|</span>
+                          {harmanPeak > 0 && mass > 0 ? (harmanPeak / mass).toFixed(1) : '0'} <span className="text-[10px] text-cyan-400 font-bold">W/kg</span>
+                        </span>
                       </div>
-                      <div className="flex justify-between items-center bg-black/15 p-3.5 rounded-xl border border-gray-850">
+                      <div className="flex justify-between items-center bg-black/15 p-3.5 rounded-xl border border-gray-855">
                         <div>
                           <span className="font-extrabold text-white block">Harman Mean Power</span>
                           <span className="text-[9px] text-gray-500">متوسط القدرة المنتجة خلال كامل زمن التحليق</span>
                         </div>
-                        <span className="font-mono font-black text-white text-base">{harmanMean > 0 ? harmanMean.toFixed(0) : '0'} <span className="text-xs text-gray-500 font-normal">Watt</span></span>
+                        <span className="font-mono font-black text-white text-base">
+                          {harmanMean > 0 ? harmanMean.toFixed(0) : '0'} <span className="text-[10px] text-gray-400 font-normal">W</span>
+                          <span className="mx-1.5 text-gray-600">|</span>
+                          {harmanMean > 0 && mass > 0 ? (harmanMean / mass).toFixed(1) : '0'} <span className="text-[10px] text-cyan-400 font-bold">W/kg</span>
+                        </span>
                       </div>
                       <div className="flex justify-between items-center bg-black/15 p-3.5 rounded-xl border border-gray-850">
                         <div>
@@ -3246,7 +3300,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
             {/* Mechanical Power */}
             <div className={`mb-6 ${printLang === 'ar' ? 'text-right' : 'text-left'}`}>
               <h3 className="text-sm font-black text-black mb-3">
-                {printLang === 'ar' ? 'تقديرات القدرة الانفجارية (Mechanical Power)' : 'Biomechanical Power Outputs (Sayers & Harman Models)'}
+                {printLang === 'ar' ? 'تقديرات القدرة الانفجارية وكثافة القدرة النسبية (Mechanical Power Models)' : 'Biomechanical Power Outputs & Mechanical Power Density'}
               </h3>
               <div className="print-grid text-xs">
                 <div className="border border-gray-350 p-3 rounded-lg bg-gray-50">
@@ -3256,6 +3310,9 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   <p className="text-lg font-mono font-black text-black">
                     {sayersPeak.toFixed(0)} <span className="text-xs font-normal">{printLang === 'ar' ? 'وات' : 'Watts'}</span>
                   </p>
+                  <p className="text-xs font-bold text-cyan-600 mt-1">
+                    {mass > 0 ? (sayersPeak / mass).toFixed(1) : '0'} <span className="font-normal">W/kg ({printLang === 'ar' ? 'القدرة النسبية' : 'Relative Power'})</span>
+                  </p>
                 </div>
                 <div className="border border-gray-350 p-3 rounded-lg bg-gray-50">
                   <p className="font-bold mb-1">
@@ -3263,6 +3320,9 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   </p>
                   <p className="text-lg font-mono font-black text-black">
                     {harmanPeak.toFixed(0)} <span className="text-xs font-normal">{printLang === 'ar' ? 'وات' : 'Watts'}</span>
+                  </p>
+                  <p className="text-xs font-bold text-cyan-600 mt-1">
+                    {mass > 0 ? (harmanPeak / mass).toFixed(1) : '0'} <span className="font-normal">W/kg ({printLang === 'ar' ? 'القدرة النسبية' : 'Relative Power'})</span>
                   </p>
                 </div>
               </div>
