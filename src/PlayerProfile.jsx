@@ -2704,7 +2704,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
               <h3 className="text-xs font-black text-orange-primary mb-3 uppercase tracking-wider">
                 👤 {printLang === 'ar' ? 'بطاقة اللاعب التعريفية والبدنية' : 'Athlete Identity & Physical Specs'}
               </h3>
-              <div className="grid grid-cols-7 gap-4 text-xs">
+              <div className="grid grid-cols-5 gap-4 text-xs">
                 <div>
                   <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'الاسم:' : 'Name:'}</span>
                   <span className="block font-black text-black text-[11px] truncate">{activePlayer.full_name}</span>
@@ -2726,16 +2726,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   <span className="block font-black text-black text-[11px] font-mono">{activePlayer.weight_kg} kg</span>
                 </div>
                 <div>
-                  <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'طول الرجل:' : 'Leg Length:'}</span>
-                  <span className="block font-black text-black text-[11px] font-mono">{getLegLengthCm(activePlayer.leg_length_m)} cm</span>
-                </div>
-                <div>
                   <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'القامة:' : 'Height:'}</span>
                   <span className="block font-black text-black text-[11px] font-mono">{playerHeight} cm</span>
-                </div>
-                <div>
-                  <span className="block text-gray-400 font-bold">{printLang === 'ar' ? 'الوصول:' : 'Standing Reach:'}</span>
-                  <span className="block font-black text-black text-[11px] font-mono">{playerStandingReach} cm</span>
                 </div>
               </div>
             </div>
@@ -3166,9 +3158,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     <div><strong className="text-gray-700">النوع:</strong> {activePlayer.gender === 'female' ? 'أنثى' : 'ذكر'}</div>
                     <div><strong className="text-gray-700">العمر:</strong> {age} سنوات</div>
                     <div><strong className="text-gray-700">الوزن:</strong> {activePlayer.weight_kg} كجم</div>
-                    <div><strong className="text-gray-700">طول الرجل:</strong> {getLegLengthCm(activePlayer.leg_length_m)} سم</div>
                     <div><strong className="text-gray-700">طول القامة:</strong> {playerHeight} سم</div>
-                    <div><strong className="text-gray-700">الوصول من الثبات:</strong> {playerStandingReach} سم</div>
                   </>
                 ) : (
                   <>
@@ -3176,9 +3166,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     <div><strong className="text-gray-700">Gender:</strong> {activePlayer.gender === 'female' ? 'Female' : 'Male'}</div>
                     <div><strong className="text-gray-700">Age:</strong> {age} years</div>
                     <div><strong className="text-gray-700">Weight:</strong> {activePlayer.weight_kg} kg</div>
-                    <div><strong className="text-gray-700">Leg Length:</strong> {getLegLengthCm(activePlayer.leg_length_m)} cm</div>
                     <div><strong className="text-gray-700">Height:</strong> {playerHeight} cm</div>
-                    <div><strong className="text-gray-700">Standing Reach:</strong> {playerStandingReach} cm</div>
                   </>
                 )}
               </div>
