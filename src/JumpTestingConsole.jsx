@@ -1166,8 +1166,6 @@ export default function JumpTestingConsole({
 
     let canvasElement = null;
     let isRecordingActive = true;
-    let audioContext = null;
-    let audioTrack = null;
 
     try {
       setIsExporting(true);
@@ -1236,45 +1234,12 @@ export default function JumpTestingConsole({
       const stream = (canvasElement.captureStream ? canvasElement.captureStream(30) : (canvasElement.webkitCaptureStream ? canvasElement.webkitCaptureStream(30) : null));
       if (!stream) throw new Error(language === 'en' ? 'Canvas captureStream is not supported by this browser.' : 'خاصية التقاط الفيديو غير مدعومة في هذا المتصفح.');
 
-      // Create a silent audio track using Web Audio API to ensure compatibility with WhatsApp/iOS
-      try {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioContextClass) {
-          audioContext = new AudioContextClass();
-          // Force resume AudioContext on user interaction to ensure active silent packet generation
-          if (audioContext.state === 'suspended') {
-            await audioContext.resume();
-          }
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-          gainNode.gain.value = 0; // Absolute silence
-          oscillator.connect(gainNode);
-          
-          const destination = audioContext.createMediaStreamDestination();
-          gainNode.connect(destination);
-          oscillator.start();
-          
-          const tracks = destination.stream.getAudioTracks();
-          if (tracks && tracks.length > 0) {
-            audioTrack = tracks[0];
-          }
-        }
-      } catch (e) {
-        console.warn("Could not create silent audio track:", e);
-      }
-
-      if (audioTrack) {
-        stream.addTrack(audioTrack);
-      }
-
       const mimeTypes = [
-        'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
         'video/mp4;codecs="avc1.42E01E"',
         'video/mp4;codecs=avc1',
         'video/mp4',
-        'video/quicktime;codecs="avc1.42E01E,mp4a.40.2"',
+        'video/quicktime;codecs="avc1.42E01E"',
         'video/quicktime',
-        'video/webm;codecs="h264,opus"',
         'video/webm;codecs=h264',
         'video/webm;codecs=vp9',
         'video/webm'
@@ -1316,20 +1281,19 @@ export default function JumpTestingConsole({
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: selectedMimeType });
+        let cleanMimeType = 'video/mp4';
+        if (selectedMimeType.includes('quicktime')) {
+          cleanMimeType = 'video/quicktime';
+        } else if (selectedMimeType.includes('webm')) {
+          cleanMimeType = 'video/webm';
+        }
+        const blob = new Blob(chunks, { type: cleanMimeType });
         const url = URL.createObjectURL(blob);
         const filename = `TheLab_Jump_${activePlayer?.full_name || 'Athlete'}_${jumpHeight.toFixed(1)}cm.${extension}`;
         
         // Remove canvas from DOM
         if (canvasElement && canvasElement.parentNode) {
           canvasElement.parentNode.removeChild(canvasElement);
-        }
-
-        // Close audio context
-        if (audioContext) {
-          try {
-            audioContext.close();
-          } catch (e) {}
         }
 
         // Restore main video player state
@@ -1361,7 +1325,7 @@ export default function JumpTestingConsole({
       await exportVideo.play();
       
       setExportStatus('');
-      recorder.start();
+      recorder.start(1000);
 
       const w = originalWidth;
       const h = originalHeight;
@@ -1820,12 +1784,7 @@ export default function JumpTestingConsole({
       
       isRecordingActive = false;
       
-      // Clean up audio context
-      if (audioContext) {
-        try {
-          audioContext.close();
-        } catch (e) {}
-      }
+      // No audio context cleanup needed
 
       // Clean up canvas
       if (canvasElement && canvasElement.parentNode) {
