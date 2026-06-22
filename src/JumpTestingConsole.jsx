@@ -1166,6 +1166,8 @@ export default function JumpTestingConsole({
 
     let canvasElement = null;
     let isRecordingActive = true;
+    let audioContext = null;
+    let audioTrack = null;
 
     try {
       setIsExporting(true);
@@ -1234,6 +1236,33 @@ export default function JumpTestingConsole({
       const stream = (canvasElement.captureStream ? canvasElement.captureStream(30) : (canvasElement.webkitCaptureStream ? canvasElement.webkitCaptureStream(30) : null));
       if (!stream) throw new Error(language === 'en' ? 'Canvas captureStream is not supported by this browser.' : 'خاصية التقاط الفيديو غير مدعومة في هذا المتصفح.');
 
+      // Create a silent audio track using Web Audio API to ensure compatibility with WhatsApp/iOS
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioContext = new AudioContextClass();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          gainNode.gain.value = 0; // Absolute silence
+          oscillator.connect(gainNode);
+          
+          const destination = audioContext.createMediaStreamDestination();
+          gainNode.connect(destination);
+          oscillator.start();
+          
+          const tracks = destination.stream.getAudioTracks();
+          if (tracks && tracks.length > 0) {
+            audioTrack = tracks[0];
+          }
+        }
+      } catch (e) {
+        console.warn("Could not create silent audio track:", e);
+      }
+
+      if (audioTrack) {
+        stream.addTrack(audioTrack);
+      }
+
       const mimeTypes = [
         'video/mp4;codecs=avc1',
         'video/mp4',
@@ -1249,8 +1278,20 @@ export default function JumpTestingConsole({
         }
       }
       const extension = (selectedMimeType.includes('mp4') || selectedMimeType.includes('quicktime')) ? 'mp4' : 'webm';
+      
       let options = { mimeType: selectedMimeType };
-      const recorder = new MediaRecorder(stream, options);
+      let recorder;
+      try {
+        // Use 8 Mbps for high quality video output
+        recorder = new MediaRecorder(stream, { 
+          ...options,
+          videoBitsPerSecond: 8000000 
+        });
+      } catch (e) {
+        console.warn("MediaRecorder creation with bitrate failed, falling back to default:", e);
+        recorder = new MediaRecorder(stream, options);
+      }
+
       const chunks = [];
 
       recorder.ondataavailable = (e) => {
@@ -1265,6 +1306,13 @@ export default function JumpTestingConsole({
         // Remove canvas from DOM
         if (canvasElement && canvasElement.parentNode) {
           canvasElement.parentNode.removeChild(canvasElement);
+        }
+
+        // Close audio context
+        if (audioContext) {
+          try {
+            audioContext.close();
+          } catch (e) {}
         }
 
         // Restore main video player state
@@ -1755,6 +1803,13 @@ export default function JumpTestingConsole({
       
       isRecordingActive = false;
       
+      // Clean up audio context
+      if (audioContext) {
+        try {
+          audioContext.close();
+        } catch (e) {}
+      }
+
       // Clean up canvas
       if (canvasElement && canvasElement.parentNode) {
         canvasElement.parentNode.removeChild(canvasElement);
