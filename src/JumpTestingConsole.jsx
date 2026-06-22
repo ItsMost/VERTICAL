@@ -1241,6 +1241,10 @@ export default function JumpTestingConsole({
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (AudioContextClass) {
           audioContext = new AudioContextClass();
+          // Force resume AudioContext on user interaction to ensure active silent packet generation
+          if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+          }
           const oscillator = audioContext.createOscillator();
           const gainNode = audioContext.createGain();
           gainNode.gain.value = 0; // Absolute silence
@@ -1264,9 +1268,14 @@ export default function JumpTestingConsole({
       }
 
       const mimeTypes = [
+        'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
+        'video/mp4;codecs="avc1.42E01E"',
         'video/mp4;codecs=avc1',
         'video/mp4',
+        'video/quicktime;codecs="avc1.42E01E,mp4a.40.2"',
         'video/quicktime',
+        'video/webm;codecs="h264,opus"',
+        'video/webm;codecs=h264',
         'video/webm;codecs=vp9',
         'video/webm'
       ];
@@ -1277,7 +1286,15 @@ export default function JumpTestingConsole({
           break;
         }
       }
-      const extension = (selectedMimeType.includes('mp4') || selectedMimeType.includes('quicktime')) ? 'mp4' : 'webm';
+      
+      let extension = 'webm';
+      if (selectedMimeType.includes('mp4')) {
+        extension = 'mp4';
+      } else if (selectedMimeType.includes('quicktime')) {
+        extension = 'mov';
+      } else {
+        extension = 'webm';
+      }
       
       let options = { mimeType: selectedMimeType };
       let recorder;
