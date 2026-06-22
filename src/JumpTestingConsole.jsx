@@ -1164,6 +1164,9 @@ export default function JumpTestingConsole({
     window.tempOriginalMuted = exportVideo.muted;
     window.tempOriginalLoop = exportVideo.loop;
 
+    let canvasElement = null;
+    let isRecordingActive = true;
+
     try {
       setIsExporting(true);
       setExportProgress(0);
@@ -1173,8 +1176,6 @@ export default function JumpTestingConsole({
       exportVideo.muted = true;
       exportVideo.loop = false;
 
-      const canvas = document.createElement('canvas');
-      
       // Upscaling feature: 1.5x or 2x upscale based on original video resolution
       const originalWidth = exportVideo.videoWidth || 1280;
       const originalHeight = exportVideo.videoHeight || 720;
@@ -1183,26 +1184,43 @@ export default function JumpTestingConsole({
         upscaleFactor = 2.0;
       }
       
-      canvas.width = originalWidth * upscaleFactor;
-      canvas.height = originalHeight * upscaleFactor;
-      const ctx = canvas.getContext('2d');
+      canvasElement = document.createElement('canvas');
+      canvasElement.width = originalWidth * upscaleFactor;
+      canvasElement.height = originalHeight * upscaleFactor;
+      
+      // iOS Safari Visibility Fix: Append to DOM off-screen
+      canvasElement.style.position = 'fixed';
+      canvasElement.style.top = '0';
+      canvasElement.style.left = '0';
+      canvasElement.style.width = '1px';
+      canvasElement.style.height = '1px';
+      canvasElement.style.opacity = '0.01';
+      canvasElement.style.pointerEvents = 'none';
+      canvasElement.style.zIndex = '-1000';
+      document.body.appendChild(canvasElement);
+
+      const ctx = canvasElement.getContext('2d');
 
       const jumpHeight = parseFloat(stats.heightCm) || 0;
       const flightTime = parseFloat(stats.flightTime) || 0.5;
 
-      const paddingTime = 1.0;
-      const startTime = Math.max(0, takeoffTime - paddingTime);
-      const endTime = Math.min(exportVideo.duration, landingTime + paddingTime);
+      // Capture full video duration
+      const startTime = 0;
+      const endTime = Math.max(0, exportVideo.duration - 0.05);
 
       setExportStatus(language === 'en' ? 'Seeking to start position...' : 'جاري الانتقال إلى موضع البدء...');
 
       exportVideo.currentTime = startTime;
       await new Promise((resolve) => {
+        let resolved = false;
         const onSeeked = () => {
+          if (resolved) return;
+          resolved = true;
           exportVideo.removeEventListener('seeked', onSeeked);
           resolve();
         };
         exportVideo.addEventListener('seeked', onSeeked);
+        setTimeout(onSeeked, 1500); // 1.5s safety timeout
       });
 
       // Draw the first frame immediately before captureStream to initialize tracks on iOS Safari
@@ -1213,7 +1231,7 @@ export default function JumpTestingConsole({
 
       setExportStatus(language === 'en' ? 'Initializing recorder...' : 'جاري تهيئة مسجل الفيديو...');
 
-      const stream = (canvas.captureStream ? canvas.captureStream(30) : (canvas.webkitCaptureStream ? canvas.webkitCaptureStream(30) : null));
+      const stream = (canvasElement.captureStream ? canvasElement.captureStream(30) : (canvasElement.webkitCaptureStream ? canvasElement.webkitCaptureStream(30) : null));
       if (!stream) throw new Error(language === 'en' ? 'Canvas captureStream is not supported by this browser.' : 'خاصية التقاط الفيديو غير مدعومة في هذا المتصفح.');
 
       const mimeTypes = [
@@ -1244,6 +1262,11 @@ export default function JumpTestingConsole({
         const url = URL.createObjectURL(blob);
         const filename = `TheLab_Jump_${activePlayer?.full_name || 'Athlete'}_${jumpHeight.toFixed(1)}cm.${extension}`;
         
+        // Remove canvas from DOM
+        if (canvasElement && canvasElement.parentNode) {
+          canvasElement.parentNode.removeChild(canvasElement);
+        }
+
         // Restore main video player state
         exportVideo.muted = window.tempOriginalMuted;
         exportVideo.loop = window.tempOriginalLoop;
@@ -1287,8 +1310,10 @@ export default function JumpTestingConsole({
       };
 
       const drawOverlay = () => {
-        // iOS Safari Fix: remove the check for exportVideo.paused as play() is asynchronous and starts paused
+        if (!isRecordingActive) return;
+
         if (exportVideo.ended || exportVideo.currentTime >= endTime) {
+          isRecordingActive = false;
           recorder.stop();
           exportVideo.pause();
           return;
@@ -1303,14 +1328,14 @@ export default function JumpTestingConsole({
         let currentHeight = 0;
         const t_takeoff = takeoffTime;
         const t_flight = landingTime - takeoffTime;
-        const t_peak = t_takeoff + 0.5 * t_flight;
+        const t_peak_display = t_takeoff + 0.45 * t_flight;
 
         if (t < t_takeoff) {
           currentHeight = 0;
-        } else if (t >= t_takeoff && t < t_peak) {
+        } else if (t >= t_takeoff && t < t_peak_display) {
           const tau = t - t_takeoff;
           const t_half = 0.5 * t_flight;
-          const progressRatio = tau / t_half;
+          const progressRatio = Math.min(1.0, tau / t_half);
           currentHeight = jumpHeight * (2 * progressRatio - progressRatio * progressRatio);
         } else {
           currentHeight = jumpHeight;
@@ -1531,7 +1556,7 @@ export default function JumpTestingConsole({
         ctx.font = '900 20px Cairo';
         ctx.fillText(`${currentHeight.toFixed(1)} cm`, w - 100, labelY + 16);
 
-        if (t >= t_peak) {
+        if (t >= t_peak_display) {
           ctx.save();
           ctx.shadowColor = '#ff6b00';
           ctx.shadowBlur = 12;
@@ -1556,7 +1581,7 @@ export default function JumpTestingConsole({
           ctx.shadowOffsetX = 1;
           ctx.shadowOffsetY = 1;
           
-          if (t >= t_peak) {
+          if (t >= t_peak_display) {
             ctx.shadowColor = '#ff6b00';
             ctx.shadowBlur = 15;
             
@@ -1667,7 +1692,7 @@ export default function JumpTestingConsole({
         ctx.restore();
 
         // Pulsing Jump Number (Triggered at peak height)
-        if (t >= t_peak) {
+        if (t >= t_peak_display) {
           ctx.save();
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -1675,7 +1700,7 @@ export default function JumpTestingConsole({
           const jumpNumberX = w / 2;
           const jumpNumberY = hudY - 32;
           
-          const timeSincePeak = t - t_peak;
+          const timeSincePeak = t - t_peak_display;
           let pulseScale = 1.0;
           if (timeSincePeak > 0 && timeSincePeak < 1.5) {
             pulseScale = 1.0 + 0.25 * Math.sin(timeSincePeak * 10) * Math.exp(-timeSincePeak * 2);
@@ -1719,14 +1744,22 @@ export default function JumpTestingConsole({
         const progress = Math.min(99, Math.round((elapsed / total) * 100));
         setExportProgress(progress);
 
-        requestAnimationFrame(drawOverlay);
+        // Schedule next frame with setTimeout to prevent mobile background/overlay throttling
+        setTimeout(drawOverlay, 1000 / 30);
       };
 
-      requestAnimationFrame(drawOverlay);
+      setTimeout(drawOverlay, 1000 / 30);
 
     } catch (err) {
       alert("حدث خطأ أثناء تصدير الفيديو: " + err.message);
       
+      isRecordingActive = false;
+      
+      // Clean up canvas
+      if (canvasElement && canvasElement.parentNode) {
+        canvasElement.parentNode.removeChild(canvasElement);
+      }
+
       // Restore main video player state on error
       if (videoRef.current) {
         videoRef.current.muted = window.tempOriginalMuted;
@@ -3355,7 +3388,7 @@ export default function JumpTestingConsole({
 
       {/* Fullscreen Export Progress Overlay */}
       {isExporting && (
-        <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md text-white p-6">
+        <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/60 text-white p-6">
           <div className="bg-[#0b1329] border border-cyan-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(6,182,212,0.15)] animate-fade-in">
             <div className="relative w-20 h-20">
               <svg className="w-full h-full transform -rotate-90">
