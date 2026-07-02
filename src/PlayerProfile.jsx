@@ -2891,177 +2891,203 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 </div>
               </div>
 
-              {/* Data Visualization Chart Section */}
+              {/* Comparative Jump Heights Bar Chart */}
               <div className="slate-card">
                 <h3 className="text-xs font-black text-orange-primary mb-3 uppercase tracking-wider">
-                  📈 {printLang === 'ar' ? 'منحنى تتبع مستويات الارتقاء (Jump Height Trend)' : 'Historical Jump Height Trend (cm)'}
+                  📈 {printLang === 'ar' ? 'مخطط مقارنة ارتفاعات الوثب المتكامل' : 'Comparative Vertical Jump Heights (cm)'}
                 </h3>
                 
-                <div className="w-full flex justify-center items-center">
-                  <svg viewBox="0 0 320 160" width="100%" height="150" style={{ background: '#ffffff', fontFamily: 'Cairo, sans-serif' }}>
-                    {/* Background grid lines */}
-                    <line x1="30" y1="20" x2="300" y2="20" stroke="#f3f4f6" strokeWidth="1" />
-                    <line x1="30" y1="55" x2="300" y2="55" stroke="#f3f4f6" strokeWidth="1" />
-                    <line x1="30" y1="90" x2="300" y2="90" stroke="#f3f4f6" strokeWidth="1" />
-                    <line x1="30" y1="125" x2="300" y2="125" stroke="#e5e7eb" strokeWidth="1.5" />
-                    
-                    {/* Y-Axis Labels */}
-                    <text x="25" y="23" fontSize="8" textAnchor="end" fill="#9ca3af" fontFamily="monospace">{maxChartVal.toFixed(0)}</text>
-                    <text x="25" y="73" fontSize="8" textAnchor="end" fill="#9ca3af" fontFamily="monospace">{(maxChartVal*0.5).toFixed(0)}</text>
-                    <text x="25" y="128" fontSize="8" textAnchor="end" fill="#9ca3af" fontFamily="monospace">0</text>
-                    
-                    {/* Bar 1: Current (CMJ with Arms) */}
-                    <rect 
-                      x="50" 
-                      y={125 - (chartCmjArms * chartScale)} 
-                      width="45" 
-                      height={chartCmjArms * chartScale} 
-                      fill="#ff6b00" 
-                      rx="4" 
-                    />
-                    <text 
-                      x="72.5" 
-                      y={120 - (chartCmjArms * chartScale)} 
-                      fontSize="9" 
-                      fontWeight="900" 
-                      textAnchor="middle" 
-                      fill="#ff6b00" 
-                      fontFamily="monospace"
-                    >
-                      {chartCmjArms.toFixed(1)}
-                    </text>
-                    <text x="72.5" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
-                      {printLang === 'ar' ? 'CMJ باليدين' : 'CMJ Arms'}
-                    </text>
-                    <text x="72.5" y="150" fontSize="6" fontWeight="bold" textAnchor="middle" fill="#9ca3af">
-                      {printLang === 'ar' ? '(حالي)' : '(Current)'}
-                    </text>
+                {(() => {
+                  const maxVal = Math.max(sjNoArms, cmjNoArms, sjArms, cmjArms, approachJump, 40);
+                  const chartScaleFactor = 90 / maxVal;
+                  return (
+                    <div className="w-full flex justify-center items-center">
+                      <svg viewBox="0 0 320 160" width="100%" height="150" style={{ background: '#ffffff', fontFamily: 'Cairo, sans-serif' }}>
+                        {/* Background grid lines */}
+                        <line x1="30" y1="20" x2="300" y2="20" stroke="#f3f4f6" strokeWidth="1" />
+                        <line x1="30" y1="55" x2="300" y2="55" stroke="#f3f4f6" strokeWidth="1" />
+                        <line x1="30" y1="90" x2="300" y2="90" stroke="#f3f4f6" strokeWidth="1" />
+                        <line x1="30" y1="125" x2="300" y2="125" stroke="#e5e7eb" strokeWidth="1.5" />
+                        
+                        {/* Y-Axis Labels */}
+                        <text x="25" y="23" fontSize="8" textAnchor="end" fill="#9ca3af" fontFamily="monospace">{maxVal.toFixed(0)}</text>
+                        <text x="25" y="73" fontSize="8" textAnchor="end" fill="#9ca3af" fontFamily="monospace">{(maxVal*0.5).toFixed(0)}</text>
+                        <text x="25" y="128" fontSize="8" textAnchor="end" fill="#9ca3af" fontFamily="monospace">0</text>
+                        
+                        {/* Bar 1: SJ No Arms */}
+                        {sjNoArms > 0 ? (
+                          <>
+                            <rect x="35" y={125 - (sjNoArms * chartScaleFactor)} width="30" height={sjNoArms * chartScaleFactor} fill="#ff6b00" rx="3" />
+                            <text x="50" y={120 - (sjNoArms * chartScaleFactor)} fontSize="8" fontWeight="900" textAnchor="middle" fill="#ff6b00" fontFamily="monospace">{sjNoArms.toFixed(1)}</text>
+                          </>
+                        ) : (
+                          <>
+                            <rect x="35" y="122" width="30" height="3" fill="#e5e7eb" rx="1.5" />
+                            <text x="50" y="115" fontSize="8" fontWeight="bold" textAnchor="middle" fill="#9ca3af">—</text>
+                          </>
+                        )}
+                        <text x="50" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
+                          {printLang === 'ar' ? 'ثبات (SJ)' : 'Squat (SJ)'}
+                        </text>
 
-                    {/* Bar 2: Previous (CMJ no Arms) */}
-                    <rect 
-                      x="135" 
-                      y={125 - (chartCmjNoArms * chartScale)} 
-                      width="45" 
-                      height={chartCmjNoArms * chartScale} 
-                      fill="#4b5563" 
-                      rx="4" 
-                    />
-                    <text 
-                      x="157.5" 
-                      y={120 - (chartCmjNoArms * chartScale)} 
-                      fontSize="9" 
-                      fontWeight="900" 
-                      textAnchor="middle" 
-                      fill="#4b5563" 
-                      fontFamily="monospace"
-                    >
-                      {chartCmjNoArms.toFixed(1)}
-                    </text>
-                    <text x="157.5" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
-                      {printLang === 'ar' ? 'CMJ بدون يدين' : 'CMJ No Arms'}
-                    </text>
-                    <text x="157.5" y="150" fontSize="6" fontWeight="bold" textAnchor="middle" fill="#9ca3af">
-                      {printLang === 'ar' ? '(سابق)' : '(Prev)'}
-                    </text>
+                        {/* Bar 2: CMJ No Arms */}
+                        {cmjNoArms > 0 ? (
+                          <>
+                            <rect x="90" y={125 - (cmjNoArms * chartScaleFactor)} width="30" height={cmjNoArms * chartScaleFactor} fill="#ff8533" rx="3" />
+                            <text x="105" y={120 - (cmjNoArms * chartScaleFactor)} fontSize="8" fontWeight="900" textAnchor="middle" fill="#ff8533" fontFamily="monospace">{cmjNoArms.toFixed(1)}</text>
+                          </>
+                        ) : (
+                          <>
+                            <rect x="90" y="122" width="30" height="3" fill="#e5e7eb" rx="1.5" />
+                            <text x="105" y="115" fontSize="8" fontWeight="bold" textAnchor="middle" fill="#9ca3af">—</text>
+                          </>
+                        )}
+                        <text x="105" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
+                          {printLang === 'ar' ? 'ارتداد' : 'CMJ'}
+                        </text>
 
-                    {/* Bar 3: Previous (Squat Jump) */}
-                    <rect 
-                      x="220" 
-                      y={125 - (chartSjNoArms * chartScale)} 
-                      width="45" 
-                      height={chartSjNoArms * chartScale} 
-                      fill="#4b5563" 
-                      rx="4" 
-                    />
-                    <text 
-                      x="242.5" 
-                      y={120 - (chartSjNoArms * chartScale)} 
-                      fontSize="9" 
-                      fontWeight="900" 
-                      textAnchor="middle" 
-                      fill="#4b5563" 
-                      fontFamily="monospace"
-                    >
-                      {chartSjNoArms.toFixed(1)}
-                    </text>
-                    <text x="242.5" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
-                      {printLang === 'ar' ? 'وثبة ثبات SJ' : 'Squat Jump'}
-                    </text>
-                    <text x="242.5" y="150" fontSize="6" fontWeight="bold" textAnchor="middle" fill="#9ca3af">
-                      {printLang === 'ar' ? '(سابق)' : '(Prev)'}
-                    </text>
-                  </svg>
-                </div>
+                        {/* Bar 3: SJ With Arms */}
+                        {sjArms > 0 ? (
+                          <>
+                            <rect x="145" y={125 - (sjArms * chartScaleFactor)} width="30" height={sjArms * chartScaleFactor} fill="#ff9c59" rx="3" />
+                            <text x="160" y={120 - (sjArms * chartScaleFactor)} fontSize="8" fontWeight="900" textAnchor="middle" fill="#ff9c59" fontFamily="monospace">{sjArms.toFixed(1)}</text>
+                          </>
+                        ) : (
+                          <>
+                            <rect x="145" y="122" width="30" height="3" fill="#e5e7eb" rx="1.5" />
+                            <text x="160" y="115" fontSize="8" fontWeight="bold" textAnchor="middle" fill="#9ca3af">—</text>
+                          </>
+                        )}
+                        <text x="160" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
+                          {printLang === 'ar' ? 'ثبات+يد' : 'SJ Arms'}
+                        </text>
+
+                        {/* Bar 4: CMJ With Arms */}
+                        {cmjArms > 0 ? (
+                          <>
+                            <rect x="200" y={125 - (cmjArms * chartScaleFactor)} width="30" height={cmjArms * chartScaleFactor} fill="#ffb380" rx="3" />
+                            <text x="215" y={120 - (cmjArms * chartScaleFactor)} fontSize="8" fontWeight="900" textAnchor="middle" fill="#ffb380" fontFamily="monospace">{cmjArms.toFixed(1)}</text>
+                          </>
+                        ) : (
+                          <>
+                            <rect x="200" y="122" width="30" height="3" fill="#e5e7eb" rx="1.5" />
+                            <text x="215" y="115" fontSize="8" fontWeight="bold" textAnchor="middle" fill="#9ca3af">—</text>
+                          </>
+                        )}
+                        <text x="215" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
+                          {printLang === 'ar' ? 'ارتداد+يد' : 'CMJ Arms'}
+                        </text>
+
+                        {/* Bar 5: Approach Jump */}
+                        {approachJump > 0 ? (
+                          <>
+                            <rect x="255" y={125 - (approachJump * chartScaleFactor)} width="30" height={approachJump * chartScaleFactor} fill="#ffd1b3" rx="3" />
+                            <text x="270" y={120 - (approachJump * chartScaleFactor)} fontSize="8" fontWeight="900" textAnchor="middle" fill="#ffd1b3" fontFamily="monospace">{approachJump.toFixed(1)}</text>
+                          </>
+                        ) : (
+                          <>
+                            <rect x="255" y="122" width="30" height="3" fill="#e5e7eb" rx="1.5" />
+                            <text x="270" y="115" fontSize="8" fontWeight="bold" textAnchor="middle" fill="#9ca3af">—</text>
+                          </>
+                        )}
+                        <text x="270" y="140" fontSize="7" fontWeight="bold" textAnchor="middle" fill="#374151">
+                          {printLang === 'ar' ? 'اقتراب' : 'Approach'}
+                        </text>
+                      </svg>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
-            {/* Diagnostic Callout Box - Shaded warning block in crimson */}
-                        {/* Dynamic Diagnostic Callout Box */}
-            {(() => {
-              const eurVal = eur > 0 ? eur : 1.03;
-              const isTendonDeficit = eurVal < 1.05;
-              const isBalanced = eurVal >= 1.05 && eurVal <= 1.15;
-              const isForceDeficit = eurVal > 1.15;
-
-              let cardStyle = {
-                borderRight: '5px solid #dd6b20',
-                backgroundColor: '#fffaf0',
-                borderColor: '#fbd38d'
-              };
-              let titleColor = 'text-red-700';
-              let titleTextAr = 'التشخيص الحركي وكفاءة الأوتار (EUR Diagnostic Report)';
-              let titleTextEn = 'Tendon Efficiency & Elasticity Diagnosis (EUR)';
-
-              if (isBalanced) {
-                cardStyle = {
-                  borderRight: '5px solid #0d9488',
-                  backgroundColor: '#f0fdfa',
-                  borderColor: '#ccfbf1'
-                };
-                titleColor = 'text-teal-600';
-              } else if (isForceDeficit) {
-                cardStyle = {
-                  borderRight: '5px solid #d97706',
-                  backgroundColor: '#fef3c7',
-                  borderColor: '#fde68a'
-                };
-                titleColor = 'text-amber-700';
-              }
-
-              return (
-                <div style={{
-                  padding: '15px',
-                  borderRadius: '12px',
-                  marginBottom: '16px',
-                  borderTop: `1.5px solid ${cardStyle.borderColor}`,
-                  borderBottom: `1.5px solid ${cardStyle.borderColor}`,
-                  borderLeft: `1.5px solid ${cardStyle.borderColor}`,
-                  borderRight: cardStyle.borderRight,
-                  backgroundColor: cardStyle.backgroundColor
-                }}>
-                  <h4 className={`text-xs font-black flex items-center gap-1.5 mb-2 uppercase tracking-wider ${titleColor}`}>
-                    ⚠️ {printLang === 'ar' ? titleTextAr : titleTextEn}
-                  </h4>
-                  <p className="text-xs leading-relaxed text-gray-855 whitespace-pre-line font-bold" style={{ fontFamily: 'Cairo, sans-serif', color: '#1a1a1a' }}>
-                    {printLang === 'ar' ? (
-                      isBalanced ? `• تشخيص كفاءة الأوتار (EUR): النسبة متوازنة ومثالية (${eurVal.toFixed(2)})، مما يعني وجود تناغم ممتاز بين كفاءة مطاطية الأوتار والقوة الانقباضية العضلية للاعب.
-• التوصية الرياضية: ينصح بالاستمرار في التناوب المتوازن بين تدريبات القوة القصوى والتمارين الارتدادية (Plyometrics) للحفاظ على هذا التوازن الفسيولوجي المتميز.`
-                      : isForceDeficit ? `• تشخيص كفاءة الأوتار (EUR): النسبة مرتفعة جداً وتتخطى (1.15)، مما يعني أن اللاعب يعتمد بشكل مفرط على مطاطية الأوتار ورد الفعل الارتدادي، بينما يعاني من نقص صريح في القوة العضلية الصافية (Force Deficit).
-• التوصية الرياضية: ينصح بالتركيز الفوري على تمارين القوة العضلية القصوى (Maximal Strength Training) مثل رفع الأثقال و squat الأحمال الثقيلة، لرفع القدرة الانقباضية لألياف العضلات.`
-                      : `• تشخيص كفاءة الأوتار (EUR): النسبة قليلة جداً وأقل من (1.05)، وهذا معناه أن اللاعب يعتمد تماماً على ألياف العضلات ويمتلك قوة انقباضية concentric عالية جداً، ولكن يمتلك ضعفاً صريحاً في كفاءة الأوتار ومطاطيتها واستغلال دورة التمدد والتقصير (SSC).
-• التوصية الرياضية: ينصح بالتركيز الفوري والمكثف على تمارين البايومتركس السريع (Fast Plyometrics) مثل القفز الارتدادي والساقط، لرفع صلابة كاحل القدم وتنشيط وتطوير كفاءة مطاطية الأوتار وسرعة تخزين الطاقة الحركية وإطلاقها.`
-                    ) : (
-                      isBalanced ? `• Tendon Efficiency Diagnosis (EUR): The ratio is optimal and balanced (${eurVal.toFixed(2)}), representing excellent synergy between tendon reactive elasticity and active muscular concentric force.
-• Athletic Recommendation: Maintain a balanced combination of maximal strength training and plyometrics to sustain this optimal biomechanical baseline.`
-                      : isForceDeficit ? `• Tendon Efficiency Diagnosis (EUR): The ratio is elevated (${eurVal.toFixed(2)}). The athlete is highly reactive/tendon-dominant but exhibits a Force Deficit (lacks raw muscular concentric strength).
-• Athletic Recommendation: Prioritize maximal strength development (heavy squats, deadlifts, and loaded power training) to increase concentric muscular force capacity.`
-                      : `• Tendon Efficiency Diagnosis (EUR): The ratio is deficient and below 1.05 (${eurVal.toFixed(2)}). This indicates that the athlete relies heavily on muscular concentric power but lacks reactive tendon elasticity and SSC (Stretch-Shortening Cycle) efficiency.
-• Athletic Recommendation: Immediate focus on Fast Plyometrics (e.g., reactive depth jumps, ankle bounding) is highly recommended to build ankle stiffness and optimize tendon rebound efficiency.`
-                    )}
-                  </p>
+            {/* Force-Velocity Profile (FVP) Section */}
+            <div className="slate-card">
+              <h3 className="text-xs font-black text-orange-primary mb-3 uppercase tracking-wider">
+                📊 {printLang === 'ar' ? 'تحليل منحنى القوة والسرعة (Force-Velocity Profile - FVP)' : 'Force-Velocity Profile Analysis (FVP)'}
+              </h3>
+              
+              {sjNoArms > 0 && cmjNoArms > 0 ? (
+                <div className="grid grid-cols-3 gap-6 items-center text-xs">
+                  {/* Left Column: Biomechanical text */}
+                  <div className="col-span-2 space-y-2 text-right" style={{ direction: printLang === 'ar' ? 'rtl' : 'ltr', textAlign: printLang === 'ar' ? 'right' : 'left' }}>
+                    <p className="font-bold text-gray-800 text-[11px]">
+                      {printLang === 'ar' 
+                        ? `مؤشر الاستغلال المطاطي للأوتار (EUR): ${eur.toFixed(2)} (${eurPctDiff >= 0 ? '+' : ''}${eurPctDiff.toFixed(1)}%)`
+                        : `Elastic Utilization Ratio (EUR): ${eur.toFixed(2)} (${eurPctDiff >= 0 ? '+' : ''}${eurPctDiff.toFixed(1)}%)`}
+                    </p>
+                    <p className="text-[10px] text-gray-650 leading-relaxed font-semibold whitespace-pre-line" style={{ color: '#1f2937' }}>
+                      {printLang === 'ar' ? (
+                        eur < 1.05 
+                          ? `• نوع الاختلال: عجز مطاطية الأوتار / دورة SSC ضعيفة (${eur.toFixed(2)})
+• التوصية البدنية: اللاعب يعتمد تماماً على القوة العضلية الانقباضية الصافية (Concentric)، بينما يفتقر لصلابة الكاحل والمطاطية الارتدادية. يجب التركيز فوراً على تدريبات البلايومتركس السريع (Pogo Jumps) وقفز الحواجز المنخفضة لتقصير زمن التلامس.`
+                          : eur > 1.15
+                            ? `• نوع الاختلال: عجز في القوة العضلية الانقباضية الصافية (${eur.toFixed(2)})
+• التوصية البدنية: اللاعب يعتمد بالكامل على رد الفعل الارتدادي المرن، لكنه يفتقر للقوة العضلية القصوى الصالحة للارتقاء. ينصح بشدة بالتركيز على تدريبات القوة القصوى للأرجل في الجيم (Squats و Deadlifts بأحمال ثقيلة >80% 1RM).`
+                            : `• تصنيف الحركة: توازن مثالي ومثمر بين العضلات والأوتار (${eur.toFixed(2)})
+• التوصية البدنية: يمتلك اللاعب توافقاً ممتازاً بين القوة الانقباضية الصافية ومطاطية الأوتار الحركية. يُنصح بالاستمرار في برامج التدريب المتوازن وتطوير نقل القوة للقدرة الخاصة.`
+                      ) : (
+                        eur < 1.05 
+                          ? `• Deficit Classification: Tendon Elasticity / SSC Deficit (${eur.toFixed(2)})
+• Recommendation: The athlete relies heavily on muscular concentric force and lacks reactive ankle stiffness. Immediate focus on Fast Plyometrics (Pogo jumps, rapid bounds, low hurdle hops) is recommended to decrease ground contact times.`
+                          : eur > 1.15
+                            ? `• Deficit Classification: Concentric Force Deficit (${eur.toFixed(2)})
+• Recommendation: The athlete is highly reactive/tendon-dominant but lacks baseline concentric power. Focus on heavy resistance training (heavy squats, Hex bar deadlifts at >80% 1RM) to improve raw muscle drive.`
+                            : `• Deficit Classification: Optimal Muscle-Tendon Balance (${eur.toFixed(2)})
+• Recommendation: The athlete has a balanced profile. Continue with concurrent strength and reactive velocity training to transfer this raw power into sport-specific actions.`
+                      )}
+                    </p>
+                  </div>
+                  
+                  {/* Right Column: SVG Gauge */}
+                  <div className="flex flex-col items-center justify-center">
+                    <svg viewBox="0 0 160 90" width="100%" height="80" style={{ fontFamily: 'Cairo, sans-serif' }}>
+                      {/* Elegant horizontal spectrum bar */}
+                      <rect x="10" y="35" width="140" height="10" rx="5" fill="#e5e7eb" />
+                      
+                      {/* Segment 1: Tendon Deficit 0.85-1.05 */}
+                      <path d="M15,35 L80,35 A5,5 0 0,1 80,45 L15,45 A5,5 0 0,1 15,35 Z" fill="#f59e0b" opacity="0.8" />
+                      {/* Segment 2: Balanced 1.05-1.15 */}
+                      <rect x="80" y="35" width="35" height="10" fill="#10b981" opacity="0.8" />
+                      {/* Segment 3: Force Deficit 1.15-1.25 */}
+                      <path d="M115,35 L145,35 A5,5 0 0,1 145,45 L115,45 A5,5 0 0,1 115,35 Z" fill="#ef4444" opacity="0.8" />
+                      
+                      {/* Text markings */}
+                      <text x="10" y="60" fontSize="7" fontWeight="bold" fill="#d97706" textAnchor="start">
+                        {printLang === 'ar' ? 'عجز أوتار' : 'Tendon Def.'}
+                      </text>
+                      <text x="97.5" y="60" fontSize="7" fontWeight="bold" fill="#0d9488" textAnchor="middle">
+                        {printLang === 'ar' ? 'متوازن' : 'Balanced'}
+                      </text>
+                      <text x="150" y="60" fontSize="7" fontWeight="bold" fill="#dc2626" textAnchor="end">
+                        {printLang === 'ar' ? 'عجز قوة' : 'Force Def.'}
+                      </text>
+                      
+                      {/* Indicator Needle */}
+                      {(() => {
+                        const clampedEur = Math.max(0.85, Math.min(1.25, eur));
+                        const needleX = 10 + ((clampedEur - 0.85) / (1.25 - 0.85)) * 140;
+                        return (
+                          <g>
+                            <line x1={needleX} y1="18" x2={needleX} y2="48" stroke="#111827" strokeWidth="2.5" />
+                            <polygon points={`${needleX},48 ${needleX - 4},54 ${needleX + 4},54`} fill="#111827" />
+                            <circle cx={needleX} cy="18" r="8" fill="#1f2937" stroke="#ffffff" strokeWidth="1" />
+                            <text x={needleX} y="21" fontSize="8" fontWeight="bold" fill="#ffffff" textAnchor="middle" fontFamily="monospace">
+                              {eur.toFixed(2)}
+                            </text>
+                          </g>
+                        );
+                      })()}
+                    </svg>
+                  </div>
                 </div>
-              );
-            })()}
+              ) : (
+                <div className="text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-gray-500 text-xs">
+                  ⚠️ {printLang === 'ar' 
+                    ? 'يرجى إكمال قفزة ثبات بدون يدين (Squat Jump) وقفزة ارتداد بدون يدين (CMJ) لتفعيل مؤشر FVP ورسم خريطة توزيع القوة والسرعة للاعب.'
+                    : 'Please complete both Squat Jump (No Arms) and CMJ (No Arms) tests to calculate the FVP index and map the force-velocity balance.'}
+                </div>
+              )}
+            </div>
 
             {/* Jumps Comparison Table */}
             <div className="slate-card">
