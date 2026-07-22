@@ -9,6 +9,7 @@ import FVPCalculator from './FVPCalculator';
 import TeamDashboard from './TeamDashboard';
 import JumpTestingConsole from './JumpTestingConsole'; 
 import Leaderboard from './Leaderboard';
+import ManualEntryConsole from './ManualEntryConsole';
 // Animated counter helper
 const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
   const [count, setCount] = useState(0);
@@ -1381,6 +1382,7 @@ export default function JumpCalculator() {
   const tabs = [
     { id: 'team', name: 'Roster Dashboard', shortName: 'Roster', icon: Users },
     { id: 'calculator', name: 'Vertical Jump', shortName: 'Jump', icon: Activity },
+    { id: 'manual', name: 'Manual Entry', shortName: 'Manual', icon: Edit3 },
     { id: 'rsi', name: 'RSI Calculator', shortName: 'RSI', icon: Zap },
     { id: 'fvp', name: 'FVP Curve', shortName: 'FVP', icon: LineChart },
     { id: 'profile', name: 'Athlete Profile', shortName: 'Profile', icon: UserCircle },
@@ -1391,6 +1393,7 @@ export default function JumpCalculator() {
       if (language === 'ar') {
         if (tab.id === 'team') return 'لوحة اللاعبين';
         if (tab.id === 'calculator') return 'الوثب الرأسي';
+        if (tab.id === 'manual') return 'إدخال يدوي';
         if (tab.id === 'rsi') return 'مؤشر RSI';
         if (tab.id === 'fvp') return 'منحنى FVP';
         if (tab.id === 'profile') return 'ملف اللاعب';
@@ -1403,6 +1406,7 @@ export default function JumpCalculator() {
       if (language === 'ar') {
         if (tab.id === 'team') return 'اللاعبين';
         if (tab.id === 'calculator') return 'الوثب';
+        if (tab.id === 'manual') return 'يدوي';
         if (tab.id === 'rsi') return 'RSI';
         if (tab.id === 'fvp') return 'FVP';
         if (tab.id === 'profile') return 'الملف';
@@ -1622,6 +1626,16 @@ export default function JumpCalculator() {
                     onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])}
                     displayUnit={displayUnit}
                     setDisplayUnit={setDisplayUnit}
+                    language={language}
+                    playerHistory={playerHistory}
+                  />
+                )}
+
+                {activeTab === 'manual' && (
+                  <ManualEntryConsole
+                    activePlayer={activePlayer}
+                    selectedPlayerId={selectedPlayerId}
+                    onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])}
                     language={language}
                     playerHistory={playerHistory}
                   />
