@@ -266,84 +266,106 @@ export default function ManualEntryConsole({
               </div>
             </div>
 
-            {/* Jump Height & Flight Time (Bi-directional Sync) */}
-            <div className="grid grid-cols-2 gap-4 bg-cyan-950/20 p-4 rounded-2xl border border-cyan-500/20">
-              <div>
-                <label className="block text-xs text-cyan-400 font-extrabold mb-1">
-                  📏 {isEn ? 'Jump Height (cm):' : 'ارتفاع القفزة (سم):'}
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  placeholder="مثال: 48.5"
-                  value={form.jumpHeightCm}
-                  onChange={(e) => handleInputChange('jumpHeightCm', e.target.value)}
-                  className="w-full bg-black/40 border border-cyan-500/40 p-3 text-sm text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-cyan-500"
-                />
-              </div>
+            {/* Dynamic Input Fields Based on Test Category */}
+            {form.testType === 'clean' ? (
+              /* CLEAN LIFT ONLY INPUTS */
+              <div className="space-y-4">
+                <div className="bg-emerald-950/20 p-5 rounded-2xl border border-emerald-500/30 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs text-emerald-400 font-extrabold flex items-center gap-1.5">
+                      <Dumbbell size={18} /> {isEn ? 'Clean / Power Clean Weight (kg):' : 'وزن رفعة الكلين (Power Clean 1RM kg):'}
+                    </label>
+                    <span className="text-[10px] text-emerald-500 font-mono font-bold">Clean 1RM</span>
+                  </div>
+                  <input
+                    type="number"
+                    step="0.5"
+                    placeholder="مثال: 95"
+                    value={form.cleanWeightKg}
+                    onChange={(e) => handleInputChange('cleanWeightKg', e.target.value)}
+                    className="w-full bg-black/40 border border-emerald-500/40 p-3.5 text-base text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-xs text-cyan-400 font-extrabold mb-1">
-                  ⏱️ {isEn ? 'Flight Time (s):' : 'زمن الطيران (ثانية):'}
-                </label>
-                <input
-                  type="number"
-                  step="0.001"
-                  placeholder="مثال: 0.628"
-                  value={form.flightTimeSec}
-                  onChange={(e) => handleInputChange('flightTimeSec', e.target.value)}
-                  className="w-full bg-black/40 border border-cyan-500/40 p-3 text-sm text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-cyan-500"
-                />
+                <div className="space-y-1.5">
+                  <label className="block text-xs text-gray-400 font-bold">{isEn ? 'Added Barbell Load (kg if any):' : 'الوزن الإضافي للبار (كجم إن وجد):'}</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    placeholder="مثال: 5"
+                    value={form.addedLoadKg}
+                    onChange={(e) => handleInputChange('addedLoadKg', e.target.value)}
+                    className="w-full bg-[var(--bg-input)] border border-gray-800 p-3 text-xs text-white rounded-xl outline-none font-mono"
+                  />
+                </div>
               </div>
-            </div>
+            ) : (
+              /* JUMP MEASUREMENT INPUTS */
+              <div className="space-y-4">
+                {/* Jump Height & Flight Time (Bi-directional Sync) */}
+                <div className="grid grid-cols-2 gap-4 bg-cyan-950/20 p-4 rounded-2xl border border-cyan-500/20">
+                  <div>
+                    <label className="block text-xs text-cyan-400 font-extrabold mb-1">
+                      📏 {isEn ? 'Jump Height (cm):' : 'ارتفاع القفزة (سم):'}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder="مثال: 48.5"
+                      value={form.jumpHeightCm}
+                      onChange={(e) => handleInputChange('jumpHeightCm', e.target.value)}
+                      className="w-full bg-black/40 border border-cyan-500/40 p-3 text-sm text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
 
-            {/* Ground Contact Time for Drop Jump / RSI */}
-            {form.testType === 'rsi' && (
-              <div className="bg-amber-950/20 p-4 rounded-2xl border border-amber-500/25 space-y-2">
-                <label className="block text-xs text-amber-400 font-extrabold">
-                  ⚡ {isEn ? 'Ground Contact Time (s):' : 'زمن التلامس مع الأرض (ثانية):'}
-                </label>
-                <input
-                  type="number"
-                  step="0.001"
-                  placeholder="مثال: 0.190"
-                  value={form.contactTimeSec}
-                  onChange={(e) => handleInputChange('contactTimeSec', e.target.value)}
-                  className="w-full bg-black/40 border border-amber-500/40 p-3 text-sm text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-amber-500"
-                />
+                  <div>
+                    <label className="block text-xs text-cyan-400 font-extrabold mb-1">
+                      ⏱️ {isEn ? 'Flight Time (s):' : 'زمن الطيران (ثانية):'}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.001"
+                      placeholder="مثال: 0.628"
+                      value={form.flightTimeSec}
+                      onChange={(e) => handleInputChange('flightTimeSec', e.target.value)}
+                      className="w-full bg-black/40 border border-cyan-500/40 p-3 text-sm text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Ground Contact Time ONLY for Drop Jump / RSI */}
+                {form.testType === 'rsi' && (
+                  <div className="bg-amber-950/20 p-4 rounded-2xl border border-amber-500/25 space-y-2">
+                    <label className="block text-xs text-amber-400 font-extrabold">
+                      ⚡ {isEn ? 'Ground Contact Time (s):' : 'زمن التلامس مع الأرض (ثانية):'}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.001"
+                      placeholder="مثال: 0.190"
+                      value={form.contactTimeSec}
+                      onChange={(e) => handleInputChange('contactTimeSec', e.target.value)}
+                      className="w-full bg-black/40 border border-amber-500/40 p-3 text-sm text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                )}
+
+                {/* Added Load ONLY for Loaded Jumps */}
+                {form.testType === 'loaded_jump' && (
+                  <div className="space-y-1.5">
+                    <label className="block text-xs text-gray-400 font-bold">{isEn ? 'Added Barbell Load (kg):' : 'الوزن الإضافي للقفزة (كجم):'}</label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      placeholder="مثال: 20"
+                      value={form.addedLoadKg}
+                      onChange={(e) => handleInputChange('addedLoadKg', e.target.value)}
+                      className="w-full bg-[var(--bg-input)] border border-gray-800 p-2.5 text-xs text-white rounded-xl outline-none font-mono"
+                    />
+                  </div>
+                )}
               </div>
             )}
-
-            {/* Clean Weight (Power Clean) Input */}
-            <div className="bg-emerald-950/20 p-4 rounded-2xl border border-emerald-500/25 space-y-3">
-              <div className="flex justify-between items-center">
-                <label className="text-xs text-emerald-400 font-extrabold flex items-center gap-1.5">
-                  <Dumbbell size={16} /> {isEn ? 'Clean / Power Clean Weight (kg):' : 'وزن رفعة الكلين (Power Clean kg):'}
-                </label>
-                <span className="text-[10px] text-emerald-500 font-mono font-bold">Clean 1RM</span>
-              </div>
-              <input
-                type="number"
-                step="0.5"
-                placeholder="مثال: 95"
-                value={form.cleanWeightKg}
-                onChange={(e) => handleInputChange('cleanWeightKg', e.target.value)}
-                className="w-full bg-black/40 border border-emerald-500/40 p-3 text-sm text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
-
-            {/* Added Load Input */}
-            <div className="space-y-1.5">
-              <label className="block text-xs text-gray-400 font-bold">{isEn ? 'Added Barbell Load (kg):' : 'الوزن الإضافي للقفزة (كجم إن وجد):'}</label>
-              <input
-                type="number"
-                step="0.5"
-                placeholder="مثال: 20"
-                value={form.addedLoadKg}
-                onChange={(e) => handleInputChange('addedLoadKg', e.target.value)}
-                className="w-full bg-[var(--bg-input)] border border-gray-800 p-2.5 text-xs text-white rounded-xl outline-none font-mono"
-              />
-            </div>
 
           </div>
 
@@ -359,53 +381,77 @@ export default function ManualEntryConsole({
                 <span className="text-[9px] font-mono bg-cyan-950/80 px-2 py-0.5 rounded text-cyan-300 border border-cyan-500/30">Auto Engine v2.0</span>
               </h3>
 
-              <div className="grid grid-cols-2 gap-4">
-                
-                {/* Metric 1: Peak Power */}
-                <div className="bg-black/40 p-4 rounded-2xl border border-gray-800 space-y-1">
-                  <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Peak Power (Harman/Sayers):' : 'ذروة القدرة (الوات):'}</span>
-                  <div className="text-xl font-black text-orange-400 font-mono">
-                    {peakPower > 0 ? peakPower.toFixed(0) : '—'} <span className="text-xs text-gray-400 font-sans">W</span>
+              {/* Dynamic Live Telemetry Grid */}
+              {form.testType === 'clean' ? (
+                /* CLEAN LIFT TELEMETRY CARDS */
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-emerald-950/30 p-4 rounded-2xl border border-emerald-500/40 space-y-1">
+                    <span className="text-[10px] text-emerald-400 font-bold block">{isEn ? 'Clean / Bodyweight Ratio:' : 'نسبة الكلين لوزن الجسم:'}</span>
+                    <div className="text-2xl font-black text-emerald-400 font-mono">
+                      {cleanBwRatio > 0 ? `${cleanBwRatio.toFixed(2)}x` : '—'} <span className="text-xs text-gray-400 font-sans">BW</span>
+                    </div>
+                    <span className="text-[9px] text-gray-400 block font-mono">
+                      {cleanWeight > 0 ? `${cleanWeight} kg 1RM` : (isEn ? 'Enter Clean weight' : 'أدخل وزن الكلين')}
+                    </span>
                   </div>
-                  <span className="text-[9px] text-gray-500 block font-mono">
-                    {relativePower > 0 ? `${relativePower.toFixed(1)} W/kg (${isEn ? 'Relative' : 'النسبية'})` : '—'}
-                  </span>
-                </div>
 
-                {/* Metric 2: Takeoff Force */}
-                <div className="bg-black/40 p-4 rounded-2xl border border-gray-800 space-y-1">
-                  <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Takeoff Force (GRF):' : 'قوة الدفع الأرضي:'}</span>
-                  <div className="text-xl font-black text-teal-400 font-mono">
-                    {takeoffForceN > 0 ? takeoffForceN.toFixed(0) : '—'} <span className="text-xs text-gray-400 font-sans">N</span>
+                  <div className="bg-black/40 p-4 rounded-2xl border border-gray-800 space-y-1">
+                    <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Total Lift Mass:' : 'إجمالي حمولة الرفعة:'}</span>
+                    <div className="text-2xl font-black text-white font-mono">
+                      {(cleanWeight + addedLoad) > 0 ? (cleanWeight + addedLoad) : '—'} <span className="text-xs text-gray-400 font-sans">kg</span>
+                    </div>
+                    <span className="text-[9px] text-gray-500 block font-mono">
+                      {isEn ? `Athlete Mass: ${weight} kg` : `وزن اللاعب: ${weight} كجم`}
+                    </span>
                   </div>
-                  <span className="text-[9px] text-gray-500 block font-mono">
-                    {takeoffForceBW > 0 ? `${takeoffForceBW.toFixed(2)} BW (${isEn ? 'Ratio' : 'مضاعف الوزن'})` : '—'}
-                  </span>
                 </div>
-
-                {/* Metric 3: Clean Ratio */}
-                <div className="bg-black/40 p-4 rounded-2xl border border-emerald-500/30 space-y-1">
-                  <span className="text-[10px] text-emerald-400 font-bold block">{isEn ? 'Clean / Bodyweight Ratio:' : 'نسبة الكلين لوزن الجسم:'}</span>
-                  <div className="text-xl font-black text-emerald-400 font-mono">
-                    {cleanBwRatio > 0 ? `${cleanBwRatio.toFixed(2)}x` : '—'} <span className="text-xs text-gray-400 font-sans">BW</span>
+              ) : form.testType === 'rsi' ? (
+                /* RSI DROP JUMP TELEMETRY CARDS */
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-amber-950/30 p-4 rounded-2xl border border-amber-500/40 space-y-1">
+                    <span className="text-[10px] text-amber-400 font-bold block">{isEn ? 'RSI Rebound Index:' : 'مؤشر القوة التفاعلية (RSI):'}</span>
+                    <div className="text-2xl font-black text-amber-400 font-mono">
+                      {rsiScore > 0 ? rsiScore.toFixed(2) : '—'}
+                    </div>
+                    <span className="text-[9px] text-gray-400 block font-mono">
+                      {contactTime > 0 ? `Tc: ${contactTime}s` : '—'}
+                    </span>
                   </div>
-                  <span className="text-[9px] text-gray-500 block font-mono">
-                    {cleanWeight > 0 ? `${cleanWeight} kg 1RM` : (isEn ? 'No Clean logged' : 'لم يدخل كلين')}
-                  </span>
-                </div>
 
-                {/* Metric 4: RSI Score */}
-                <div className="bg-black/40 p-4 rounded-2xl border border-amber-500/30 space-y-1">
-                  <span className="text-[10px] text-amber-400 font-bold block">{isEn ? 'RSI Rebound Index:' : 'مؤشر القوة التفاعلية (RSI):'}</span>
-                  <div className="text-xl font-black text-amber-400 font-mono">
-                    {rsiScore > 0 ? rsiScore.toFixed(2) : '—'}
+                  <div className="bg-black/40 p-4 rounded-2xl border border-gray-800 space-y-1">
+                    <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Jump Height & Flight:' : 'ارتفاع القفزة والطيران:'}</span>
+                    <div className="text-xl font-black text-cyan-400 font-mono">
+                      {jumpHeight > 0 ? `${jumpHeight} cm` : '—'}
+                    </div>
+                    <span className="text-[9px] text-gray-500 block font-mono">
+                      {flightTime > 0 ? `Tf: ${flightTime}s` : '—'}
+                    </span>
                   </div>
-                  <span className="text-[9px] text-gray-500 block font-mono">
-                    {contactTime > 0 ? `Tc: ${contactTime}s` : (isEn ? 'Standard Jump' : 'قفزة عادية')}
-                  </span>
                 </div>
+              ) : (
+                /* STANDARD VERTICAL JUMP TELEMETRY CARDS */
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-black/40 p-4 rounded-2xl border border-gray-800 space-y-1">
+                    <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Peak Power (Harman/Sayers):' : 'ذروة القدرة (الوات):'}</span>
+                    <div className="text-xl font-black text-orange-400 font-mono">
+                      {peakPower > 0 ? peakPower.toFixed(0) : '—'} <span className="text-xs text-gray-400 font-sans">W</span>
+                    </div>
+                    <span className="text-[9px] text-gray-500 block font-mono">
+                      {relativePower > 0 ? `${relativePower.toFixed(1)} W/kg (${isEn ? 'Relative' : 'النسبية'})` : '—'}
+                    </span>
+                  </div>
 
-              </div>
+                  <div className="bg-black/40 p-4 rounded-2xl border border-gray-800 space-y-1">
+                    <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Takeoff Force (GRF):' : 'قوة الدفع الأرضي:'}</span>
+                    <div className="text-xl font-black text-teal-400 font-mono">
+                      {takeoffForceN > 0 ? takeoffForceN.toFixed(0) : '—'} <span className="text-xs text-gray-400 font-sans">N</span>
+                    </div>
+                    <span className="text-[9px] text-gray-500 block font-mono">
+                      {takeoffForceBW > 0 ? `${takeoffForceBW.toFixed(2)} BW (${isEn ? 'Ratio' : 'مضاعف الوزن'})` : '—'}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Clean Strength Evaluation Box */}
               {cleanWeight > 0 && (
