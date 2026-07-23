@@ -36,7 +36,8 @@ const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
 };
 
 export default function JumpCalculator() {
-  const [activeTab, setActiveTab] = useState('team'); 
+  const [activeTab, setActiveTab] = useState('team');
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false); 
   const [colorMode, setColorMode] = useState('dark'); 
   const [language, setLanguage] = useState(() => localStorage.getItem('app_language') || 'ar');
 
@@ -1443,8 +1444,15 @@ export default function JumpCalculator() {
             </div>
             {/* Theme & Language Toggles on Mobile */}
             <div className="lg:hidden flex items-center gap-2">
-              <button 
-                onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')} 
+              <button
+            onClick={() => setIsCommandPaletteOpen(true)}
+            className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-blue-950/40 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
+            title="Command Palette (Ctrl + K)"
+          >
+            <span>🔍</span>
+            <span className="font-mono text-[10px] bg-blue-900/60 px-1.5 py-0.5 rounded border border-blue-400/20">Ctrl+K</span>
+          </button>
+          <button onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')} 
                 className="px-2 py-1 bg-[var(--bg-input)] text-blue-400 border border-[var(--border-light)] rounded-lg text-[10px] font-black shadow-sm"
               >
                 {language === 'ar' ? 'EN' : 'عربي'}

@@ -1,8 +1,46 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, TrendingUp, Clock, Zap, ArrowUpCircle, AlertCircle, BookOpen, X, ShieldAlert, Award, User, Scale, Calendar, Trophy, FileText, ChevronLeft, Target, Plus, Trash2, Edit3 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { supabase } from './supabaseClient';
+
+
+// Cyber Arc Speedometer Component
+const CyberArcGauge = ({ value, max, label, unit, color = "#3b82f6" }) => {
+  const pct = Math.min(100, Math.max(0, (value / max) * 100));
+  const strokeDash = (pct * 188.5) / 100;
+  
+  return (
+    <div className="relative flex flex-col items-center justify-center p-3 hud-card">
+      <div className="relative w-28 h-20 flex items-center justify-center overflow-hidden">
+        <svg className="w-28 h-28 transform -rotate-180" viewBox="0 0 100 100">
+          <path
+            d="M 15 50 A 35 35 0 0 1 85 50"
+            fill="none"
+            stroke="rgba(255,255,255,0.06)"
+            strokeWidth="8"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 15 50 A 35 35 0 0 1 85 50"
+            fill="none"
+            stroke={color}
+            strokeWidth="8"
+            strokeDasharray="188.5"
+            strokeDashoffset={188.5 - strokeDash}
+            strokeLinecap="round"
+            className="transition-all duration-1000 ease-out"
+          />
+        </svg>
+        <div className="absolute bottom-1 flex flex-col items-center">
+          <span className="text-base font-black text-white font-mono leading-none">{value}</span>
+          <span className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">{unit}</span>
+        </div>
+      </div>
+      <span className="text-[10px] text-gray-300 font-bold mt-1 text-center">{label}</span>
+    </div>
+  );
+};
 
 export default function PlayerProfile({ activePlayer, playerHistory, onHistoryChange, language = 'ar', onEditPlayer }) {
   const [activeTab, setActiveTab] = useState('overview'); // overview, biomechanics, critique, history
@@ -1339,7 +1377,63 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
             {activeTab === 'overview' && (
               <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="space-y-6">
                 
-                {/* Visual Cockpit Dashboard */}
+                
+                {/* 360° Biomechanical Performance Radar & Speedometers */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+                  {/* Radar Matrix Card */}
+                  <div className="lg:col-span-7 glass-panel p-5 hud-card flex flex-col justify-between">
+                    <div className="flex items-center justify-between border-b border-gray-800/80 pb-3 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 pulse-glow-live" />
+                        <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                          {language === 'en' ? '360° Biomechanical Profile Radar' : 'رادار الأداء الميكانيكي الحيوي الشامل (360°)'}
+                        </h4>
+                      </div>
+                      <span className="text-[9px] font-mono text-cyan-400 bg-cyan-950/50 px-2 py-0.5 rounded border border-cyan-500/30">HUD v2.0</span>
+                    </div>
+
+                    <div className="w-full h-64 flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RadarChart data={[
+                          { subject: language === 'en' ? 'Concentric Power' : 'القوة الانقباضية', A: Math.min(100, (sjNoArms / 45) * 100) || 50 },
+                          { subject: language === 'en' ? 'Tendon SSC' : 'مطاطية الأوتار', A: Math.min(100, (cmjNoArms / 50) * 100) || 60 },
+                          { subject: language === 'en' ? 'Arm Drive' : 'تنسيق اليدين', A: Math.min(100, Math.max(20, armSwing * 5)) || 65 },
+                          { subject: language === 'en' ? 'Approach Momentum' : 'تحويل السرعة', A: Math.min(100, (approachJump / 60) * 100) || 70 },
+                          { subject: language === 'en' ? 'RSI Stiffness' : 'صلابة الكاحل', A: Math.min(100, (latestRsi / 3.0) * 100) || 55 },
+                          { subject: language === 'en' ? 'Power Density' : 'كثافة القدرة', A: Math.min(100, (relativePower / 65) * 100) || 65 }
+                        ]}>
+                          <PolarGrid stroke="rgba(255,255,255,0.08)" />
+                          <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }} />
+                          <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="rgba(255,255,255,0.05)" />
+                          <Radar name="Athlete" dataKey="A" stroke="#3b82f6" fill="#2563eb" fillOpacity={0.45} />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Sci-Fi Arc Gauges Cluster */}
+                  <div className="lg:col-span-5 glass-panel p-5 hud-card flex flex-col justify-between space-y-4">
+                    <div className="flex items-center justify-between border-b border-gray-800/80 pb-3">
+                      <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                        {language === 'en' ? 'Live Telemetry Speedometers' : 'عدادات القياس الانفجاري المباشر'}
+                      </h4>
+                      <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/30">Realtime</span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <CyberArcGauge value={heightCm.toFixed(1)} max={90} label={language === 'en' ? 'Jump Height' : 'ارتفاع القفزة'} unit="cm" color="#3b82f6" />
+                      <CyberArcGauge value={relativePower.toFixed(1)} max={70} label={language === 'en' ? 'Power Density' : 'القدرة النسبية'} unit="W/kg" color="#06b6d4" />
+                      <CyberArcGauge value={velocity.toFixed(2)} max={3.5} label={language === 'en' ? 'Takeoff Speed' : 'سرعة الانطلاق'} unit="m/s" color="#10b981" />
+                    </div>
+
+                    <div className="p-3 bg-blue-950/20 border border-blue-500/20 rounded-xl text-[10px] text-blue-300 font-semibold flex items-center justify-between">
+                      <span>{language === 'en' ? 'EUR Tendon Metric:' : 'معامل استغلال الأوتار (EUR):'}</span>
+                      <span className="font-mono font-black text-cyan-400 text-xs">{eur > 0 ? eur.toFixed(2) : '—'}</span>
+                    </div>
+                  </div>
+                </div>
+
+{/* Visual Cockpit Dashboard */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   
                   {/* Radial Bio-Score Ring Card */}

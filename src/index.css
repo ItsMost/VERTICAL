@@ -239,3 +239,44 @@ body, button, input, select, textarea, text, span, div, p, h1, h2, h3, h4, h5, h
     width: 100%;
   }
 }
+
+/* Sci-Fi Cyber HUD Accessories */
+.hud-card {
+  position: relative;
+}
+
+.hud-card::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid #3b82f6;
+  border-right: 2px solid #3b82f6;
+  border-top-right-radius: 4px;
+  pointer-events: none;
+}
+
+.hud-card::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: -1px;
+  width: 10px;
+  height: 10px;
+  border-bottom: 2px solid #06b6d4;
+  border-left: 2px solid #06b6d4;
+  border-bottom-left-radius: 4px;
+  pointer-events: none;
+}
+
+@keyframes cyberPulse {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 8px rgba(59, 130, 246, 0.8); }
+  50% { opacity: 0.4; transform: scale(0.9); box-shadow: 0 0 2px rgba(59, 130, 246, 0.3); }
+}
+
+.pulse-glow-live {
+  animation: cyberPulse 2s infinite ease-in-out;
+}
+
