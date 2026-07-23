@@ -580,7 +580,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         ctx.lineWidth = 1.5;
 
         // Draw "cm" header unit above the ruler
-        ctx.fillStyle = '#ff6b00';
+        ctx.fillStyle = '#2563eb';
         ctx.font = '900 13px Cairo';
         ctx.fillText('cm', w - 70, topY - 8);
 
@@ -628,7 +628,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         const activeHeight = groundY - yVal;
         if (activeHeight > 0) {
           ctx.save();
-          ctx.shadowColor = '#ff6b00';
+          ctx.shadowColor = '#2563eb';
           ctx.shadowBlur = 12;
           const grad = ctx.createLinearGradient(0, groundY, 0, yVal);
           grad.addColorStop(0, '#ff8c00');
@@ -658,9 +658,9 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         ctx.stroke();
 
         // Glowing progress arc
-        ctx.shadowColor = '#ff6b00';
+        ctx.shadowColor = '#2563eb';
         ctx.shadowBlur = 12;
-        ctx.strokeStyle = '#ff6b00';
+        ctx.strokeStyle = '#2563eb';
         ctx.lineWidth = 6;
         ctx.lineCap = 'round';
         ctx.beginPath();
@@ -678,7 +678,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         ctx.shadowBlur = 4;
         ctx.fillText(`${(progressPct * 100).toFixed(0)}%`, circleX, circleY - 4);
         
-        ctx.fillStyle = '#ff6b00';
+        ctx.fillStyle = '#2563eb';
         ctx.font = '900 8px Cairo';
         ctx.fillText(language === 'en' ? 'HEIGHT' : 'الارتفاع', circleX, circleY + 14);
         ctx.restore();
@@ -687,7 +687,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         ctx.save();
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
         ctx.shadowBlur = 4;
-        ctx.fillStyle = '#ff6b00';
+        ctx.fillStyle = '#2563eb';
         ctx.font = '900 13px Cairo';
         ctx.textAlign = 'right';
         ctx.fillText('PeakForce Lab', w - 60, 45);
@@ -697,10 +697,10 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         if (t >= takeoffTime) {
           const badgeY = 85;
           ctx.save();
-          ctx.shadowColor = '#ff6b00';
+          ctx.shadowColor = '#2563eb';
           ctx.shadowBlur = 15;
           ctx.fillStyle = 'rgba(10, 18, 36, 0.9)';
-          ctx.strokeStyle = '#ff6b00';
+          ctx.strokeStyle = '#2563eb';
           ctx.lineWidth = 2.5;
           ctx.beginPath();
           ctx.roundRect(w - 170, badgeY - 15, 140, 48, 12);
@@ -712,7 +712,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
-          ctx.fillStyle = '#ff6b00';
+          ctx.fillStyle = '#2563eb';
           ctx.font = '900 10px Cairo';
           ctx.fillText('RSI INDEX 🏆', w - 100, badgeY - 3);
 
@@ -740,10 +740,10 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           const t_peak_actual = takeoffTime + 0.5 * t_flight_actual;
           
           if (t >= t_peak_actual) {
-            ctx.shadowColor = '#ff6b00';
+            ctx.shadowColor = '#2563eb';
             ctx.shadowBlur = 15;
             
-            ctx.fillStyle = '#ff6b00';
+            ctx.fillStyle = '#2563eb';
             ctx.font = '900 11px Cairo';
             ctx.fillText(language === 'en' ? 'MAX HEIGHT 👑' : 'الارتقاء الأقصى 👑', textX, textY - 32);
             
@@ -822,7 +822,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
 
           // Draw Label
           ctx.textAlign = 'center';
-          ctx.fillStyle = '#ff6b00';
+          ctx.fillStyle = '#2563eb';
           ctx.font = '900 9px Cairo';
           ctx.fillText(label, centerX, centerY - 10);
 
@@ -850,7 +850,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
             pulseScale = 1.0 + 0.25 * Math.sin(timeSincePeak * 10) * Math.exp(-timeSincePeak * 2);
           }
           
-          ctx.shadowColor = '#ff6b00';
+          ctx.shadowColor = '#2563eb';
           ctx.shadowBlur = 20;
           
           const fontSize = Math.round(36 * pulseScale);
@@ -893,7 +893,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
 
           // Title
           ctx.shadowBlur = 0;
-          ctx.fillStyle = '#ff6b00';
+          ctx.fillStyle = '#2563eb';
           ctx.font = 'bold 11px Cairo';
           ctx.textAlign = 'center';
           ctx.fillText(language === 'en' ? 'Final Reactive Strength Index (Final RSI)' : 'مؤشر القوة التفاعلية النهائي (Final RSI)', w / 2, cardY + 28);
@@ -905,10 +905,10 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
 
           // Rating evaluation
           let ratingText = '';
-          let ratingColor = '#f97316';
+          let ratingColor = '#3b82f6';
           if (rsiScore >= 3.0) {
             ratingText = language === 'en' ? 'Elite 🏆' : 'النخبة (Elite) 🏆';
-            ratingColor = '#ff6b00';
+            ratingColor = '#2563eb';
           } else if (rsiScore >= 2.5) {
             ratingText = language === 'en' ? 'Excellent ⭐' : 'ممتاز (Excellent) ⭐';
             ratingColor = '#ffa500';
@@ -917,7 +917,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
             ratingColor = '#ffb830';
           } else {
             ratingText = language === 'en' ? 'Needs Development ⚠️' : 'يحتاج تطوير (Under-developed) ⚠️';
-            ratingColor = '#f97316';
+            ratingColor = '#3b82f6';
           }
           ctx.fillStyle = ratingColor;
           ctx.font = 'bold 12px Cairo';
@@ -1340,7 +1340,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
 
                   {/* Takeoff indicator flag */}
                   {duration > 0 && takeoffTime > 0 && (
-                    <div className="absolute top-0 bottom-0 w-0.5 bg-blue-500 shadow-[0_0_12px_#ff6b00] z-10 pointer-events-none" style={{ right: `${(takeoffTime / duration) * 100}%` }}>
+                    <div className="absolute top-0 bottom-0 w-0.5 bg-blue-500 shadow-[0_0_12px_#2563eb] z-10 pointer-events-none" style={{ right: `${(takeoffTime / duration) * 100}%` }}>
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-blue-500 text-[#070a13] text-[8px] font-black rounded border border-blue-400 whitespace-nowrap">🚀 إقلاع</div>
                     </div>
                   )}
@@ -1638,7 +1638,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                   <defs>
                     <linearGradient id="rsiTealProgress" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor="#00f5d4" />
-                      <stop offset="100%" stopColor="#ff6b00" />
+                      <stop offset="100%" stopColor="#2563eb" />
                     </linearGradient>
                   </defs>
                 </svg>
@@ -1737,7 +1737,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                   cx="40"
                   cy="40"
                   r="34"
-                  stroke="#ff6b00"
+                  stroke="#2563eb"
                   strokeWidth="6"
                   fill="transparent"
                   strokeDasharray={2 * Math.PI * 34}

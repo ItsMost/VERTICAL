@@ -925,8 +925,8 @@ export default function FVPCalculator({ activePlayer }) {
                             <stop offset="100%" stopColor="#ec4899" stopOpacity="0.01"/>
                           </linearGradient>
                           <linearGradient id="propulsionGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#ff6b00" stopOpacity="0.2"/>
-                            <stop offset="100%" stopColor="#ff6b00" stopOpacity="0.01"/>
+                            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.2"/>
+                            <stop offset="100%" stopColor="#2563eb" stopOpacity="0.01"/>
                           </linearGradient>
                           <linearGradient id="curveGradient" x1="0" y1="0" x2="1" y2="0">
                             <stop offset="0%" stopColor="#00f5d4" />
@@ -1031,11 +1031,11 @@ export default function FVPCalculator({ activePlayer }) {
                                 cx={xTakeoff} 
                                 cy={scaleY(data[ftcResult.i_takeoff])} 
                                 r="4" 
-                                fill="#ff6b00" 
+                                fill="#2563eb" 
                                 stroke="#fff" 
                                 strokeWidth="1" 
                               />
-                              <text x={xTakeoff - 5} y={scaleY(data[ftcResult.i_takeoff]) - 6} fill="#ff6b00" fontSize="6.5" fontWeight="bold">الإقلاع</text>
+                              <text x={xTakeoff - 5} y={scaleY(data[ftcResult.i_takeoff]) - 6} fill="#2563eb" fontSize="6.5" fontWeight="bold">الإقلاع</text>
 
                               {/* Landing point */}
                               {ftcResult.i_landing !== -1 && (
@@ -1142,7 +1142,7 @@ export default function FVPCalculator({ activePlayer }) {
                 {/* 1. Executive Metrics ( المؤشرات التنفيذية ) */}
                 <div className="bg-black/25 p-5 rounded-2xl border border-gray-800 space-y-3">
                   <h5 className="font-bold text-white text-sm flex items-center gap-1.5 border-b border-gray-800 pb-2">
-                    <span className="w-2.5 h-2.5 bg-blue-500 rounded-full inline-block shadow-[0_0_8px_#f97316]"></span>
+                    <span className="w-2.5 h-2.5 bg-blue-500 rounded-full inline-block shadow-[0_0_8px_#3b82f6]"></span>
                     🎯 المؤشرات التنفيذية (Executive Metrics)
                   </h5>
                   
@@ -1225,7 +1225,7 @@ export default function FVPCalculator({ activePlayer }) {
                 {/* 2. Phase Breakdown Analysis ( تحليل مراحل القفز ) */}
                 <div className="bg-black/25 p-5 rounded-2xl border border-gray-800 space-y-4">
                   <h5 className="font-bold text-white text-sm flex items-center gap-1.5 border-b border-gray-800 pb-2">
-                    <span className="w-2.5 h-2.5 bg-blue-500 rounded-full inline-block shadow-[0_0_12px_#ff6b00]"></span>
+                    <span className="w-2.5 h-2.5 bg-blue-500 rounded-full inline-block shadow-[0_0_12px_#2563eb]"></span>
                     📈 تحليل مراحل القفز (Phase Breakdown Analysis)
                   </h5>
 
@@ -1574,7 +1574,7 @@ export default function FVPCalculator({ activePlayer }) {
                               y1={`${optY1}%`} 
                               x2={`${optX2}%`} 
                               y2={`${optY2}%`} 
-                              stroke="#ff6b00" 
+                              stroke="#2563eb" 
                               strokeWidth="3" 
                               strokeDasharray="5,5"
                               style={{ filter: 'drop-shadow(0px 0px 4px rgba(6, 182, 212, 0.4))' }}
@@ -1600,7 +1600,7 @@ export default function FVPCalculator({ activePlayer }) {
                                 height="22%" 
                                 rx="6" 
                                 fill="rgba(10, 18, 36, 0.85)" 
-                                stroke="#ff6b00" 
+                                stroke="#2563eb" 
                                 strokeWidth="1.5" 
                                 style={{ filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.5))' }}
                               />

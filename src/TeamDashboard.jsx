@@ -790,7 +790,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                               cy="25" 
                               r="20" 
                               fill="none" 
-                              stroke={rating >= 90 ? "#ff6b00" : rating >= 75 ? "#10b981" : rating >= 60 ? "#eab308" : rating > 0 ? "#ea580c" : "#374151"} 
+                              stroke={rating >= 90 ? "#2563eb" : rating >= 75 ? "#10b981" : rating >= 60 ? "#eab308" : rating > 0 ? "#2563eb" : "#374151"} 
                               strokeWidth="4" 
                               strokeDasharray="125.6"
                               strokeDashoffset={strokeDashoffset}

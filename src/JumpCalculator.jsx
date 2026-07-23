@@ -1043,7 +1043,7 @@ export default function JumpCalculator() {
 
         // Draw skeleton overlay only if AI is enabled
         if (aiEnabled) {
-          drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#f97316', lineWidth: 3 }); 
+          drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#3b82f6', lineWidth: 3 }); 
           drawLandmarks(canvasCtx, results.poseLandmarks, { color: '#ffffff', lineWidth: 1 });
 
           if (leftKnee && leftKnee.visibility > 0.5) {
@@ -1693,7 +1693,7 @@ export default function JumpCalculator() {
               {isActive && (
                 <motion.div 
                   layoutId="active-dock-indicator"
-                  className="absolute -bottom-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_12px_#ff6b00]"
+                  className="absolute -bottom-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_12px_#2563eb]"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}

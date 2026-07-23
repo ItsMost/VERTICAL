@@ -1,61 +1,63 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  /* PeakForce Lab Vertical v2.0 - OVR Performance Royal & Electric Blue */
+  /* PeakForce Lab Vertical v2.0 - Dark Obsidian Glass & Electric Royal Blue */
   
-  /* Deep Slate & Dark Navy Theme */
-  --bg-base: #090d16;        /* Deep Navy Slate */
-  --bg-panel: #111827;       /* Slate 900 */
-  --bg-surface: #1e293b;     /* Slate 800 */
-  --bg-input: #0b1120;       /* Dark Navy Input */
+  /* Deep Dark Glass Theme */
+  --bg-base: #050811;        /* Extra Dark Obsidian Base */
+  --bg-panel: rgba(13, 20, 36, 0.78);       /* Frosted Glass Panel */
+  --bg-surface: rgba(22, 33, 58, 0.65);     /* Frosted Glass Surface Card */
+  --bg-input: rgba(8, 13, 25, 0.85);       /* Dark Translucent Input */
   
-  --text-primary: #f8fafc;   /* Slate 50 */
-  --text-secondary: #3b82f6; /* Electric Blue Accent */
-  --text-muted: #94a3b8;     /* Slate 400 */
+  --text-primary: #f8fafc;   /* Pure White/Slate 50 */
+  --text-secondary: #3b82f6; /* Electric Blue */
+  --text-muted: #94a3b8;     /* Muted Slate */
   
-  --border-color: #334155;   /* Slate 700 */
-  --border-light: #1e293b;   /* Slate 800 */
-  --border-active: #2563eb;  /* Royal Blue Border */
+  --border-color: rgba(59, 130, 246, 0.28);   /* Electric Blue Glass Border */
+  --border-light: rgba(255, 255, 255, 0.08);   /* Subtle White Glass Border */
+  --border-active: #2563eb;                    /* Royal Blue Focus */
   
   --brand-main: #2563eb;     /* Royal Blue */
-  --brand-hover: #1d4ed8;    /* Darker Blue */
-  --brand-text: #60a5fa;     /* Light Electric Blue for text */
+  --brand-hover: #1d4ed8;    /* Deep Blue */
+  --brand-text: #60a5fa;     /* Light Electric Blue */
   
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 10px 25px -5px rgba(37, 99, 235, 0.25);
+  --shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(37, 99, 235, 0.12);
+  --shadow-lg: 0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 30px rgba(37, 99, 235, 0.25);
   
   --accent-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
-  --bg-gradient: #090d16;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #0d172e 0%, #050811 100%);
   
+  --glass-blur: blur(20px);
   --sans: 'Cairo', system-ui, sans-serif;
   --heading: 'Cairo', system-ui, sans-serif;
   --mono: 'Outfit', 'Cairo', ui-monospace, Consolas, monospace;
 }
 
 [data-theme="light"] {
-  /* High Contrast Off-White & Royal Blue Theme */
-  --bg-base: #f8fafc;        /* Slate 50 */
-  --bg-panel: #ffffff;       /* Pure white */
-  --bg-surface: #f1f5f9;     /* Slate 100 */
-  --bg-input: #ffffff;       /* White */
+  /* High Contrast Glass Light Theme */
+  --bg-base: #f1f5f9;
+  --bg-panel: rgba(255, 255, 255, 0.92);
+  --bg-surface: rgba(248, 250, 252, 0.95);
+  --bg-input: #ffffff;
   
-  --text-primary: #0f172a;   /* Slate 900 */
-  --text-secondary: #1d4ed8; /* Dark Royal Blue */
-  --text-muted: #475569;     /* Slate 600 */
+  --text-primary: #0f172a;   /* High Contrast Dark Gray */
+  --text-secondary: #1d4ed8;
+  --text-muted: #475569;
   
-  --border-color: #cbd5e1;   /* Slate 300 */
-  --border-light: #e2e8f0;   /* Slate 200 */
-  --border-active: #2563eb;  
+  --border-color: rgba(37, 99, 235, 0.35);
+  --border-light: rgba(203, 213, 225, 0.9);
+  --border-active: #2563eb;
   
   --brand-main: #2563eb;
   --brand-hover: #1d4ed8;
   --brand-text: #1d4ed8;
   
-  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 4px 12px -2px rgba(37, 99, 235, 0.15);
+  --shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 20px 40px -15px rgba(37, 99, 235, 0.15);
   
   --accent-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  --bg-gradient: #f8fafc;
+  --bg-gradient: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  --glass-blur: blur(16px);
 }
 
 body {
@@ -63,6 +65,8 @@ body {
   padding: 0;
   font-family: var(--sans);
   background: var(--bg-base);
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -81,19 +85,24 @@ body {
   box-sizing: border-box;
 }
 
+/* Glassmorphism Panel & Card Styling */
 .glass-panel {
   background: var(--bg-panel);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow);
-  border-radius: 12px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 16px;
+  transition: all 0.25s ease;
 }
 
 .glass-card {
   background: var(--bg-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border-light);
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  border-radius: 12px;
+  transition: all 0.25s ease;
 }
 
 .glass-card:hover {
@@ -104,28 +113,30 @@ body {
 
 .glass-input {
   background: var(--bg-input);
-  border: 1px solid var(--border-color);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border-light);
   color: var(--text-primary);
-  border-radius: 6px;
+  border-radius: 10px;
   outline: none;
   font-weight: 600;
   transition: all 0.2s ease;
-  padding: 10px 12px;
+  padding: 10px 14px;
 }
 
 .glass-input:focus {
   border-color: var(--border-active);
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
 }
 
-/* Light mode overrides */
+/* Light mode overrides for high contrast readability */
 [data-theme="light"] select,
 [data-theme="light"] input,
 [data-theme="light"] textarea {
   color: #0f172a !important;
-  font-weight: 600 !important;
-  background-color: #ffffff;
-  border: 1px solid #94a3b8;
+  font-weight: 700 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #94a3b8 !important;
 }
 
 [data-theme="light"] select option {
@@ -147,20 +158,21 @@ body {
   font-family: var(--mono) !important;
 }
 
+/* Gradient Glass Button styles */
 .btn-orange-gradient, .btn-blue-gradient {
   background: var(--accent-gradient);
   color: #ffffff !important;
-  font-weight: 700;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  border: none;
-  box-shadow: var(--shadow);
+  font-weight: 750;
+  border-radius: 10px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.35);
 }
 
 .btn-orange-gradient:hover:not(:disabled), .btn-blue-gradient:hover:not(:disabled) {
   background: var(--brand-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 25px rgba(37, 99, 235, 0.5);
 }
 
 .btn-orange-gradient:active:not(:disabled), .btn-blue-gradient:active:not(:disabled) {
@@ -205,7 +217,7 @@ input[type="range"].timeline-slider::-webkit-slider-thumb {
   cursor: pointer;
   -webkit-appearance: none;
   margin-top: -7px;
-  box-shadow: var(--shadow);
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
 }
 
 input[type="range"].timeline-slider::-webkit-slider-thumb:hover {

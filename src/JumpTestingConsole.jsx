@@ -910,7 +910,7 @@ export default function JumpTestingConsole({
       ctx.beginPath();
       ctx.moveTo(list[0].x, list[0].y);
       ctx.lineTo(list[1].x, list[1].y);
-      ctx.strokeStyle = '#ff6b00';
+      ctx.strokeStyle = '#2563eb';
       ctx.lineWidth = 3;
       ctx.stroke();
     }
@@ -1377,7 +1377,7 @@ export default function JumpTestingConsole({
           const closest = history.find(hl => Math.abs(hl.time - t) < 0.04);
           if (closest && closest.landmarks) {
             if (drawConnectors && POSE_CONNECTIONS) {
-              drawConnectors(ctx, closest.landmarks, POSE_CONNECTIONS, { color: '#ff6b00', lineWidth: 3 });
+              drawConnectors(ctx, closest.landmarks, POSE_CONNECTIONS, { color: '#2563eb', lineWidth: 3 });
             }
             if (drawLandmarks) {
               drawLandmarks(ctx, closest.landmarks, { color: '#ffffff', lineWidth: 1 });
@@ -1407,7 +1407,7 @@ export default function JumpTestingConsole({
               const leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
               const kx = leftKnee.x * w;
               const ky = leftKnee.y * h;
-              ctx.fillStyle = '#ff6b00';
+              ctx.fillStyle = '#2563eb';
               ctx.fillText(`${language === 'en' ? 'Knee L:' : 'ركبة L:'} ${leftKneeAngle.toFixed(0)}°`, kx - 70, ky);
             }
             if (rightHip && rightKnee && rightAnkle && rightHip.visibility > 0.5 && rightKnee.visibility > 0.5 && rightAnkle.visibility > 0.5) {
@@ -1454,7 +1454,7 @@ export default function JumpTestingConsole({
         ctx.lineWidth = 1.5;
 
         // Draw "cm" header unit above the ruler
-        ctx.fillStyle = '#ff6b00';
+        ctx.fillStyle = '#2563eb';
         ctx.font = '900 13px Cairo';
         ctx.fillText('cm', w - 70, topY - 8);
 
@@ -1502,7 +1502,7 @@ export default function JumpTestingConsole({
         const activeHeight = groundY - yVal;
         if (activeHeight > 0) {
           ctx.save();
-          ctx.shadowColor = '#ff6b00';
+          ctx.shadowColor = '#2563eb';
           ctx.shadowBlur = 12;
           const grad = ctx.createLinearGradient(0, groundY, 0, yVal);
           grad.addColorStop(0, '#ff8c00');
@@ -1532,9 +1532,9 @@ export default function JumpTestingConsole({
         ctx.stroke();
 
         // Glowing progress arc
-        ctx.shadowColor = '#ff6b00';
+        ctx.shadowColor = '#2563eb';
         ctx.shadowBlur = 12;
-        ctx.strokeStyle = '#ff6b00';
+        ctx.strokeStyle = '#2563eb';
         ctx.lineWidth = 6;
         ctx.lineCap = 'round';
         ctx.beginPath();
@@ -1552,7 +1552,7 @@ export default function JumpTestingConsole({
         ctx.shadowBlur = 4;
         ctx.fillText(`${(progressPct * 100).toFixed(0)}%`, circleX, circleY - 4);
         
-        ctx.fillStyle = '#ff6b00';
+        ctx.fillStyle = '#2563eb';
         ctx.font = '900 8px Cairo';
         ctx.fillText(language === 'en' ? 'HEIGHT' : 'الارتفاع', circleX, circleY + 14);
         ctx.restore();
@@ -1560,10 +1560,10 @@ export default function JumpTestingConsole({
         // Draw top-right stats box - REDESIGNED, LARGER, MORE CHIC
         const labelY = topY - 30;
         ctx.save();
-        ctx.shadowColor = '#ff6b00';
+        ctx.shadowColor = '#2563eb';
         ctx.shadowBlur = 15;
         ctx.fillStyle = 'rgba(10, 18, 36, 0.9)';
-        ctx.strokeStyle = '#ff6b00';
+        ctx.strokeStyle = '#2563eb';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.roundRect(w - 170, labelY - 15, 140, 48, 12);
@@ -1576,7 +1576,7 @@ export default function JumpTestingConsole({
         ctx.textBaseline = 'middle';
         
         // Label
-        ctx.fillStyle = '#ff6b00';
+        ctx.fillStyle = '#2563eb';
         ctx.font = '900 9px Cairo';
         ctx.fillText(language === 'en' ? 'LIVE HEIGHT' : 'الارتفاع المباشر', w - 100, labelY - 3);
 
@@ -1587,9 +1587,9 @@ export default function JumpTestingConsole({
 
         if (t >= t_peak_display) {
           ctx.save();
-          ctx.shadowColor = '#ff6b00';
+          ctx.shadowColor = '#2563eb';
           ctx.shadowBlur = 12;
-          ctx.fillStyle = '#ff6b00';
+          ctx.fillStyle = '#2563eb';
           ctx.font = '900 10px Cairo';
           ctx.fillText(language === 'en' ? 'PEAK JUMP 👑' : 'الارتقاء الأقصى 👑', w - 100, labelY - 22);
           ctx.restore();
@@ -1611,10 +1611,10 @@ export default function JumpTestingConsole({
           ctx.shadowOffsetY = 1;
           
           if (t >= t_peak_display) {
-            ctx.shadowColor = '#ff6b00';
+            ctx.shadowColor = '#2563eb';
             ctx.shadowBlur = 15;
             
-            ctx.fillStyle = '#ff6b00';
+            ctx.fillStyle = '#2563eb';
             ctx.font = '900 11px Cairo';
             ctx.fillText(language === 'en' ? 'MAX HEIGHT 👑' : 'الارتقاء الأقصى 👑', textX, textY - 32);
             
@@ -1709,7 +1709,7 @@ export default function JumpTestingConsole({
 
           // Draw Label
           ctx.textAlign = 'center';
-          ctx.fillStyle = '#ff6b00';
+          ctx.fillStyle = '#2563eb';
           ctx.font = '900 9px Cairo';
           ctx.fillText(label, centerX, centerY - 10);
 
@@ -1735,7 +1735,7 @@ export default function JumpTestingConsole({
             pulseScale = 1.0 + 0.25 * Math.sin(timeSincePeak * 10) * Math.exp(-timeSincePeak * 2);
           }
           
-          ctx.shadowColor = '#ff6b00';
+          ctx.shadowColor = '#2563eb';
           ctx.shadowBlur = 20;
           
           const fontSize = Math.round(36 * pulseScale);
@@ -2443,15 +2443,15 @@ export default function JumpTestingConsole({
                             strokeDashoffset={strokeDashoffset}
                             style={{ transition: "stroke-dashoffset 1.2s ease-out" }}
                           />
-                          <line x1="50" y1="50" x2={x2} y2={y2} stroke="#ea580c" strokeWidth="2.5" strokeLinecap="round" />
-                          <circle cx="50" cy="50" r="3" fill="#ea580c" />
+                          <line x1="50" y1="50" x2={x2} y2={y2} stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" />
+                          <circle cx="50" cy="50" r="3" fill="#2563eb" />
                         </>
                       );
                     })()}
                     <defs>
                       <linearGradient id="powerGaugeGradientHUD" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="#f59e0b" />
-                        <stop offset="100%" stopColor="#ea580c" />
+                        <stop offset="100%" stopColor="#2563eb" />
                       </linearGradient>
                     </defs>
                   </svg>
@@ -2593,7 +2593,7 @@ export default function JumpTestingConsole({
                       return [
                         drawCircle(jumpPhases.movementStart?.frame, '#38bdf8', 'Start'),
                         drawCircle(jumpPhases.deepestSquat?.frame, '#a855f7', 'Squat'),
-                        drawCircle(jumpPhases.takeoff?.frame, '#ff6b00', 'Takeoff'),
+                        drawCircle(jumpPhases.takeoff?.frame, '#2563eb', 'Takeoff'),
                         drawCircle(jumpPhases.apex?.frame, '#10b981', 'Apex'),
                         drawCircle(jumpPhases.landing?.frame, '#ef4444', 'Landing')
                       ];
@@ -2603,7 +2603,7 @@ export default function JumpTestingConsole({
                 <div className="flex justify-between text-[9px] text-gray-500 font-bold bg-black/20 p-2 rounded-xl">
                   <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8]"></span> البداية</span>
                   <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#a855f7]"></span> القرفصاء</span>
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#ff6b00]"></span> الإقلاع</span>
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#2563eb]"></span> الإقلاع</span>
                   <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span> القمة</span>
                   <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#ef4444]"></span> الهبوط</span>
                 </div>
@@ -3282,7 +3282,7 @@ export default function JumpTestingConsole({
                     />
                     <defs>
                       <linearGradient id="powerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#ff6b00" />
+                        <stop offset="0%" stopColor="#2563eb" />
                         <stop offset="100%" stopColor="#fb923c" />
                       </linearGradient>
                     </defs>
@@ -3435,7 +3435,7 @@ export default function JumpTestingConsole({
                   cx="40"
                   cy="40"
                   r="34"
-                  stroke="#ff6b00"
+                  stroke="#2563eb"
                   strokeWidth="6"
                   fill="transparent"
                   strokeDasharray={2 * Math.PI * 34}

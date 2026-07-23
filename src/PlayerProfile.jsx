@@ -360,10 +360,10 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       let fair = (isFemale ? 15 : 22) * youthFactor;
 
       if (value < fair) return { text: 'تحت المتوسط ⚠️', color: 'text-red-400', bg: '#ef4444', progress: 25, range: `المعدل الجيد: +${good.toFixed(1)}"` };
-      if (value < good) return { text: 'مقبول ⚡', color: 'text-blue-400', bg: '#f97316', progress: 45, range: `المعدل الجيد: +${good.toFixed(1)}"` };
+      if (value < good) return { text: 'مقبول ⚡', color: 'text-blue-400', bg: '#3b82f6', progress: 45, range: `المعدل الجيد: +${good.toFixed(1)}"` };
       if (value < excellent) return { text: 'جيد ⭐', color: 'text-cyan-400', bg: '#14b8a6', progress: 65, range: `الممتاز: +${excellent.toFixed(1)}"` };
       if (value < elite) return { text: 'ممتاز 🏆', color: 'text-emerald-400', bg: '#10b981', progress: 85, range: `النخبة: +${elite.toFixed(1)}"` };
-      return { text: 'نخبة أولمبية 👑', color: 'text-blue-400', bg: '#ff6b00', progress: 100, range: `أعلى من ${elite.toFixed(1)}"` };
+      return { text: 'نخبة أولمبية 👑', color: 'text-blue-400', bg: '#2563eb', progress: 100, range: `أعلى من ${elite.toFixed(1)}"` };
     }
     
     if (type === 'flight_time') {
@@ -374,7 +374,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       if (value < good) return { text: 'تلامس بطيء', color: 'text-red-400', bg: '#ef4444', progress: 40, range: `الهدف: +${excellent.toFixed(2)}s` };
       if (value < excellent) return { text: 'جيد ⚡', color: 'text-cyan-400', bg: '#14b8a6', progress: 65, range: `الهدف: +${excellent.toFixed(2)}s` };
       if (value < elite) return { text: 'ممتاز ⭐', color: 'text-emerald-400', bg: '#10b981', progress: 85, range: `النخبة: +${elite.toFixed(2)}s` };
-      return { text: 'تحليق نخبة 👑', color: 'text-blue-400', bg: '#ff6b00', progress: 100, range: `أطول من ${elite.toFixed(2)}s` };
+      return { text: 'تحليق نخبة 👑', color: 'text-blue-400', bg: '#2563eb', progress: 100, range: `أطول من ${elite.toFixed(2)}s` };
     }
 
     if (type === 'relative_power') {
@@ -385,7 +385,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       if (value < good) return { text: 'قدرة منخفضة', color: 'text-red-400', bg: '#ef4444', progress: 30, range: `المعدل الجيد: +${good.toFixed(1)} W/kg` };
       if (value < excellent) return { text: 'جيد ⚡', color: 'text-cyan-400', bg: '#14b8a6', progress: 60, range: `المعدل الممتاز: +${excellent.toFixed(1)} W/kg` };
       if (value < elite) return { text: 'ممتاز ⭐', color: 'text-emerald-400', bg: '#10b981', progress: 85, range: `النخبة: +${elite.toFixed(1)} W/kg` };
-      return { text: 'قدرة متفجرة 👑', color: 'text-blue-400', bg: '#ff6b00', progress: 100, range: `أعلى من ${elite.toFixed(1)} W/kg` };
+      return { text: 'قدرة متفجرة 👑', color: 'text-blue-400', bg: '#2563eb', progress: 100, range: `أعلى من ${elite.toFixed(1)} W/kg` };
     }
 
     if (type === 'rsi') {
@@ -395,10 +395,10 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       let fair = 1.0;
 
       if (value < fair) return { text: 'صلابة منخفضة ⚠️', color: 'text-red-400', bg: '#ef4444', progress: 25, range: `المعدل الجيد: +${good.toFixed(1)}` };
-      if (value < good) return { text: 'تفاعل مقبول ⚡', color: 'text-blue-400', bg: '#f97316', progress: 45, range: `المعدل الجيد: +${good.toFixed(1)}` };
+      if (value < good) return { text: 'تفاعل مقبول ⚡', color: 'text-blue-400', bg: '#3b82f6', progress: 45, range: `المعدل الجيد: +${good.toFixed(1)}` };
       if (value < excellent) return { text: 'تفاعل جيد ⭐', color: 'text-cyan-400', bg: '#14b8a6', progress: 65, range: `الممتاز: +${excellent.toFixed(1)}` };
       if (value < elite) return { text: 'ممتاز 🏆', color: 'text-emerald-400', bg: '#10b981', progress: 85, range: `النخبة: +${elite.toFixed(1)}` };
-      return { text: 'نخبة تفاعلية 👑', color: 'text-blue-400', bg: '#ff6b00', progress: 100, range: `أعلى من ${elite.toFixed(1)}` };
+      return { text: 'نخبة تفاعلية 👑', color: 'text-blue-400', bg: '#2563eb', progress: 100, range: `أعلى من ${elite.toFixed(1)}` };
     }
 
     return { text: '', color: '', bg: '', progress: 0, range: '' };
@@ -1133,15 +1133,15 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
           /* Sporty Orange Accent Theme */
           .print-infographics .text-orange-primary {
-            color: #ff6b00 !important;
+            color: #2563eb !important;
           }
 
           .print-infographics .bg-orange-primary {
-            background-color: #ff6b00 !important;
+            background-color: #2563eb !important;
           }
 
           .print-infographics .border-orange-primary {
-            border-color: #ff6b00 !important;
+            border-color: #2563eb !important;
           }
 
           /* Slate structures */
@@ -1177,11 +1177,11 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
           }
 
           .print-infographics .info-table th {
-            background-color: #ff6b00 !important;
+            background-color: #2563eb !important;
             color: #ffffff !important;
             font-weight: 900 !important;
             padding: 10px !important;
-            border: 1px solid #ff6b00 !important;
+            border: 1px solid #2563eb !important;
           }
 
           .print-infographics .info-table td {
@@ -1363,7 +1363,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         />
                         <defs>
                           <linearGradient id="radialBioGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#ff6b00" />
+                            <stop offset="0%" stopColor="#2563eb" />
                             <stop offset="100%" stopColor="#14b8a6" />
                           </linearGradient>
                         </defs>
@@ -2100,15 +2100,15 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         <AreaChart data={chartData}>
                           <defs>
                             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#ff6b00" stopOpacity={0.35}/>
-                              <stop offset="95%" stopColor="#ff6b00" stopOpacity={0}/>
+                              <stop offset="5%" stopColor="#2563eb" stopOpacity={0.35}/>
+                              <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" opacity={0.3} />
                           <XAxis dataKey="name" stroke="#6b7280" fontSize={11} tickMargin={5} />
                           <YAxis stroke="#6b7280" fontSize={11} domain={['auto', 'auto']} />
                           <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', color: '#fff', textAlign: 'right' }} />
-                          <Area type="monotone" dataKey="heightCm" name="الارتفاع (Cm)" stroke="#ff6b00" strokeWidth={3.5} fillOpacity={1} fill="url(#chartGradient)" dot={{ fill: '#ff6b00', r: 5, strokeWidth: 2, stroke: '#030712' }} activeDot={{ r: 7 }} />
+                          <Area type="monotone" dataKey="heightCm" name="الارتفاع (Cm)" stroke="#2563eb" strokeWidth={3.5} fillOpacity={1} fill="url(#chartGradient)" dot={{ fill: '#2563eb', r: 5, strokeWidth: 2, stroke: '#030712' }} activeDot={{ r: 7 }} />
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
@@ -2678,7 +2678,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       <defs>
                         <linearGradient id="grad-top" x1="0%" y1="0%" x2="100%" y2="100%">
                           <stop offset="0%" stopColor="#ff9a3c" />
-                          <stop offset="100%" stopColor="#ff6b00" />
+                          <stop offset="100%" stopColor="#2563eb" />
                         </linearGradient>
                         <linearGradient id="grad-left" x1="0%" y1="0%" x2="0%" y2="100%">
                           <stop offset="0%" stopColor="#e05300" />
@@ -2699,7 +2699,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       <line x1="50" y1="15" x2="50" y2="50" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.4" />
                       <line x1="20" y1="32" x2="50" y2="50" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.4" />
                       <line x1="80" y1="32" x2="50" y2="50" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.4" />
-                      <circle cx="50" cy="50" r="5" fill="#ff6b00" filter="url(#glow)" stroke="#ffffff" strokeWidth="1" />
+                      <circle cx="50" cy="50" r="5" fill="#2563eb" filter="url(#glow)" stroke="#ffffff" strokeWidth="1" />
                     </svg>
                     <div>
                       <h1 className="text-2xl font-black text-orange-primary">مختبر الأداء الرياضي والميكانيكا الحيوية</h1>
@@ -2718,7 +2718,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       <defs>
                         <linearGradient id="grad-top" x1="0%" y1="0%" x2="100%" y2="100%">
                           <stop offset="0%" stopColor="#ff9a3c" />
-                          <stop offset="100%" stopColor="#ff6b00" />
+                          <stop offset="100%" stopColor="#2563eb" />
                         </linearGradient>
                         <linearGradient id="grad-left" x1="0%" y1="0%" x2="0%" y2="100%">
                           <stop offset="0%" stopColor="#e05300" />
@@ -2739,7 +2739,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       <line x1="50" y1="15" x2="50" y2="50" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.4" />
                       <line x1="20" y1="32" x2="50" y2="50" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.4" />
                       <line x1="80" y1="32" x2="50" y2="50" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.4" />
-                      <circle cx="50" cy="50" r="5" fill="#ff6b00" filter="url(#glow)" stroke="#ffffff" strokeWidth="1" />
+                      <circle cx="50" cy="50" r="5" fill="#2563eb" filter="url(#glow)" stroke="#ffffff" strokeWidth="1" />
                     </svg>
                     <div>
                       <h1 className="text-2xl font-black text-orange-primary font-cairo">Sports Performance & Biomechanics Lab</h1>
@@ -2917,8 +2917,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         {/* Bar 1: SJ No Arms */}
                         {sjNoArms > 0 ? (
                           <>
-                            <rect x="35" y={125 - (sjNoArms * chartScaleFactor)} width="30" height={sjNoArms * chartScaleFactor} fill="#ff6b00" rx="3" />
-                            <text x="50" y={120 - (sjNoArms * chartScaleFactor)} fontSize="8" fontWeight="900" textAnchor="middle" fill="#ff6b00" fontFamily="monospace">{sjNoArms.toFixed(1)}</text>
+                            <rect x="35" y={125 - (sjNoArms * chartScaleFactor)} width="30" height={sjNoArms * chartScaleFactor} fill="#2563eb" rx="3" />
+                            <text x="50" y={120 - (sjNoArms * chartScaleFactor)} fontSize="8" fontWeight="900" textAnchor="middle" fill="#2563eb" fontFamily="monospace">{sjNoArms.toFixed(1)}</text>
                           </>
                         ) : (
                           <>

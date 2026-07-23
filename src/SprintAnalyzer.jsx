@@ -112,7 +112,7 @@ export default function SprintAnalyzer() {
         for (let i = 1; i < hipHistoryRef.current.length; i++) {
           canvasCtx.lineTo(hipHistoryRef.current[i].x, hipHistoryRef.current[i].y);
         }
-        canvasCtx.strokeStyle = '#ff6b00'; // لون سماوي (Cyan) للسرعة
+        canvasCtx.strokeStyle = '#2563eb'; // لون سماوي (Cyan) للسرعة
         canvasCtx.lineWidth = 4;
         canvasCtx.lineJoin = 'round';
         canvasCtx.stroke();
