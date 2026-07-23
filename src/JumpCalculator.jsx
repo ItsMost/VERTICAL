@@ -1654,7 +1654,7 @@ export default function JumpCalculator() {
                 )}
               </motion.div>
             ) : (
-              <motion.div key="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="glass-panel p-16 text-center text-gray-400 shadow-2xl flex flex-col items-center justify-center transition-colors duration-500">
+              <motion.div key="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="glass-card p-16 text-center text-gray-400 shadow-2xl flex flex-col items-center justify-center transition-colors duration-500">
                 <ScanEye size={64} className="text-orange-500 mb-4 opacity-75 animate-pulse" />
                 <h2 className="text-2xl font-black text-[var(--text-primary)] mb-2">
                   {language === 'en' ? 'Welcome to Vertical Lab v2.0 🧪' : 'مرحباً بك في مختبر الأداء Vertical Lab v2.0 🧪'}

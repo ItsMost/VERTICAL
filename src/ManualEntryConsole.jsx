@@ -161,9 +161,9 @@ export default function ManualEntryConsole({
       <div className="screen-only-manual space-y-6">
         
         {/* Header Title Card */}
-        <div className="glass-panel p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl border border-[var(--border-color)]">
+        <div className="glass-card p-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-600 via-amber-500 to-yellow-500 flex items-center justify-center text-white text-2xl shadow-lg border border-orange-400/40 shrink-0">
+            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-600 via-amber-500 to-yellow-500 flex items-center justify-center text-white text-2xl shadow-lg border border-orange-400/40 shrink-0">
               <Edit3 size={24} />
             </div>
             <div>
@@ -198,7 +198,7 @@ export default function ManualEntryConsole({
         </div>
 
         {/* Athlete Info Banner */}
-        <div className="bg-black/30 border border-gray-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 text-xs">
+        <div className="bg-black/30 border border-gray-800 p-4 rounded-lg flex flex-wrap items-center justify-between gap-4 text-xs">
           <div className="flex items-center gap-2">
             <span className="text-gray-400 font-bold">{isEn ? 'Selected Athlete:' : 'اللاعب المختار:'}</span>
             <span className="font-black text-white bg-orange-950/60 px-3 py-1 rounded-xl border border-orange-500/30 text-sm">
@@ -214,10 +214,10 @@ export default function ManualEntryConsole({
         </div>
 
         {/* Input Controls Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto">
           
           {/* Left Column: Manual Form Fields */}
-          <div className="lg:col-span-6 bg-black/20 p-6 rounded-3xl border border-gray-800 space-y-5">
+          <div className="w-full bg-black/20 p-6 rounded-xl border border-gray-800 space-y-5">
             <h3 className="font-black text-sm text-orange-400 border-b border-gray-800 pb-2.5 flex items-center gap-2">
               <Activity size={18} /> {isEn ? 'Manual Measurement Inputs' : 'مدخلات الأرقام والقياسات اليدوية'}
             </h3>
@@ -270,7 +270,7 @@ export default function ManualEntryConsole({
             {form.testType === 'clean' ? (
               /* CLEAN LIFT ONLY INPUTS */
               <div className="space-y-4">
-                <div className="bg-emerald-950/20 p-5 rounded-2xl border border-emerald-500/30 space-y-3">
+                <div className="bg-emerald-950/20 p-5 rounded-lg border border-emerald-500/30 space-y-3">
                   <div className="flex justify-between items-center">
                     <label className="text-xs text-emerald-400 font-extrabold flex items-center gap-1.5">
                       <Dumbbell size={18} /> {isEn ? 'Clean / Power Clean Weight (kg):' : 'وزن رفعة الكلين (Power Clean 1RM kg):'}
@@ -303,7 +303,7 @@ export default function ManualEntryConsole({
               /* JUMP MEASUREMENT INPUTS */
               <div className="space-y-4">
                 {/* Jump Height & Flight Time (Bi-directional Sync) */}
-                <div className="grid grid-cols-2 gap-4 bg-orange-950/20 p-4 rounded-2xl border border-orange-500/20">
+                <div className="grid grid-cols-2 gap-4 bg-orange-950/20 p-4 rounded-lg border border-orange-500/20">
                   <div>
                     <label className="block text-xs text-orange-400 font-extrabold mb-1">
                       📏 {isEn ? 'Jump Height (cm):' : 'ارتفاع القفزة (سم):'}
@@ -335,7 +335,7 @@ export default function ManualEntryConsole({
 
                 {/* Ground Contact Time ONLY for Drop Jump / RSI */}
                 {form.testType === 'rsi' && (
-                  <div className="bg-amber-950/20 p-4 rounded-2xl border border-amber-500/25 space-y-2">
+                  <div className="bg-amber-950/20 p-4 rounded-lg border border-amber-500/25 space-y-2">
                     <label className="block text-xs text-amber-400 font-extrabold">
                       ⚡ {isEn ? 'Ground Contact Time (s):' : 'زمن التلامس مع الأرض (ثانية):'}
                     </label>
@@ -370,11 +370,11 @@ export default function ManualEntryConsole({
           </div>
 
           {/* Right Column: Live Telemetry & Calculations Cockpit */}
-          <div className="lg:col-span-6 space-y-5">
+          <div className="w-full space-y-5">
             
             {/* Live Metrics Cockpit Card */}
-            <div className="bg-black/35 p-6 rounded-3xl border border-orange-500/20 space-y-5 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="bg-[var(--bg-surface)] p-6 rounded-xl border border-[var(--border-color)] space-y-5">
+              
 
               <h3 className="font-black text-sm text-orange-400 border-b border-gray-800 pb-2.5 flex items-center justify-between">
                 <span className="flex items-center gap-2"><Zap size={18} /> {isEn ? 'Live Biomechanical Physics Output' : 'مخرجات الفيزياء والميكانيكا الحيوية الحية'}</span>
@@ -385,7 +385,7 @@ export default function ManualEntryConsole({
               {form.testType === 'clean' ? (
                 /* CLEAN LIFT TELEMETRY CARDS */
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-emerald-950/30 p-4 rounded-2xl border border-emerald-500/40 space-y-1">
+                  <div className="bg-emerald-950/30 p-4 rounded-lg border border-emerald-500/40 space-y-1">
                     <span className="text-[10px] text-emerald-400 font-bold block">{isEn ? 'Clean / Bodyweight Ratio:' : 'نسبة الكلين لوزن الجسم:'}</span>
                     <div className="text-2xl font-black text-emerald-400 font-mono">
                       {cleanBwRatio > 0 ? `${cleanBwRatio.toFixed(2)}x` : '—'} <span className="text-xs text-gray-400 font-sans">BW</span>
@@ -395,7 +395,7 @@ export default function ManualEntryConsole({
                     </span>
                   </div>
 
-                  <div className="bg-black/40 p-4 rounded-2xl border border-gray-800 space-y-1">
+                  <div className="bg-black/40 p-4 rounded-lg border border-gray-800 space-y-1">
                     <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Total Lift Mass:' : 'إجمالي حمولة الرفعة:'}</span>
                     <div className="text-2xl font-black text-white font-mono">
                       {(cleanWeight + addedLoad) > 0 ? (cleanWeight + addedLoad) : '—'} <span className="text-xs text-gray-400 font-sans">kg</span>
@@ -408,7 +408,7 @@ export default function ManualEntryConsole({
               ) : form.testType === 'rsi' ? (
                 /* RSI DROP JUMP TELEMETRY CARDS */
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-amber-950/30 p-4 rounded-2xl border border-amber-500/40 space-y-1">
+                  <div className="bg-amber-950/30 p-4 rounded-lg border border-amber-500/40 space-y-1">
                     <span className="text-[10px] text-amber-400 font-bold block">{isEn ? 'RSI Rebound Index:' : 'مؤشر القوة التفاعلية (RSI):'}</span>
                     <div className="text-2xl font-black text-amber-400 font-mono">
                       {rsiScore > 0 ? rsiScore.toFixed(2) : '—'}
@@ -418,7 +418,7 @@ export default function ManualEntryConsole({
                     </span>
                   </div>
 
-                  <div className="bg-black/40 p-4 rounded-2xl border border-gray-800 space-y-1">
+                  <div className="bg-black/40 p-4 rounded-lg border border-gray-800 space-y-1">
                     <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Jump Height & Flight:' : 'ارتفاع القفزة والطيران:'}</span>
                     <div className="text-xl font-black text-orange-400 font-mono">
                       {jumpHeight > 0 ? `${jumpHeight} cm` : '—'}
@@ -431,7 +431,7 @@ export default function ManualEntryConsole({
               ) : (
                 /* STANDARD VERTICAL JUMP TELEMETRY CARDS */
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-black/40 p-4 rounded-2xl border border-gray-800 space-y-1">
+                  <div className="bg-black/40 p-4 rounded-lg border border-gray-800 space-y-1">
                     <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Peak Power (Harman/Sayers):' : 'ذروة القدرة (الوات):'}</span>
                     <div className="text-xl font-black text-orange-400 font-mono">
                       {peakPower > 0 ? peakPower.toFixed(0) : '—'} <span className="text-xs text-gray-400 font-sans">W</span>
@@ -441,7 +441,7 @@ export default function ManualEntryConsole({
                     </span>
                   </div>
 
-                  <div className="bg-black/40 p-4 rounded-2xl border border-gray-800 space-y-1">
+                  <div className="bg-black/40 p-4 rounded-lg border border-gray-800 space-y-1">
                     <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Takeoff Force (GRF):' : 'قوة الدفع الأرضي:'}</span>
                     <div className="text-xl font-black text-amber-400 font-mono">
                       {takeoffForceN > 0 ? takeoffForceN.toFixed(0) : '—'} <span className="text-xs text-gray-400 font-sans">N</span>
@@ -455,7 +455,7 @@ export default function ManualEntryConsole({
 
               {/* Clean Strength Evaluation Box */}
               {cleanWeight > 0 && (
-                <div className="bg-emerald-950/20 border border-emerald-500/30 p-4 rounded-2xl space-y-2 text-xs">
+                <div className="bg-emerald-950/20 border border-emerald-500/30 p-4 rounded-lg space-y-2 text-xs">
                   <h4 className="font-black text-emerald-400 flex items-center gap-1.5">
                     🏋️‍♂️ {isEn ? 'Clean & Explosive Power Synergy' : 'مؤشر التوافق بين رفعة الكلين والقفز الانفجاري'}
                   </h4>
@@ -482,7 +482,7 @@ export default function ManualEntryConsole({
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="w-full py-4 btn-orange-gradient font-black text-xs rounded-2xl shadow-xl flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-4 btn-orange-gradient font-black text-xs rounded-lg shadow-xl flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Save size={18} />
                   <span>{isSaving ? (isEn ? 'Saving...' : 'جاري الحفظ...') : (isEn ? 'Save Measurement to Database' : 'حفظ القياس في سجل اللاعب')}</span>
@@ -490,7 +490,7 @@ export default function ManualEntryConsole({
 
                 <button
                   onClick={handlePrint}
-                  className="w-full py-3.5 bg-orange-950/40 hover:bg-orange-900/50 border border-orange-500/40 text-orange-300 font-bold text-xs rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3.5 bg-orange-950/40 hover:bg-orange-900/50 border border-orange-500/40 text-orange-300 font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Printer size={16} />
                   <span>{isEn ? 'Print Official Assessment Sheet (PDF)' : 'طباعة التقرير الفني والميكانيكي (PDF)'}</span>

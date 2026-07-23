@@ -1,47 +1,62 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  /* PeakForce Lab Vertical v2.0 - Volcanic Fire Orange & Obsidian Carbon Theme */
-  --bg-base: #06080c;
-  --bg-panel: rgba(14, 18, 28, 0.88);
-  --bg-surface: rgba(22, 29, 44, 0.72);
-  --bg-input: #0a0d14;
-  --text-primary: #f8fafc;
-  --text-secondary: #ff5500; /* Volcanic Fire Orange */
-  --text-muted: #94a3b8;
-  --border-color: rgba(255, 85, 0, 0.32); /* Volcanic Glowing Orange Border */
-  --border-light: rgba(255, 255, 255, 0.09);
-  --brand-main: #ff5500;
-  --brand-hover: #ff7700;
-  --brand-text: #ff8800;
-  --shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.92), 0 0 28px rgba(255, 85, 0, 0.16);
-  --accent-gradient: linear-gradient(135deg, #ff5500 0%, #ff8800 100%);
-  --bg-gradient: radial-gradient(circle at 50% 0%, #1a2234 0%, #06080c 100%);
-  --accent-glow: 0 0 30px rgba(255, 85, 0, 0.45);
-  --glass-blur: blur(28px);
+  /* PeakForce Lab Vertical v2.0 - Matte Slate & Muted Orange */
+  
+  /* Deep Slate Dark Theme */
+  --bg-base: #0f172a;        /* Slate 900 */
+  --bg-panel: #1e293b;       /* Slate 800 */
+  --bg-surface: #334155;     /* Slate 700 */
+  --bg-input: #0f172a;       /* Slate 900 for inputs */
+  
+  --text-primary: #f8fafc;   /* Slate 50 */
+  --text-secondary: #ea580c; /* Muted Orange - No Neon */
+  --text-muted: #94a3b8;     /* Slate 400 */
+  
+  --border-color: #475569;   /* Slate 600 */
+  --border-light: #334155;   /* Slate 700 */
+  --border-active: #ea580c;  /* Orange Border for focus */
+  
+  --brand-main: #ea580c;     /* Muted Orange */
+  --brand-hover: #c2410c;    /* Darker Orange for hover */
+  --brand-text: #f97316;     /* Lighter Orange for text contrast */
+  
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+  
+  /* Solid colors instead of gradients for flat design */
+  --accent-gradient: #ea580c; 
+  --bg-gradient: #0f172a; /* Flat background */
+  
   --sans: 'Cairo', system-ui, sans-serif;
   --heading: 'Cairo', system-ui, sans-serif;
   --mono: 'Outfit', 'Cairo', ui-monospace, Consolas, monospace;
 }
 
 [data-theme="light"] {
-  /* Industrial Light Steel Theme with Volcanic Orange Accents */
-  --bg-base: #e2e8f0;
-  --bg-panel: rgba(255, 255, 255, 0.9);
-  --bg-surface: rgba(241, 245, 249, 0.95);
-  --bg-input: #ffffff;
-  --text-primary: #0f172a;
-  --text-secondary: #ff5500;
-  --text-muted: #475569;
-  --border-color: rgba(255, 85, 0, 0.38);
-  --border-light: rgba(203, 213, 225, 0.9);
-  --brand-main: #ff5500;
-  --brand-hover: #e04b00;
-  --brand-text: #ea580c;
-  --shadow: 0 20px 60px -15px rgba(15, 23, 42, 0.08), 0 0 1px rgba(15, 23, 42, 0.05);
-  --accent-gradient: linear-gradient(135deg, #ff5500 0%, #ea580c 100%);
-  --bg-gradient: linear-gradient(180deg, #f8fafc 0%, #cbd5e1 100%);
-  --accent-glow: 0 0 18px rgba(255, 85, 0, 0.28);
+  /* High Contrast Off-White & Amber Theme */
+  --bg-base: #f8fafc;        /* Slate 50 - Off white */
+  --bg-panel: #ffffff;       /* Pure white panels */
+  --bg-surface: #f1f5f9;     /* Slate 100 for secondary cards */
+  --bg-input: #ffffff;       /* White inputs */
+  
+  --text-primary: #0f172a;   /* Slate 900 - Very dark gray for high readability */
+  --text-secondary: #c2410c; /* Darker orange for better contrast on white */
+  --text-muted: #475569;     /* Slate 600 */
+  
+  --border-color: #cbd5e1;   /* Slate 300 - Clearly visible borders */
+  --border-light: #e2e8f0;   /* Slate 200 */
+  --border-active: #ea580c;  /* Orange Border for focus */
+  
+  --brand-main: #ea580c;
+  --brand-hover: #c2410c;
+  --brand-text: #c2410c;
+  
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  
+  --accent-gradient: #ea580c;
+  --bg-gradient: #f8fafc; /* Flat background */
 }
 
 body {
@@ -49,11 +64,9 @@ body {
   padding: 0;
   font-family: var(--sans);
   background: var(--bg-base);
-  background-image: var(--bg-gradient);
-  background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
   overflow-x: hidden;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -69,56 +82,67 @@ body {
   box-sizing: border-box;
 }
 
-/* Glassmorphism panel definitions */
+/* Flat Panel Definitions (Replacing Glassmorphism) */
 .glass-panel {
   background: var(--bg-panel);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow);
-  border-radius: 24px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 12px; /* Less rounded for professional look */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .glass-card {
   background: var(--bg-surface);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border-light);
-  border-radius: 18px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px; /* Sharper corners */
+  transition: all 0.2s ease;
 }
 
 .glass-card:hover {
   border-color: var(--border-color);
-  box-shadow: 0 10px 30px -10px rgba(255, 85, 0, 0.3);
+  box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
 
 .glass-input {
   background: var(--bg-input);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border-color);
   color: var(--text-primary);
-  border-radius: 14px;
+  border-radius: 6px;
   outline: none;
-  font-weight: 500;
+  font-weight: 600; /* Bolder for legibility */
   transition: all 0.2s ease;
+  padding: 10px 12px;
 }
 
 .glass-input:focus {
-  border-color: var(--brand-main);
-  box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.22);
+  border-color: var(--border-active);
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.2); /* Subtle focus ring */
 }
 
-/* High contrast Text Shadow for Light Mode */
-[data-theme="light"] .text-shadow-contrast {
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-}
-
+/* Light mode overrides for specific elements to ensure contrast */
 [data-theme="light"] select,
-[data-theme="light"] input {
+[data-theme="light"] input,
+[data-theme="light"] textarea {
   color: #0f172a !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
+  background-color: #ffffff;
+  border: 1px solid #94a3b8; /* Darker border for inputs in light mode */
+}
+
+[data-theme="light"] select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+[data-theme="light"] .text-gray-400,
+[data-theme="light"] .text-gray-500 {
+  color: #475569 !important; /* Force darker grays in light mode */
+}
+
+[data-theme="light"] .border-gray-800,
+[data-theme="light"] .border-gray-700 {
+  border-color: #cbd5e1 !important;
 }
 
 /* Support Outfit Font for numbers specifically */
@@ -126,50 +150,44 @@ body {
   font-family: var(--mono) !important;
 }
 
-/* Volcanic Fire Orange Button styles */
+/* Flat Solid Button styles (Replacing Glow Gradients) */
 .btn-orange-gradient {
-  background: var(--accent-gradient);
-  color: #ffffff;
-  font-weight: 850;
-  border-radius: 14px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px rgba(255, 85, 0, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: var(--brand-main);
+  color: #ffffff !important;
+  font-weight: 700;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  border: none;
+  box-shadow: var(--shadow);
 }
 
 .btn-orange-gradient:hover:not(:disabled) {
-  color: #ffffff;
-  transform: translateY(-1.5px);
-  box-shadow: 0 6px 25px rgba(255, 85, 0, 0.6), 0 0 16px rgba(255, 136, 0, 0.4);
+  background: var(--brand-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-orange-gradient:active:not(:disabled) {
   transform: translateY(0);
 }
 
-/* Loading Animations */
-@keyframes bubble {
-  0% {
-    transform: translateY(0) scale(1);
-    opacity: 0;
-  }
-  50% {
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateY(-80px) scale(0.6);
-    opacity: 0;
-  }
+/* Loading Animations - Simplified */
+@keyframes pulse {
+  0% { opacity: 0.5; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0.5; transform: scale(0.95); }
 }
 
 .loading-bubble {
-  animation: bubble 2s infinite ease-out;
+  animation: pulse 1.5s infinite ease-in-out;
+  background-color: var(--brand-main);
+  border-radius: 50%;
 }
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -178,11 +196,11 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: var(--border-color);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--brand-main);
+  background: var(--text-muted);
 }
 
 /* Custom Premium Range Input styling */
@@ -197,43 +215,26 @@ input[type="range"].timeline-slider {
 
 input[type="range"].timeline-slider::-webkit-slider-runnable-track {
   width: 100%;
-  height: 100%;
-  background: transparent;
+  height: 6px;
+  background: var(--border-color);
+  border-radius: 3px;
 }
 
 input[type="range"].timeline-slider::-webkit-slider-thumb {
-  height: 28px;
-  width: 12px;
-  border-radius: 4px;
-  background: #ff5500; /* Volcanic Fire Orange Playhead thumb */
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: var(--brand-main);
   cursor: pointer;
   -webkit-appearance: none;
-  margin-top: 10px;
-  box-shadow: 0 0 14px rgba(255, 85, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.8);
-  border: 1px solid #000;
-  transition: transform 0.1s ease, background-color 0.1s ease;
+  margin-top: -7px; /* (20/2) - (6/2) */
+  box-shadow: var(--shadow);
+  transition: transform 0.1s ease;
 }
 
 input[type="range"].timeline-slider::-webkit-slider-thumb:hover {
-  transform: scaleY(1.2) scaleX(1.3);
-  background: #ff7700;
-}
-
-/* Firefox support */
-input[type="range"].timeline-slider::-moz-range-track {
-  width: 100%;
-  height: 100%;
-  background: transparent;
-}
-
-input[type="range"].timeline-slider::-moz-range-thumb {
-  height: 28px;
-  width: 12px;
-  border-radius: 4px;
-  background: #ff5500;
-  cursor: pointer;
-  box-shadow: 0 0 14px rgba(255, 85, 0, 0.9);
-  border: 1px solid #000;
+  transform: scale(1.15);
+  background: var(--brand-hover);
 }
 
 /* Force Cairo Font Family globally */
@@ -243,12 +244,12 @@ body, button, input, select, textarea, text, span, div, p, h1, h2, h3, h4, h5, h
 
 /* Add custom scroll clearing spacer classes */
 .bottom-dock-clearance {
-  height: 120px;
+  height: 80px;
   width: 100%;
 }
 @media (max-width: 768px) {
   .bottom-dock-clearance {
-    height: 140px;
+    height: 100px;
     width: 100%;
   }
 }
