@@ -1588,7 +1588,7 @@ export default function FVPCalculator({ activePlayer }) {
                               y2={`${actY2}%`} 
                               stroke="#00b4d8" 
                               strokeWidth="3.5" 
-                              style={{ filter: 'drop-shadow(0px 0px 4px rgba(234, 88, 12, 0.4))' }}
+                              style={{ filter: 'drop-shadow(0px 0px 4px rgba(37, 99, 235, 0.4))' }}
                             />
 
                              {/* Textual deficit status overlay on the SVG plot */}

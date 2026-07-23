@@ -733,8 +733,8 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
             return (
               <div 
                 key={player.id} 
-                className={`bg-[#111827]/40 backdrop-blur-xl border rounded-2xl hover:border-blue-500/50 hover:shadow-[0_0_20px_rgba(255,107,0,0.15)] transition-all duration-300 flex flex-col relative overflow-hidden group ${
-                  isExpanded ? 'border-blue-500/40 shadow-[0_0_25px_rgba(255,107,0,0.1)]' : 'border-gray-800'
+                className={`bg-[#111827]/40 backdrop-blur-xl border rounded-2xl hover:border-blue-500/50 hover:shadow-[0_0_20px_rgba(37, 99, 235, 0.15)] transition-all duration-300 flex flex-col relative overflow-hidden group ${
+                  isExpanded ? 'border-blue-500/40 shadow-[0_0_25px_rgba(37, 99, 235, 0.1)]' : 'border-gray-800'
                 } ${getBorderGlowClass(rating)}`}
               >
                 {/* Compact Row Header */}

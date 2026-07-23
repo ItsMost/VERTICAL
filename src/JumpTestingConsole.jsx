@@ -1422,7 +1422,7 @@ export default function JumpTestingConsole({
         }
 
         // Draw horizontal grid lines in orange
-        ctx.strokeStyle = 'rgba(255, 107, 0, 0.05)';
+        ctx.strokeStyle = 'rgba(37, 99, 235, 0.05)';
         ctx.lineWidth = 1;
         for (let hc = 10; hc <= maxScaleCm; hc += 10) {
           const y = getYForHeight(hc);
@@ -1640,10 +1640,10 @@ export default function JumpTestingConsole({
         const hudY = h - hudH - 25;
 
         ctx.save();
-        ctx.shadowColor = 'rgba(255, 107, 0, 0.35)';
+        ctx.shadowColor = 'rgba(37, 99, 235, 0.35)';
         ctx.shadowBlur = 15;
         ctx.fillStyle = 'rgba(10, 18, 36, 0.88)';
-        ctx.strokeStyle = 'rgba(255, 107, 0, 0.45)';
+        ctx.strokeStyle = 'rgba(37, 99, 235, 0.45)';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.roundRect(hudX, hudY, hudW, hudH, 14);
@@ -1760,7 +1760,7 @@ export default function JumpTestingConsole({
         ctx.save();
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
         ctx.shadowBlur = 4;
-        ctx.fillStyle = 'rgba(255, 107, 0, 0.4)';
+        ctx.fillStyle = 'rgba(37, 99, 235, 0.4)';
         ctx.font = 'bold 11px Cairo';
         ctx.textAlign = 'left';
         ctx.fillText('PeakForce Lab', hudX + 8, hudY - 8);
@@ -1882,7 +1882,7 @@ export default function JumpTestingConsole({
                       onTouchStart={handleJogStart}
                       className="relative w-32 h-32 rounded-full bg-gradient-to-br from-gray-800 to-black border-4 border-gray-900 shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing select-none group"
                     >
-                      <div className="absolute inset-0 rounded-full border-2 border-blue-500/20 group-hover:border-blue-500/50 group-active:border-blue-400 group-active:shadow-[0_0_20px_rgba(255,107,0,0.45)] transition-all duration-300 pointer-events-none"></div>
+                      <div className="absolute inset-0 rounded-full border-2 border-blue-500/20 group-hover:border-blue-500/50 group-active:border-blue-400 group-active:shadow-[0_0_20px_rgba(37, 99, 235, 0.45)] transition-all duration-300 pointer-events-none"></div>
                       
                       <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="4" />
@@ -1915,7 +1915,7 @@ export default function JumpTestingConsole({
                           transition: isDraggingJog.current ? 'none' : 'transform 0.15s ease-out'
                         }}
                       >
-                        <div className="w-1 h-4 bg-blue-400 rounded-full shadow-[0_0_8px_rgba(255,107,0,0.8)]"></div>
+                        <div className="w-1 h-4 bg-blue-400 rounded-full shadow-[0_0_8px_rgba(37, 99, 235, 0.8)]"></div>
                       </div>
 
                       {/* Center Display */}
@@ -2129,7 +2129,7 @@ export default function JumpTestingConsole({
                     <button
                       type="button"
                       onClick={() => setIsFpsDetectionActive(!isFpsDetectionActive)}
-                      className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${isFpsDetectionActive ? 'bg-blue-500 shadow-[0_0_10px_rgba(255,107,0,0.4)]' : 'bg-gray-800'}`}
+                      className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${isFpsDetectionActive ? 'bg-blue-500 shadow-[0_0_10px_rgba(37, 99, 235, 0.4)]' : 'bg-gray-800'}`}
                     >
                       <span className={`absolute top-1 bottom-1 w-4 h-4 rounded-full bg-white transition-all ${isFpsDetectionActive ? 'right-7' : 'right-1'}`} />
                     </button>
@@ -2387,7 +2387,7 @@ export default function JumpTestingConsole({
                       const pct = Math.min(100, (heightCm / 100) * 100);
                       return (
                         <div 
-                          className="w-full bg-gradient-to-t from-blue-500 to-blue-500 rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(255,107,0,0.6)]"
+                          className="w-full bg-gradient-to-t from-blue-500 to-blue-500 rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(37, 99, 235, 0.6)]"
                           style={{ height: `${pct}%` }}
                         />
                       );
@@ -2499,7 +2499,7 @@ export default function JumpTestingConsole({
 
                   {jumpType !== 'sj' && jumpPhases?.movementStart && (
                     <div className="relative flex items-start gap-3 flex-row-reverse text-right">
-                      <div className="absolute right-[-17px] top-1 w-2.5 h-2.5 rounded-full bg-blue-400 border-2 border-black shadow-[0_0_8px_rgba(255,107,0,0.6)]"></div>
+                      <div className="absolute right-[-17px] top-1 w-2.5 h-2.5 rounded-full bg-blue-400 border-2 border-black shadow-[0_0_8px_rgba(37, 99, 235, 0.6)]"></div>
                       <div className="flex-1 bg-black/20 p-2 rounded-xl border border-blue-500/15">
                         <span className="font-extrabold text-[10px] text-blue-400 block leading-tight">بدء النزول الحركي (Eccentric Phase)</span>
                         <div className="flex justify-between items-center mt-1 text-[9px] text-gray-500 font-mono">
@@ -2859,7 +2859,7 @@ export default function JumpTestingConsole({
                         transition: isDraggingJog.current ? 'none' : 'transform 0.15s ease-out'
                       }}
                     >
-                      <div className="w-0.5 h-3 bg-blue-400 rounded-full shadow-[0_0_8px_rgba(255,107,0,0.8)]"></div>
+                      <div className="w-0.5 h-3 bg-blue-400 rounded-full shadow-[0_0_8px_rgba(37, 99, 235, 0.8)]"></div>
                     </div>
 
                     {/* Center Display */}
@@ -3052,7 +3052,7 @@ export default function JumpTestingConsole({
                   <button
                     type="button"
                     onClick={() => setIsFpsDetectionActive(!isFpsDetectionActive)}
-                    className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${isFpsDetectionActive ? 'bg-blue-500 shadow-[0_0_10px_rgba(255,107,0,0.4)]' : 'bg-gray-800'}`}
+                    className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${isFpsDetectionActive ? 'bg-blue-500 shadow-[0_0_10px_rgba(37, 99, 235, 0.4)]' : 'bg-gray-800'}`}
                   >
                     <span className={`absolute top-1 bottom-1 w-4 h-4 rounded-full bg-white transition-all ${isFpsDetectionActive ? 'right-7' : 'right-1'}`} />
                   </button>
@@ -3239,7 +3239,7 @@ export default function JumpTestingConsole({
                 <div className="flex items-end gap-4 h-48 w-full justify-center">
                   <div className="w-12 h-full bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden relative flex flex-col justify-end p-1">
                     <div 
-                      className="w-full bg-gradient-to-t from-blue-500 to-blue-500 rounded-xl transition-all duration-1000 shadow-[0_0_12px_rgba(255,107,0,0.4)]"
+                      className="w-full bg-gradient-to-t from-blue-500 to-blue-500 rounded-xl transition-all duration-1000 shadow-[0_0_12px_rgba(37, 99, 235, 0.4)]"
                       style={{ 
                         height: `${Math.min(100, (parseFloat(stats.heightCm) / (displayUnit === 'cm' ? 100 : 40)) * 100)}%` 
                       }}
@@ -3420,7 +3420,7 @@ export default function JumpTestingConsole({
       {/* Fullscreen Export Progress Overlay */}
       {isExporting && (
         <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/60 text-white p-6">
-          <div className="bg-[#0a0d14] border border-blue-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(255,107,0,0.15)] animate-fade-in">
+          <div className="bg-[#0a0d14] border border-blue-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(37, 99, 235, 0.15)] animate-fade-in">
             <div className="relative w-20 h-20">
               <svg className="w-full h-full transform -rotate-90">
                 <circle
@@ -3463,7 +3463,7 @@ export default function JumpTestingConsole({
       {/* Export Success Modal */}
       {exportedVideoUrl && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in" style={{ direction: 'rtl' }}>
-          <div className="bg-[#0a0d14]/95 border border-blue-500/30 p-6 md:p-8 rounded-3xl flex flex-col items-center gap-5 max-w-md w-full text-center shadow-[0_0_60px_rgba(255,107,0,0.25)] relative backdrop-blur-xl">
+          <div className="bg-[#0a0d14]/95 border border-blue-500/30 p-6 md:p-8 rounded-3xl flex flex-col items-center gap-5 max-w-md w-full text-center shadow-[0_0_60px_rgba(37, 99, 235, 0.25)] relative backdrop-blur-xl">
             {/* Close button */}
             <button 
               onClick={() => {

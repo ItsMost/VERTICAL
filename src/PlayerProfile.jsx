@@ -1219,12 +1219,12 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       <div className="screen-only space-y-6">
         
         {/* Modern Athlete Passport Header */}
-        <div className="glass-panel p-6 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-6 relative overflow-hidden transition-all duration-300">
+        <div className="glass-panel p-6 border-l-4 border-l-blue-500 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-6 relative overflow-hidden transition-all duration-300">
           <div className="absolute -top-12 -left-12 w-36 h-36 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="flex flex-col sm:flex-row items-center gap-5 z-10">
             {/* Athlete Initial Badge */}
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white text-3xl font-black shadow-[0_0_20px_rgba(255,107,0,0.45)] border border-blue-400/30 font-mono">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white text-3xl font-black shadow-[0_0_20px_rgba(37, 99, 235, 0.45)] border border-blue-400/30 font-mono">
               {activePlayer.full_name ? activePlayer.full_name.split(' ').map(n => n[0]).slice(0, 2).join('') : 'P'}
             </div>
             
@@ -1849,7 +1849,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                               return (
                                 <div className={`p-5 rounded-2xl border bg-black/30 flex flex-col justify-between transition-all duration-300 ${
                                   canDunk 
-                                    ? 'border-blue-500/40 shadow-[0_0_15px_rgba(255,107,0,0.2)] bg-blue-950/5' 
+                                    ? 'border-blue-500/40 shadow-[0_0_15px_rgba(37, 99, 235, 0.2)] bg-blue-950/5' 
                                     : 'border-cyan-500/25 shadow-[0_0_10px_rgba(245,158,11,0.05)] bg-cyan-950/5'
                                 }`}>
                                   <div>
@@ -1940,7 +1940,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           elastic: {
                             badgeText: language === 'en' ? "Elastic Deficit (Focus: Tendon Stiffness & SSC)" : "عجز في مطاطية الأوتار (التركيز: القوة التفاعلية والصلابة)",
                             badgeColor: "text-blue-400 border-blue-500/30 bg-blue-500/10",
-                            glowColor: "border-blue-500/30 shadow-[0_0_15px_rgba(255,107,0,0.1)] bg-blue-950/5",
+                            glowColor: "border-blue-500/30 shadow-[0_0_15px_rgba(37, 99, 235, 0.1)] bg-blue-950/5",
                             slangText: language === 'en'
                               ? "Your muscles are very strong from a standstill, but your tendons need to act like a spring to store reactive energy. We will focus on fast plyometrics and ankle stiffness to minimize your ground contact time!"
                               : "عضلاتك قوية جداً من السكون، لكن أوتارك تحتاج أن تعمل كـ (السوستة) لتخزين الطاقة الارتدادية. سنركز على البلايمتركس السريع وتصلب الكاحل لتقليل زمن تلامس رجلك مع الأرض!",
@@ -2674,7 +2674,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
               {printLang === 'ar' ? (
                 <>
                   <div className="flex items-center gap-3 text-right font-cairo">
-                    <svg width="45" height="45" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 4px 6px rgba(255, 107, 0, 0.25))' }}>
+                    <svg width="45" height="45" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 4px 6px rgba(37, 99, 235, 0.25))' }}>
                       <defs>
                         <linearGradient id="grad-top" x1="0%" y1="0%" x2="100%" y2="100%">
                           <stop offset="0%" stopColor="#ff9a3c" />
@@ -2714,7 +2714,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
               ) : (
                 <>
                   <div className="flex items-center gap-3 text-left">
-                    <svg width="45" height="45" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 4px 6px rgba(255, 107, 0, 0.25))' }}>
+                    <svg width="45" height="45" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 4px 6px rgba(37, 99, 235, 0.25))' }}>
                       <defs>
                         <linearGradient id="grad-top" x1="0%" y1="0%" x2="100%" y2="100%">
                           <stop offset="0%" stopColor="#ff9a3c" />

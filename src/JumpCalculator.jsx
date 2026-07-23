@@ -1424,7 +1424,7 @@ export default function JumpCalculator() {
           {/* Logo & App Branding */}
           <div className="flex items-center justify-between lg:justify-start w-full lg:w-auto gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-500 flex items-center justify-center text-white shadow-[0_0_20px_rgba(255,107,0,0.45)] border border-blue-400/40 shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-500 flex items-center justify-center text-white shadow-[0_0_20px_rgba(37, 99, 235, 0.45)] border border-blue-400/40 shrink-0">
                 <span className="text-xl font-bold font-mono">🧪</span>
               </div>
               <div>
@@ -1432,7 +1432,7 @@ export default function JumpCalculator() {
                   <h1 className="text-xl font-extrabold tracking-wider bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent font-sans">
                     Vertical Lab
                   </h1>
-                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-blue-950/90 border border-blue-700/50 text-blue-400 uppercase tracking-widest font-mono shadow-[0_0_10px_rgba(255,107,0,0.2)]">
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-blue-950/90 border border-blue-700/50 text-blue-400 uppercase tracking-widest font-mono shadow-[0_0_10px_rgba(37, 99, 235, 0.2)]">
                     v2.0
                   </span>
                 </div>

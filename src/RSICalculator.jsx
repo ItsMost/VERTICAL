@@ -513,7 +513,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         ctx.drawImage(exportVideo, 0, 0, w, h);
 
         // 1. Transparent grid lines (Subtle Orange)
-        ctx.strokeStyle = 'rgba(255, 107, 0, 0.05)';
+        ctx.strokeStyle = 'rgba(37, 99, 235, 0.05)';
         ctx.lineWidth = 1;
         for (let hc = 10; hc <= maxScaleCm; hc += 10) {
           const y = getYForHeight(hc);
@@ -769,10 +769,10 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         const hudY = h - hudH - 25;
 
         ctx.save();
-        ctx.shadowColor = 'rgba(255, 107, 0, 0.35)';
+        ctx.shadowColor = 'rgba(37, 99, 235, 0.35)';
         ctx.shadowBlur = 15;
         ctx.fillStyle = 'rgba(10, 18, 36, 0.88)';
-        ctx.strokeStyle = 'rgba(255, 107, 0, 0.45)';
+        ctx.strokeStyle = 'rgba(37, 99, 235, 0.45)';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.roundRect(hudX, hudY, hudW, hudH, 14);
@@ -879,12 +879,12 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           const cardY = (h - cardH) / 2;
 
           ctx.save();
-          ctx.shadowColor = 'rgba(255, 107, 0, 0.5)';
+          ctx.shadowColor = 'rgba(37, 99, 235, 0.5)';
           ctx.shadowBlur = 20;
 
           // Glassmorphic background
           ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
-          ctx.strokeStyle = 'rgba(255, 107, 0, 0.4)';
+          ctx.strokeStyle = 'rgba(37, 99, 235, 0.4)';
           ctx.lineWidth = 3;
           ctx.beginPath();
           ctx.roundRect(cardX, cardY, cardW, cardH, 16);
@@ -941,7 +941,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         ctx.save();
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
         ctx.shadowBlur = 4;
-        ctx.fillStyle = 'rgba(255, 107, 0, 0.4)';
+        ctx.fillStyle = 'rgba(37, 99, 235, 0.4)';
         ctx.font = 'bold 11px Cairo';
         ctx.textAlign = 'left';
         ctx.fillText('PeakForce Lab', hudX + 8, hudY - 8);
@@ -1407,7 +1407,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                 onClick={() => { setTakeoffTime(currentTime); setShowResults(false); }}
                 className={`px-4 py-3 rounded-xl font-black text-xs transition-all border cursor-pointer ${
                   takeoffTime > 0
-                    ? 'bg-blue-600/20 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(255,107,0,0.15)]'
+                    ? 'bg-blue-600/20 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(37, 99, 235, 0.15)]'
                     : 'bg-slate-900/60 hover:bg-slate-800 text-gray-300 border-gray-850'
                 }`}
               >
@@ -1644,7 +1644,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                 </svg>
                 
                 <div className="absolute inset-0 flex flex-col items-center justify-center mt-1">
-                  <span className="text-4xl font-black text-white font-mono leading-none drop-shadow-[0_0_10px_rgba(255,107,0,0.5)]">
+                  <span className="text-4xl font-black text-white font-mono leading-none drop-shadow-[0_0_10px_rgba(37, 99, 235, 0.5)]">
                     <AnimatedCounter value={stats.rsi} decimals={2} />
                   </span>
                   <span className="text-[9px] text-gray-500 font-extrabold uppercase mt-1">RSI Score</span>
@@ -1722,7 +1722,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
       {/* Fullscreen Export Progress Overlay */}
       {isExporting && (
         <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md text-white p-6">
-          <div className="bg-[#0a0d14] border border-blue-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(255,107,0,0.15)] animate-fade-in">
+          <div className="bg-[#0a0d14] border border-blue-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(37, 99, 235, 0.15)] animate-fade-in">
             <div className="relative w-20 h-20">
               <svg className="w-full h-full transform -rotate-90">
                 <circle
