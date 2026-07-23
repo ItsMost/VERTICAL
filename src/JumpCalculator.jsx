@@ -1424,19 +1424,19 @@ export default function JumpCalculator() {
           {/* Logo & App Branding */}
           <div className="flex items-center justify-between lg:justify-start w-full lg:w-auto gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-400/30 shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-600 via-amber-500 to-yellow-500 flex items-center justify-center text-white shadow-[0_0_20px_rgba(255,107,0,0.45)] border border-orange-400/40 shrink-0">
                 <span className="text-xl font-bold font-mono">🧪</span>
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent font-sans">
-                    PeakForce Lab
+                  <h1 className="text-xl font-extrabold tracking-wider bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-400 bg-clip-text text-transparent font-sans">
+                    Vertical Lab
                   </h1>
-                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-cyan-950/80 border border-cyan-800/40 text-cyan-400 uppercase tracking-widest font-mono shadow-sm">
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-orange-950/90 border border-orange-700/50 text-orange-400 uppercase tracking-widest font-mono shadow-[0_0_10px_rgba(255,107,0,0.2)]">
                     v2.0
                   </span>
                 </div>
-                <p className="text-[9px] sm:text-[10px] text-cyan-400/80 font-bold">
+                <p className="text-[9px] sm:text-[10px] text-orange-400/90 font-bold">
                   {language === 'ar' ? 'مختبر الأداء الرياضي والميكانيكا الحيوية' : 'Athletic Performance & Biomechanics Lab'}
                 </p>
               </div>
@@ -1445,7 +1445,7 @@ export default function JumpCalculator() {
             <div className="lg:hidden flex items-center gap-2">
               <button 
                 onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')} 
-                className="px-2 py-1 bg-[var(--bg-input)] text-cyan-400 border border-[var(--border-light)] rounded-lg text-[10px] font-black shadow-sm"
+                className="px-2 py-1 bg-[var(--bg-input)] text-orange-400 border border-[var(--border-light)] rounded-lg text-[10px] font-black shadow-sm"
               >
                 {language === 'ar' ? 'EN' : 'عربي'}
               </button>
@@ -1463,7 +1463,7 @@ export default function JumpCalculator() {
             {/* Quick Action: Register Coach */}
             <button
               onClick={() => setShowCoachModal(true)}
-              className="p-2.5 sm:px-4 sm:py-2.5 bg-black/35 hover:bg-cyan-600/15 text-cyan-400 border border-cyan-800/30 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer shrink-0"
+              className="p-2.5 sm:px-4 sm:py-2.5 bg-black/35 hover:bg-orange-600/15 text-orange-400 border border-orange-800/40 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer shrink-0"
               title={language === 'ar' ? 'إضافة مدرب' : 'Add Coach'}
             >
               <Users size={14} className="sm:w-3.5 sm:h-3.5" />
@@ -1473,7 +1473,7 @@ export default function JumpCalculator() {
             {/* Quick Action: Add Athlete */}
             <button
               onClick={() => setShowNewPlayerForm(true)}
-              className="p-2.5 sm:px-4 sm:py-2.5 bg-black/35 hover:bg-cyan-600/15 text-cyan-400 border border-cyan-800/30 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer shrink-0"
+              className="p-2.5 sm:px-4 sm:py-2.5 bg-black/35 hover:bg-orange-600/15 text-orange-400 border border-orange-800/40 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer shrink-0"
               title={language === 'ar' ? 'تسجيل لاعب' : 'Add Athlete'}
             >
               <Plus size={14} className="sm:w-3.5 sm:h-3.5" />
@@ -1498,7 +1498,7 @@ export default function JumpCalculator() {
                 {isSelectorOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsSelectorOpen(false)} />
-                    <div className={`absolute ${language === 'en' ? 'left-0' : 'right-0'} z-50 mt-1.5 w-full bg-[#0b1429]/95 border border-[var(--border-color)] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md max-h-72 overflow-y-auto`}>
+                    <div className={`absolute ${language === 'en' ? 'left-0' : 'right-0'} z-50 mt-1.5 w-full bg-[#0d121c]/95 border border-[var(--border-color)] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md max-h-72 overflow-y-auto`}>
                       {coaches.map(coach => {
                         const coachPlayers = players.filter(p => p.coach_id === coach.id);
                         const isExpanded = !!expandedCoaches[coach.id];
@@ -1507,7 +1507,7 @@ export default function JumpCalculator() {
                             <button
                               type="button"
                               onClick={() => toggleCoachSelector(coach.id)}
-                              className={`w-full px-3 py-2 bg-black/20 hover:bg-black/40 flex items-center justify-between text-xs font-bold text-cyan-400 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
+                              className={`w-full px-3 py-2 bg-black/30 hover:bg-black/50 flex items-center justify-between text-xs font-bold text-orange-400 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
                             >
                               <span>👤 {coach.full_name} ({coachPlayers.length})</span>
                               <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -1523,7 +1523,7 @@ export default function JumpCalculator() {
                                       handlePlayerSelect({ target: { value: p.id } });
                                       setIsSelectorOpen(false);
                                     }}
-                                    className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-cyan-500/10 transition-colors block ${selectedPlayerId === p.id ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-300'}`}
+                                    className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-orange-500/15 transition-colors block ${selectedPlayerId === p.id ? 'bg-orange-500/25 text-white font-extrabold' : 'text-gray-300'}`}
                                   >
                                     {p.full_name}
                                   </button>
@@ -1545,7 +1545,7 @@ export default function JumpCalculator() {
                             <button
                               type="button"
                               onClick={() => toggleCoachSelector('unassigned')}
-                              className={`w-full px-3 py-2 bg-black/20 hover:bg-black/40 flex items-center justify-between text-xs font-bold text-gray-400 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
+                              className={`w-full px-3 py-2 bg-black/30 hover:bg-black/50 flex items-center justify-between text-xs font-bold text-gray-400 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
                             >
                               <span>👤 {language === 'en' ? 'Unassigned athletes' : 'لاعبون بدون مدرب'} ({unassignedPlayers.length})</span>
                               <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -1560,7 +1560,7 @@ export default function JumpCalculator() {
                                       handlePlayerSelect({ target: { value: p.id } });
                                       setIsSelectorOpen(false);
                                     }}
-                                    className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-cyan-500/10 transition-colors block ${selectedPlayerId === p.id ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-300'}`}
+                                    className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-orange-500/15 transition-colors block ${selectedPlayerId === p.id ? 'bg-orange-500/25 text-white font-extrabold' : 'text-gray-300'}`}
                                   >
                                     {p.full_name}
                                   </button>
@@ -1655,9 +1655,9 @@ export default function JumpCalculator() {
               </motion.div>
             ) : (
               <motion.div key="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="glass-panel p-16 text-center text-gray-400 shadow-2xl flex flex-col items-center justify-center transition-colors duration-500">
-                <ScanEye size={64} className="text-cyan-500 mb-4 opacity-50 animate-pulse" />
+                <ScanEye size={64} className="text-orange-500 mb-4 opacity-75 animate-pulse" />
                 <h2 className="text-2xl font-black text-[var(--text-primary)] mb-2">
-                  {language === 'en' ? 'Welcome to Performance Lab 🧪' : 'مرحباً بك في مختبر الأداء 🧪'}
+                  {language === 'en' ? 'Welcome to Vertical Lab v2.0 🧪' : 'مرحباً بك في مختبر الأداء Vertical Lab v2.0 🧪'}
                 </h2>
                 <p className="max-w-md mx-auto leading-relaxed">
                   {language === 'en' 
@@ -1670,7 +1670,7 @@ export default function JumpCalculator() {
         </main>
 
         {/* ================= FLOATING GLASSMORPHIC DOCK NAVIGATION ================= */}
-        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-fit max-w-[98%] bg-[#0a1224]/85 backdrop-blur-xl border border-[var(--border-color)] rounded-full px-2.5 sm:px-6 py-1.5 sm:py-2.5 flex items-center gap-1.5 xs:gap-3 sm:gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-fit max-w-[98%] bg-[#0d121c]/90 backdrop-blur-xl border border-[var(--border-color)] rounded-full px-2.5 sm:px-6 py-1.5 sm:py-2.5 flex items-center gap-1.5 xs:gap-3 sm:gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.7)]">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -1682,7 +1682,7 @@ export default function JumpCalculator() {
               onClick={() => setActiveTab(tab.id)}
               className={`relative flex flex-col items-center justify-center px-1.5 xs:px-3 sm:px-4 py-1 rounded-2xl transition-all duration-300 select-none
                 ${isActive 
-                  ? 'text-cyan-400 scale-110 font-black' 
+                  ? 'text-orange-400 scale-110 font-black' 
                   : isDisabled 
                     ? 'text-gray-600 cursor-not-allowed opacity-30' 
                     : 'text-gray-400 hover:text-white hover:scale-105'}`}
@@ -1693,7 +1693,7 @@ export default function JumpCalculator() {
               {isActive && (
                 <motion.div 
                   layoutId="active-dock-indicator"
-                  className="absolute -bottom-1.5 w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4]"
+                  className="absolute -bottom-1.5 w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_12px_#ff6b00]"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}

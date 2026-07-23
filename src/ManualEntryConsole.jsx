@@ -163,11 +163,11 @@ export default function ManualEntryConsole({
         {/* Header Title Card */}
         <div className="glass-panel p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl border border-[var(--border-color)]">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center text-white text-2xl shadow-lg border border-cyan-400/30 shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-600 via-amber-500 to-yellow-500 flex items-center justify-center text-white text-2xl shadow-lg border border-orange-400/40 shrink-0">
               <Edit3 size={24} />
             </div>
             <div>
-              <h2 className="text-2xl font-black bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-black bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-400 bg-clip-text text-transparent">
                 {isEn ? 'Manual Data Entry & Clean Assessment' : 'شاشة الإدخال اليدوي الحُر ورفعات الكلين'}
               </h2>
               <p className="text-xs text-gray-400 font-bold mt-0.5">
@@ -181,7 +181,7 @@ export default function ManualEntryConsole({
           <div className="flex items-center gap-3 w-full md:w-auto justify-end">
             <button
               onClick={handlePrint}
-              className="px-4 py-2.5 bg-black/40 hover:bg-cyan-600/20 text-cyan-400 border border-cyan-800/40 rounded-xl text-xs font-black flex items-center gap-2 transition-all shadow-md cursor-pointer"
+              className="px-4 py-2.5 bg-black/40 hover:bg-orange-600/20 text-orange-400 border border-orange-800/40 rounded-xl text-xs font-black flex items-center gap-2 transition-all shadow-md cursor-pointer"
             >
               <Printer size={16} />
               <span>{isEn ? 'Print Report' : 'طباعة التقرير PDF'}</span>
@@ -201,15 +201,15 @@ export default function ManualEntryConsole({
         <div className="bg-black/30 border border-gray-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 text-xs">
           <div className="flex items-center gap-2">
             <span className="text-gray-400 font-bold">{isEn ? 'Selected Athlete:' : 'اللاعب المختار:'}</span>
-            <span className="font-black text-white bg-cyan-950/60 px-3 py-1 rounded-xl border border-cyan-500/30 text-sm">
+            <span className="font-black text-white bg-orange-950/60 px-3 py-1 rounded-xl border border-orange-500/30 text-sm">
               {activePlayer ? activePlayer.full_name : (isEn ? 'No Athlete Selected' : 'لم يتم اختيار لاعب')}
             </span>
           </div>
 
           <div className="flex items-center gap-6 font-mono text-gray-300">
-            <span>{isEn ? 'Weight:' : 'الوزن:'} <strong className="text-cyan-400">{weight} kg</strong></span>
-            <span>{isEn ? 'Height:' : 'القامة:'} <strong className="text-cyan-400">{playerHeight} cm</strong></span>
-            <span>{isEn ? 'Leg Length:' : 'طول الرجل:'} <strong className="text-cyan-400">{legLength.toFixed(2)} m</strong></span>
+            <span>{isEn ? 'Weight:' : 'الوزن:'} <strong className="text-orange-400">{weight} kg</strong></span>
+            <span>{isEn ? 'Height:' : 'القامة:'} <strong className="text-orange-400">{playerHeight} cm</strong></span>
+            <span>{isEn ? 'Leg Length:' : 'طول الرجل:'} <strong className="text-orange-400">{legLength.toFixed(2)} m</strong></span>
           </div>
         </div>
 
@@ -218,7 +218,7 @@ export default function ManualEntryConsole({
           
           {/* Left Column: Manual Form Fields */}
           <div className="lg:col-span-6 bg-black/20 p-6 rounded-3xl border border-gray-800 space-y-5">
-            <h3 className="font-black text-sm text-cyan-400 border-b border-gray-800 pb-2.5 flex items-center gap-2">
+            <h3 className="font-black text-sm text-orange-400 border-b border-gray-800 pb-2.5 flex items-center gap-2">
               <Activity size={18} /> {isEn ? 'Manual Measurement Inputs' : 'مدخلات الأرقام والقياسات اليدوية'}
             </h3>
 
