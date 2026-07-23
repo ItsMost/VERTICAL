@@ -1562,13 +1562,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 </div>
 
 
-                {/* Holographic Joint Heatmap & Impulse Waveform Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                  <HolographicBodyHeatmap eur={eur} rsi={latestRsi} cmjVal={heightCm} language={language} />
-                  <ImpulseWaveformVisualizer peakPower={peakPower} velocity={velocity} language={language} />
-                </div>
-  
-{/* Visual Cockpit Dashboard */}
+                {/* Visual Cockpit Dashboard */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   
                   {/* Radial Bio-Score Ring Card */}
