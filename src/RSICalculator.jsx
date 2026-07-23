@@ -1216,8 +1216,8 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
     if (score >= 1.5 && score < 2.0)
       return { text: 'مقبول ⚡ (صلابة متوسطة، تحتاج لدمج قفزات Pogo قصيرة)', color: 'text-orange-400 bg-orange-950/20 border-orange-900/30' };
     if (score >= 2.0 && score < 2.5)
-      return { text: 'جيد ⭐ (صلابة كاحل ممتازة وكفاءة ارتداد قوية)', color: 'text-teal-400 bg-teal-950/20 border-teal-800/30' };
-    return { text: 'نخبة أولمبية 👑 (صلابة أوتار استثنائية وسرعة نقل طاقة فائقة)', color: 'text-cyan-400 bg-cyan-950/20 border-cyan-800/30' };
+      return { text: 'جيد ⭐ (صلابة كاحل ممتازة وكفاءة ارتداد قوية)', color: 'text-amber-400 bg-teal-950/20 border-teal-800/30' };
+    return { text: 'نخبة أولمبية 👑 (صلابة أوتار استثنائية وسرعة نقل طاقة فائقة)', color: 'text-orange-400 bg-orange-950/20 border-orange-800/30' };
   };
 
   return (
@@ -1226,7 +1226,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
       {/* Header section */}
       <div className="flex justify-between items-center border-b border-gray-800/80 pb-5 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/20 text-cyan-400">
+          <div className="p-3 bg-orange-500/10 rounded-2xl border border-orange-500/20 text-orange-400">
             <Zap size={24} />
           </div>
           <div>
@@ -1263,7 +1263,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
               <div className="bg-slate-900/60 hover:bg-slate-800 border border-gray-850 text-white text-center py-6 rounded-2xl font-black transition-all flex items-center justify-center gap-3 shadow-md active:scale-98">
-                <Play size={20} className="text-cyan-400" />
+                <Play size={20} className="text-orange-400" />
                 اختر فيديو من الاستوديو 📁
               </div>
             </div>
@@ -1300,7 +1300,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
             <div className="w-full bg-[#0a1224]/50 p-4 rounded-2xl border border-gray-850 mb-5">
               <div className="flex items-center justify-between text-[10px] text-gray-400 mb-2 font-bold px-1">
                 <span>خط زمن اختبار الـ RSI</span>
-                <span className="text-cyan-400">اسحب خط الزمن لتحديد لحظات الكبح والارتقاء ⏱️</span>
+                <span className="text-orange-400">اسحب خط الزمن لتحديد لحظات الكبح والارتقاء ⏱️</span>
               </div>
               
               <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 relative mb-4">
@@ -1308,7 +1308,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                 <div className="flex justify-between items-center w-full md:w-auto bg-slate-900/60 px-3 py-2 rounded-xl border border-gray-850 text-center shrink-0 gap-3">
                   <div className="text-right">
                     <span className="block text-[8px] text-gray-500 font-bold">الوقت الحالي</span>
-                    <span ref={currentTimeDesktopRef} className="text-xs font-black text-cyan-400 font-mono">{currentTime.toFixed(3)}s</span>
+                    <span ref={currentTimeDesktopRef} className="text-xs font-black text-orange-400 font-mono">{currentTime.toFixed(3)}s</span>
                   </div>
                   <div className="border-r border-gray-800 h-6"></div>
                   <div className="text-right">
@@ -1322,13 +1322,13 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                   {/* Ruler marks background */}
                   <div className="absolute inset-0 flex justify-between items-center px-4 pointer-events-none opacity-20">
                     {Array.from({ length: 25 }).map((_, i) => (
-                      <div key={i} className={`w-0.5 bg-cyan-500/80 rounded-full ${i % 5 === 0 ? 'h-5 opacity-70' : 'h-2.5 opacity-30'}`} />
+                      <div key={i} className={`w-0.5 bg-orange-500/80 rounded-full ${i % 5 === 0 ? 'h-5 opacity-70' : 'h-2.5 opacity-30'}`} />
                     ))}
                   </div>
 
                   {/* Highlights range between Touchdown and Landing */}
                   {duration > 0 && touchdownTime > 0 && landingTime > touchdownTime && (
-                    <div className="absolute top-2.5 bottom-2.5 bg-cyan-500/10 border-l border-r border-cyan-500/20 pointer-events-none" style={{ right: `${(touchdownTime / duration) * 100}%`, left: `${100 - (landingTime / duration) * 100}%` }} />
+                    <div className="absolute top-2.5 bottom-2.5 bg-orange-500/10 border-l border-r border-orange-500/20 pointer-events-none" style={{ right: `${(touchdownTime / duration) * 100}%`, left: `${100 - (landingTime / duration) * 100}%` }} />
                   )}
 
                   {/* Touchdown indicator flag */}
@@ -1340,8 +1340,8 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
 
                   {/* Takeoff indicator flag */}
                   {duration > 0 && takeoffTime > 0 && (
-                    <div className="absolute top-0 bottom-0 w-0.5 bg-cyan-500 shadow-[0_0_8px_#06b6d4] z-10 pointer-events-none" style={{ right: `${(takeoffTime / duration) * 100}%` }}>
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-cyan-500 text-[#070a13] text-[8px] font-black rounded border border-cyan-400 whitespace-nowrap">🚀 إقلاع</div>
+                    <div className="absolute top-0 bottom-0 w-0.5 bg-orange-500 shadow-[0_0_12px_#ff6b00] z-10 pointer-events-none" style={{ right: `${(takeoffTime / duration) * 100}%` }}>
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-orange-500 text-[#070a13] text-[8px] font-black rounded border border-orange-400 whitespace-nowrap">🚀 إقلاع</div>
                     </div>
                   )}
 
@@ -1407,7 +1407,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                 onClick={() => { setTakeoffTime(currentTime); setShowResults(false); }}
                 className={`px-4 py-3 rounded-xl font-black text-xs transition-all border cursor-pointer ${
                   takeoffTime > 0
-                    ? 'bg-cyan-600/20 text-cyan-400 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
+                    ? 'bg-orange-600/20 text-orange-400 border-orange-500/50 shadow-[0_0_15px_rgba(255,107,0,0.15)]'
                     : 'bg-slate-900/60 hover:bg-slate-800 text-gray-300 border-gray-850'
                 }`}
               >
@@ -1466,7 +1466,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                     }
                   }}
                   className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors duration-200 outline-none cursor-pointer ${
-                    fpsAutoDetectEnabled ? 'bg-cyan-500' : 'bg-gray-700'
+                    fpsAutoDetectEnabled ? 'bg-orange-500' : 'bg-gray-700'
                   }`}
                 >
                   <span
@@ -1485,7 +1485,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           </div>
           <div>
             <label className="block text-[10px] text-gray-400 mb-1 text-center">الإقلاع (s)</label>
-            <div className="glass-input w-full p-2.5 text-teal-400 font-mono font-bold text-center border-teal-500/20">{takeoffTime.toFixed(3)}</div>
+            <div className="glass-input w-full p-2.5 text-amber-400 font-mono font-bold text-center border-amber-500/20">{takeoffTime.toFixed(3)}</div>
           </div>
           <div>
             <label className="block text-[10px] text-gray-400 mb-1 text-center">الهبوط (s)</label>
@@ -1507,7 +1507,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                     key={method.id}
                     type="button"
                     onClick={() => { setTimeCalculationMethod(method.id); if (method.id === 'fps') setIsFrameDurationManual(false); }}
-                    className={`flex-1 py-1.5 px-1 text-[10px] font-black rounded-lg transition-all cursor-pointer ${timeCalculationMethod === method.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/25' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
+                    className={`flex-1 py-1.5 px-1 text-[10px] font-black rounded-lg transition-all cursor-pointer ${timeCalculationMethod === method.id ? 'bg-orange-500/20 text-orange-400 border border-orange-500/25' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
                   >
                     {method.name}
                   </button>
@@ -1553,13 +1553,13 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           </div>
           
           {timeCalculationMethod === 'manual' && (
-            <div className="bg-cyan-950/10 border border-cyan-500/25 p-3 rounded-xl animate-fade-in space-y-1.5 self-start">
+            <div className="bg-orange-950/10 border border-orange-500/25 p-3 rounded-xl animate-fade-in space-y-1.5 self-start">
               <div className="flex justify-between items-center text-[10px] text-gray-400">
                 <span className="font-bold">زمن إطار الفيديو الفعلي (ثانية):</span>
                 <button
                   type="button"
                   onClick={() => { setIsFrameDurationManual(false); setManualFrameDuration(parseFloat((1 / cameraFps).toFixed(6))); }}
-                  className="text-[8px] text-cyan-400 font-bold bg-cyan-950/50 border border-cyan-500/20 px-2 py-0.5 rounded hover:bg-cyan-900/30 cursor-pointer"
+                  className="text-[8px] text-orange-400 font-bold bg-orange-950/50 border border-orange-500/20 px-2 py-0.5 rounded hover:bg-orange-900/30 cursor-pointer"
                 >
                   إعادة تعيين للتلقائي ↺
                 </button>
@@ -1590,8 +1590,8 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
       {showResults && stats && (
         <div className="space-y-6 border-t border-gray-800/80 pt-6 animate-fade-in">
           
-          <div className="flex justify-between items-center border-b border-cyan-500/20 pb-3">
-            <div className="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+          <div className="flex justify-between items-center border-b border-orange-500/20 pb-3">
+            <div className="text-xs font-bold text-orange-400 flex items-center gap-1.5">
               <Sparkles size={14} /> شاشة نتائج التحليل الحركي لمؤشر RSI
             </div>
             
@@ -1599,14 +1599,14 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
               <button
                 type="button"
                 onClick={() => setDisplayUnit('cm')}
-                className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${displayUnit === 'cm' ? 'bg-cyan-500/25 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
+                className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${displayUnit === 'cm' ? 'bg-orange-500/25 text-orange-400 border border-orange-500/20' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
               >
                 سم (Cm)
               </button>
               <button
                 type="button"
                 onClick={() => setDisplayUnit('in')}
-                className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${displayUnit === 'in' ? 'bg-cyan-500/25 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
+                className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${displayUnit === 'in' ? 'bg-orange-500/25 text-orange-400 border border-orange-500/20' : 'text-gray-400 hover:text-white bg-transparent border border-transparent'}`}
               >
                 بوصة (Inches)
               </button>
@@ -1638,13 +1638,13 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                   <defs>
                     <linearGradient id="rsiTealProgress" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor="#00f5d4" />
-                      <stop offset="100%" stopColor="#06b6d4" />
+                      <stop offset="100%" stopColor="#ff6b00" />
                     </linearGradient>
                   </defs>
                 </svg>
                 
                 <div className="absolute inset-0 flex flex-col items-center justify-center mt-1">
-                  <span className="text-4xl font-black text-white font-mono leading-none drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+                  <span className="text-4xl font-black text-white font-mono leading-none drop-shadow-[0_0_10px_rgba(255,107,0,0.5)]">
                     <AnimatedCounter value={stats.rsi} decimals={2} />
                   </span>
                   <span className="text-[9px] text-gray-500 font-extrabold uppercase mt-1">RSI Score</span>
@@ -1690,7 +1690,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
           {/* Biomechanical Grade Capsule */}
           <div className="bg-black/15 border border-gray-850 rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-2">
             <div className="flex items-center gap-2 text-xs text-gray-400">
-              <Info size={14} className="text-cyan-400" />
+              <Info size={14} className="text-orange-400" />
               <span>التقييم البيوميكانيكي الوظيفي للجهاز الحركي والأوتار</span>
             </div>
             <p className={`text-lg font-black px-4 py-2 rounded-xl border ${getRSIEval(stats.rsi).color}`}>
@@ -1710,7 +1710,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
             <button
               onClick={handleExportVideoWithOverlay}
               disabled={isExporting}
-              className="flex-1 py-4 bg-cyan-600/30 border border-cyan-500/50 hover:bg-cyan-600/50 text-cyan-400 rounded-xl font-black text-base shadow-lg transition-transform hover:scale-[1.01] active:scale-98 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="flex-1 py-4 bg-orange-600/30 border border-orange-500/50 hover:bg-orange-600/50 text-orange-400 rounded-xl font-black text-base shadow-lg transition-transform hover:scale-[1.01] active:scale-98 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <Video size={16} />
               {isExporting ? `جاري التصدير (${exportProgress}%)...` : 'تصدير فيديو الـ RSI 🎥'}
@@ -1722,7 +1722,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
       {/* Fullscreen Export Progress Overlay */}
       {isExporting && (
         <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md text-white p-6">
-          <div className="bg-[#0b1329] border border-cyan-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(6,182,212,0.15)] animate-fade-in">
+          <div className="bg-[#0b1329] border border-orange-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(255,107,0,0.15)] animate-fade-in">
             <div className="relative w-20 h-20">
               <svg className="w-full h-full transform -rotate-90">
                 <circle
@@ -1737,7 +1737,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                   cx="40"
                   cy="40"
                   r="34"
-                  stroke="#06b6d4"
+                  stroke="#ff6b00"
                   strokeWidth="6"
                   fill="transparent"
                   strokeDasharray={2 * Math.PI * 34}
@@ -1745,7 +1745,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                   className="transition-all duration-200"
                 />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center font-black text-lg text-cyan-400 font-mono">
+              <div className="absolute inset-0 flex items-center justify-center font-black text-lg text-orange-400 font-mono">
                 {exportProgress}%
               </div>
             </div>

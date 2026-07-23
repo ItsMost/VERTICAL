@@ -1711,8 +1711,8 @@ export default function JumpCalculator() {
               <button type="button" onClick={() => setShowNewPlayerForm(false)} className="absolute top-4 left-4 text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-[var(--border-light)]">
                 <X size={16} />
               </button>
-              <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
-                <Plus className="text-cyan-400" size={22} /> تسجيل رياضي جديد
+              <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
+                <Plus className="text-orange-400" size={22} /> تسجيل رياضي جديد
               </h2>
               <form onSubmit={handleAddPlayer} className="space-y-4 text-xs">
                 <div>
@@ -1776,8 +1776,8 @@ export default function JumpCalculator() {
               <button type="button" onClick={() => setIsEditingPlayer(false)} className={`absolute top-4 ${language === 'en' ? 'right-4' : 'left-4'} text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-[var(--border-light)]`}>
                 <X size={16} />
               </button>
-              <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
-                <Edit3 className="text-cyan-400" size={20} /> {language === 'en' ? 'Edit Athlete Data' : 'تعديل بيانات اللاعب'}
+              <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
+                <Edit3 className="text-orange-400" size={20} /> {language === 'en' ? 'Edit Athlete Data' : 'تعديل بيانات اللاعب'}
               </h2>
               <form onSubmit={handleUpdatePlayer} className="space-y-4" style={{ textAlign: language === 'en' ? 'left' : 'right' }}>
                 <div>
@@ -1844,7 +1844,7 @@ export default function JumpCalculator() {
               <X size={16} />
             </button>
             <h2 className="text-lg font-black text-white mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
-              <Plus className="text-cyan-400" size={20} /> {language === 'en' ? 'Register New Coach' : 'تسجيل مدرب جديد'}
+              <Plus className="text-orange-400" size={20} /> {language === 'en' ? 'Register New Coach' : 'تسجيل مدرب جديد'}
             </h2>
             <form onSubmit={handleRegisterCoach} className="space-y-4">
               <div>

@@ -427,7 +427,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
       const goodThresh = (isFemale ? 18 : 26) * discount;
 
       if (heightInches >= eliteThresh) {
-        return { text: language === 'en' ? 'Elite 🏆' : 'النخبة 🏆', color: 'text-cyan-400 bg-cyan-950/40 border-cyan-800/40' };
+        return { text: language === 'en' ? 'Elite 🏆' : 'النخبة 🏆', color: 'text-orange-400 bg-orange-950/40 border-orange-800/40' };
       }
       if (heightInches >= excellentThresh) {
         return { text: language === 'en' ? 'Excellent ⭐' : 'ممتاز ⭐', color: 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40' };
@@ -443,7 +443,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
       const goodThresh = 2.0 * discount;
 
       if (rsiVal >= eliteThresh) {
-        return { text: language === 'en' ? 'Elite 🏆' : 'النخبة 🏆', color: 'text-cyan-400 bg-cyan-950/40 border-cyan-800/40' };
+        return { text: language === 'en' ? 'Elite 🏆' : 'النخبة 🏆', color: 'text-orange-400 bg-orange-950/40 border-orange-800/40' };
       }
       if (rsiVal >= excellentThresh) {
         return { text: language === 'en' ? 'Excellent ⭐' : 'ممتاز ⭐', color: 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40' };
@@ -553,7 +553,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
       {/* Top Controls: Header & Coach Dropdown */}
       <div className={`flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 border-b border-gray-800/60 pb-5 mb-6 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
         <div className={`flex items-center gap-3 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
-          <div className="p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/20 text-cyan-400">
+          <div className="p-3 bg-orange-500/10 rounded-2xl border border-orange-500/20 text-orange-400">
             <Users size={24} />
           </div>
           <div>
@@ -566,7 +566,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
         <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
           <button
             onClick={() => setShowHandbookModal(true)}
-            className="px-4 py-3 bg-cyan-950/40 hover:bg-cyan-600 text-cyan-400 hover:text-white border border-cyan-800/30 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer"
+            className="px-4 py-3 bg-orange-950/40 hover:bg-orange-600 text-orange-400 hover:text-white border border-orange-800/30 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer"
           >
             <BookOpen size={14} /> {t.handbookBtn}
           </button>
@@ -577,7 +577,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
               <button
                 type="button"
                 onClick={() => setIsCoachDropdownOpen(!isCoachDropdownOpen)}
-                className={`w-full sm:w-60 bg-[#111827]/60 border border-gray-800 text-xs text-white p-3 px-4 rounded-xl outline-none font-bold focus:border-cyan-500 flex items-center justify-between gap-2 cursor-pointer ${language === 'en' ? 'text-left' : 'text-right'} min-w-[15rem]`}
+                className={`w-full sm:w-60 bg-[#111827]/60 border border-gray-800 text-xs text-white p-3 px-4 rounded-xl outline-none font-bold focus:border-orange-500 flex items-center justify-between gap-2 cursor-pointer ${language === 'en' ? 'text-left' : 'text-right'} min-w-[15rem]`}
               >
                 <span>
                   {selectedCoachId === 'all' 
@@ -610,7 +610,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                           setSelectedCoachId('all');
                           setIsCoachDropdownOpen(false);
                         }}
-                        className={`w-full px-4 py-3 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-cyan-500/10 transition-colors block border-b border-gray-800/40 ${selectedCoachId === 'all' ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-450 font-bold'}`}
+                        className={`w-full px-4 py-3 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-orange-500/10 transition-colors block border-b border-gray-800/40 ${selectedCoachId === 'all' ? 'bg-orange-500/20 text-white font-extrabold' : 'text-gray-450 font-bold'}`}
                       >
                         {t.allPlayers}
                       </button>
@@ -620,7 +620,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                           setSelectedCoachId('unassigned');
                           setIsCoachDropdownOpen(false);
                         }}
-                        className={`w-full px-4 py-3 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-cyan-500/10 transition-colors block border-b border-gray-800/40 ${selectedCoachId === 'unassigned' ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-450 font-bold'}`}
+                        className={`w-full px-4 py-3 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-orange-500/10 transition-colors block border-b border-gray-800/40 ${selectedCoachId === 'unassigned' ? 'bg-orange-500/20 text-white font-extrabold' : 'text-gray-450 font-bold'}`}
                       >
                         {t.unassignedPlayers}
                       </button>
@@ -632,7 +632,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                             setSelectedCoachId(c.id);
                             setIsCoachDropdownOpen(false);
                           }}
-                          className={`w-full px-4 py-3 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-cyan-500/10 transition-colors block border-b border-gray-800/40 last:border-b-0 ${selectedCoachId === c.id ? 'bg-cyan-500/20 text-white font-extrabold' : 'text-gray-300'}`}
+                          className={`w-full px-4 py-3 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-orange-500/10 transition-colors block border-b border-gray-800/40 last:border-b-0 ${selectedCoachId === c.id ? 'bg-orange-500/20 text-white font-extrabold' : 'text-gray-300'}`}
                         >
                           {c.full_name}
                         </button>
@@ -655,7 +655,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
               placeholder={t.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full bg-[#111827]/40 border border-gray-800 text-xs text-white p-3 ${language === 'en' ? 'pl-10 text-left' : 'pr-10 text-right'} rounded-xl outline-none font-bold focus:border-cyan-500 placeholder-gray-500`}
+              className={`w-full bg-[#111827]/40 border border-gray-800 text-xs text-white p-3 ${language === 'en' ? 'pl-10 text-left' : 'pr-10 text-right'} rounded-xl outline-none font-bold focus:border-orange-500 placeholder-gray-500`}
             />
             <span className={`absolute ${language === 'en' ? 'left-3' : 'right-3'} top-3.5 text-gray-500 text-sm`}>🔍</span>
           </div>
@@ -663,19 +663,19 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
           <div className="flex gap-2 w-full sm:w-auto shrink-0">
             <button
               onClick={() => setGenderFilter('all')}
-              className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${genderFilter === 'all' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-[#111827]/20 border-gray-800 text-gray-405 hover:text-white'}`}
+              className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${genderFilter === 'all' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-[#111827]/20 border-gray-800 text-gray-405 hover:text-white'}`}
             >
               {t.all}
             </button>
             <button
               onClick={() => setGenderFilter('male')}
-              className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${genderFilter === 'male' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-[#111827]/20 border-gray-800 text-gray-405 hover:text-white'}`}
+              className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${genderFilter === 'male' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-[#111827]/20 border-gray-800 text-gray-405 hover:text-white'}`}
             >
               {t.male}
             </button>
             <button
               onClick={() => setGenderFilter('female')}
-              className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${genderFilter === 'female' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-[#111827]/20 border-gray-800 text-gray-405 hover:text-white'}`}
+              className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${genderFilter === 'female' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-[#111827]/20 border-gray-800 text-gray-405 hover:text-white'}`}
             >
               {t.female}
             </button>
@@ -686,7 +686,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
       {/* Main Roster List */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
-          <Loader2 className="animate-spin text-cyan-500" size={40} />
+          <Loader2 className="animate-spin text-orange-500" size={40} />
           <span className="text-xs font-bold">{t.loadingText}</span>
         </div>
       ) : filteredPlayers.length === 0 ? (
@@ -732,8 +732,8 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
             return (
               <div 
                 key={player.id} 
-                className={`bg-[#111827]/40 backdrop-blur-xl border rounded-2xl hover:border-cyan-500/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all duration-300 flex flex-col relative overflow-hidden group ${
-                  isExpanded ? 'border-cyan-500/40 shadow-[0_0_25px_rgba(6,182,212,0.1)]' : 'border-gray-800'
+                className={`bg-[#111827]/40 backdrop-blur-xl border rounded-2xl hover:border-orange-500/50 hover:shadow-[0_0_20px_rgba(255,107,0,0.15)] transition-all duration-300 flex flex-col relative overflow-hidden group ${
+                  isExpanded ? 'border-orange-500/40 shadow-[0_0_25px_rgba(255,107,0,0.1)]' : 'border-gray-800'
                 } ${getBorderGlowClass(rating)}`}
               >
                 {/* Compact Row Header */}
@@ -742,7 +742,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                   className={`flex items-center justify-between p-4 cursor-pointer select-none ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
                 >
                   <div className={`flex items-center gap-3 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
-                    <div className="w-10 h-10 rounded-xl bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0 font-black text-sm">
+                    <div className="w-10 h-10 rounded-xl bg-orange-950/40 border border-orange-500/30 flex items-center justify-center text-orange-400 shrink-0 font-black text-sm">
                       {initials}
                     </div>
                     <div className={`flex flex-col ${language === 'en' ? 'text-left' : 'text-right'}`}>
@@ -755,7 +755,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                               e.stopPropagation();
                               onEditPlayer(player);
                             }}
-                            className="p-1 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all cursor-pointer"
+                            className="p-1 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 rounded-lg transition-all cursor-pointer"
                             title={language === 'en' ? 'Edit athlete details' : 'تعديل بيانات اللاعب'}
                           >
                             <Edit3 size={13} />
@@ -789,7 +789,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                               cy="25" 
                               r="20" 
                               fill="none" 
-                              stroke={rating >= 90 ? "#06b6d4" : rating >= 75 ? "#10b981" : rating >= 60 ? "#eab308" : rating > 0 ? "#ea580c" : "#374151"} 
+                              stroke={rating >= 90 ? "#ff6b00" : rating >= 75 ? "#10b981" : rating >= 60 ? "#eab308" : rating > 0 ? "#ea580c" : "#374151"} 
                               strokeWidth="4" 
                               strokeDasharray="125.6"
                               strokeDashoffset={strokeDashoffset}
@@ -825,7 +825,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                       <div className="p-4 space-y-4">
                         {/* Youth/Junior Flag */}
                         {age < 17 && (
-                          <div className={`px-3 py-1.5 bg-cyan-950/20 border border-cyan-500/15 rounded-xl text-[10px] font-bold text-cyan-400 flex items-center gap-1.5 w-full ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+                          <div className={`px-3 py-1.5 bg-orange-950/20 border border-orange-500/15 rounded-xl text-[10px] font-bold text-orange-400 flex items-center gap-1.5 w-full ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
                             <Scaling size={12} />
                             <span>{t.juniorFlag}</span>
                           </div>
@@ -843,7 +843,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                                 </span>
                                 <span className="text-[9px] text-gray-500 font-mono mt-0.5">({cmjInches}")</span>
                                 {maxReachCmj && (
-                                  <span className="text-[9px] text-cyan-400 font-bold mt-1">
+                                  <span className="text-[9px] text-orange-400 font-bold mt-1">
                                     {t.reach} {maxReachCmj} {t.cm}
                                   </span>
                                 )}
@@ -867,7 +867,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                                 </span>
                                 <span className="text-[9px] text-gray-500 font-mono mt-0.5">({approachInches}")</span>
                                 {maxReachApproach && (
-                                  <span className="text-[9px] text-cyan-400 font-bold mt-1">
+                                  <span className="text-[9px] text-orange-400 font-bold mt-1">
                                     {t.reach} {maxReachApproach} {t.cm}
                                   </span>
                                 )}
@@ -904,15 +904,15 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                         {/* Detailed Critique Section */}
                         <div className={`space-y-3.5 text-xs leading-relaxed ${language === 'en' ? 'text-left' : 'text-right'}`}>
                           <div className={`flex items-center gap-2 border-b border-gray-800/60 pb-1.5 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
-                            <Award className="text-cyan-400" size={14} />
+                            <Award className="text-orange-400" size={14} />
                             <h4 className="font-extrabold text-xs text-gray-200">{t.detailedAnalysis}</h4>
                           </div>
 
                           <div className="space-y-2.5">
-                            <div className={`bg-cyan-950/20 border border-cyan-500/15 p-3 rounded-xl flex items-start gap-2 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
-                              <HelpCircle size={14} className="text-cyan-455 shrink-0 mt-0.5" />
+                            <div className={`bg-orange-950/20 border border-orange-500/15 p-3 rounded-xl flex items-start gap-2 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
+                              <HelpCircle size={14} className="text-orange-400 shrink-0 mt-0.5" />
                               <div className={`flex-1 ${language === 'en' ? 'text-left' : 'text-right'}`}>
-                                <span className="block font-black text-cyan-455 mb-0.5">{t.standardStatus}</span>
+                                <span className="block font-black text-orange-400 mb-0.5">{t.standardStatus}</span>
                                 <p className="text-gray-300 font-semibold">{critique.positionText}</p>
                               </div>
                             </div>
@@ -973,33 +973,33 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
               <X size={18} />
             </button>
             
-            <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 mb-4 border-b border-gray-850 pb-2 flex items-center gap-2">
-              <BookOpen className="text-cyan-400" size={22} /> {t.modalTitle}
+            <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 mb-4 border-b border-gray-850 pb-2 flex items-center gap-2">
+              <BookOpen className="text-orange-400" size={22} /> {t.modalTitle}
             </h2>
             
             {/* Modal Tabs */}
             <div className="flex border-b border-gray-800 mb-6 bg-black/20 p-1.5 rounded-2xl">
               <button 
                 onClick={() => setActiveHandbookTab('men')}
-                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${activeHandbookTab === 'men' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:text-white'}`}
+                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${activeHandbookTab === 'men' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/20' : 'text-gray-400 hover:text-white'}`}
               >
                 {t.modalMen}
               </button>
               <button 
                 onClick={() => setActiveHandbookTab('women')}
-                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${activeHandbookTab === 'women' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:text-white'}`}
+                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${activeHandbookTab === 'women' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/20' : 'text-gray-400 hover:text-white'}`}
               >
                 {t.modalWomen}
               </button>
               <button 
                 onClick={() => setActiveHandbookTab('rsi')}
-                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${activeHandbookTab === 'rsi' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:text-white'}`}
+                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${activeHandbookTab === 'rsi' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/20' : 'text-gray-400 hover:text-white'}`}
               >
                 {t.modalRsi}
               </button>
               <button 
                 onClick={() => setActiveHandbookTab('juniors')}
-                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${activeHandbookTab === 'juniors' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/20' : 'text-gray-400 hover:text-white'}`}
+                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${activeHandbookTab === 'juniors' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/20' : 'text-gray-400 hover:text-white'}`}
               >
                 {t.modalJuniors}
               </button>
@@ -1013,8 +1013,8 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                     {t.menDesc}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="bg-[#111827]/40 border border-cyan-500/20 p-3 rounded-2xl">
-                      <span className="text-cyan-400 font-extrabold block">{t.menElite}</span>
+                    <div className="bg-[#111827]/40 border border-orange-500/20 p-3 rounded-2xl">
+                      <span className="text-orange-400 font-extrabold block">{t.menElite}</span>
                       <p className="text-gray-200 font-bold mt-1 text-sm">{t.menEliteVal}</p>
                       <p className="text-[10px] text-gray-400 mt-1">{t.menEliteDesc}</p>
                     </div>
@@ -1043,8 +1043,8 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                     {t.womenDesc}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="bg-[#111827]/40 border border-cyan-500/20 p-3 rounded-2xl">
-                      <span className="text-cyan-400 font-extrabold block">{t.womenElite}</span>
+                    <div className="bg-[#111827]/40 border border-orange-500/20 p-3 rounded-2xl">
+                      <span className="text-orange-400 font-extrabold block">{t.womenElite}</span>
                       <p className="text-gray-200 font-bold mt-1 text-sm">{t.womenEliteVal}</p>
                       <p className="text-[10px] text-gray-400 mt-1">{t.womenEliteDesc}</p>
                     </div>
@@ -1073,8 +1073,8 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                     {t.rsiDesc}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="bg-[#111827]/40 border border-cyan-500/20 p-3 rounded-2xl">
-                      <span className="text-cyan-400 font-extrabold block">{t.rsiElite}</span>
+                    <div className="bg-[#111827]/40 border border-orange-500/20 p-3 rounded-2xl">
+                      <span className="text-orange-400 font-extrabold block">{t.rsiElite}</span>
                       <p className="text-gray-200 font-bold mt-1 text-sm">{t.rsiEliteVal}</p>
                       <p className="text-[10px] text-gray-400 mt-1">{t.rsiEliteDesc}</p>
                     </div>
@@ -1098,10 +1098,10 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
               )}
 
               {activeHandbookTab === 'juniors' && (
-                <div className="bg-cyan-950/25 border border-cyan-800/35 p-5 rounded-2xl space-y-3">
+                <div className="bg-orange-950/25 border border-orange-800/35 p-5 rounded-2xl space-y-3">
                   <div className={`flex items-center gap-2 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}>
-                    <Scaling className="text-cyan-400 shrink-0" size={20} />
-                    <h4 className="font-extrabold text-cyan-400 text-sm">{t.juniorsTitle}</h4>
+                    <Scaling className="text-orange-400 shrink-0" size={20} />
+                    <h4 className="font-extrabold text-orange-400 text-sm">{t.juniorsTitle}</h4>
                   </div>
                   <p className="text-xs text-gray-300 leading-relaxed font-semibold">
                     {t.juniorsDesc}
@@ -1109,7 +1109,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
                   <p className="text-xs text-gray-300 leading-relaxed font-bold">
                     {t.juniorsFormula}
                   </p>
-                  <div className="bg-black/35 p-3 rounded-xl border border-gray-800 font-mono text-[11px] text-cyan-300 text-center">
+                  <div className="bg-black/35 p-3 rounded-xl border border-gray-800 font-mono text-[11px] text-orange-300 text-center">
                     {t.juniorsLabel}
                   </div>
                 </div>
