@@ -222,17 +222,17 @@ export default function VBTCamera() {
   const getCoachInsight = (meanV, type) => {
     const v = parseFloat(meanV);
     if (type === 'olympic') {
-      if (v >= 1.70) return { zone: 'السرعة المطلقة (Starting Speed)', desc: 'وزن خفيف جداً للتسخين أو السرعة المطلقة.', color: 'text-orange-400 border-orange-500 bg-orange-900/20' };
+      if (v >= 1.70) return { zone: 'السرعة المطلقة (Starting Speed)', desc: 'وزن خفيف جداً للتسخين أو السرعة المطلقة.', color: 'text-blue-400 border-blue-500 bg-blue-900/20' };
       if (v >= 1.45) return { zone: 'سرعة مميزة بالقوة (Speed-Strength)', desc: 'وزن خفيف-متوسط (60-75%). تدريب القوة الانفجارية.', color: 'text-blue-400 border-blue-500 bg-blue-900/20' };
       if (v >= 1.25) return { zone: 'قوة مميزة بالسرعة (Strength-Speed)', desc: 'وزن متوسط-ثقيل (75-85%). المنطقة المثالية للكلين القوي.', color: 'text-emerald-400 border-emerald-500 bg-emerald-900/20' };
-      if (v >= 1.10) return { zone: 'القوة القصوى (Heavy / Max Effort)', desc: 'وزن أقصى (90-100%). الرفعة على الحافة، أي سرعة أقل تعني الفشل.', color: 'text-yellow-400 border-yellow-500 bg-yellow-900/20' };
+      if (v >= 1.10) return { zone: 'القوة القصوى (Heavy / Max Effort)', desc: 'وزن أقصى (90-100%). الرفعة على الحافة، أي سرعة أقل تعني الفشل.', color: 'text-blue-400 border-blue-500 bg-yellow-900/20' };
       return { zone: 'فشل الرفعة (Missed Lift Zone)', desc: 'البار لم يصل للارتفاع المطلوب لإتمام حركة الـ Catch.', color: 'text-red-400 border-red-500 bg-red-900/20' };
     } else {
       // Squat, Bench, Deadlift
-      if (v >= 1.00) return { zone: 'السرعة المطلقة (Starting Speed)', desc: 'وزن خفيف جداً (<40%). تركيز على السرعة البحتة.', color: 'text-orange-400 border-orange-500 bg-orange-900/20' };
+      if (v >= 1.00) return { zone: 'السرعة المطلقة (Starting Speed)', desc: 'وزن خفيف جداً (<40%). تركيز على السرعة البحتة.', color: 'text-blue-400 border-blue-500 bg-blue-900/20' };
       if (v >= 0.75) return { zone: 'سرعة مميزة بالقوة (Speed-Strength)', desc: 'وزن خفيف (40-60%). قوة انفجارية.', color: 'text-blue-400 border-blue-500 bg-blue-900/20' };
       if (v >= 0.50) return { zone: 'قوة مميزة بالسرعة (Strength-Speed)', desc: 'وزن متوسط (60-80%). تحسين إنتاج القدرة Power.', color: 'text-emerald-400 border-emerald-500 bg-emerald-900/20' };
-      if (v >= 0.30) return { zone: 'القوة القصوى (Maximal Strength)', desc: 'وزن ثقيل (80-95%). بناء قوة عضلية صريحة.', color: 'text-yellow-400 border-yellow-500 bg-yellow-900/20' };
+      if (v >= 0.30) return { zone: 'القوة القصوى (Maximal Strength)', desc: 'وزن ثقيل (80-95%). بناء قوة عضلية صريحة.', color: 'text-blue-400 border-blue-500 bg-yellow-900/20' };
       return { zone: 'أقصى جهد (1RM Grind)', desc: 'أقصى وزن (100%). رفعة بطيئة وقاسية.', color: 'text-red-400 border-red-500 bg-red-900/20' };
     }
   };
@@ -309,16 +309,16 @@ export default function VBTCamera() {
 
   return (
     <div className="glass-panel p-6 shadow-2xl text-center transition-all duration-300">
-      <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500 mb-4">
+      <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-500 mb-4">
         نظام التدريب المبني على السرعة (VBT AI)
       </h3>
 
       <div className="flex flex-wrap justify-center gap-3 mb-6 bg-black/20 p-4 rounded-2xl border border-[var(--border-light)]">
-        <button onClick={() => setMode('front')} className={`px-5 py-2.5 rounded-xl font-bold transition-all ${mode === 'front' ? 'bg-orange-600 text-white shadow-md' : 'bg-[var(--bg-input)] text-gray-400 border border-[var(--border-light)]'}`}>كاميرا أمامية 📸</button>
-        <button onClick={() => setMode('back')} className={`px-5 py-2.5 rounded-xl font-bold transition-all ${mode === 'back' ? 'bg-orange-600 text-white shadow-md' : 'bg-[var(--bg-input)] text-gray-400 border border-[var(--border-light)]'}`}>كاميرا خلفية 🎥</button>
+        <button onClick={() => setMode('front')} className={`px-5 py-2.5 rounded-xl font-bold transition-all ${mode === 'front' ? 'bg-blue-600 text-white shadow-md' : 'bg-[var(--bg-input)] text-gray-400 border border-[var(--border-light)]'}`}>كاميرا أمامية 📸</button>
+        <button onClick={() => setMode('back')} className={`px-5 py-2.5 rounded-xl font-bold transition-all ${mode === 'back' ? 'bg-blue-600 text-white shadow-md' : 'bg-[var(--bg-input)] text-gray-400 border border-[var(--border-light)]'}`}>كاميرا خلفية 🎥</button>
         <div className="relative">
           <input type="file" accept="video/*" onChange={handleVideoUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-          <button className={`px-5 py-2.5 rounded-xl font-bold transition-all ${mode === 'video' ? 'bg-orange-600 text-white shadow-md' : 'bg-[var(--bg-input)] text-gray-400 border border-[var(--border-light)]'}`}>رفع فيديو 📁</button>
+          <button className={`px-5 py-2.5 rounded-xl font-bold transition-all ${mode === 'video' ? 'bg-blue-600 text-white shadow-md' : 'bg-[var(--bg-input)] text-gray-400 border border-[var(--border-light)]'}`}>رفع فيديو 📁</button>
         </div>
       </div>
 
@@ -332,7 +332,7 @@ export default function VBTCamera() {
         </div>
         <div>
           <label className="block text-xs text-gray-400 mb-1">مسافة الرفعة الحالية</label>
-          <input type="number" step="0.01" value={liftDistance} readOnly className="w-full bg-black/40 border border-[var(--border-light)] p-2.5 text-orange-400 font-bold rounded-xl text-center outline-none font-mono" />
+          <input type="number" step="0.01" value={liftDistance} readOnly className="w-full bg-black/40 border border-[var(--border-light)] p-2.5 text-blue-400 font-bold rounded-xl text-center outline-none font-mono" />
         </div>
         <div>
           <label className="block text-xs text-gray-400 mb-1">FPS الكاميرا</label>
@@ -352,14 +352,14 @@ export default function VBTCamera() {
               📏 بدء معايرة الكاميرا على الشاشة
            </button>
          ) : (
-           <div className="w-full bg-orange-950/20 border border-orange-500 p-3 rounded-xl animate-pulse">
-             {calibrationStep === 1 && <p className="text-orange-400 font-bold">1️⃣ اضغط على <span className="text-white">أول نقطة</span> بالجسم المرجعي</p>}
-             {calibrationStep === 2 && <p className="text-orange-400 font-bold">2️⃣ اضغط على <span className="text-white">ثاني نقطة</span> بالجسم المرجعي</p>}
+           <div className="w-full bg-blue-950/20 border border-blue-500 p-3 rounded-xl animate-pulse">
+             {calibrationStep === 1 && <p className="text-blue-400 font-bold">1️⃣ اضغط على <span className="text-white">أول نقطة</span> بالجسم المرجعي</p>}
+             {calibrationStep === 2 && <p className="text-blue-400 font-bold">2️⃣ اضغط على <span className="text-white">ثاني نقطة</span> بالجسم المرجعي</p>}
            </div>
          )}
       </div>
 
-      {!scriptsLoaded && <p className="text-orange-400 mb-4 font-bold animate-pulse">جاري تجهيز رادار الذكاء الاصطناعي...</p>}
+      {!scriptsLoaded && <p className="text-blue-400 mb-4 font-bold animate-pulse">جاري تجهيز رادار الذكاء الاصطناعي...</p>}
       
       <div className="relative flex flex-col items-center w-full max-w-md mx-auto mb-6">
         <div className="relative inline-block border-4 border-[var(--border-light)] rounded-2xl overflow-hidden shadow-2xl w-full mb-4 bg-black">
@@ -389,7 +389,7 @@ export default function VBTCamera() {
             setShowBarPath(!showBarPath);
             if (videoRef.current && poseRef.current && videoRef.current.paused) { poseRef.current.send({ image: videoRef.current }); }
           }} 
-          className={`px-6 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 border ${showBarPath ? 'bg-orange-600/30 text-orange-400 border-orange-500' : 'bg-[var(--bg-input)] text-gray-400 border-[var(--border-light)]'}`}
+          className={`px-6 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 border ${showBarPath ? 'bg-blue-600/30 text-blue-400 border-blue-500' : 'bg-[var(--bg-input)] text-gray-400 border-[var(--border-light)]'}`}
         >
           {showBarPath ? '🙈 إخفاء مسار البار' : '👁️ إظهار مسار البار'}
         </button>
@@ -420,7 +420,7 @@ export default function VBTCamera() {
             </div>
             <div className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-light)]">
               <span className="block text-xs text-gray-400 mb-2">أقصى سرعة (Peak)</span>
-              <span className="text-4xl font-black text-orange-500">{vbtResults.peakVelocity} <span className="text-sm text-orange-500/50">m/s</span></span>
+              <span className="text-4xl font-black text-blue-500">{vbtResults.peakVelocity} <span className="text-sm text-blue-500/50">m/s</span></span>
             </div>
             <div className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-light)]">
               <span className="block text-xs text-gray-400 mb-2">زمن الصعود الفعلي</span>

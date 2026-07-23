@@ -1,32 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  /* PeakForce Lab Vertical v2.0 - Matte Slate & Muted Orange */
+  /* PeakForce Lab Vertical v2.0 - OVR Performance Royal & Electric Blue */
   
-  /* Deep Slate Dark Theme */
-  --bg-base: #0f172a;        /* Slate 900 */
-  --bg-panel: #1e293b;       /* Slate 800 */
-  --bg-surface: #334155;     /* Slate 700 */
-  --bg-input: #0f172a;       /* Slate 900 for inputs */
+  /* Deep Slate & Dark Navy Theme */
+  --bg-base: #090d16;        /* Deep Navy Slate */
+  --bg-panel: #111827;       /* Slate 900 */
+  --bg-surface: #1e293b;     /* Slate 800 */
+  --bg-input: #0b1120;       /* Dark Navy Input */
   
   --text-primary: #f8fafc;   /* Slate 50 */
-  --text-secondary: #ea580c; /* Muted Orange - No Neon */
+  --text-secondary: #3b82f6; /* Electric Blue Accent */
   --text-muted: #94a3b8;     /* Slate 400 */
   
-  --border-color: #475569;   /* Slate 600 */
-  --border-light: #334155;   /* Slate 700 */
-  --border-active: #ea580c;  /* Orange Border for focus */
+  --border-color: #334155;   /* Slate 700 */
+  --border-light: #1e293b;   /* Slate 800 */
+  --border-active: #2563eb;  /* Royal Blue Border */
   
-  --brand-main: #ea580c;     /* Muted Orange */
-  --brand-hover: #c2410c;    /* Darker Orange for hover */
-  --brand-text: #f97316;     /* Lighter Orange for text contrast */
+  --brand-main: #2563eb;     /* Royal Blue */
+  --brand-hover: #1d4ed8;    /* Darker Blue */
+  --brand-text: #60a5fa;     /* Light Electric Blue for text */
   
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 25px -5px rgba(37, 99, 235, 0.25);
   
-  /* Solid colors instead of gradients for flat design */
-  --accent-gradient: #ea580c; 
-  --bg-gradient: #0f172a; /* Flat background */
+  --accent-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+  --bg-gradient: #090d16;
   
   --sans: 'Cairo', system-ui, sans-serif;
   --heading: 'Cairo', system-ui, sans-serif;
@@ -34,29 +33,29 @@
 }
 
 [data-theme="light"] {
-  /* High Contrast Off-White & Amber Theme */
-  --bg-base: #f8fafc;        /* Slate 50 - Off white */
-  --bg-panel: #ffffff;       /* Pure white panels */
-  --bg-surface: #f1f5f9;     /* Slate 100 for secondary cards */
-  --bg-input: #ffffff;       /* White inputs */
+  /* High Contrast Off-White & Royal Blue Theme */
+  --bg-base: #f8fafc;        /* Slate 50 */
+  --bg-panel: #ffffff;       /* Pure white */
+  --bg-surface: #f1f5f9;     /* Slate 100 */
+  --bg-input: #ffffff;       /* White */
   
-  --text-primary: #0f172a;   /* Slate 900 - Very dark gray for high readability */
-  --text-secondary: #c2410c; /* Darker orange for better contrast on white */
+  --text-primary: #0f172a;   /* Slate 900 */
+  --text-secondary: #1d4ed8; /* Dark Royal Blue */
   --text-muted: #475569;     /* Slate 600 */
   
-  --border-color: #cbd5e1;   /* Slate 300 - Clearly visible borders */
+  --border-color: #cbd5e1;   /* Slate 300 */
   --border-light: #e2e8f0;   /* Slate 200 */
-  --border-active: #ea580c;  /* Orange Border for focus */
+  --border-active: #2563eb;  
   
-  --brand-main: #ea580c;
-  --brand-hover: #c2410c;
-  --brand-text: #c2410c;
+  --brand-main: #2563eb;
+  --brand-hover: #1d4ed8;
+  --brand-text: #1d4ed8;
   
-  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 12px -2px rgba(37, 99, 235, 0.15);
   
-  --accent-gradient: #ea580c;
-  --bg-gradient: #f8fafc; /* Flat background */
+  --accent-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  --bg-gradient: #f8fafc;
 }
 
 body {
@@ -82,19 +81,18 @@ body {
   box-sizing: border-box;
 }
 
-/* Flat Panel Definitions (Replacing Glassmorphism) */
 .glass-panel {
   background: var(--bg-panel);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow);
-  border-radius: 12px; /* Less rounded for professional look */
+  border-radius: 12px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .glass-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-light);
-  border-radius: 8px; /* Sharper corners */
+  border-radius: 8px;
   transition: all 0.2s ease;
 }
 
@@ -110,24 +108,24 @@ body {
   color: var(--text-primary);
   border-radius: 6px;
   outline: none;
-  font-weight: 600; /* Bolder for legibility */
+  font-weight: 600;
   transition: all 0.2s ease;
   padding: 10px 12px;
 }
 
 .glass-input:focus {
   border-color: var(--border-active);
-  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.2); /* Subtle focus ring */
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
 }
 
-/* Light mode overrides for specific elements to ensure contrast */
+/* Light mode overrides */
 [data-theme="light"] select,
 [data-theme="light"] input,
 [data-theme="light"] textarea {
   color: #0f172a !important;
   font-weight: 600 !important;
   background-color: #ffffff;
-  border: 1px solid #94a3b8; /* Darker border for inputs in light mode */
+  border: 1px solid #94a3b8;
 }
 
 [data-theme="light"] select option {
@@ -137,7 +135,7 @@ body {
 
 [data-theme="light"] .text-gray-400,
 [data-theme="light"] .text-gray-500 {
-  color: #475569 !important; /* Force darker grays in light mode */
+  color: #475569 !important;
 }
 
 [data-theme="light"] .border-gray-800,
@@ -145,33 +143,30 @@ body {
   border-color: #cbd5e1 !important;
 }
 
-/* Support Outfit Font for numbers specifically */
 .font-mono, .numbers, td, th, span[class*="font-mono"] {
   font-family: var(--mono) !important;
 }
 
-/* Flat Solid Button styles (Replacing Glow Gradients) */
-.btn-orange-gradient {
-  background: var(--brand-main);
+.btn-orange-gradient, .btn-blue-gradient {
+  background: var(--accent-gradient);
   color: #ffffff !important;
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 8px;
   transition: all 0.2s ease;
   border: none;
   box-shadow: var(--shadow);
 }
 
-.btn-orange-gradient:hover:not(:disabled) {
+.btn-orange-gradient:hover:not(:disabled), .btn-blue-gradient:hover:not(:disabled) {
   background: var(--brand-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-lg);
 }
 
-.btn-orange-gradient:active:not(:disabled) {
+.btn-orange-gradient:active:not(:disabled), .btn-blue-gradient:active:not(:disabled) {
   transform: translateY(0);
 }
 
-/* Loading Animations - Simplified */
 @keyframes pulse {
   0% { opacity: 0.5; transform: scale(0.95); }
   50% { opacity: 1; transform: scale(1); }
@@ -184,7 +179,6 @@ body {
   border-radius: 50%;
 }
 
-/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -200,24 +194,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
-
-/* Custom Premium Range Input styling */
-input[type="range"].timeline-slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  outline: none;
-  cursor: pointer;
-}
-
-input[type="range"].timeline-slider::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 6px;
-  background: var(--border-color);
-  border-radius: 3px;
+  background: var(--brand-main);
 }
 
 input[type="range"].timeline-slider::-webkit-slider-thumb {
@@ -227,9 +204,8 @@ input[type="range"].timeline-slider::-webkit-slider-thumb {
   background: var(--brand-main);
   cursor: pointer;
   -webkit-appearance: none;
-  margin-top: -7px; /* (20/2) - (6/2) */
+  margin-top: -7px;
   box-shadow: var(--shadow);
-  transition: transform 0.1s ease;
 }
 
 input[type="range"].timeline-slider::-webkit-slider-thumb:hover {
@@ -237,12 +213,10 @@ input[type="range"].timeline-slider::-webkit-slider-thumb:hover {
   background: var(--brand-hover);
 }
 
-/* Force Cairo Font Family globally */
 body, button, input, select, textarea, text, span, div, p, h1, h2, h3, h4, h5, h6, table, th, td, label {
   font-family: 'Cairo', system-ui, -apple-system, sans-serif !important;
 }
 
-/* Add custom scroll clearing spacer classes */
 .bottom-dock-clearance {
   height: 80px;
   width: 100%;

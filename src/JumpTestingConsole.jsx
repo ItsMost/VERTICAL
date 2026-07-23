@@ -1813,7 +1813,7 @@ export default function JumpTestingConsole({
           
           {/* Viewport Header */}
           <div className="w-full flex justify-between items-center bg-[#111827]/40 p-3 rounded-xl border border-gray-800">
-             <span className="text-sm font-bold text-white flex items-center gap-2"><ScanEye size={18} className="text-orange-400"/> شاشة عرض وتحليل الفيديو (Video Viewport)</span>
+             <span className="text-sm font-bold text-white flex items-center gap-2"><ScanEye size={18} className="text-blue-400"/> شاشة عرض وتحليل الفيديو (Video Viewport)</span>
           </div>
 
           {/* File Upload Area */}
@@ -1825,7 +1825,7 @@ export default function JumpTestingConsole({
               </label>
               <label className="flex-1 w-full max-w-xs cursor-pointer bg-[#111827]/40 hover:bg-gray-800/60 border border-gray-850 text-white text-center py-10 rounded-2xl font-black flex flex-col items-center justify-center gap-2 transition-all">
                 <input type="file" accept="video/*" onChange={handleFileUpload} ref={fileInputRef} className="hidden" />
-                <Play size={36} className="text-orange-400" /> اختيار فيديو من المعرض 📁
+                <Play size={36} className="text-blue-400" /> اختيار فيديو من المعرض 📁
               </label>
             </div>
           ) : (
@@ -1860,13 +1860,13 @@ export default function JumpTestingConsole({
                   <span className="px-2 py-0.5 rounded-md bg-black/60 border border-red-500/30 text-[9px] font-bold text-red-500 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span> REC
                   </span>
-                  <span className="px-2 py-0.5 rounded-md bg-black/60 border border-orange-500/30 text-[9px] font-mono text-orange-400">
+                  <span className="px-2 py-0.5 rounded-md bg-black/60 border border-blue-500/30 text-[9px] font-mono text-blue-400">
                     {cameraFps} FPS
                   </span>
                 </div>
 
                 <div className="absolute bottom-3 right-3 z-10 bg-black/60 border border-gray-800 px-3 py-1 rounded-xl text-[9px] font-bold text-gray-300">
-                  الوزن الإضافي: <span className="text-orange-400 font-mono">{bodyMass - (activePlayer?.weight_kg || 70)} kg</span>
+                  الوزن الإضافي: <span className="text-blue-400 font-mono">{bodyMass - (activePlayer?.weight_kg || 70)} kg</span>
                 </div>
               </div>
 
@@ -1882,7 +1882,7 @@ export default function JumpTestingConsole({
                       onTouchStart={handleJogStart}
                       className="relative w-32 h-32 rounded-full bg-gradient-to-br from-gray-800 to-black border-4 border-gray-900 shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing select-none group"
                     >
-                      <div className="absolute inset-0 rounded-full border-2 border-orange-500/20 group-hover:border-orange-500/50 group-active:border-orange-400 group-active:shadow-[0_0_20px_rgba(255,107,0,0.45)] transition-all duration-300 pointer-events-none"></div>
+                      <div className="absolute inset-0 rounded-full border-2 border-blue-500/20 group-hover:border-blue-500/50 group-active:border-blue-400 group-active:shadow-[0_0_20px_rgba(255,107,0,0.45)] transition-all duration-300 pointer-events-none"></div>
                       
                       <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="4" />
@@ -1915,7 +1915,7 @@ export default function JumpTestingConsole({
                           transition: isDraggingJog.current ? 'none' : 'transform 0.15s ease-out'
                         }}
                       >
-                        <div className="w-1 h-4 bg-orange-400 rounded-full shadow-[0_0_8px_rgba(255,107,0,0.8)]"></div>
+                        <div className="w-1 h-4 bg-blue-400 rounded-full shadow-[0_0_8px_rgba(255,107,0,0.8)]"></div>
                       </div>
 
                       {/* Center Display */}
@@ -1924,7 +1924,7 @@ export default function JumpTestingConsole({
                         <span className="text-xs font-black text-white font-mono leading-none mt-1.5">
                           F {Math.round(currentTime * (videoFps || 30))}
                         </span>
-                        <span className="text-[8px] text-orange-400 font-bold mt-1 font-mono">
+                        <span className="text-[8px] text-blue-400 font-bold mt-1 font-mono">
                           {currentTime.toFixed(2)}s
                         </span>
                       </div>
@@ -1936,7 +1936,7 @@ export default function JumpTestingConsole({
                   <div className="flex-1 w-full space-y-4">
                     <div className="flex justify-between items-center text-xs text-gray-400 font-bold px-1">
                       <span>جهاز تحكم الإطارات والتوقيت (Console Jog Controller)</span>
-                      <span className="text-orange-400">اسحب القرص أو اضغط الإطارات بدقة ⏱️</span>
+                      <span className="text-blue-400">اسحب القرص أو اضغط الإطارات بدقة ⏱️</span>
                     </div>
 
                     <div className="grid grid-cols-6 gap-1.5 justify-center">
@@ -1950,15 +1950,15 @@ export default function JumpTestingConsole({
                     </div>
 
                     <div className="flex justify-center">
-                      <button onClick={togglePlay} className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 text-xs shadow-lg hover:shadow-orange-500/20 cursor-pointer w-full max-w-[200px]">
+                      <button onClick={togglePlay} className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 text-xs shadow-lg hover:shadow-blue-500/20 cursor-pointer w-full max-w-[200px]">
                         {isPlaying ? <><Pause size={14}/> إيقاف مؤقت</> : <><Play size={14}/> تشغيل الفيديو</>}
                       </button>
                     </div>
 
                     <div className="flex gap-2 w-full pt-1">
-                      <button onClick={() => { setTakeoffTime(currentTime); setShowResults(false); }} className={`flex-1 py-2.5 border rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 cursor-pointer ${takeoffTime > 0 ? 'bg-orange-600/30 text-orange-400 border-orange-500/50 shadow' : 'bg-black/30 border-gray-800 text-white hover:bg-gray-805'}`}>
+                      <button onClick={() => { setTakeoffTime(currentTime); setShowResults(false); }} className={`flex-1 py-2.5 border rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 cursor-pointer ${takeoffTime > 0 ? 'bg-blue-600/30 text-blue-400 border-blue-500/50 shadow' : 'bg-black/30 border-gray-800 text-white hover:bg-gray-805'}`}>
                         <span>{takeoffTime > 0 ? '🚀 تعديل الإقلاع' : '🚀 تحديد إقلاع'}</span>
-                        {takeoffTime > 0 && <span className="text-[9px] font-mono font-bold bg-orange-950/40 px-1.5 py-0.5 rounded">F {Math.round(takeoffTime * (videoFps || 30))}</span>}
+                        {takeoffTime > 0 && <span className="text-[9px] font-mono font-bold bg-blue-950/40 px-1.5 py-0.5 rounded">F {Math.round(takeoffTime * (videoFps || 30))}</span>}
                       </button>
                       <button onClick={() => { setLandingTime(currentTime); setShowResults(false); }} className={`flex-1 py-2.5 border rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 cursor-pointer ${landingTime > 0 ? 'bg-red-600/30 text-red-400 border-red-500/50 shadow' : 'bg-black/30 border-gray-800 text-white hover:bg-gray-805'}`}>
                         <span>{landingTime > 0 ? '🛬 تعديل الهبوط' : '🛬 تحديد هبوط'}</span>
@@ -1973,14 +1973,14 @@ export default function JumpTestingConsole({
                   {/* Ruler-style ticks */}
                   <div className="absolute inset-0 flex justify-between items-center px-4 pointer-events-none opacity-20">
                     {Array.from({ length: 20 }).map((_, i) => (
-                      <div key={i} className={`w-0.5 bg-orange-500 rounded-full ${i % 5 === 0 ? 'h-4' : 'h-2'}`} />
+                      <div key={i} className={`w-0.5 bg-blue-500 rounded-full ${i % 5 === 0 ? 'h-4' : 'h-2'}`} />
                     ))}
                   </div>
 
                   {/* Shadow overlays for takeoff and landing ranges */}
                   {duration > 0 && takeoffTime > 0 && landingTime > takeoffTime && (
                     <div 
-                      className="absolute top-0 bottom-0 bg-orange-500/10 border-l border-r border-orange-500/35 pointer-events-none"
+                      className="absolute top-0 bottom-0 bg-blue-500/10 border-l border-r border-blue-500/35 pointer-events-none"
                       style={{
                         right: `${(takeoffTime / duration) * 100}%`,
                         left: `${100 - (landingTime / duration) * 100}%`
@@ -2039,23 +2039,23 @@ export default function JumpTestingConsole({
         <div className="lg:col-span-4 flex flex-col justify-between gap-5 h-full">
           
           <div className="bg-black/20 p-5 rounded-3xl border border-gray-800 space-y-4">
-            <h4 className="font-extrabold text-sm text-orange-400 border-b border-gray-800 pb-2 flex items-center gap-1.5">
+            <h4 className="font-extrabold text-sm text-blue-400 border-b border-gray-800 pb-2 flex items-center gap-1.5">
               <Activity size={18} /> إعدادات التحليل والمدخلات
             </h4>
 
             {/* Settings Tabs */}
-            <div className="flex border border-orange-500/20 bg-black/40 p-1 rounded-2xl gap-1">
+            <div className="flex border border-blue-500/20 bg-black/40 p-1 rounded-2xl gap-1">
               <button
                 type="button"
                 onClick={() => setActiveSettingsTab('analysis')}
-                className={`flex-1 py-2 text-center font-extrabold text-[10px] rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeSettingsTab === 'analysis' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-gray-500 hover:text-white bg-transparent border border-transparent'}`}
+                className={`flex-1 py-2 text-center font-extrabold text-[10px] rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeSettingsTab === 'analysis' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-gray-500 hover:text-white bg-transparent border border-transparent'}`}
               >
                 🎥 تحليل الفيديو
               </button>
               <button
                 type="button"
                 onClick={() => setActiveSettingsTab('anthropometrics')}
-                className={`flex-1 py-2 text-center font-extrabold text-[10px] rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeSettingsTab === 'anthropometrics' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-gray-500 hover:text-white bg-transparent border border-transparent'}`}
+                className={`flex-1 py-2 text-center font-extrabold text-[10px] rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeSettingsTab === 'anthropometrics' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-gray-500 hover:text-white bg-transparent border border-transparent'}`}
               >
                 ⚖️ قياسات اللاعب
               </button>
@@ -2076,7 +2076,7 @@ export default function JumpTestingConsole({
                           key={type.id}
                           type="button"
                           onClick={() => { setJumpType(type.id); setShowResults(false); }}
-                          className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${jumpType === type.id ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-[#070a13] shadow' : 'text-gray-400 bg-transparent'}`}
+                          className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${jumpType === type.id ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-[#070a13] shadow' : 'text-gray-400 bg-transparent'}`}
                         >
                           {type.name}
                         </button>
@@ -2085,7 +2085,7 @@ export default function JumpTestingConsole({
                   </div>
                   
                   <div>
-                    <label className="block text-[10px] text-gray-400 mb-1 font-bold text-orange-400">Landing Knee Correction (معامل تصحيح الركبة)</label>
+                    <label className="block text-[10px] text-gray-400 mb-1 font-bold text-blue-400">Landing Knee Correction (معامل تصحيح الركبة)</label>
                     <div className="grid grid-cols-4 gap-1 p-1 bg-black/35 rounded-2xl border border-gray-800">
                       {[
                         { id: 'none', name: '❌ None' },
@@ -2097,7 +2097,7 @@ export default function JumpTestingConsole({
                           key={mode.id}
                           type="button"
                           onClick={() => setLandingCorrectionMode(mode.id)}
-                          className={`py-1.5 px-0.5 text-[9px] font-bold rounded-lg transition-all cursor-pointer ${landingCorrectionMode === mode.id ? 'bg-orange-500/20 text-orange-400 border border-orange-500/50' : 'text-gray-500 bg-transparent'}`}
+                          className={`py-1.5 px-0.5 text-[9px] font-bold rounded-lg transition-all cursor-pointer ${landingCorrectionMode === mode.id ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' : 'text-gray-500 bg-transparent'}`}
                         >
                           {mode.name}
                         </button>
@@ -2107,7 +2107,7 @@ export default function JumpTestingConsole({
                 </div>
 
                 {jumpType === 'dj' && (
-                  <div className="grid grid-cols-2 gap-3 bg-orange-950/15 border border-orange-500/25 p-3 rounded-2xl animate-fade-in text-[10px]">
+                  <div className="grid grid-cols-2 gap-3 bg-blue-950/15 border border-blue-500/25 p-3 rounded-2xl animate-fade-in text-[10px]">
                     <div>
                       <label className="block text-[9px] text-gray-400 mb-1">Box Height (ارتفاع الصندوق cm)</label>
                       <input type="number" value={boxHeight} onChange={e => setBoxHeight(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
@@ -2116,7 +2116,7 @@ export default function JumpTestingConsole({
                       <label className="block text-[9px] text-gray-400 mb-1">Ground Contact Time (وقت ملامسة الأرض)</label>
                       <div className="flex gap-2">
                         <input type="number" step="0.001" value={boxTouchdownTime} onChange={e => setBoxTouchdownTime(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
-                        <button type="button" onClick={() => setBoxTouchdownTime(currentTime)} className="px-2 bg-orange-500 text-[#070a13] rounded-xl text-[10px] font-bold shrink-0 cursor-pointer">هنا 📍</button>
+                        <button type="button" onClick={() => setBoxTouchdownTime(currentTime)} className="px-2 bg-blue-500 text-[#070a13] rounded-xl text-[10px] font-bold shrink-0 cursor-pointer">هنا 📍</button>
                       </div>
                     </div>
                   </div>
@@ -2129,7 +2129,7 @@ export default function JumpTestingConsole({
                     <button
                       type="button"
                       onClick={() => setIsFpsDetectionActive(!isFpsDetectionActive)}
-                      className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${isFpsDetectionActive ? 'bg-orange-500 shadow-[0_0_10px_rgba(255,107,0,0.4)]' : 'bg-gray-800'}`}
+                      className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${isFpsDetectionActive ? 'bg-blue-500 shadow-[0_0_10px_rgba(255,107,0,0.4)]' : 'bg-gray-800'}`}
                     >
                       <span className={`absolute top-1 bottom-1 w-4 h-4 rounded-full bg-white transition-all ${isFpsDetectionActive ? 'right-7' : 'right-1'}`} />
                     </button>
@@ -2154,7 +2154,7 @@ export default function JumpTestingConsole({
                             else if (preset.id === 'normal30') { setCameraFps(30); setVideoFps(30); }
                             else if (preset.id === 'normal60') { setCameraFps(60); setVideoFps(60); }
                           }}
-                          className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${videoPreset === preset.id ? 'bg-orange-500/20 text-orange-400 border border-orange-500/35' : 'text-gray-400 bg-transparent'}`}
+                          className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${videoPreset === preset.id ? 'bg-blue-500/20 text-blue-400 border border-blue-500/35' : 'text-gray-400 bg-transparent'}`}
                         >
                           {preset.name}
                         </button>
@@ -2166,11 +2166,11 @@ export default function JumpTestingConsole({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[9px] text-gray-400 mb-1 block">Video File FPS (FPS ملف الفيديو)</label>
-                    <input type="number" value={videoFps} onChange={(e) => setVideoFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-orange-500" />
+                    <input type="number" value={videoFps} onChange={(e) => setVideoFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-blue-500" />
                   </div>
                   <div>
                     <label className="text-[9px] text-gray-400 mb-1 block">Camera FPS (FPS الكاميرا)</label>
-                    <input type="number" value={cameraFps} onChange={(e) => setCameraFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-orange-500" />
+                    <input type="number" value={cameraFps} onChange={(e) => setCameraFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-blue-500" />
                   </div>
                 </div>
 
@@ -2181,7 +2181,7 @@ export default function JumpTestingConsole({
                     onClick={() => setAiEnabled(!aiEnabled)}
                     className={`w-full py-2 px-3 text-[10px] font-bold rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       aiEnabled
-                        ? 'bg-orange-500/10 text-orange-400 border-orange-500/30'
+                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
                         : 'bg-black/30 text-gray-400 border-gray-800 hover:text-white'
                     }`}
                   >
@@ -2192,7 +2192,7 @@ export default function JumpTestingConsole({
 
                 {/* Limb & Scale Calibration Helper */}
                 <div className="bg-black/15 border border-gray-850 p-3.5 rounded-2xl space-y-3">
-                  <span className="block text-xs text-orange-400 font-bold border-b border-gray-800 pb-1.5 flex items-center gap-1.5 flex-row-reverse">
+                  <span className="block text-xs text-blue-400 font-bold border-b border-gray-800 pb-1.5 flex items-center gap-1.5 flex-row-reverse">
                     📐 Video Scale & Leg Calibration (معايرة مقياس الفيديو وطول الرجل)
                   </span>
                   
@@ -2217,14 +2217,14 @@ export default function JumpTestingConsole({
                         setPixelsPerMeter(null);
                         setTrackedJumpHeight(null);
                       }}
-                      className="w-full py-2 bg-black/35 hover:bg-gray-800 border border-orange-500/20 text-gray-300 rounded-xl text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full py-2 bg-black/35 hover:bg-gray-800 border border-blue-500/20 text-gray-300 rounded-xl text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       📏 ابدأ معايرة طول الرجل من الفيديو
                     </button>
                   ) : (
-                    <div className="bg-orange-950/20 border border-orange-500/40 p-2 rounded-xl text-center animate-pulse">
-                      {calibrationStep === 1 && <p className="text-orange-400 text-[10px] font-bold">1️⃣ اضغط على <span className="text-white font-extrabold">مفصل الفخذ (Hip Joint)</span> بالفيديو</p>}
-                      {calibrationStep === 2 && <p className="text-orange-400 text-[10px] font-bold">2️⃣ اضغط على <span className="text-white font-extrabold">مفصل الكاحل (Ankle Joint)</span> بالفيديو</p>}
+                    <div className="bg-blue-950/20 border border-blue-500/40 p-2 rounded-xl text-center animate-pulse">
+                      {calibrationStep === 1 && <p className="text-blue-400 text-[10px] font-bold">1️⃣ اضغط على <span className="text-white font-extrabold">مفصل الفخذ (Hip Joint)</span> بالفيديو</p>}
+                      {calibrationStep === 2 && <p className="text-blue-400 text-[10px] font-bold">2️⃣ اضغط على <span className="text-white font-extrabold">مفصل الكاحل (Ankle Joint)</span> بالفيديو</p>}
                     </div>
                   )}
                 </div>
@@ -2233,7 +2233,7 @@ export default function JumpTestingConsole({
 
             {activeSettingsTab === 'anthropometrics' && (
               <div className="space-y-4 bg-black/10 border border-gray-850 p-4 rounded-2xl animate-fade-in text-right">
-                <span className="block text-xs text-orange-400 font-bold border-b border-gray-800 pb-1.5 text-right">
+                <span className="block text-xs text-blue-400 font-bold border-b border-gray-800 pb-1.5 text-right">
                   ⚖️ القياسات الأنثروبومترية الحية (Interactive Telemetry)
                 </span>
                 
@@ -2241,7 +2241,7 @@ export default function JumpTestingConsole({
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400 font-bold">وزن اللاعب (Body Mass):</span>
-                    <span className="font-mono font-black text-white bg-orange-950/40 px-2 py-0.5 rounded border border-orange-500/30">{bodyMass} kg</span>
+                    <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded border border-blue-500/30">{bodyMass} kg</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <button type="button" onClick={() => { setBodyMass(prev => Math.max(40, prev - 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-850 border border-gray-800 text-white font-black flex items-center justify-center">-</button>
@@ -2252,7 +2252,7 @@ export default function JumpTestingConsole({
                       step="1" 
                       value={bodyMass} 
                       onChange={(e) => { setBodyMass(Number(e.target.value)); setShowResults(false); }} 
-                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" 
+                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-blue-500" 
                     />
                     <button type="button" onClick={() => { setBodyMass(prev => Math.min(150, prev + 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-850 border border-gray-800 text-white font-black flex items-center justify-center">+</button>
                   </div>
@@ -2262,7 +2262,7 @@ export default function JumpTestingConsole({
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400 font-bold">طول الرجل (Leg Length):</span>
-                    <span className="font-mono font-black text-white bg-orange-950/40 px-2 py-0.5 rounded border border-orange-500/30">{legLength.toFixed(2)} m</span>
+                    <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded border border-blue-500/30">{legLength.toFixed(2)} m</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <button type="button" onClick={() => { setLegLength(prev => Math.max(0.5, prev - 0.02)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-850 border border-gray-800 text-white font-black flex items-center justify-center">-</button>
@@ -2273,7 +2273,7 @@ export default function JumpTestingConsole({
                       step="0.01" 
                       value={legLength} 
                       onChange={(e) => { setLegLength(Number(e.target.value)); setShowResults(false); }} 
-                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" 
+                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-blue-500" 
                     />
                     <button type="button" onClick={() => { setLegLength(prev => Math.min(1.30, prev + 0.02)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-855 border border-gray-800 text-white font-black flex items-center justify-center">+</button>
                   </div>
@@ -2283,7 +2283,7 @@ export default function JumpTestingConsole({
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400 font-bold">طول اللاعب (Player Height):</span>
-                    <span className="font-mono font-black text-white bg-orange-950/40 px-2 py-0.5 rounded border border-orange-500/30">{playerHeight} cm</span>
+                    <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded border border-blue-500/30">{playerHeight} cm</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <button type="button" onClick={() => { handleHeightChange(Math.max(130, playerHeight - 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-855 border border-gray-800 text-white font-black flex items-center justify-center">-</button>
@@ -2294,7 +2294,7 @@ export default function JumpTestingConsole({
                       step="1" 
                       value={playerHeight} 
                       onChange={(e) => { handleHeightChange(Number(e.target.value)); setShowResults(false); }} 
-                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" 
+                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-blue-500" 
                     />
                     <button type="button" onClick={() => { handleHeightChange(Math.min(220, playerHeight + 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-855 border border-gray-800 text-white font-black flex items-center justify-center">+</button>
                   </div>
@@ -2304,7 +2304,7 @@ export default function JumpTestingConsole({
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400 font-bold">الوصول من الثبات (Standing Reach):</span>
-                    <span className="font-mono font-black text-white bg-orange-950/40 px-2 py-0.5 rounded border border-orange-500/30">{standingReach} cm</span>
+                    <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded border border-blue-500/30">{standingReach} cm</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <button type="button" onClick={() => { handleStandingReachChange(Math.max(150, standingReach - 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-855 border border-gray-800 text-white font-black flex items-center justify-center">-</button>
@@ -2315,7 +2315,7 @@ export default function JumpTestingConsole({
                       step="1" 
                       value={standingReach} 
                       onChange={(e) => { handleStandingReachChange(Number(e.target.value)); setShowResults(false); }} 
-                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" 
+                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-blue-500" 
                     />
                     <button type="button" onClick={() => { handleStandingReachChange(Math.min(300, standingReach + 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-855 border border-gray-800 text-white font-black flex items-center justify-center">+</button>
                   </div>
@@ -2335,22 +2335,22 @@ export default function JumpTestingConsole({
         {/* Display calculations outputs in full width bottom row */}
         {showResults && (
           <div className="col-span-12 bg-[#111827]/40 backdrop-blur-xl border border-gray-800 rounded-3xl p-6 mt-4 space-y-6 animate-fade-in text-right">
-            <div className="flex justify-between items-center border-b border-orange-500/20 pb-3">
-              <div className="text-sm font-extrabold text-orange-400 flex items-center gap-1.5">
+            <div className="flex justify-between items-center border-b border-blue-500/20 pb-3">
+              <div className="text-sm font-extrabold text-blue-400 flex items-center gap-1.5">
                 🚀 لوحة القيادة والتحليل الميكانيكي الحيوي (Cockpit Analysis HUD)
               </div>
-              <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-orange-500/20">
+              <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-blue-500/20">
                 <button
                   type="button"
                   onClick={() => setDisplayUnit('cm')}
-                  className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all duration-200 cursor-pointer ${displayUnit === 'cm' ? 'bg-orange-500 text-[#070a13] shadow' : 'text-gray-400 hover:text-white bg-transparent'}`}
+                  className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all duration-200 cursor-pointer ${displayUnit === 'cm' ? 'bg-blue-500 text-[#070a13] shadow' : 'text-gray-400 hover:text-white bg-transparent'}`}
                 >
                   سم (Cm)
                 </button>
                 <button
                   type="button"
                   onClick={() => setDisplayUnit('in')}
-                  className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all duration-200 cursor-pointer ${displayUnit === 'in' ? 'bg-orange-500 text-[#070a13] shadow' : 'text-gray-400 hover:text-white bg-transparent'}`}
+                  className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all duration-200 cursor-pointer ${displayUnit === 'in' ? 'bg-blue-500 text-[#070a13] shadow' : 'text-gray-400 hover:text-white bg-transparent'}`}
                 >
                   بوصة (Inches)
                 </button>
@@ -2359,9 +2359,9 @@ export default function JumpTestingConsole({
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
               {/* Column 1: Altimeter scale */}
-              <div className="bg-black/35 p-5 rounded-3xl border border-orange-500/20 flex flex-col items-center justify-between text-center relative overflow-hidden min-h-[300px]">
-                <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 via-transparent to-transparent pointer-events-none animate-pulse"></div>
-                <span className="text-[10px] text-orange-400 font-extrabold uppercase tracking-wider mb-4 block">
+              <div className="bg-black/35 p-5 rounded-3xl border border-blue-500/20 flex flex-col items-center justify-between text-center relative overflow-hidden min-h-[300px]">
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-transparent pointer-events-none animate-pulse"></div>
+                <span className="text-[10px] text-blue-400 font-extrabold uppercase tracking-wider mb-4 block">
                   📊 Biomechanical Altimeter (الارتفاع الرأسي)
                 </span>
                 
@@ -2378,7 +2378,7 @@ export default function JumpTestingConsole({
                   <div className="w-8 bg-gray-955 border border-gray-850 rounded-full relative overflow-hidden flex items-end">
                     <div className="absolute inset-0 flex flex-col justify-between py-2 pointer-events-none opacity-20 z-10">
                       {Array.from({ length: 10 }).map((_, i) => (
-                        <div key={i} className="h-0.5 w-full bg-orange-400" />
+                        <div key={i} className="h-0.5 w-full bg-blue-400" />
                       ))}
                     </div>
                     
@@ -2387,7 +2387,7 @@ export default function JumpTestingConsole({
                       const pct = Math.min(100, (heightCm / 100) * 100);
                       return (
                         <div 
-                          className="w-full bg-gradient-to-t from-orange-500 to-orange-500 rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(255,107,0,0.6)]"
+                          className="w-full bg-gradient-to-t from-blue-500 to-blue-500 rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(255,107,0,0.6)]"
                           style={{ height: `${pct}%` }}
                         />
                       );
@@ -2402,7 +2402,7 @@ export default function JumpTestingConsole({
                     ) : (
                       <AnimatedCounter value={displayUnit === 'in' ? stats.heightInches : stats.heightCm} decimals={1} />
                     )}
-                    <span className="text-xs text-orange-400 font-bold mr-1">
+                    <span className="text-xs text-blue-400 font-bold mr-1">
                       {jumpType === 'dj' ? 'Index' : (displayUnit === 'in' ? 'in' : 'cm')}
                     </span>
                   </div>
@@ -2460,7 +2460,7 @@ export default function JumpTestingConsole({
                 <div className="text-center mt-2 space-y-1">
                   <div className="text-xl font-black text-orange-505 font-mono">
                     <AnimatedCounter value={parseFloat(stats.harmanPeakPower) > 0 ? stats.harmanPeakPower : parseFloat(stats.meanPower)*2.1} decimals={0} />
-                    <span className="text-[10px] text-orange-500/80 font-bold mr-1">Watts</span>
+                    <span className="text-[10px] text-blue-500/80 font-bold mr-1">Watts</span>
                   </div>
                   <span className="text-[9px] text-gray-500 block">ذروة القدرة الميكانيكية (Harman Model)</span>
                 </div>
@@ -2472,14 +2472,14 @@ export default function JumpTestingConsole({
                   </div>
                   <div className="bg-black/20 p-2 rounded-xl text-center">
                     <span className="text-gray-550 block text-[8px] font-bold">سرعة الإقلاع V0</span>
-                    <span className="font-bold text-orange-400 font-mono">{stats.takeoffVelocity} m/s</span>
+                    <span className="font-bold text-blue-400 font-mono">{stats.takeoffVelocity} m/s</span>
                   </div>
                 </div>
               </div>
 
               {/* Column 3: Stepper phase */}
               <div className="bg-black/35 p-5 rounded-3xl border border-gray-800 flex flex-col justify-start min-h-[300px]">
-                <span className="text-[10px] text-orange-400 font-extrabold uppercase tracking-wider mb-4 block">
+                <span className="text-[10px] text-blue-400 font-extrabold uppercase tracking-wider mb-4 block">
                   📊 Biomechanical Phase Stepper (مراحل الحركة بالزوايا)
                 </span>
                 
@@ -2499,9 +2499,9 @@ export default function JumpTestingConsole({
 
                   {jumpType !== 'sj' && jumpPhases?.movementStart && (
                     <div className="relative flex items-start gap-3 flex-row-reverse text-right">
-                      <div className="absolute right-[-17px] top-1 w-2.5 h-2.5 rounded-full bg-orange-400 border-2 border-black shadow-[0_0_8px_rgba(255,107,0,0.6)]"></div>
-                      <div className="flex-1 bg-black/20 p-2 rounded-xl border border-orange-500/15">
-                        <span className="font-extrabold text-[10px] text-orange-400 block leading-tight">بدء النزول الحركي (Eccentric Phase)</span>
+                      <div className="absolute right-[-17px] top-1 w-2.5 h-2.5 rounded-full bg-blue-400 border-2 border-black shadow-[0_0_8px_rgba(255,107,0,0.6)]"></div>
+                      <div className="flex-1 bg-black/20 p-2 rounded-xl border border-blue-500/15">
+                        <span className="font-extrabold text-[10px] text-blue-400 block leading-tight">بدء النزول الحركي (Eccentric Phase)</span>
                         <div className="flex justify-between items-center mt-1 text-[9px] text-gray-500 font-mono">
                           <span>إطار: {jumpPhases.movementStart.frame}</span>
                           <span>زمن: {jumpPhases.movementStart.time.toFixed(3)}s</span>
@@ -2559,7 +2559,7 @@ export default function JumpTestingConsole({
             {/* SVG displacement chart */}
             {jumpPhases?.points && jumpPhases.points.length > 5 && (
               <div className="bg-black/35 border border-gray-800 p-4 rounded-3xl space-y-3 mt-4">
-                <span className="block text-xs text-orange-400 font-bold border-b border-gray-800 pb-1.5 flex justify-between items-center">
+                <span className="block text-xs text-blue-400 font-bold border-b border-gray-800 pb-1.5 flex justify-between items-center">
                   <span>منحنى إزاحة الفخذ العمودية (Hip displacement)</span>
                   <span className="text-[10px] text-gray-500 font-mono">الارتفاع الميكانيكي الفعلي: {jumpPhases.apex?.displacementCm?.toFixed(1)} cm</span>
                 </span>
@@ -2612,7 +2612,7 @@ export default function JumpTestingConsole({
 
             {/* Reach jump comparison */}
             <div className="bg-black/35 border border-gray-800 p-4 rounded-3xl space-y-3 mt-4">
-              <span className="block text-xs text-orange-400 font-bold border-b border-gray-800 pb-1.5">
+              <span className="block text-xs text-blue-400 font-bold border-b border-gray-800 pb-1.5">
                 📐 أداة مقارنة ارتفاع اللمس (Reach Jump vs. Flight Time)
               </span>
               <div className="grid grid-cols-3 gap-3">
@@ -2622,7 +2622,7 @@ export default function JumpTestingConsole({
                     type="number"
                     value={playerHeight || ''}
                     onChange={(e) => handleHeightChange(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-[var(--bg-input)] border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-orange-500"
+                    className="w-full bg-[var(--bg-input)] border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-blue-500"
                   />
                 </div>
                 <div>
@@ -2631,7 +2631,7 @@ export default function JumpTestingConsole({
                     type="number"
                     value={standingReach || ''}
                     onChange={(e) => handleStandingReachChange(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-[var(--bg-input)] border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-orange-500"
+                    className="w-full bg-[var(--bg-input)] border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-blue-500"
                   />
                 </div>
                 <div>
@@ -2641,16 +2641,16 @@ export default function JumpTestingConsole({
                     value={maxTouchHeight}
                     onChange={(e) => setMaxTouchHeight(parseFloat(e.target.value) || '')}
                     placeholder="مثال: 314"
-                    className="w-full bg-[var(--bg-input)] border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-orange-500"
+                    className="w-full bg-[var(--bg-input)] border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-blue-500"
                   />
                 </div>
               </div>
 
               {maxTouchHeight > standingReach && (
-                <div className="bg-orange-950/20 border border-orange-500/30 p-3 rounded-2xl animate-fade-in space-y-2 text-[11px]">
+                <div className="bg-blue-950/20 border border-blue-500/30 p-3 rounded-2xl animate-fade-in space-y-2 text-[11px]">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 font-semibold">قفزة اللمس الفعلية (Reach Jump):</span>
-                    <span className="font-extrabold text-orange-400 font-mono">
+                    <span className="font-extrabold text-blue-400 font-mono">
                       {(maxTouchHeight - standingReach).toFixed(1)} سم
                       <span className="text-[10px] text-gray-500 mr-1">({((maxTouchHeight - standingReach) / 2.54).toFixed(1)} بوصة)</span>
                     </span>
@@ -2662,9 +2662,9 @@ export default function JumpTestingConsole({
                       <span className="text-[10px] text-gray-500 mr-1">({parseFloat(stats.heightInches).toFixed(1)} بوصة)</span>
                     </span>
                   </div>
-                  <div className="border-t border-orange-500/30 pt-2 flex justify-between items-center">
+                  <div className="border-t border-blue-500/30 pt-2 flex justify-between items-center">
                     <span className="text-gray-300 font-bold">الفارق البيوميكانيكي بين القياسين:</span>
-                    <span className="font-bold text-amber-400 font-mono">
+                    <span className="font-bold text-cyan-400 font-mono">
                       {Math.abs((maxTouchHeight - standingReach) - parseFloat(stats.heightCm)).toFixed(1)} سم
                     </span>
                   </div>
@@ -2684,7 +2684,7 @@ export default function JumpTestingConsole({
                     onClick={() => setSaveJumpTag('sj_no_arms')}
                     className={`py-2 px-2.5 text-[9px] font-bold rounded-xl border transition-all cursor-pointer ${
                       saveJumpTag === 'sj_no_arms'
-                        ? 'bg-orange-500/20 text-orange-400 border-orange-500/50 shadow'
+                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 shadow'
                         : 'bg-[var(--bg-input)] text-gray-400 border-gray-800 hover:text-white'
                     }`}
                   >
@@ -2695,7 +2695,7 @@ export default function JumpTestingConsole({
                     onClick={() => setSaveJumpTag('cmj_no_arms')}
                     className={`py-2 px-2.5 text-[9px] font-bold rounded-xl border transition-all cursor-pointer ${
                       saveJumpTag === 'cmj_no_arms'
-                        ? 'bg-orange-500/20 text-orange-400 border-orange-500/50 shadow'
+                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 shadow'
                         : 'bg-[var(--bg-input)] text-gray-400 border-gray-800 hover:text-white'
                     }`}
                   >
@@ -2706,7 +2706,7 @@ export default function JumpTestingConsole({
                     onClick={() => setSaveJumpTag('sj_arms')}
                     className={`py-2 px-2.5 text-[9px] font-bold rounded-xl border transition-all cursor-pointer ${
                       saveJumpTag === 'sj_arms'
-                        ? 'bg-orange-500/20 text-orange-400 border-orange-500/50 shadow'
+                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 shadow'
                         : 'bg-[var(--bg-input)] text-gray-400 border-gray-800 hover:text-white'
                     }`}
                   >
@@ -2717,7 +2717,7 @@ export default function JumpTestingConsole({
                     onClick={() => setSaveJumpTag('cmj_arms')}
                     className={`py-2 px-2.5 text-[9px] font-bold rounded-xl border transition-all cursor-pointer ${
                       saveJumpTag === 'cmj_arms'
-                        ? 'bg-orange-500/20 text-orange-400 border-orange-500/50 shadow'
+                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 shadow'
                         : 'bg-[var(--bg-input)] text-gray-400 border-gray-800 hover:text-white'
                     }`}
                   >
@@ -2728,7 +2728,7 @@ export default function JumpTestingConsole({
                     onClick={() => setSaveJumpTag('approach')}
                     className={`col-span-2 py-2 px-3 text-[9px] font-bold rounded-xl border transition-all cursor-pointer ${
                       saveJumpTag === 'approach'
-                        ? 'bg-orange-500/20 text-orange-400 border-orange-500/50 shadow'
+                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 shadow'
                         : 'bg-[var(--bg-input)] text-gray-400 border-gray-800 hover:text-white'
                     }`}
                   >
@@ -2747,7 +2747,7 @@ export default function JumpTestingConsole({
               <button 
                 onClick={handleExportVideoWithOverlay} 
                 disabled={isExporting} 
-                className="flex-1 py-4 bg-orange-600/30 border border-orange-500/50 hover:bg-orange-600/50 text-orange-400 flex items-center justify-center gap-2 font-black text-sm rounded-2xl cursor-pointer transition-all disabled:opacity-50"
+                className="flex-1 py-4 bg-blue-600/30 border border-blue-500/50 hover:bg-blue-600/50 text-blue-400 flex items-center justify-center gap-2 font-black text-sm rounded-2xl cursor-pointer transition-all disabled:opacity-50"
               >
                 <Video size={18} />
                 {isExporting ? `جاري التصدير (${exportProgress}%)...` : 'تصدير فيديو التحليل 🎥'}
@@ -2764,7 +2764,7 @@ export default function JumpTestingConsole({
       <div className="flex flex-col gap-5 text-right w-full">
         {/* Header */}
         <div className="w-full flex justify-between items-center bg-[#111827]/40 p-3.5 rounded-2xl border border-gray-800">
-          <span className="text-xs font-bold text-white flex items-center gap-1.5"><ScanEye size={16} className="text-orange-400"/> شاشة تحليل الفيديو (Mobile HUD)</span>
+          <span className="text-xs font-bold text-white flex items-center gap-1.5"><ScanEye size={16} className="text-blue-400"/> شاشة تحليل الفيديو (Mobile HUD)</span>
         </div>
 
         {/* Video Viewport & Scrubber Container */}
@@ -2778,7 +2778,7 @@ export default function JumpTestingConsole({
               </label>
               <label className="w-full max-w-xs cursor-pointer bg-[#111827]/40 border border-gray-850 text-white text-center py-6 rounded-2xl font-black flex flex-col items-center justify-center gap-1.5 transition-all text-xs">
                 <input type="file" accept="video/*" onChange={handleFileUpload} ref={fileInputRef} className="hidden" />
-                <Play size={24} className="text-orange-400" /> اختيار فيديو من المعرض 📁
+                <Play size={24} className="text-blue-400" /> اختيار فيديو من المعرض 📁
               </label>
             </div>
           ) : (
@@ -2816,13 +2816,13 @@ export default function JumpTestingConsole({
                   <span className="px-1.5 py-0.5 rounded bg-black/60 border border-red-500/30 text-[8px] font-bold text-red-500 flex items-center gap-0.5">
                     <span className="w-1 h-1 rounded-full bg-red-500 animate-pulse"></span> REC
                   </span>
-                  <span className="px-1.5 py-0.5 rounded bg-black/60 border border-orange-500/30 text-[8px] font-mono text-orange-400">
+                  <span className="px-1.5 py-0.5 rounded bg-black/60 border border-blue-500/30 text-[8px] font-mono text-blue-400">
                     {cameraFps} FPS
                   </span>
                 </div>
 
                 <div className="absolute bottom-2.5 right-2.5 z-10 bg-black/60 border border-gray-800 px-2 py-0.5 rounded-lg text-[8px] font-bold text-gray-300">
-                  الوزن الإضافي: <span className="text-orange-400 font-mono">{bodyMass - (activePlayer?.weight_kg || 70)} kg</span>
+                  الوزن الإضافي: <span className="text-blue-400 font-mono">{bodyMass - (activePlayer?.weight_kg || 70)} kg</span>
                 </div>
               </div>
 
@@ -2836,7 +2836,7 @@ export default function JumpTestingConsole({
                     onTouchStart={handleJogStart}
                     className="relative w-28 h-28 rounded-full bg-gradient-to-br from-gray-800 to-black border-4 border-gray-900 shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing select-none group"
                   >
-                    <div className="absolute inset-0 rounded-full border border-orange-500/20 group-active:border-orange-400 transition-all duration-300 pointer-events-none"></div>
+                    <div className="absolute inset-0 rounded-full border border-blue-500/20 group-active:border-blue-400 transition-all duration-300 pointer-events-none"></div>
                     
                     <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
                       <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="4" />
@@ -2859,7 +2859,7 @@ export default function JumpTestingConsole({
                         transition: isDraggingJog.current ? 'none' : 'transform 0.15s ease-out'
                       }}
                     >
-                      <div className="w-0.5 h-3 bg-orange-400 rounded-full shadow-[0_0_8px_rgba(255,107,0,0.8)]"></div>
+                      <div className="w-0.5 h-3 bg-blue-400 rounded-full shadow-[0_0_8px_rgba(255,107,0,0.8)]"></div>
                     </div>
 
                     {/* Center Display */}
@@ -2868,7 +2868,7 @@ export default function JumpTestingConsole({
                       <span className="text-[10px] font-black text-white font-mono leading-none mt-1">
                         F {Math.round(currentTime * (videoFps || 30))}
                       </span>
-                      <span className="text-[8px] text-orange-400 font-bold mt-0.5 font-mono">
+                      <span className="text-[8px] text-blue-400 font-bold mt-0.5 font-mono">
                         {currentTime.toFixed(2)}s
                       </span>
                     </div>
@@ -2886,15 +2886,15 @@ export default function JumpTestingConsole({
                     </div>
 
                     <div className="flex justify-center">
-                      <button onClick={togglePlay} className="px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 text-[10px] shadow-lg cursor-pointer w-full max-w-[160px]">
+                      <button onClick={togglePlay} className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-500 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 text-[10px] shadow-lg cursor-pointer w-full max-w-[160px]">
                         {isPlaying ? <><Pause size={12}/> إيقاف مؤقت</> : <><Play size={12}/> تشغيل الفيديو</>}
                       </button>
                     </div>
 
                     <div className="flex gap-2 w-full">
-                      <button onClick={() => { setTakeoffTime(currentTime); setShowResults(false); }} className={`flex-1 py-2 border rounded-xl font-bold transition-all text-[10px] flex items-center justify-center gap-1 cursor-pointer ${takeoffTime > 0 ? 'bg-orange-600/30 text-orange-400 border-orange-500/50 shadow' : 'bg-black/30 border-gray-800 text-white hover:bg-gray-805'}`}>
+                      <button onClick={() => { setTakeoffTime(currentTime); setShowResults(false); }} className={`flex-1 py-2 border rounded-xl font-bold transition-all text-[10px] flex items-center justify-center gap-1 cursor-pointer ${takeoffTime > 0 ? 'bg-blue-600/30 text-blue-400 border-blue-500/50 shadow' : 'bg-black/30 border-gray-800 text-white hover:bg-gray-805'}`}>
                         <span>🚀 إقلاع</span>
-                        {takeoffTime > 0 && <span className="text-[8px] font-mono font-bold bg-orange-950/40 px-1 py-0.5 rounded">F {Math.round(takeoffTime * (videoFps || 30))}</span>}
+                        {takeoffTime > 0 && <span className="text-[8px] font-mono font-bold bg-blue-950/40 px-1 py-0.5 rounded">F {Math.round(takeoffTime * (videoFps || 30))}</span>}
                       </button>
                       <button onClick={() => { setLandingTime(currentTime); setShowResults(false); }} className={`flex-1 py-2 border rounded-xl font-bold transition-all text-[10px] flex items-center justify-center gap-1 cursor-pointer ${landingTime > 0 ? 'bg-red-600/30 text-red-400 border-red-500/50 shadow' : 'bg-black/30 border-gray-800 text-white hover:bg-gray-805'}`}>
                         <span>🛬 هبوط</span>
@@ -2908,13 +2908,13 @@ export default function JumpTestingConsole({
                 <div className="relative w-full h-6 bg-black/60 border border-gray-850 rounded-xl overflow-hidden flex items-center px-3 mt-2">
                   <div className="absolute inset-0 flex justify-between items-center px-3 pointer-events-none opacity-20">
                     {Array.from({ length: 15 }).map((_, i) => (
-                      <div key={i} className={`w-0.5 bg-orange-500 rounded-full ${i % 5 === 0 ? 'h-3' : 'h-1.5'}`} />
+                      <div key={i} className={`w-0.5 bg-blue-500 rounded-full ${i % 5 === 0 ? 'h-3' : 'h-1.5'}`} />
                     ))}
                   </div>
 
                   {duration > 0 && takeoffTime > 0 && landingTime > takeoffTime && (
                     <div 
-                      className="absolute top-0 bottom-0 bg-orange-500/10 border-l border-r border-orange-500/35 pointer-events-none"
+                      className="absolute top-0 bottom-0 bg-blue-500/10 border-l border-r border-blue-500/35 pointer-events-none"
                       style={{
                         right: `${(takeoffTime / duration) * 100}%`,
                         left: `${100 - (landingTime / duration) * 100}%`
@@ -2970,18 +2970,18 @@ export default function JumpTestingConsole({
 
         {/* Settings Panel */}
         <div className="bg-black/20 p-4 rounded-3xl border border-gray-800 flex flex-col gap-4">
-          <div className="flex border border-orange-500/20 bg-black/40 p-1 rounded-2xl gap-1">
+          <div className="flex border border-blue-500/20 bg-black/40 p-1 rounded-2xl gap-1">
             <button
               type="button"
               onClick={() => setActiveSettingsTab('analysis')}
-              className={`flex-1 py-2 text-center font-extrabold text-[10px] rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer ${activeSettingsTab === 'analysis' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-gray-500 hover:text-white bg-transparent border border-transparent'}`}
+              className={`flex-1 py-2 text-center font-extrabold text-[10px] rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer ${activeSettingsTab === 'analysis' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-gray-500 hover:text-white bg-transparent border border-transparent'}`}
             >
               🎥 تحليل الفيديو
             </button>
             <button
               type="button"
               onClick={() => setActiveSettingsTab('anthropometrics')}
-              className={`flex-1 py-2 text-center font-extrabold text-[10px] rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer ${activeSettingsTab === 'anthropometrics' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-gray-500 hover:text-white bg-transparent border border-transparent'}`}
+              className={`flex-1 py-2 text-center font-extrabold text-[10px] rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer ${activeSettingsTab === 'anthropometrics' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-gray-500 hover:text-white bg-transparent border border-transparent'}`}
             >
               ⚖️ قياسات اللاعب
             </button>
@@ -3001,7 +3001,7 @@ export default function JumpTestingConsole({
                       key={type.id}
                       type="button"
                       onClick={() => { setJumpType(type.id); setShowResults(false); }}
-                      className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${jumpType === type.id ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-[#070a13] shadow' : 'text-gray-400 bg-transparent'}`}
+                      className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${jumpType === type.id ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-[#070a13] shadow' : 'text-gray-400 bg-transparent'}`}
                     >
                       {type.name}
                     </button>
@@ -3010,7 +3010,7 @@ export default function JumpTestingConsole({
               </div>
               
               <div>
-                <label className="block text-[10px] text-gray-400 mb-1 font-bold text-orange-400">Landing Knee Correction (معامل تصحيح الركبة)</label>
+                <label className="block text-[10px] text-gray-400 mb-1 font-bold text-blue-400">Landing Knee Correction (معامل تصحيح الركبة)</label>
                 <div className="grid grid-cols-4 gap-1 p-1 bg-black/35 rounded-2xl border border-gray-800">
                   {[
                     { id: 'none', name: '❌ None' },
@@ -3022,7 +3022,7 @@ export default function JumpTestingConsole({
                       key={mode.id}
                       type="button"
                       onClick={() => setLandingCorrectionMode(mode.id)}
-                      className={`py-1.5 px-0.5 text-[9px] font-bold rounded-lg transition-all cursor-pointer ${landingCorrectionMode === mode.id ? 'bg-orange-500/20 text-orange-400 border border-orange-500/50' : 'text-gray-500 bg-transparent'}`}
+                      className={`py-1.5 px-0.5 text-[9px] font-bold rounded-lg transition-all cursor-pointer ${landingCorrectionMode === mode.id ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' : 'text-gray-500 bg-transparent'}`}
                     >
                       {mode.name}
                     </button>
@@ -3031,7 +3031,7 @@ export default function JumpTestingConsole({
               </div>
 
               {jumpType === 'dj' && (
-                <div className="grid grid-cols-2 gap-3 bg-orange-950/15 border border-orange-500/25 p-3 rounded-2xl text-[10px]">
+                <div className="grid grid-cols-2 gap-3 bg-blue-950/15 border border-blue-500/25 p-3 rounded-2xl text-[10px]">
                   <div>
                     <label className="block text-[9px] text-gray-400 mb-1">Box Height (ارتفاع الصندوق cm)</label>
                     <input type="number" value={boxHeight} onChange={e => setBoxHeight(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
@@ -3040,7 +3040,7 @@ export default function JumpTestingConsole({
                     <label className="block text-[9px] text-gray-400 mb-1">Ground Contact Time (وقت ملامسة الأرض)</label>
                     <div className="flex gap-2">
                       <input type="number" step="0.001" value={boxTouchdownTime} onChange={e => setBoxTouchdownTime(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
-                      <button type="button" onClick={() => setBoxTouchdownTime(currentTime)} className="px-2 bg-orange-500 text-[#070a13] rounded-xl text-[10px] font-bold shrink-0 cursor-pointer">هنا 📍</button>
+                      <button type="button" onClick={() => setBoxTouchdownTime(currentTime)} className="px-2 bg-blue-500 text-[#070a13] rounded-xl text-[10px] font-bold shrink-0 cursor-pointer">هنا 📍</button>
                     </div>
                   </div>
                 </div>
@@ -3052,7 +3052,7 @@ export default function JumpTestingConsole({
                   <button
                     type="button"
                     onClick={() => setIsFpsDetectionActive(!isFpsDetectionActive)}
-                    className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${isFpsDetectionActive ? 'bg-orange-500 shadow-[0_0_10px_rgba(255,107,0,0.4)]' : 'bg-gray-800'}`}
+                    className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${isFpsDetectionActive ? 'bg-blue-500 shadow-[0_0_10px_rgba(255,107,0,0.4)]' : 'bg-gray-800'}`}
                   >
                     <span className={`absolute top-1 bottom-1 w-4 h-4 rounded-full bg-white transition-all ${isFpsDetectionActive ? 'right-7' : 'right-1'}`} />
                   </button>
@@ -3077,7 +3077,7 @@ export default function JumpTestingConsole({
                           else if (preset.id === 'normal30') { setCameraFps(30); setVideoFps(30); }
                           else if (preset.id === 'normal60') { setCameraFps(60); setVideoFps(60); }
                         }}
-                        className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${videoPreset === preset.id ? 'bg-orange-500/20 text-orange-400 border border-orange-500/35' : 'text-gray-400 bg-transparent'}`}
+                        className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${videoPreset === preset.id ? 'bg-blue-500/20 text-blue-400 border border-blue-500/35' : 'text-gray-400 bg-transparent'}`}
                       >
                         {preset.name}
                       </button>
@@ -3104,7 +3104,7 @@ export default function JumpTestingConsole({
                   onClick={() => setAiEnabled(!aiEnabled)}
                   className={`w-full py-2 px-3 text-[9px] font-bold rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                     aiEnabled
-                      ? 'bg-orange-500/10 text-orange-400 border-orange-500/30'
+                      ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
                       : 'bg-black/30 text-gray-400 border-gray-800 hover:text-white'
                   }`}
                 >
@@ -3115,7 +3115,7 @@ export default function JumpTestingConsole({
 
               {/* Calibration */}
               <div className="bg-black/15 border border-gray-850 p-3 rounded-2xl space-y-3">
-                <span className="block text-[10px] text-orange-400 font-bold border-b border-gray-800 pb-1">
+                <span className="block text-[10px] text-blue-400 font-bold border-b border-gray-800 pb-1">
                   <span>📐 Video Scale & Leg Calibration (معايرة الفيديو وطول الرجل)</span>
                 </span>
                 
@@ -3140,14 +3140,14 @@ export default function JumpTestingConsole({
                       setPixelsPerMeter(null);
                       setTrackedJumpHeight(null);
                     }}
-                    className="w-full py-2 bg-black/35 border border-orange-500/20 text-gray-300 rounded-xl text-[9px] font-bold transition-all cursor-pointer"
+                    className="w-full py-2 bg-black/35 border border-blue-500/20 text-gray-300 rounded-xl text-[9px] font-bold transition-all cursor-pointer"
                   >
                     📏 ابدأ المعايرة باللمس
                   </button>
                 ) : (
-                  <div className="bg-orange-950/20 border border-orange-500/40 p-2 rounded-xl text-center text-[9px]">
-                    {calibrationStep === 1 && <p className="text-orange-400 font-bold">1️⃣ اضغط على <span className="text-white font-extrabold">مفصل الفخذ</span> بالفيديو</p>}
-                    {calibrationStep === 2 && <p className="text-orange-400 font-bold">2️⃣ اضغط على <span className="text-white font-extrabold">مفصل الكاحل</span> بالفيديو</p>}
+                  <div className="bg-blue-950/20 border border-blue-500/40 p-2 rounded-xl text-center text-[9px]">
+                    {calibrationStep === 1 && <p className="text-blue-400 font-bold">1️⃣ اضغط على <span className="text-white font-extrabold">مفصل الفخذ</span> بالفيديو</p>}
+                    {calibrationStep === 2 && <p className="text-blue-400 font-bold">2️⃣ اضغط على <span className="text-white font-extrabold">مفصل الكاحل</span> بالفيديو</p>}
                   </div>
                 )}
               </div>
@@ -3159,30 +3159,30 @@ export default function JumpTestingConsole({
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400 font-bold">وزن اللاعب:</span>
-                  <span className="font-mono font-black text-white bg-orange-950/40 px-2 py-0.5 rounded">{bodyMass} kg</span>
+                  <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded">{bodyMass} kg</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="range" min="40" max="150" step="1" value={bodyMass} onChange={(e) => { setBodyMass(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" />
+                  <input type="range" min="40" max="150" step="1" value={bodyMass} onChange={(e) => { setBodyMass(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-blue-500" />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400 font-bold">طول القامة:</span>
-                  <span className="font-mono font-black text-white bg-orange-950/40 px-2 py-0.5 rounded">{playerHeight} cm</span>
+                  <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded">{playerHeight} cm</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="range" min="120" max="230" step="1" value={playerHeight} onChange={(e) => { handleHeightChange(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" />
+                  <input type="range" min="120" max="230" step="1" value={playerHeight} onChange={(e) => { handleHeightChange(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-blue-500" />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400 font-bold">الوصول من الثبات:</span>
-                  <span className="font-mono font-black text-white bg-orange-950/40 px-2 py-0.5 rounded">{standingReach} cm</span>
+                  <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded">{standingReach} cm</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="range" min="150" max="300" step="1" value={standingReach} onChange={(e) => { handleStandingReachChange(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" />
+                  <input type="range" min="150" max="300" step="1" value={standingReach} onChange={(e) => { handleStandingReachChange(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-blue-500" />
                 </div>
               </div>
 
@@ -3198,10 +3198,10 @@ export default function JumpTestingConsole({
               </div>
 
               {maxTouchHeight > standingReach && (
-                <div className="bg-orange-950/20 border border-orange-500/30 p-2.5 rounded-2xl space-y-1.5 text-[10px]">
+                <div className="bg-blue-950/20 border border-blue-500/30 p-2.5 rounded-2xl space-y-1.5 text-[10px]">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 font-semibold">قفزة اللمس الفعلية:</span>
-                    <span className="font-extrabold text-orange-400 font-mono">{(maxTouchHeight - standingReach).toFixed(1)} سم</span>
+                    <span className="font-extrabold text-blue-400 font-mono">{(maxTouchHeight - standingReach).toFixed(1)} سم</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 font-semibold">ارتفاع طيران مركز الثقل:</span>
@@ -3222,11 +3222,11 @@ export default function JumpTestingConsole({
         {/* Mobile Results Dashboard */}
         {showResults && (
           <div className="bg-[#111827]/40 backdrop-blur-xl border border-gray-800 rounded-3xl p-4 space-y-5 text-right">
-            <div className="flex justify-between items-center border-b border-orange-500/20 pb-2">
-              <span className="text-[11px] font-extrabold text-orange-400">🚀 لوحة القيادة الميكانيكية الحيوية (Mobile Cockpit)</span>
-              <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-orange-500/10">
-                <button type="button" onClick={() => setDisplayUnit('cm')} className={`px-2 py-0.5 text-[9px] font-bold rounded transition-all cursor-pointer ${displayUnit === 'cm' ? 'bg-orange-500 text-[#070a13]' : 'text-gray-400'}`}>Cm</button>
-                <button type="button" onClick={() => setDisplayUnit('inches')} className={`px-2 py-0.5 text-[9px] font-bold rounded transition-all cursor-pointer ${displayUnit === 'inches' ? 'bg-orange-500 text-[#070a13]' : 'text-gray-400'}`}>In</button>
+            <div className="flex justify-between items-center border-b border-blue-500/20 pb-2">
+              <span className="text-[11px] font-extrabold text-blue-400">🚀 لوحة القيادة الميكانيكية الحيوية (Mobile Cockpit)</span>
+              <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-blue-500/10">
+                <button type="button" onClick={() => setDisplayUnit('cm')} className={`px-2 py-0.5 text-[9px] font-bold rounded transition-all cursor-pointer ${displayUnit === 'cm' ? 'bg-blue-500 text-[#070a13]' : 'text-gray-400'}`}>Cm</button>
+                <button type="button" onClick={() => setDisplayUnit('inches')} className={`px-2 py-0.5 text-[9px] font-bold rounded transition-all cursor-pointer ${displayUnit === 'inches' ? 'bg-blue-500 text-[#070a13]' : 'text-gray-400'}`}>In</button>
               </div>
             </div>
 
@@ -3234,12 +3234,12 @@ export default function JumpTestingConsole({
             <div className="flex flex-col gap-5 items-center">
               {/* Altimeter height scale */}
               <div className="w-full bg-black/30 p-4 rounded-2xl border border-gray-800/80 flex flex-col items-center gap-3">
-                <span className="text-[10px] text-orange-400 font-bold">📏 الارتفاع الرأسي (BIOMECHANICAL ALTIMETER)</span>
+                <span className="text-[10px] text-blue-400 font-bold">📏 الارتفاع الرأسي (BIOMECHANICAL ALTIMETER)</span>
                 
                 <div className="flex items-end gap-4 h-48 w-full justify-center">
                   <div className="w-12 h-full bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden relative flex flex-col justify-end p-1">
                     <div 
-                      className="w-full bg-gradient-to-t from-orange-500 to-orange-500 rounded-xl transition-all duration-1000 shadow-[0_0_12px_rgba(255,107,0,0.4)]"
+                      className="w-full bg-gradient-to-t from-blue-500 to-blue-500 rounded-xl transition-all duration-1000 shadow-[0_0_12px_rgba(255,107,0,0.4)]"
                       style={{ 
                         height: `${Math.min(100, (parseFloat(stats.heightCm) / (displayUnit === 'cm' ? 100 : 40)) * 100)}%` 
                       }}
@@ -3259,13 +3259,13 @@ export default function JumpTestingConsole({
                   <span className="text-2xl font-black text-white font-mono leading-none">
                     {displayUnit === 'cm' ? <AnimatedCounter value={stats.heightCm} /> : <AnimatedCounter value={stats.heightInches} />}
                   </span>
-                  <span className="text-[10px] text-orange-400 font-black mr-1">{displayUnit === 'cm' ? 'cm' : 'inches'}</span>
+                  <span className="text-[10px] text-blue-400 font-black mr-1">{displayUnit === 'cm' ? 'cm' : 'inches'}</span>
                 </div>
               </div>
 
               {/* Power Speedometer */}
               <div className="w-full bg-black/30 p-4 rounded-2xl border border-gray-800/80 flex flex-col items-center gap-2">
-                <span className="text-[10px] text-orange-400 font-bold font-Cairo">⚡ القدرة الانفجارية (POWER TELEMETRY)</span>
+                <span className="text-[10px] text-blue-400 font-bold font-Cairo">⚡ القدرة الانفجارية (POWER TELEMETRY)</span>
                 
                 <div className="relative w-40 h-24 flex items-center justify-center overflow-hidden">
                   <svg className="w-full h-full transform -rotate-180" viewBox="0 0 100 50">
@@ -3300,12 +3300,12 @@ export default function JumpTestingConsole({
 
             {/* Stepper Timeline & Diagnostics */}
             <div className="bg-black/15 p-3 rounded-2xl border border-gray-855 space-y-4">
-              <span className="block text-[10px] text-orange-400 font-bold border-b border-gray-800 pb-1.5">📊 المراحل الميكانيكية للقفزة</span>
+              <span className="block text-[10px] text-blue-400 font-bold border-b border-gray-800 pb-1.5">📊 المراحل الميكانيكية للقفزة</span>
               
               <div className="space-y-4 pr-1">
                 {[
                   { title: "المرحلة اللامركزية (Eccentric)", color: "bg-purple-500", desc: "يبدأ الهبوط والتخزين المرن للطاقة العضلية في العضلات القابضة للورك والركبة." },
-                  { title: "مرحلة التحول (Amortization)", color: "bg-orange-400", desc: "النقطة الحرجة للتحول من الانقباض اللامركزي للمركزي. سرعة التحول تحدد كفاءة الـ SSC." },
+                  { title: "مرحلة التحول (Amortization)", color: "bg-blue-400", desc: "النقطة الحرجة للتحول من الانقباض اللامركزي للمركزي. سرعة التحول تحدد كفاءة الـ SSC." },
                   { title: "المرحلة المركزية (Concentric)", color: "bg-blue-500", desc: "التفريغ الانفجاري للطاقة المخزنة ودفع الأرض بقوة أقصى للوصول لسرعة الانطلاق." },
                   { title: "مرحلة الطيران (Flight Phase)", color: "bg-emerald-400", desc: "يبدأ مركز ثقل اللاعب في الصعود لقمة المسار الحركي محكوماً بـ flight time." },
                   { title: "مرحلة الهبوط (Landing Correction)", color: "bg-red-400", desc: "امتصاص الصدمات وقوى رد فعل الأرض بتفعيل معامل تصحيح الركبة المختار." }
@@ -3321,21 +3321,21 @@ export default function JumpTestingConsole({
 
             {/* Biomechanical Calculations & Force Estimation Card */}
             <div className="bg-black/35 border border-gray-800 p-4 rounded-3xl space-y-4 text-right">
-              <span className="block text-xs text-orange-400 font-extrabold border-b border-gray-800 pb-1.5 flex justify-between items-center">
+              <span className="block text-xs text-blue-400 font-extrabold border-b border-gray-800 pb-1.5 flex justify-between items-center">
                 <span>🔬 Biomechanical Physics & Force Estimation</span>
                 <span className="text-[9px] text-gray-500 font-bold font-mono">Physics Engine v2.0</span>
               </span>
 
               <div className="grid grid-cols-1 gap-4 text-xs text-gray-300">
                 {/* Height Formula Column */}
-                <div className="bg-black/20 p-4.5 rounded-2xl border border-orange-500/10 space-y-2">
-                  <span className="block font-black text-orange-400">📏 Jump Height (حساب الارتفاع)</span>
+                <div className="bg-black/20 p-4.5 rounded-2xl border border-blue-500/10 space-y-2">
+                  <span className="block font-black text-blue-400">📏 Jump Height (حساب الارتفاع)</span>
                   <div className="bg-black/30 p-2 rounded-xl font-mono text-center text-[10px] text-white">
                     Height = (g * Tf²) / 8
                   </div>
                   <p className="text-[10px] text-gray-405 leading-relaxed">
                     g = 9.81 m/s² | Tf = {stats.flightTime}s <br />
-                    Height = <span className="text-orange-400 font-bold">{(parseFloat(stats.heightCm)).toFixed(1)} cm</span>
+                    Height = <span className="text-blue-400 font-bold">{(parseFloat(stats.heightCm)).toFixed(1)} cm</span>
                   </p>
                   <p className="text-[9px] text-gray-500 leading-normal">
                     يعتمد الارتفاع على زمن الطيران الكلي. بما أن الجاذبية الأرضية هي المؤثر الوحيد أثناء التحليق، يمثل زمن التحليق قياساً بالغ الدقة لارتفاع مركز ثقل الجسم.
@@ -3343,15 +3343,15 @@ export default function JumpTestingConsole({
                 </div>
 
                 {/* Force Estimation Column */}
-                <div className="bg-black/20 p-4.5 rounded-2xl border border-amber-500/10 space-y-2">
-                  <span className="block font-black text-amber-400">🏋️ Takeoff Force (الدفع الأرضي المقدر)</span>
+                <div className="bg-black/20 p-4.5 rounded-2xl border border-cyan-500/10 space-y-2">
+                  <span className="block font-black text-cyan-400">🏋️ Takeoff Force (الدفع الأرضي المقدر)</span>
                   <div className="bg-black/30 p-2 rounded-xl font-mono text-center text-[10px] text-white flex justify-between px-3">
                     <span>Avg: {parseFloat(stats.meanForce).toFixed(0)} N</span>
                     <span>Peak: {parseFloat(stats.peakForce).toFixed(0)} N</span>
                   </div>
                   <p className="text-[10px] text-gray-405 leading-relaxed">
-                    متوسط الدفع: <span className="text-amber-400 font-bold">{(parseFloat(stats.meanForce) / (bodyMass * 9.81)).toFixed(2)} BW</span> <br />
-                    ذروة الدفع: <span className="text-amber-400 font-bold">{(parseFloat(stats.peakForce) / (bodyMass * 9.81)).toFixed(2)} BW</span>
+                    متوسط الدفع: <span className="text-cyan-400 font-bold">{(parseFloat(stats.meanForce) / (bodyMass * 9.81)).toFixed(2)} BW</span> <br />
+                    ذروة الدفع: <span className="text-cyan-400 font-bold">{(parseFloat(stats.peakForce) / (bodyMass * 9.81)).toFixed(2)} BW</span>
                   </p>
                   <p className="text-[9px] text-gray-500 leading-normal">
                     تُعبر القوة التفاعلية الأرضية (GRF) عن شدة دفع أرجل اللاعب للأرض لحظة الصعود. النسب المثالية للرياضيين النخبة تتعدى 2.5 أضعاف وزن الجسم (Peak &gt; 2.5 BW).
@@ -3383,11 +3383,11 @@ export default function JumpTestingConsole({
               <div className="space-y-2 bg-black/25 border border-gray-855 p-3 rounded-2xl">
                 <label className="block text-[9px] text-gray-400 font-bold">تصنيف القفزة للحفظ</label>
                 <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setSaveJumpTag('sj_no_arms')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'sj_no_arms' ? 'bg-orange-500/20 text-orange-400 border-orange-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>SJ (بدون يدين)</button>
-                  <button type="button" onClick={() => setSaveJumpTag('cmj_no_arms')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'cmj_no_arms' ? 'bg-orange-500/20 text-orange-400 border-orange-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>CMJ (بدون يدين)</button>
-                  <button type="button" onClick={() => setSaveJumpTag('sj_arms')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'sj_arms' ? 'bg-orange-500/20 text-orange-400 border-orange-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>SJ (باليدين)</button>
-                  <button type="button" onClick={() => setSaveJumpTag('cmj_arms')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'cmj_arms' ? 'bg-orange-500/20 text-orange-400 border-orange-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>CMJ (باليدين)</button>
-                  <button type="button" onClick={() => setSaveJumpTag('approach')} className={`col-span-2 py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'approach' ? 'bg-orange-500/20 text-orange-400 border-orange-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>قفزة اقتراب (Approach)</button>
+                  <button type="button" onClick={() => setSaveJumpTag('sj_no_arms')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'sj_no_arms' ? 'bg-blue-500/20 text-blue-400 border-blue-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>SJ (بدون يدين)</button>
+                  <button type="button" onClick={() => setSaveJumpTag('cmj_no_arms')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'cmj_no_arms' ? 'bg-blue-500/20 text-blue-400 border-blue-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>CMJ (بدون يدين)</button>
+                  <button type="button" onClick={() => setSaveJumpTag('sj_arms')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'sj_arms' ? 'bg-blue-500/20 text-blue-400 border-blue-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>SJ (باليدين)</button>
+                  <button type="button" onClick={() => setSaveJumpTag('cmj_arms')} className={`py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'cmj_arms' ? 'bg-blue-500/20 text-blue-400 border-blue-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>CMJ (باليدين)</button>
+                  <button type="button" onClick={() => setSaveJumpTag('approach')} className={`col-span-2 py-1.5 text-[9px] font-bold rounded-lg border transition-all cursor-pointer ${saveJumpTag === 'approach' ? 'bg-blue-500/20 text-blue-400 border-blue-500/50' : 'bg-black/30 text-gray-400 border-gray-800'}`}>قفزة اقتراب (Approach)</button>
                 </div>
               </div>
             )}
@@ -3401,7 +3401,7 @@ export default function JumpTestingConsole({
               <button 
                 onClick={handleExportVideoWithOverlay} 
                 disabled={isExporting} 
-                className="w-full py-3.5 bg-orange-600/30 border border-orange-500/50 hover:bg-orange-600/50 text-orange-400 flex items-center justify-center gap-2 font-black text-xs rounded-xl cursor-pointer transition-all disabled:opacity-50"
+                className="w-full py-3.5 bg-blue-600/30 border border-blue-500/50 hover:bg-blue-600/50 text-blue-400 flex items-center justify-center gap-2 font-black text-xs rounded-xl cursor-pointer transition-all disabled:opacity-50"
               >
                 <Video size={16} />
                 {isExporting ? `جاري التصدير (${exportProgress}%)...` : 'تصدير فيديو التحليل 🎥'}
@@ -3420,7 +3420,7 @@ export default function JumpTestingConsole({
       {/* Fullscreen Export Progress Overlay */}
       {isExporting && (
         <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/60 text-white p-6">
-          <div className="bg-[#0a0d14] border border-orange-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(255,107,0,0.15)] animate-fade-in">
+          <div className="bg-[#0a0d14] border border-blue-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(255,107,0,0.15)] animate-fade-in">
             <div className="relative w-20 h-20">
               <svg className="w-full h-full transform -rotate-90">
                 <circle
@@ -3443,13 +3443,13 @@ export default function JumpTestingConsole({
                   className="transition-all duration-200"
                 />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center font-black text-lg text-orange-400 font-mono">
+              <div className="absolute inset-0 flex items-center justify-center font-black text-lg text-blue-400 font-mono">
                 {exportProgress}%
               </div>
             </div>
             <h3 className="text-lg font-black text-white mt-2">جاري تصدير فيديو التحليل 🎥</h3>
             {exportStatus && (
-              <p className="text-sm text-orange-400 font-bold animate-pulse mt-1">
+              <p className="text-sm text-blue-400 font-bold animate-pulse mt-1">
                 {exportStatus}
               </p>
             )}
@@ -3463,7 +3463,7 @@ export default function JumpTestingConsole({
       {/* Export Success Modal */}
       {exportedVideoUrl && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in" style={{ direction: 'rtl' }}>
-          <div className="bg-[#0a0d14]/95 border border-orange-500/30 p-6 md:p-8 rounded-3xl flex flex-col items-center gap-5 max-w-md w-full text-center shadow-[0_0_60px_rgba(255,107,0,0.25)] relative backdrop-blur-xl">
+          <div className="bg-[#0a0d14]/95 border border-blue-500/30 p-6 md:p-8 rounded-3xl flex flex-col items-center gap-5 max-w-md w-full text-center shadow-[0_0_60px_rgba(255,107,0,0.25)] relative backdrop-blur-xl">
             {/* Close button */}
             <button 
               onClick={() => {
@@ -3477,7 +3477,7 @@ export default function JumpTestingConsole({
               <X size={18} />
             </button>
 
-            <div className="w-14 h-14 bg-orange-500/10 border border-orange-500/30 rounded-2xl flex items-center justify-center text-orange-400 mb-1">
+            <div className="w-14 h-14 bg-blue-500/10 border border-blue-500/30 rounded-2xl flex items-center justify-center text-blue-400 mb-1">
               <CheckCircle size={32} />
             </div>
 
@@ -3509,7 +3509,7 @@ export default function JumpTestingConsole({
               {/* Share Button */}
               <button 
                 onClick={handleShareVideo}
-                className="py-3 bg-orange-600 hover:bg-orange-500 text-white font-black text-sm rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95"
+                className="py-3 bg-blue-600 hover:bg-blue-500 text-white font-black text-sm rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95"
               >
                 <Share2 size={16} />
                 {language === 'en' ? 'Share Video' : 'مشاركة الفيديو'}
@@ -3527,8 +3527,8 @@ export default function JumpTestingConsole({
             </div>
 
             {/* iOS Helper Tip */}
-            <div className="w-full p-3 bg-orange-950/30 border border-orange-500/20 rounded-xl text-right">
-              <p className="text-[11px] text-orange-300 leading-relaxed font-semibold">
+            <div className="w-full p-3 bg-blue-950/30 border border-blue-500/20 rounded-xl text-right">
+              <p className="text-[11px] text-blue-300 leading-relaxed font-semibold">
                 {language === 'en'
                   ? '💡 iPhone/iPad Users: To save the video directly to your Photos App (Gallery), click "Share Video" then select "Save Video" from the options list.'
                   : '💡 لمستخدمي الآيفون والآيباد: لحفظ الفيديو مباشرة في ألبوم الصور (الاستوديو)، اضغط على "مشاركة الفيديو" ثم اختر "حفظ الفيديو" (Save Video) من القائمة.'}

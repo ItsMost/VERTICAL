@@ -77,16 +77,16 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language }) {
   const getMetricRating = (score) => {
     if (category === 'vertical') {
       const inches = score * 0.393701;
-      if (inches >= 34) return { text: language === 'en' ? 'Olympic Elite 👑' : 'نخبة أولمبية 👑', color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/25' };
+      if (inches >= 34) return { text: language === 'en' ? 'Olympic Elite 👑' : 'نخبة أولمبية 👑', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/25' };
       if (inches >= 30) return { text: language === 'en' ? 'Excellent 🏆' : 'ممتاز 🏆', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/25' };
-      if (inches >= 26) return { text: language === 'en' ? 'Very Good ⭐' : 'جيد جداً ⭐', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/25' };
-      if (inches >= 22) return { text: language === 'en' ? 'Fair ⚡' : 'مقبول ⚡', color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/25' };
+      if (inches >= 26) return { text: language === 'en' ? 'Very Good ⭐' : 'جيد جداً ⭐', color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/25' };
+      if (inches >= 22) return { text: language === 'en' ? 'Fair ⚡' : 'مقبول ⚡', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/25' };
       return { text: language === 'en' ? 'Below Average ⚠️' : 'تحت المتوسط ⚠️', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/25' };
     } else {
-      if (score >= 2.5) return { text: language === 'en' ? 'Reactive Elite 👑' : 'نخبة تفاعلية 👑', color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/25' };
+      if (score >= 2.5) return { text: language === 'en' ? 'Reactive Elite 👑' : 'نخبة تفاعلية 👑', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/25' };
       if (score >= 2.0) return { text: language === 'en' ? 'Excellent 🏆' : 'ممتاز 🏆', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/25' };
-      if (score >= 1.5) return { text: language === 'en' ? 'Good SSC ⭐' : 'تفاعل جيد ⭐', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/25' };
-      if (score >= 1.0) return { text: language === 'en' ? 'Fair SSC ⚡' : 'تفاعل مقبول ⚡', color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/25' };
+      if (score >= 1.5) return { text: language === 'en' ? 'Good SSC ⭐' : 'تفاعل جيد ⭐', color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/25' };
+      if (score >= 1.0) return { text: language === 'en' ? 'Fair SSC ⚡' : 'تفاعل مقبول ⚡', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/25' };
       return { text: language === 'en' ? 'Low Stiffness ⚠️' : 'صلابة منخفضة ⚠️', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/25' };
     }
   };
@@ -139,10 +139,10 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language }) {
       
       {/* Dynamic Header Block */}
       <div className="glass-panel p-6 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
-        <div className="absolute -top-12 -left-12 w-36 h-36 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-12 -left-12 w-36 h-36 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
         
         <div className="flex items-center gap-4 z-10">
-          <div className="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
+          <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
             <Trophy size={28} />
           </div>
           <div>
@@ -157,13 +157,13 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language }) {
           <div className="bg-[#111827]/40 border border-gray-800/80 rounded-xl p-1 flex">
             <button
               onClick={() => setCategory('vertical')}
-              className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${category === 'vertical' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-gray-400 hover:text-white'}`}
+              className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${category === 'vertical' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-gray-400 hover:text-white'}`}
             >
               {trans.verticalJump}
             </button>
             <button
               onClick={() => setCategory('rsi')}
-              className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${category === 'rsi' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-gray-400 hover:text-white'}`}
+              className={`px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${category === 'rsi' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-gray-400 hover:text-white'}`}
             >
               {trans.rsiIndex}
             </button>
@@ -173,19 +173,19 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language }) {
           <div className="bg-[#111827]/40 border border-gray-800/80 rounded-xl p-1 flex">
             <button
               onClick={() => setGenderFilter('all')}
-              className={`px-3 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${genderFilter === 'all' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-gray-400 hover:text-white'}`}
+              className={`px-3 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${genderFilter === 'all' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-gray-400 hover:text-white'}`}
             >
               {trans.all}
             </button>
             <button
               onClick={() => setGenderFilter('male')}
-              className={`px-3 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${genderFilter === 'male' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-gray-400 hover:text-white'}`}
+              className={`px-3 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${genderFilter === 'male' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-gray-400 hover:text-white'}`}
             >
               {trans.boys}
             </button>
             <button
               onClick={() => setGenderFilter('female')}
-              className={`px-3 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${genderFilter === 'female' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-gray-400 hover:text-white'}`}
+              className={`px-3 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${genderFilter === 'female' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-gray-400 hover:text-white'}`}
             >
               {trans.girls}
             </button>
@@ -195,12 +195,12 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language }) {
 
       {loading ? (
         <div className="glass-panel p-20 text-center flex flex-col items-center justify-center">
-          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4" />
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
           <p className="text-gray-400 text-sm font-bold">{trans.loading}</p>
         </div>
       ) : leaderboardData.length === 0 ? (
         <div className="glass-panel p-16 text-center border border-gray-800/60 shadow-xl rounded-3xl flex flex-col items-center justify-center">
-          <Trophy size={56} className="text-yellow-500 mb-4 opacity-30 animate-pulse" />
+          <Trophy size={56} className="text-blue-500 mb-4 opacity-30 animate-pulse" />
           <h3 className="text-lg font-bold text-white mb-2">{trans.noResults}</h3>
           <p className="text-gray-400 text-xs max-w-sm mx-auto leading-relaxed">{trans.ensureRecords}</p>
         </div>
@@ -215,12 +215,12 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language }) {
                 const isSecond = player.pos === 2;
                 const isThird = player.pos === 3;
                 
-                const heightClass = isFirst ? 'h-52 bg-gradient-to-t from-amber-500/25 to-yellow-500/15 border-yellow-500/40' 
+                const heightClass = isFirst ? 'h-52 bg-gradient-to-t from-cyan-500/25 to-blue-500/15 border-blue-500/40' 
                                   : isSecond ? 'h-40 bg-gradient-to-t from-slate-600/25 to-slate-400/15 border-slate-400/40'
-                                  : 'h-32 bg-gradient-to-t from-amber-700/25 to-amber-600/15 border-amber-600/40';
+                                  : 'h-32 bg-gradient-to-t from-cyan-700/25 to-cyan-600/15 border-cyan-600/40';
 
                 const medalEmoji = isFirst ? '🥇' : isSecond ? '🥈' : '🥉';
-                const textColor = isFirst ? 'text-yellow-400 font-extrabold' : isSecond ? 'text-slate-300' : 'text-amber-500';
+                const textColor = isFirst ? 'text-blue-400 font-extrabold' : isSecond ? 'text-slate-300' : 'text-cyan-500';
 
                 return (
                   <motion.div
@@ -234,7 +234,7 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language }) {
                     <div 
                       onClick={() => handlePlayerClick(player)}
                       className={`w-16 h-16 rounded-2xl bg-slate-900 border-2 flex items-center justify-center text-white text-xl font-bold cursor-pointer hover:scale-105 transition-transform shadow-lg mb-3
-                        ${isFirst ? 'border-yellow-400' : isSecond ? 'border-slate-400' : 'border-amber-600'}`}
+                        ${isFirst ? 'border-blue-400' : isSecond ? 'border-slate-400' : 'border-cyan-600'}`}
                     >
                       {player.full_name.split(' ').map(n => n[0]).slice(0, 2).join('')}
                     </div>
@@ -242,7 +242,7 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language }) {
                     <div className="text-center mb-2">
                       <h4 
                         onClick={() => handlePlayerClick(player)}
-                        className="font-black text-white text-xs hover:text-orange-400 cursor-pointer block truncate max-w-[150px]"
+                        className="font-black text-white text-xs hover:text-blue-400 cursor-pointer block truncate max-w-[150px]"
                       >
                         {player.full_name}
                       </h4>
@@ -262,7 +262,7 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language }) {
                         </span>
                       </div>
 
-                      <div className="bg-black/35 px-2 py-0.5 rounded-full border border-gray-800/60 mt-2 text-[9px] font-black text-orange-400 font-mono">
+                      <div className="bg-black/35 px-2 py-0.5 rounded-full border border-gray-800/60 mt-2 text-[9px] font-black text-blue-400 font-mono">
                         #{player.pos}
                       </div>
                     </div>
@@ -299,7 +299,7 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language }) {
                         <tr key={player.id} className="border-b border-gray-800 hover:bg-black/10 transition-colors">
                           <td className="py-3.5 text-center font-mono font-black text-gray-400">#{rank}</td>
                           <td className={`py-3.5 font-black text-white ${language === 'en' ? 'text-left' : 'text-right'}`}>
-                            <button onClick={() => handlePlayerClick(player)} className="hover:text-orange-400 transition-colors cursor-pointer text-inherit">
+                            <button onClick={() => handlePlayerClick(player)} className="hover:text-blue-400 transition-colors cursor-pointer text-inherit">
                               {player.full_name}
                             </button>
                           </td>
@@ -321,7 +321,7 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language }) {
                           <td className="py-3.5 text-center">
                             <button
                               onClick={() => handlePlayerClick(player)}
-                              className="px-2.5 py-1 bg-orange-600/15 text-orange-400 border border-orange-500/20 rounded-lg text-[10px] font-bold hover:bg-orange-600/25 transition-all cursor-pointer"
+                              className="px-2.5 py-1 bg-blue-600/15 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-bold hover:bg-blue-600/25 transition-all cursor-pointer"
                             >
                               {trans.viewProfileBtn}
                             </button>

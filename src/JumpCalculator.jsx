@@ -1424,19 +1424,19 @@ export default function JumpCalculator() {
           {/* Logo & App Branding */}
           <div className="flex items-center justify-between lg:justify-start w-full lg:w-auto gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-600 via-amber-500 to-yellow-500 flex items-center justify-center text-white shadow-[0_0_20px_rgba(255,107,0,0.45)] border border-orange-400/40 shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-500 flex items-center justify-center text-white shadow-[0_0_20px_rgba(255,107,0,0.45)] border border-blue-400/40 shrink-0">
                 <span className="text-xl font-bold font-mono">🧪</span>
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-extrabold tracking-wider bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-400 bg-clip-text text-transparent font-sans">
+                  <h1 className="text-xl font-extrabold tracking-wider bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent font-sans">
                     Vertical Lab
                   </h1>
-                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-orange-950/90 border border-orange-700/50 text-orange-400 uppercase tracking-widest font-mono shadow-[0_0_10px_rgba(255,107,0,0.2)]">
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-blue-950/90 border border-blue-700/50 text-blue-400 uppercase tracking-widest font-mono shadow-[0_0_10px_rgba(255,107,0,0.2)]">
                     v2.0
                   </span>
                 </div>
-                <p className="text-[9px] sm:text-[10px] text-orange-400/90 font-bold">
+                <p className="text-[9px] sm:text-[10px] text-blue-400/90 font-bold">
                   {language === 'ar' ? 'مختبر الأداء الرياضي والميكانيكا الحيوية' : 'Athletic Performance & Biomechanics Lab'}
                 </p>
               </div>
@@ -1445,7 +1445,7 @@ export default function JumpCalculator() {
             <div className="lg:hidden flex items-center gap-2">
               <button 
                 onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')} 
-                className="px-2 py-1 bg-[var(--bg-input)] text-orange-400 border border-[var(--border-light)] rounded-lg text-[10px] font-black shadow-sm"
+                className="px-2 py-1 bg-[var(--bg-input)] text-blue-400 border border-[var(--border-light)] rounded-lg text-[10px] font-black shadow-sm"
               >
                 {language === 'ar' ? 'EN' : 'عربي'}
               </button>
@@ -1463,7 +1463,7 @@ export default function JumpCalculator() {
             {/* Quick Action: Register Coach */}
             <button
               onClick={() => setShowCoachModal(true)}
-              className="p-2.5 sm:px-4 sm:py-2.5 bg-black/35 hover:bg-orange-600/15 text-orange-400 border border-orange-800/40 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer shrink-0"
+              className="p-2.5 sm:px-4 sm:py-2.5 bg-black/35 hover:bg-blue-600/15 text-blue-400 border border-blue-800/40 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer shrink-0"
               title={language === 'ar' ? 'إضافة مدرب' : 'Add Coach'}
             >
               <Users size={14} className="sm:w-3.5 sm:h-3.5" />
@@ -1473,7 +1473,7 @@ export default function JumpCalculator() {
             {/* Quick Action: Add Athlete */}
             <button
               onClick={() => setShowNewPlayerForm(true)}
-              className="p-2.5 sm:px-4 sm:py-2.5 bg-black/35 hover:bg-orange-600/15 text-orange-400 border border-orange-800/40 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer shrink-0"
+              className="p-2.5 sm:px-4 sm:py-2.5 bg-black/35 hover:bg-blue-600/15 text-blue-400 border border-blue-800/40 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer shrink-0"
               title={language === 'ar' ? 'تسجيل لاعب' : 'Add Athlete'}
             >
               <Plus size={14} className="sm:w-3.5 sm:h-3.5" />
@@ -1507,7 +1507,7 @@ export default function JumpCalculator() {
                             <button
                               type="button"
                               onClick={() => toggleCoachSelector(coach.id)}
-                              className={`w-full px-3 py-2 bg-black/30 hover:bg-black/50 flex items-center justify-between text-xs font-bold text-orange-400 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
+                              className={`w-full px-3 py-2 bg-black/30 hover:bg-black/50 flex items-center justify-between text-xs font-bold text-blue-400 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
                             >
                               <span>👤 {coach.full_name} ({coachPlayers.length})</span>
                               <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -1523,7 +1523,7 @@ export default function JumpCalculator() {
                                       handlePlayerSelect({ target: { value: p.id } });
                                       setIsSelectorOpen(false);
                                     }}
-                                    className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-orange-500/15 transition-colors block ${selectedPlayerId === p.id ? 'bg-orange-500/25 text-white font-extrabold' : 'text-gray-300'}`}
+                                    className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-blue-500/15 transition-colors block ${selectedPlayerId === p.id ? 'bg-blue-500/25 text-white font-extrabold' : 'text-gray-300'}`}
                                   >
                                     {p.full_name}
                                   </button>
@@ -1560,7 +1560,7 @@ export default function JumpCalculator() {
                                       handlePlayerSelect({ target: { value: p.id } });
                                       setIsSelectorOpen(false);
                                     }}
-                                    className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-orange-500/15 transition-colors block ${selectedPlayerId === p.id ? 'bg-orange-500/25 text-white font-extrabold' : 'text-gray-300'}`}
+                                    className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-blue-500/15 transition-colors block ${selectedPlayerId === p.id ? 'bg-blue-500/25 text-white font-extrabold' : 'text-gray-300'}`}
                                   >
                                     {p.full_name}
                                   </button>
@@ -1655,7 +1655,7 @@ export default function JumpCalculator() {
               </motion.div>
             ) : (
               <motion.div key="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="glass-card p-16 text-center text-gray-400 shadow-2xl flex flex-col items-center justify-center transition-colors duration-500">
-                <ScanEye size={64} className="text-orange-500 mb-4 opacity-75 animate-pulse" />
+                <ScanEye size={64} className="text-blue-500 mb-4 opacity-75 animate-pulse" />
                 <h2 className="text-2xl font-black text-[var(--text-primary)] mb-2">
                   {language === 'en' ? 'Welcome to Vertical Lab v2.0 🧪' : 'مرحباً بك في مختبر الأداء Vertical Lab v2.0 🧪'}
                 </h2>
@@ -1682,7 +1682,7 @@ export default function JumpCalculator() {
               onClick={() => setActiveTab(tab.id)}
               className={`relative flex flex-col items-center justify-center px-1.5 xs:px-3 sm:px-4 py-1 rounded-2xl transition-all duration-300 select-none
                 ${isActive 
-                  ? 'text-orange-400 scale-110 font-black' 
+                  ? 'text-blue-400 scale-110 font-black' 
                   : isDisabled 
                     ? 'text-gray-600 cursor-not-allowed opacity-30' 
                     : 'text-gray-400 hover:text-white hover:scale-105'}`}
@@ -1693,7 +1693,7 @@ export default function JumpCalculator() {
               {isActive && (
                 <motion.div 
                   layoutId="active-dock-indicator"
-                  className="absolute -bottom-1.5 w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_12px_#ff6b00]"
+                  className="absolute -bottom-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_12px_#ff6b00]"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}
@@ -1711,8 +1711,8 @@ export default function JumpCalculator() {
               <button type="button" onClick={() => setShowNewPlayerForm(false)} className="absolute top-4 left-4 text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-[var(--border-light)]">
                 <X size={16} />
               </button>
-              <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
-                <Plus className="text-orange-400" size={22} /> تسجيل رياضي جديد
+              <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
+                <Plus className="text-blue-400" size={22} /> تسجيل رياضي جديد
               </h2>
               <form onSubmit={handleAddPlayer} className="space-y-4 text-xs">
                 <div>
@@ -1776,8 +1776,8 @@ export default function JumpCalculator() {
               <button type="button" onClick={() => setIsEditingPlayer(false)} className={`absolute top-4 ${language === 'en' ? 'right-4' : 'left-4'} text-gray-400 hover:text-white transition-all bg-black/20 p-2 rounded-full border border-[var(--border-light)]`}>
                 <X size={16} />
               </button>
-              <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
-                <Edit3 className="text-orange-400" size={20} /> {language === 'en' ? 'Edit Athlete Data' : 'تعديل بيانات اللاعب'}
+              <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
+                <Edit3 className="text-blue-400" size={20} /> {language === 'en' ? 'Edit Athlete Data' : 'تعديل بيانات اللاعب'}
               </h2>
               <form onSubmit={handleUpdatePlayer} className="space-y-4" style={{ textAlign: language === 'en' ? 'left' : 'right' }}>
                 <div>
@@ -1844,7 +1844,7 @@ export default function JumpCalculator() {
               <X size={16} />
             </button>
             <h2 className="text-lg font-black text-white mb-4 border-b border-[var(--border-light)] pb-2 flex items-center gap-2">
-              <Plus className="text-orange-400" size={20} /> {language === 'en' ? 'Register New Coach' : 'تسجيل مدرب جديد'}
+              <Plus className="text-blue-400" size={20} /> {language === 'en' ? 'Register New Coach' : 'تسجيل مدرب جديد'}
             </h2>
             <form onSubmit={handleRegisterCoach} className="space-y-4">
               <div>

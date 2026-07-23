@@ -360,10 +360,10 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       let fair = (isFemale ? 15 : 22) * youthFactor;
 
       if (value < fair) return { text: 'تحت المتوسط ⚠️', color: 'text-red-400', bg: '#ef4444', progress: 25, range: `المعدل الجيد: +${good.toFixed(1)}"` };
-      if (value < good) return { text: 'مقبول ⚡', color: 'text-orange-400', bg: '#f97316', progress: 45, range: `المعدل الجيد: +${good.toFixed(1)}"` };
-      if (value < excellent) return { text: 'جيد ⭐', color: 'text-amber-400', bg: '#14b8a6', progress: 65, range: `الممتاز: +${excellent.toFixed(1)}"` };
+      if (value < good) return { text: 'مقبول ⚡', color: 'text-blue-400', bg: '#f97316', progress: 45, range: `المعدل الجيد: +${good.toFixed(1)}"` };
+      if (value < excellent) return { text: 'جيد ⭐', color: 'text-cyan-400', bg: '#14b8a6', progress: 65, range: `الممتاز: +${excellent.toFixed(1)}"` };
       if (value < elite) return { text: 'ممتاز 🏆', color: 'text-emerald-400', bg: '#10b981', progress: 85, range: `النخبة: +${elite.toFixed(1)}"` };
-      return { text: 'نخبة أولمبية 👑', color: 'text-orange-400', bg: '#ff6b00', progress: 100, range: `أعلى من ${elite.toFixed(1)}"` };
+      return { text: 'نخبة أولمبية 👑', color: 'text-blue-400', bg: '#ff6b00', progress: 100, range: `أعلى من ${elite.toFixed(1)}"` };
     }
     
     if (type === 'flight_time') {
@@ -372,9 +372,9 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       let good = (isFemale ? 0.52 : 0.60) * youthFactor;
       
       if (value < good) return { text: 'تلامس بطيء', color: 'text-red-400', bg: '#ef4444', progress: 40, range: `الهدف: +${excellent.toFixed(2)}s` };
-      if (value < excellent) return { text: 'جيد ⚡', color: 'text-amber-400', bg: '#14b8a6', progress: 65, range: `الهدف: +${excellent.toFixed(2)}s` };
+      if (value < excellent) return { text: 'جيد ⚡', color: 'text-cyan-400', bg: '#14b8a6', progress: 65, range: `الهدف: +${excellent.toFixed(2)}s` };
       if (value < elite) return { text: 'ممتاز ⭐', color: 'text-emerald-400', bg: '#10b981', progress: 85, range: `النخبة: +${elite.toFixed(2)}s` };
-      return { text: 'تحليق نخبة 👑', color: 'text-orange-400', bg: '#ff6b00', progress: 100, range: `أطول من ${elite.toFixed(2)}s` };
+      return { text: 'تحليق نخبة 👑', color: 'text-blue-400', bg: '#ff6b00', progress: 100, range: `أطول من ${elite.toFixed(2)}s` };
     }
 
     if (type === 'relative_power') {
@@ -383,9 +383,9 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       let good = (isFemale ? 38 : 45) * youthFactor;
 
       if (value < good) return { text: 'قدرة منخفضة', color: 'text-red-400', bg: '#ef4444', progress: 30, range: `المعدل الجيد: +${good.toFixed(1)} W/kg` };
-      if (value < excellent) return { text: 'جيد ⚡', color: 'text-amber-400', bg: '#14b8a6', progress: 60, range: `المعدل الممتاز: +${excellent.toFixed(1)} W/kg` };
+      if (value < excellent) return { text: 'جيد ⚡', color: 'text-cyan-400', bg: '#14b8a6', progress: 60, range: `المعدل الممتاز: +${excellent.toFixed(1)} W/kg` };
       if (value < elite) return { text: 'ممتاز ⭐', color: 'text-emerald-400', bg: '#10b981', progress: 85, range: `النخبة: +${elite.toFixed(1)} W/kg` };
-      return { text: 'قدرة متفجرة 👑', color: 'text-orange-400', bg: '#ff6b00', progress: 100, range: `أعلى من ${elite.toFixed(1)} W/kg` };
+      return { text: 'قدرة متفجرة 👑', color: 'text-blue-400', bg: '#ff6b00', progress: 100, range: `أعلى من ${elite.toFixed(1)} W/kg` };
     }
 
     if (type === 'rsi') {
@@ -395,10 +395,10 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
       let fair = 1.0;
 
       if (value < fair) return { text: 'صلابة منخفضة ⚠️', color: 'text-red-400', bg: '#ef4444', progress: 25, range: `المعدل الجيد: +${good.toFixed(1)}` };
-      if (value < good) return { text: 'تفاعل مقبول ⚡', color: 'text-orange-400', bg: '#f97316', progress: 45, range: `المعدل الجيد: +${good.toFixed(1)}` };
-      if (value < excellent) return { text: 'تفاعل جيد ⭐', color: 'text-amber-400', bg: '#14b8a6', progress: 65, range: `الممتاز: +${excellent.toFixed(1)}` };
+      if (value < good) return { text: 'تفاعل مقبول ⚡', color: 'text-blue-400', bg: '#f97316', progress: 45, range: `المعدل الجيد: +${good.toFixed(1)}` };
+      if (value < excellent) return { text: 'تفاعل جيد ⭐', color: 'text-cyan-400', bg: '#14b8a6', progress: 65, range: `الممتاز: +${excellent.toFixed(1)}` };
       if (value < elite) return { text: 'ممتاز 🏆', color: 'text-emerald-400', bg: '#10b981', progress: 85, range: `النخبة: +${elite.toFixed(1)}` };
-      return { text: 'نخبة تفاعلية 👑', color: 'text-orange-400', bg: '#ff6b00', progress: 100, range: `أعلى من ${elite.toFixed(1)}` };
+      return { text: 'نخبة تفاعلية 👑', color: 'text-blue-400', bg: '#ff6b00', progress: 100, range: `أعلى من ${elite.toFixed(1)}` };
     }
 
     return { text: '', color: '', bg: '', progress: 0, range: '' };
@@ -686,7 +686,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
     if (heightCm >= 65 || latestRsiVal >= 2.5 || relativePower >= 65) {
       level = isEn ? "Elite Athlete (National/Professional Level)" : "لاعب فئة النخبة (مستوى محترف/منتخب)";
       levelBadge = isEn ? "Elite" : "النخبة";
-      levelColor = "text-orange-400 border-orange-500/30 bg-orange-500/10";
+      levelColor = "text-blue-400 border-blue-500/30 bg-blue-500/10";
     } else if (heightCm >= 50 || latestRsiVal >= 1.8 || relativePower >= 52) {
       level = isEn ? "Advanced Athlete (High Performance Level)" : "لاعب متقدم (مستوى أداء عالٍ)";
       levelBadge = isEn ? "Advanced" : "متقدم";
@@ -694,7 +694,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
     } else if (heightCm >= 35 || latestRsiVal >= 1.2 || relativePower >= 38) {
       level = isEn ? "Intermediate Athlete (Developmental Level)" : "لاعب متوسط (مستوى تطويري)";
       levelBadge = isEn ? "Intermediate" : "متوسط";
-      levelColor = "text-orange-400 border-orange-500/30 bg-orange-500/10";
+      levelColor = "text-blue-400 border-blue-500/30 bg-blue-500/10";
     } else {
       level = isEn ? "Beginner / Needs Foundation (General Physical Prep)" : "لاعب مبتدئ / يحتاج تأسيس بدني عام";
       levelBadge = isEn ? "Beginner" : "مبتدئ";
@@ -1220,11 +1220,11 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
         
         {/* Modern Athlete Passport Header */}
         <div className="glass-panel p-6 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-6 relative overflow-hidden transition-all duration-300">
-          <div className="absolute -top-12 -left-12 w-36 h-36 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-12 -left-12 w-36 h-36 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="flex flex-col sm:flex-row items-center gap-5 z-10">
             {/* Athlete Initial Badge */}
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-white text-3xl font-black shadow-[0_0_20px_rgba(255,107,0,0.45)] border border-orange-400/30 font-mono">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white text-3xl font-black shadow-[0_0_20px_rgba(255,107,0,0.45)] border border-blue-400/30 font-mono">
               {activePlayer.full_name ? activePlayer.full_name.split(' ').map(n => n[0]).slice(0, 2).join('') : 'P'}
             </div>
             
@@ -1232,7 +1232,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
               <div className="flex flex-wrap justify-center sm:justify-start items-center gap-3 mb-1.5">
                 <h2 className="text-3xl font-black text-white leading-none">{activePlayer.full_name}</h2>
                 {overallRating >= 85 ? (
-                  <span className="bg-orange-500/15 text-orange-400 border border-orange-500/30 text-[10px] px-2.5 py-1 rounded-xl font-black flex items-center gap-1">
+                  <span className="bg-blue-500/15 text-blue-400 border border-blue-500/30 text-[10px] px-2.5 py-1 rounded-xl font-black flex items-center gap-1">
                     <Award size={12} /> {language === 'en' ? 'Elite Rating' : 'تصنيف النخبة'}
                   </span>
                 ) : overallRating >= 70 ? (
@@ -1240,7 +1240,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     <Award size={12} /> {language === 'en' ? 'Excellent Rating' : 'تصنيف ممتاز'}
                   </span>
                 ) : (
-                  <span className="bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 text-[10px] px-2.5 py-1 rounded-xl font-black flex items-center gap-1">
+                  <span className="bg-blue-500/15 text-blue-400 border border-blue-500/30 text-[10px] px-2.5 py-1 rounded-xl font-black flex items-center gap-1">
                     <Award size={12} /> تصنيف متوسط
                   </span>
                 )}
@@ -1258,11 +1258,11 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 onClick={() => onEditPlayer(activePlayer)} 
                 className="px-4 py-3 bg-slate-900/80 hover:bg-slate-800 text-gray-300 border border-slate-800 rounded-xl font-bold flex items-center justify-center gap-2 transition-all text-xs cursor-pointer shadow-md"
               >
-                <Edit3 size={14} className="text-orange-400" /> {language === 'en' ? 'Edit Profile' : 'تعديل البيانات'}
+                <Edit3 size={14} className="text-blue-400" /> {language === 'en' ? 'Edit Profile' : 'تعديل البيانات'}
               </button>
             )}
             <button onClick={() => setShowBenchmarks(true)} className="px-4 py-3 bg-slate-900/80 hover:bg-slate-800 text-gray-300 border border-slate-800 rounded-xl font-bold flex items-center justify-center gap-2 transition-all text-xs cursor-pointer shadow-md">
-              <BookOpen size={14} className="text-orange-400" /> {language === 'en' ? 'Normative Tables' : 'الجداول المعيارية'}
+              <BookOpen size={14} className="text-blue-400" /> {language === 'en' ? 'Normative Tables' : 'الجداول المعيارية'}
             </button>
              <button onClick={() => setIsPrintModalOpen(true)} className="px-5 py-3 btn-orange-gradient rounded-xl font-black flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] text-xs cursor-pointer shadow-lg">
               <Download size={14} /> {language === 'en' ? 'Export PDF Report' : 'تصدير تقرير PDF'}
@@ -1273,21 +1273,21 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
         {/* Physical Attributes Matrix */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-[#111827]/40 border border-gray-800/80 p-4 rounded-2xl flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 shrink-0"><Scale size={18} /></div>
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0"><Scale size={18} /></div>
             <div>
               <span className="text-[10px] text-gray-500 font-bold block mb-0.5">الوزن الحالي</span>
               <span className="text-sm font-black text-white font-mono">{activePlayer.weight_kg} <span className="text-[10px] text-gray-500">kg</span></span>
             </div>
           </div>
           <div className="bg-[#111827]/40 border border-gray-800/80 p-4 rounded-2xl flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 shrink-0"><Calendar size={18} /></div>
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0"><Calendar size={18} /></div>
             <div>
               <span className="text-[10px] text-gray-500 font-bold block mb-0.5">العمر الحقيقي</span>
               <span className="text-sm font-black text-white font-mono">{age} <span className="text-[10px] text-gray-500">سنة</span></span>
             </div>
           </div>
           <div className="bg-[#111827]/40 border border-gray-800/80 p-4 rounded-2xl flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0"><User size={18} /></div>
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0"><User size={18} /></div>
             <div>
               <span className="text-[10px] text-gray-500 font-bold block mb-0.5">طول القامة</span>
               <span className="text-sm font-black text-white font-mono">{playerHeight} <span className="text-[10px] text-gray-500">cm</span></span>
@@ -1313,7 +1313,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 py-3.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer
                   ${isActive 
-                    ? 'bg-orange-500/20 text-orange-400 border border-orange-500/25 shadow-md scale-[1.01]' 
+                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/25 shadow-md scale-[1.01]' 
                     : 'text-gray-400 hover:text-white'}`}
               >
                 <Icon size={16} />
@@ -1326,7 +1326,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
         {/* Tab Panels */}
         {!latestJump ? (
           <div className="glass-panel p-16 text-center border border-gray-800/60 shadow-xl rounded-3xl flex flex-col items-center justify-center">
-            <AlertCircle size={56} className="text-yellow-500 mb-4 opacity-40 animate-pulse" />
+            <AlertCircle size={56} className="text-blue-500 mb-4 opacity-40 animate-pulse" />
             <h3 className="text-xl font-bold text-white mb-2">لا توجد قفزات مسجلة حتى الآن</h3>
             <p className="text-gray-400 text-xs max-w-sm mx-auto leading-relaxed">
               قم بإجراء قياسات حركية أو مؤشر RSI للاعب لتوليد التقارير الميكانيكية المعيارية هنا.
@@ -1406,12 +1406,12 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           'تدريبات الدفع الأفقي والعمودي الأحادي (Single Leg Bounds).'
                         ]
                       })}
-                      className="bg-[#111827]/30 border border-gray-850 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between hover:border-orange-500/50 hover:bg-orange-500/5 transition-all cursor-pointer select-none"
+                      className="bg-[#111827]/30 border border-gray-850 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between hover:border-blue-500/50 hover:bg-blue-500/5 transition-all cursor-pointer select-none"
                     >
                       <div>
                         <div className="flex justify-between items-center mb-3">
                           <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold">الوثبة الانفجارية القصوى</span>
-                          <span className="text-orange-400 bg-orange-950/20 border border-orange-800/30 text-[9px] px-2 py-0.5 rounded-lg font-bold">CMJ</span>
+                          <span className="text-blue-400 bg-blue-950/20 border border-blue-800/30 text-[9px] px-2 py-0.5 rounded-lg font-bold">CMJ</span>
                         </div>
                         <div className="flex items-baseline gap-1 sm:gap-1.5 mb-1 sm:mb-1.5 flex-wrap">
                           <span className="text-2xl sm:text-4xl font-black text-white font-mono">{heightInches}</span>
@@ -1423,7 +1423,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       
                       <div className="mt-4">
                         <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-orange-500 to-amber-500" style={{ width: `${evalHeight.progress}%` }}></div>
+                          <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-500" style={{ width: `${evalHeight.progress}%` }}></div>
                         </div>
                         <div className="flex justify-between text-[8px] text-gray-500 mt-2 font-mono">
                           <span>0</span>
@@ -1453,12 +1453,12 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           'تدريبات القفز فوق الصناديق المتتالية لزيادة زمن التعليق الحركي.'
                         ]
                       })}
-                      className="bg-[#111827]/30 border border-gray-855 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between hover:border-orange-500/50 hover:bg-orange-500/5 transition-all cursor-pointer select-none"
+                      className="bg-[#111827]/30 border border-gray-855 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between hover:border-blue-500/50 hover:bg-blue-500/5 transition-all cursor-pointer select-none"
                     >
                       <div>
                         <div className="flex justify-between items-center mb-3">
                           <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold">زمن الطيران المعلق</span>
-                          <span className="text-amber-400 bg-teal-950/20 border border-teal-800/30 text-[9px] px-2 py-0.5 rounded-lg font-bold">Flight</span>
+                          <span className="text-cyan-400 bg-teal-950/20 border border-teal-800/30 text-[9px] px-2 py-0.5 rounded-lg font-bold">Flight</span>
                         </div>
                         <div className="flex items-baseline gap-1 sm:gap-1.5 mb-1 sm:mb-1.5 flex-wrap">
                           <span className="text-2xl sm:text-4xl font-black text-white font-mono">{flightTime.toFixed(3)}</span>
@@ -1499,7 +1499,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           'تحسين التكوين الجسماني وخفض نسبة الدهون لزيادة القوة النسبية.'
                         ]
                       })}
-                      className="bg-[#111827]/30 border border-gray-855 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between hover:border-orange-500/50 hover:bg-orange-500/5 transition-all cursor-pointer select-none"
+                      className="bg-[#111827]/30 border border-gray-855 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between hover:border-blue-500/50 hover:bg-blue-500/5 transition-all cursor-pointer select-none"
                     >
                       <div>
                         <div className="flex justify-between items-center mb-3">
@@ -1515,7 +1515,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       
                       <div className="mt-4">
                         <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-purple-500 to-orange-500" style={{ width: `${evalPower.progress}%` }}></div>
+                          <div className="h-full bg-gradient-to-r from-purple-500 to-blue-500" style={{ width: `${evalPower.progress}%` }}></div>
                         </div>
                         <div className="flex justify-between text-[8px] text-gray-500 mt-2 font-mono">
                           <span>0</span>
@@ -1546,12 +1546,12 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           'الحجل السريع على ساق واحدة مع تثبيت الحوض والركبة لزيادة الصلابة.'
                         ]
                       })}
-                      className="bg-[#111827]/30 border border-gray-855 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between hover:border-orange-500/50 hover:bg-orange-500/5 transition-all cursor-pointer select-none"
+                      className="bg-[#111827]/30 border border-gray-855 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl flex flex-col justify-between hover:border-blue-500/50 hover:bg-blue-500/5 transition-all cursor-pointer select-none"
                     >
                       <div>
                         <div className="flex justify-between items-center mb-3">
                           <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold">مؤشر الارتداد التفاعلي</span>
-                          <span className="text-yellow-500 bg-yellow-950/20 border border-yellow-800/30 text-[9px] px-2 py-0.5 rounded-lg font-bold">RSI</span>
+                          <span className="text-blue-500 bg-yellow-950/20 border border-yellow-800/30 text-[9px] px-2 py-0.5 rounded-lg font-bold">RSI</span>
                         </div>
                         <div className="flex items-baseline gap-1 sm:gap-1.5 mb-1 sm:mb-1.5 flex-wrap">
                           <span className="text-2xl sm:text-4xl font-black text-white font-mono">{latestRsiVal > 0 ? latestRsiVal.toFixed(2) : (maxRsi > 0 ? maxRsi.toFixed(2) : '—')}</span>
@@ -1562,7 +1562,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       
                       <div className="mt-4">
                         <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-yellow-500 to-amber-500" style={{ width: `${evalRsi.progress}%` }}></div>
+                          <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-500" style={{ width: `${evalRsi.progress}%` }}></div>
                         </div>
                         <div className="flex justify-between text-[8px] text-gray-500 mt-2 font-mono">
                           <span>0</span>
@@ -1578,7 +1578,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
                   <div className="bg-black/25 border border-gray-800/60 p-3 sm:p-4 rounded-2xl text-center">
                     <span className="text-[9px] sm:text-[10px] text-gray-500 font-bold block mb-1">الوصول الأقصى للارتقاء 🏐</span>
-                    <span className="text-xl sm:text-2xl font-black text-orange-400 font-mono">{maxReachCmj || '—'} <span className="text-[10px] sm:text-xs text-gray-500">سم</span></span>
+                    <span className="text-xl sm:text-2xl font-black text-blue-400 font-mono">{maxReachCmj || '—'} <span className="text-[10px] sm:text-xs text-gray-500">سم</span></span>
                   </div>
                   <div className="bg-black/25 border border-gray-800/60 p-3 sm:p-4 rounded-2xl text-center">
                     <span className="text-[9px] sm:text-[10px] text-gray-500 font-bold block mb-1">مؤشر الإنجاز البدني للوثب</span>
@@ -1595,7 +1595,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
                 {/* 5-Jump Profile Matrix Grid */}
                 <div className="glass-panel p-6 shadow-lg space-y-4">
-                  <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 border-b border-gray-800/85 pb-2.5 flex items-center justify-between">
+                  <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 border-b border-gray-800/85 pb-2.5 flex items-center justify-between">
                     <span>📊 مصفوفة اختبارات الوثب الخمسة (5-Jump Profile Matrix)</span>
                     <span className="text-[10px] text-gray-500 font-bold">آخر قراءة مسجلة لكل نوع اختبار (اضغط للتفاصيل)</span>
                   </h3>
@@ -1617,7 +1617,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                             benchmarks: test.benchmarks,
                             tips: test.tips
                           })}
-                          className="bg-black/20 border border-gray-850 hover:border-orange-500/40 hover:bg-orange-950/5 p-3.5 rounded-2xl flex flex-col justify-between transition-all cursor-pointer select-none"
+                          className="bg-black/20 border border-gray-850 hover:border-blue-500/40 hover:bg-blue-950/5 p-3.5 rounded-2xl flex flex-col justify-between transition-all cursor-pointer select-none"
                         >
                           <div>
                             <div className="flex justify-between items-center mb-2">
@@ -1652,10 +1652,10 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
                 {/* EUR Muscle-Tendon Balance Diagnostics Card */}
                 {sjNoArms > 0 && cmjNoArms > 0 && (
-                  <div className="glass-panel p-6 shadow-lg border border-orange-500/30 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
+                  <div className="glass-panel p-6 shadow-lg border border-blue-500/30 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
                     
-                    <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
+                    <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
                       ⚖️ تشخيص توازن العضلات والأوتار (EUR Muscle-Tendon Diagnostics)
                     </h3>
                     
@@ -1669,7 +1669,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full font-mono bg-white/5 ${
-                            eur >= 1.05 && eur <= 1.15 ? 'text-emerald-400' : 'text-orange-400'
+                            eur >= 1.05 && eur <= 1.15 ? 'text-emerald-400' : 'text-blue-400'
                           }`}>
                             {eurPctDiff >= 0 ? '+' : ''}{eurPctDiff.toFixed(1)}% فرق
                           </span>
@@ -1710,10 +1710,10 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   const maxTouch = isStandingReachValid ? (standingReachNum + heightCm) : null;
                   return (
                     <>
-                      <div className="glass-panel p-6 shadow-lg border border-orange-500/30 relative overflow-hidden mt-6">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
+                      <div className="glass-panel p-6 shadow-lg border border-blue-500/30 relative overflow-hidden mt-6">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
                         
-                        <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
+                        <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
                           📋 {language === 'en' ? 'Physical Profile & Actionable Training Prescription' : 'التحليل الحركي والوصفة التدريبية المتكاملة'}
                         </h3>
                         
@@ -1734,7 +1734,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                             {/* Projection & Timeline Badge */}
                             <div className="bg-black/30 border border-gray-800 p-5 rounded-2xl text-center flex flex-col justify-center items-center">
                               <span className="text-xs text-gray-400 font-bold mb-1">{language === 'en' ? 'Improvement Timeline' : 'التحسن والجدول الزمني'}</span>
-                              <span className="text-base font-black text-orange-400 font-mono mb-1">{presc.timeline}</span>
+                              <span className="text-base font-black text-blue-400 font-mono mb-1">{presc.timeline}</span>
                               <p className="text-[10px] text-gray-400 leading-relaxed font-medium">
                                 {presc.projection}
                               </p>
@@ -1755,7 +1755,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
                             {/* Primary Deficit Card */}
                             <div className="p-4 rounded-xl border bg-black/10 border-gray-800 space-y-2">
-                              <span className="text-xs font-black text-orange-400 block">⚠️ {language === 'en' ? 'Primary Biomechanical Deficit:' : 'العجز الحركي الأساسي (عنق الزجاجة):'}</span>
+                              <span className="text-xs font-black text-blue-400 block">⚠️ {language === 'en' ? 'Primary Biomechanical Deficit:' : 'العجز الحركي الأساسي (عنق الزجاجة):'}</span>
                               <p className="text-xs text-gray-300 font-bold">
                                 [{presc.deficitLabel}]
                               </p>
@@ -1765,8 +1765,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                             </div>
 
                             {/* Actionable Training Prescription */}
-                            <div className="p-4 rounded-xl border bg-orange-950/10 border-orange-500/10 space-y-2">
-                              <span className="text-xs font-black text-orange-400 block">💪 {language === 'en' ? 'Prescribed Training Intervention:' : 'البرنامج والتدخل التدريبي الموصى به:'}</span>
+                            <div className="p-4 rounded-xl border bg-blue-950/10 border-blue-500/10 space-y-2">
+                              <span className="text-xs font-black text-blue-400 block">💪 {language === 'en' ? 'Prescribed Training Intervention:' : 'البرنامج والتدخل التدريبي الموصى به:'}</span>
                               <p className="text-xs text-gray-300 leading-relaxed font-medium">
                                 {presc.prescription}
                               </p>
@@ -1776,16 +1776,16 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       </div>
 
                       {/* Field-Specific Prediction Engine */}
-                      <div className="glass-panel p-6 shadow-lg border border-orange-500/30 relative overflow-hidden mt-6">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
+                      <div className="glass-panel p-6 shadow-lg border border-blue-500/30 relative overflow-hidden mt-6">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
                         
-                        <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
+                        <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
                           🔮 {language === 'en' ? 'Field-Specific Prediction Engine' : 'محرك التنبؤ الميداني الذكي'}
                         </h3>
 
                         {!isStandingReachValid ? (
-                          <div className="bg-amber-950/20 border border-amber-500/30 p-4 rounded-xl text-center">
-                            <p className="text-xs text-amber-300 font-bold">
+                          <div className="bg-cyan-950/20 border border-cyan-500/30 p-4 rounded-xl text-center">
+                            <p className="text-xs text-cyan-300 font-bold">
                               ⚠️ {language === 'en' 
                                 ? 'Please edit the athlete\'s profile to add their Standing Reach to activate the Field-Specific Prediction Engine.' 
                                 : 'يرجى تعديل الملف الشخصي للاعب وإضافة طول ذراعه مفرودة (Standing Reach) لتفعيل محرك التنبؤ الميداني.'}
@@ -1802,7 +1802,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                                 <div className={`p-5 rounded-2xl border bg-black/30 flex flex-col justify-between transition-all duration-300 ${
                                   isAbove 
                                     ? 'border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
-                                    : 'border-orange-500/20'
+                                    : 'border-blue-500/20'
                                 }`}>
                                   <div>
                                     <div className="flex justify-between items-center mb-3">
@@ -1810,7 +1810,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                                         {language === 'en' ? 'Volleyball Net Comparison' : 'مقارنة شبكة الكرة الطائرة'}
                                       </span>
                                       <span className={`text-[10px] px-2 py-0.5 rounded-lg font-bold ${
-                                        isAbove ? 'text-emerald-400 bg-emerald-950/30' : 'text-orange-400 bg-orange-950/30'
+                                        isAbove ? 'text-emerald-400 bg-emerald-950/30' : 'text-blue-400 bg-blue-950/30'
                                       }`}>
                                         {language === 'en' 
                                           ? `Official Net: ${netHeight}cm` 
@@ -1818,7 +1818,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                                       </span>
                                     </div>
                                     <div className="flex items-baseline gap-1.5 mb-2">
-                                      <span className={`text-3xl font-black font-mono ${isAbove ? 'text-emerald-400' : 'text-orange-400'}`}>
+                                      <span className={`text-3xl font-black font-mono ${isAbove ? 'text-emerald-400' : 'text-blue-400'}`}>
                                         {isAbove ? `+${vbOffset.toFixed(1)}` : vbOffset.toFixed(1)}
                                       </span>
                                       <span className="text-gray-400 font-bold text-xs">سم / cm</span>
@@ -1835,7 +1835,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                                   </div>
                                   <div className="mt-4 pt-3 border-t border-gray-800/50 flex justify-between items-center text-[10px] text-gray-500">
                                     <span>{language === 'en' ? 'Max Touch reached:' : 'أقصى نقطة وصول:'}</span>
-                                    <span className="font-mono font-bold text-orange-400">{maxTouch.toFixed(0)} سم / cm</span>
+                                    <span className="font-mono font-bold text-blue-400">{maxTouch.toFixed(0)} سم / cm</span>
                                   </div>
                                 </div>
                               );
@@ -1849,8 +1849,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                               return (
                                 <div className={`p-5 rounded-2xl border bg-black/30 flex flex-col justify-between transition-all duration-300 ${
                                   canDunk 
-                                    ? 'border-orange-500/40 shadow-[0_0_15px_rgba(255,107,0,0.2)] bg-orange-950/5' 
-                                    : 'border-amber-500/25 shadow-[0_0_10px_rgba(245,158,11,0.05)] bg-amber-950/5'
+                                    ? 'border-blue-500/40 shadow-[0_0_15px_rgba(255,107,0,0.2)] bg-blue-950/5' 
+                                    : 'border-cyan-500/25 shadow-[0_0_10px_rgba(245,158,11,0.05)] bg-cyan-950/5'
                                 }`}>
                                   <div>
                                     <div className="flex justify-between items-center mb-3">
@@ -1858,13 +1858,13 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                                         {language === 'en' ? 'Basketball Hoop Dunk Capacity' : 'القدرة على الدنك وحلقة السلة'}
                                       </span>
                                       <span className={`text-[10px] px-2 py-0.5 rounded-lg font-bold ${
-                                        canDunk ? 'text-orange-400 bg-orange-950/30' : 'text-amber-400 bg-amber-950/30'
+                                        canDunk ? 'text-blue-400 bg-blue-950/30' : 'text-cyan-400 bg-cyan-950/30'
                                       }`}>
                                         {language === 'en' ? 'Hoop Height: 305cm' : 'ارتفاع الحلقة: 305 سم'}
                                       </span>
                                     </div>
                                     <div className="flex items-baseline gap-1.5 mb-2">
-                                      <span className={`text-3xl font-black font-mono ${canDunk ? 'text-orange-400 animate-pulse' : 'text-amber-500'}`}>
+                                      <span className={`text-3xl font-black font-mono ${canDunk ? 'text-blue-400 animate-pulse' : 'text-cyan-500'}`}>
                                         {canDunk ? `+${bbOffset.toFixed(1)}` : bbOffset.toFixed(1)}
                                       </span>
                                       <span className="text-gray-400 font-bold text-xs">سم / cm</span>
@@ -1881,7 +1881,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                                   </div>
                                   <div className="mt-4 pt-3 border-t border-gray-800/50 flex justify-between items-center text-[10px] text-gray-500">
                                     <span>{language === 'en' ? 'Dunk Potential:' : 'إمكانية الدنك:'}</span>
-                                    <span className={`font-bold uppercase ${canDunk ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                    <span className={`font-bold uppercase ${canDunk ? 'text-emerald-400' : 'text-cyan-400'}`}>
                                       {canDunk 
                                         ? (language === 'en' ? '✓ Capable' : '✓ قادر') 
                                         : (language === 'en' ? '✗ Under Height' : '✗ تحت الارتفاع')}
@@ -1917,8 +1917,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         const motivationConfig = {
                           velocity: {
                             badgeText: language === 'en' ? "Velocity Deficit (Focus: Explosive RFD)" : "عجز في السرعة والانفجارية (التركيز: سرعة إطلاق القوة RFD)",
-                            badgeColor: "text-amber-400 border-amber-500/30 bg-amber-500/10",
-                            glowColor: "border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)] bg-amber-950/5",
+                            badgeColor: "text-cyan-400 border-cyan-500/30 bg-cyan-500/10",
+                            glowColor: "border-cyan-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)] bg-cyan-950/5",
                             slangText: language === 'en'
                               ? "You are extremely strong and your body's motor is huge, but we need to release power faster. In the upcoming period, we won't lift heavy weights; we will focus on light loads (30% to 50% 1RM) but with maximum explosive intent in every single repetition (Maximal Intent) to make your legs fly and snatch the jump in fractions of a second!"
                               : "أنت قوي جداً وماتور جسمك ضخم، لكن ينقصنا أن نكون أسرع في إطلاق القوة. الفترة القادمة لن نرفع أوزاناً ثقيلة؛ سنركز على أحمال خفيفة (30% لـ 50%) ولكن بأقصى غل وانفجارية في كل تكرار (Maximal Intent) لتجعل رجلك تطير وتخطف النطة في أجزاء من الثانية!",
@@ -1939,8 +1939,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           },
                           elastic: {
                             badgeText: language === 'en' ? "Elastic Deficit (Focus: Tendon Stiffness & SSC)" : "عجز في مطاطية الأوتار (التركيز: القوة التفاعلية والصلابة)",
-                            badgeColor: "text-orange-400 border-orange-500/30 bg-orange-500/10",
-                            glowColor: "border-orange-500/30 shadow-[0_0_15px_rgba(255,107,0,0.1)] bg-orange-950/5",
+                            badgeColor: "text-blue-400 border-blue-500/30 bg-blue-500/10",
+                            glowColor: "border-blue-500/30 shadow-[0_0_15px_rgba(255,107,0,0.1)] bg-blue-950/5",
                             slangText: language === 'en'
                               ? "Your muscles are very strong from a standstill, but your tendons need to act like a spring to store reactive energy. We will focus on fast plyometrics and ankle stiffness to minimize your ground contact time!"
                               : "عضلاتك قوية جداً من السكون، لكن أوتارك تحتاج أن تعمل كـ (السوستة) لتخزين الطاقة الارتدادية. سنركز على البلايمتركس السريع وتصلب الكاحل لتقليل زمن تلامس رجلك مع الأرض!",
@@ -1990,7 +1990,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                             <div className="absolute top-0 right-0 w-64 h-64 bg-slate-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
                             
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800/80 pb-3 mb-4 gap-3">
-                              <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 flex items-center gap-2">
+                              <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 flex items-center gap-2">
                                 ⚡ {language === 'en' ? 'Biomechanical Motivation & Cueing' : 'نظام التوجيه والتحفيز الحركي المخصص'}
                               </h3>
                               <span className={`text-[10px] sm:text-xs font-black px-3 py-1 rounded-xl border ${currentConfig.badgeColor} self-start sm:self-auto`}>
@@ -2019,7 +2019,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                                   {currentConfig.exercises.map((ex, idx) => (
                                     <div key={idx} className="grid grid-cols-2 p-3 text-xs items-center">
                                       <div className="font-bold text-gray-300">{ex.name}</div>
-                                      <div className="font-extrabold text-orange-400 animate-pulse">{ex.cue}</div>
+                                      <div className="font-extrabold text-blue-400 animate-pulse">{ex.cue}</div>
                                     </div>
                                   ))}
                                 </div>
@@ -2044,7 +2044,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   {/* Sayers & Harman calculations */}
                   <div className="glass-panel p-5 shadow-lg flex flex-col justify-between">
                     <h4 className="text-base font-black text-white mb-4 border-b border-gray-800/80 pb-2.5 flex items-center gap-2">
-                      <Zap className="text-orange-400" size={16} /> نماذج القدرة الميكانيكية للارتقاء (Mechanical Power Models)
+                      <Zap className="text-blue-400" size={16} /> نماذج القدرة الميكانيكية للارتقاء (Mechanical Power Models)
                     </h4>
                     <div className="space-y-3.5 text-xs">
                       <div className="flex justify-between items-center bg-black/15 p-3.5 rounded-xl border border-gray-850">
@@ -2055,7 +2055,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         <span className="font-mono font-black text-white text-base">
                           {sayersPeak > 0 ? sayersPeak.toFixed(0) : '0'} <span className="text-[10px] text-gray-400 font-normal">W</span>
                           <span className="mx-1.5 text-gray-600">|</span>
-                          {sayersPeak > 0 && mass > 0 ? (sayersPeak / mass).toFixed(1) : '0'} <span className="text-[10px] text-orange-400 font-bold">W/kg</span>
+                          {sayersPeak > 0 && mass > 0 ? (sayersPeak / mass).toFixed(1) : '0'} <span className="text-[10px] text-blue-400 font-bold">W/kg</span>
                         </span>
                       </div>
                       <div className="flex justify-between items-center bg-black/15 p-3.5 rounded-xl border border-gray-855">
@@ -2066,7 +2066,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         <span className="font-mono font-black text-white text-base">
                           {harmanPeak > 0 ? harmanPeak.toFixed(0) : '0'} <span className="text-[10px] text-gray-400 font-normal">W</span>
                           <span className="mx-1.5 text-gray-600">|</span>
-                          {harmanPeak > 0 && mass > 0 ? (harmanPeak / mass).toFixed(1) : '0'} <span className="text-[10px] text-orange-400 font-bold">W/kg</span>
+                          {harmanPeak > 0 && mass > 0 ? (harmanPeak / mass).toFixed(1) : '0'} <span className="text-[10px] text-blue-400 font-bold">W/kg</span>
                         </span>
                       </div>
                       <div className="flex justify-between items-center bg-black/15 p-3.5 rounded-xl border border-gray-855">
@@ -2077,15 +2077,15 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         <span className="font-mono font-black text-white text-base">
                           {harmanMean > 0 ? harmanMean.toFixed(0) : '0'} <span className="text-[10px] text-gray-400 font-normal">W</span>
                           <span className="mx-1.5 text-gray-600">|</span>
-                          {harmanMean > 0 && mass > 0 ? (harmanMean / mass).toFixed(1) : '0'} <span className="text-[10px] text-orange-400 font-bold">W/kg</span>
+                          {harmanMean > 0 && mass > 0 ? (harmanMean / mass).toFixed(1) : '0'} <span className="text-[10px] text-blue-400 font-bold">W/kg</span>
                         </span>
                       </div>
                       <div className="flex justify-between items-center bg-black/15 p-3.5 rounded-xl border border-gray-850">
                         <div>
-                          <span className="font-extrabold text-orange-400 block">سرعة الانطلاق عند الإقلاع (Takeoff V)</span>
+                          <span className="font-extrabold text-blue-400 block">سرعة الانطلاق عند الإقلاع (Takeoff V)</span>
                           <span className="text-[9px] text-gray-500">السرعة المتجهة لحظة مغادرة القدمين للأرض</span>
                         </div>
-                        <span className="font-mono font-black text-orange-400 text-base">{velocity > 0 ? velocity.toFixed(2) : Math.sqrt(2 * 9.81 * (heightCm/100)).toFixed(2)} <span className="text-xs text-gray-500 font-normal">m/s</span></span>
+                        <span className="font-mono font-black text-blue-400 text-base">{velocity > 0 ? velocity.toFixed(2) : Math.sqrt(2 * 9.81 * (heightCm/100)).toFixed(2)} <span className="text-xs text-gray-500 font-normal">m/s</span></span>
                       </div>
                     </div>
                   </div>
@@ -2093,7 +2093,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   {/* Gradient Area Chart */}
                   <div className="glass-panel p-5 shadow-lg flex flex-col justify-between">
                     <h4 className="text-base font-black text-white mb-4 border-b border-gray-800/80 pb-2.5 flex items-center gap-2">
-                      <TrendingUp className="text-orange-400" size={16} /> منحنى تقدم ارتفاع الوثب للاعب (cm)
+                      <TrendingUp className="text-blue-400" size={16} /> منحنى تقدم ارتفاع الوثب للاعب (cm)
                     </h4>
                     <div className="h-56 w-full" dir="ltr">
                       <ResponsiveContainer width="100%" height="100%">
@@ -2126,9 +2126,9 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 {/* 1. Integrated Diagnostics Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
                   {/* EUR Card */}
-                  <div className="glass-card p-4 sm:p-5 border border-orange-500/20 shadow-inner flex flex-col justify-between text-right">
+                  <div className="glass-card p-4 sm:p-5 border border-blue-500/20 shadow-inner flex flex-col justify-between text-right">
                     <div>
-                      <span className="text-[10px] text-orange-400 font-bold block mb-1">مؤشر الاستغلال المطاطي للأوتار (Elastic Utilization Ratio)</span>
+                      <span className="text-[10px] text-blue-400 font-bold block mb-1">مؤشر الاستغلال المطاطي للأوتار (Elastic Utilization Ratio)</span>
                       <h4 className="text-2xl font-black text-white font-mono">{eur > 0 ? eur.toFixed(2) : '—'}</h4>
                       <p className="text-[9px] text-gray-400 mt-1 leading-normal">النسبة بين CMJ (بدون يدين) و Squat Jump. المعدل المرجعي العلمي: 1.05 - 1.15.</p>
                     </div>
@@ -2137,7 +2137,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       <span className={`font-black ${
                         eur === 0 ? 'text-gray-500' :
                         eur < 1.05 ? 'text-red-400' :
-                        eur > 1.15 ? 'text-orange-400' : 'text-emerald-400'
+                        eur > 1.15 ? 'text-blue-400' : 'text-emerald-400'
                       }`}>
                         {eur === 0 ? 'غير متوفر' :
                          eur < 1.05 ? 'عجز أوتار (Tendon Deficit) ⚠️' :
@@ -2147,9 +2147,9 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   </div>
 
                   {/* Arm Swing Card */}
-                  <div className="glass-card p-4 sm:p-5 border border-orange-500/20 shadow-inner flex flex-col justify-between text-right">
+                  <div className="glass-card p-4 sm:p-5 border border-blue-500/20 shadow-inner flex flex-col justify-between text-right">
                     <div>
-                      <span className="text-[10px] text-orange-400 font-bold block mb-1">مساهمة الذراعين الحركية (Arm Swing Contribution)</span>
+                      <span className="text-[10px] text-blue-400 font-bold block mb-1">مساهمة الذراعين الحركية (Arm Swing Contribution)</span>
                       <h4 className="text-2xl font-black text-white font-mono">{armSwing > 0 ? `${armSwing.toFixed(1)}%` : '—'}</h4>
                       <p className="text-[9px] text-gray-400 mt-1 leading-normal">نسبة الزيادة الميكانيكية بفضل أرجحة اليدين. المعدل المرجعي: 10% - 15%.</p>
                     </div>
@@ -2158,7 +2158,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       <span className={`font-black ${
                         armSwing === 0 ? 'text-gray-500' :
                         armSwing < 10 ? 'text-red-400' :
-                        armSwing > 15 ? 'text-orange-400' : 'text-emerald-400'
+                        armSwing > 15 ? 'text-blue-400' : 'text-emerald-400'
                       }`}>
                         {armSwing === 0 ? 'غير متوفر' :
                          armSwing < 10 ? 'تنسيق ذراعين ضعيف ⚠️' :
@@ -2168,9 +2168,9 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   </div>
 
                   {/* Speed Conversion Card */}
-                  <div className="glass-card p-4 sm:p-5 border border-orange-500/20 shadow-inner flex flex-col justify-between text-right">
+                  <div className="glass-card p-4 sm:p-5 border border-blue-500/20 shadow-inner flex flex-col justify-between text-right">
                     <div>
-                      <span className="text-[10px] text-orange-400 font-bold block mb-1">مؤشر تحويل السرعة الأفقية (Velocity Conversion)</span>
+                      <span className="text-[10px] text-blue-400 font-bold block mb-1">مؤشر تحويل السرعة الأفقية (Velocity Conversion)</span>
                       <h4 className="text-2xl font-black text-white font-mono">{velocityConversion > 0 ? `${velocityConversion.toFixed(1)}%` : '—'}</h4>
                       <p className="text-[9px] text-gray-400 mt-1 leading-normal">الزيادة الناتجة عن الاقتراب الحركي (Approach vs CMJ). النطاق المستهدف: +10% فما فوق.</p>
                     </div>
@@ -2219,8 +2219,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     </div>
 
                     {/* Development Points Card */}
-                    <div className="bg-amber-950/15 border border-amber-500/25 p-5 rounded-2xl">
-                      <h5 className="font-extrabold text-amber-400 mb-3 flex items-center gap-2">
+                    <div className="bg-cyan-950/15 border border-cyan-500/25 p-5 rounded-2xl">
+                      <h5 className="font-extrabold text-cyan-400 mb-3 flex items-center gap-2">
                         <span>⚡ خطة تطوير القدرة والانفجارية</span>
                       </h5>
                       <p className="text-xs text-gray-300 leading-relaxed space-y-2.5">
@@ -2247,7 +2247,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   <h4 className="text-base font-black text-white">{language === 'en' ? 'Complete Athlete History Log' : 'سجل قياسات اللاعب الكاملة'}</h4>
                   <button 
                     onClick={() => handleOpenManualEntryModal()} 
-                    className="px-3 py-1.5 bg-orange-600/20 text-orange-400 border border-orange-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 hover:bg-orange-600/35 transition-all cursor-pointer shadow-md"
+                    className="px-3 py-1.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 hover:bg-blue-600/35 transition-all cursor-pointer shadow-md"
                   >
                     <Plus size={14} /> {language === 'en' ? 'Log Manual Jump' : 'تسجيل رقم يدوي'}
                   </button>
@@ -2293,15 +2293,15 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         return (
                           <tr key={jump.id} className="border-b border-gray-855 hover:bg-black/10 transition-colors">
                             <td className="py-3.5 font-mono text-gray-400">{new Date(jump.created_at).toLocaleDateString(language === 'en' ? 'en-US' : 'ar-EG')}</td>
-                            <td className="py-3.5 text-center font-bold text-orange-400">{testName}</td>
+                            <td className="py-3.5 text-center font-bold text-blue-400">{testName}</td>
                             <td className="py-3.5 text-center font-mono font-black text-white">{parseFloat(jump.jump_height_cm).toFixed(1)}</td>
                             <td className="py-3.5 text-center font-mono text-gray-300">{parseFloat(jump.flight_time_sec).toFixed(3)}</td>
                             <td className="py-3.5 text-center font-mono text-gray-300">{jump.contact_time_sec ? parseFloat(jump.contact_time_sec).toFixed(3) : '—'}</td>
                             <td className="py-3.5 text-center font-mono text-gray-300">{jump.peak_power_watts && parseFloat(jump.peak_power_watts) > 0 ? parseFloat(jump.peak_power_watts).toFixed(0) : '—'}</td>
-                            <td className="py-3.5 text-center font-mono font-black text-amber-400">{jump.rsi_score ? parseFloat(jump.rsi_score).toFixed(2) : '—'}</td>
+                            <td className="py-3.5 text-center font-mono font-black text-cyan-400">{jump.rsi_score ? parseFloat(jump.rsi_score).toFixed(2) : '—'}</td>
                             <td className="py-3.5 text-center">
                               <div className="flex justify-center gap-2">
-                                <button onClick={() => handleOpenManualEntryModal(jump)} className="p-1 hover:text-orange-400 text-gray-500 transition-all cursor-pointer" title="تعديل"><Edit3 size={13} /></button>
+                                <button onClick={() => handleOpenManualEntryModal(jump)} className="p-1 hover:text-blue-400 text-gray-500 transition-all cursor-pointer" title="تعديل"><Edit3 size={13} /></button>
                                 <button onClick={() => handleDeleteJump(jump.id)} className="p-1 hover:text-red-400 text-gray-500 transition-all cursor-pointer" title="حذف"><Trash2 size={13} /></button>
                               </div>
                             </td>
@@ -2325,7 +2325,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 initial={{ scale: 0.9, opacity: 0 }} 
                 animate={{ scale: 1, opacity: 1 }} 
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-[#0a0d14] border border-orange-500/30 rounded-3xl p-6 w-full max-w-xl shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+                className="bg-[#0a0d14] border border-blue-500/30 rounded-3xl p-6 w-full max-w-xl shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
               >
                 {/* Close Button */}
                 <button 
@@ -2336,13 +2336,13 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   <X size={16} />
                 </button>
 
-                <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 mb-2 pb-2 border-b border-gray-850 flex items-center gap-2">
+                <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mb-2 pb-2 border-b border-gray-850 flex items-center gap-2">
                   📊 {selectedMetric.title}
                 </h3>
 
                 <div className="space-y-4 text-xs leading-relaxed text-gray-300">
                   {/* Current Athlete Value Card */}
-                  <div className="bg-orange-950/20 border border-orange-500/20 p-4 rounded-2xl flex justify-between items-center">
+                  <div className="bg-blue-950/20 border border-blue-500/20 p-4 rounded-2xl flex justify-between items-center">
                     <div>
                       <span className="text-[10px] text-gray-500 block">قياس اللاعب الحالي</span>
                       <span className="text-xl font-black text-white font-mono">{selectedMetric.value}</span>
@@ -2380,7 +2380,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                           {selectedMetric.benchmarks.map((b, idx) => (
                             <tr key={idx} className="border-b border-gray-900 last:border-b-0 hover:bg-black/10">
                               <td className="p-2 font-bold text-gray-250">{b.label}</td>
-                              <td className="p-2 font-mono text-orange-400 font-bold">{b.value}</td>
+                              <td className="p-2 font-mono text-blue-400 font-bold">{b.value}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -2389,8 +2389,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   </div>
 
                   {/* Training tips list */}
-                  <div className="bg-teal-950/10 border border-amber-500/10 p-4 rounded-2xl space-y-2">
-                    <span className="block font-black text-amber-400 text-xs">💪 نصائح تدريبية مقترحة للتطوير:</span>
+                  <div className="bg-teal-950/10 border border-cyan-500/10 p-4 rounded-2xl space-y-2">
+                    <span className="block font-black text-cyan-400 text-xs">💪 نصائح تدريبية مقترحة للتطوير:</span>
                     <ul className="list-disc list-inside space-y-1.5 text-gray-300 pr-2">
                       {selectedMetric.tips.map((t, idx) => (
                         <li key={idx} className="font-medium">{t}</li>
@@ -2411,7 +2411,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 initial={{ scale: 0.9, opacity: 0 }} 
                 animate={{ scale: 1, opacity: 1 }} 
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-[#0a0d14] border border-orange-500/30 rounded-3xl p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+                className="bg-[#0a0d14] border border-blue-500/30 rounded-3xl p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
               >
                 {/* Close Button */}
                 <button 
@@ -2422,7 +2422,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   <X size={16} />
                 </button>
 
-                <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 mb-4 pb-2 border-b border-gray-850 flex items-center gap-2">
+                <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mb-4 pb-2 border-b border-gray-850 flex items-center gap-2">
                   📝 {isEditingMeasurement ? 'تعديل قياس مسجل' : 'تسجيل قياس يدوي جديد'}
                 </h3>
 
@@ -2434,7 +2434,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     <select
                       value={manualForm.testType}
                       onChange={(e) => handleManualFormChange('testType', e.target.value)}
-                      className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500/50"
+                      className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/50"
                       required
                     >
                       <option value="sj_no_arms">Squat Jump (بدون يدين)</option>
@@ -2454,7 +2454,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       type="date"
                       value={manualForm.created_at}
                       onChange={(e) => handleManualFormChange('created_at', e.target.value)}
-                      className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500/50 font-mono"
+                      className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/50 font-mono"
                       required
                     />
                   </div>
@@ -2469,7 +2469,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         placeholder="مثال: 45.5"
                         value={manualForm.jumpHeightCm}
                         onChange={(e) => handleManualFormChange('jumpHeightCm', e.target.value)}
-                        className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500/50 font-mono"
+                        className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/50 font-mono"
                         required
                       />
                     </div>
@@ -2483,7 +2483,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         placeholder="مثال: 0.610"
                         value={manualForm.flightTimeSec}
                         onChange={(e) => handleManualFormChange('flightTimeSec', e.target.value)}
-                        className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500/50 font-mono"
+                        className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/50 font-mono"
                         required
                       />
                     </div>
@@ -2499,7 +2499,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                         placeholder="مثال: 0.200"
                         value={manualForm.contactTimeSec}
                         onChange={(e) => handleManualFormChange('contactTimeSec', e.target.value)}
-                        className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500/50 font-mono"
+                        className="w-full bg-slate-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/50 font-mono"
                         required
                       />
                     </div>
@@ -2507,7 +2507,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
                   {/* Smart Calculations Output Grid */}
                   <div className="bg-slate-950/40 border border-slate-900/60 rounded-2xl p-4 space-y-2.5">
-                    <span className="block text-[10px] text-orange-400 font-bold mb-1">📊 الحسابات التلقائية المباشرة (Sayers & Harman Models):</span>
+                    <span className="block text-[10px] text-blue-400 font-bold mb-1">📊 الحسابات التلقائية المباشرة (Sayers & Harman Models):</span>
                     
                     <div className="grid grid-cols-2 gap-3 text-[11px] leading-relaxed">
                       <div className="flex justify-between items-center bg-black/20 p-2 rounded-lg border border-gray-850">
@@ -2520,8 +2520,8 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       </div>
                       {manualForm.testType === 'rsi' && (
                         <div className="flex justify-between items-center bg-black/20 p-2 rounded-lg border border-gray-850 col-span-2">
-                          <span className="text-amber-400 font-bold">مؤشر القوة التفاعلية (RSI):</span>
-                          <span className="font-mono font-bold text-amber-400">{manualForm.rsiScore || '0.00'}</span>
+                          <span className="text-cyan-400 font-bold">مؤشر القوة التفاعلية (RSI):</span>
+                          <span className="font-mono font-bold text-cyan-400">{manualForm.rsiScore || '0.00'}</span>
                         </div>
                       )}
                     </div>
@@ -2558,7 +2558,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 initial={{ scale: 0.9, opacity: 0 }} 
                 animate={{ scale: 1, opacity: 1 }} 
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-[#0a0d14] border border-orange-500/30 rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
+                className="bg-[#0a0d14] border border-blue-500/30 rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
               >
                 {/* Close Button */}
                 <button 
@@ -2571,7 +2571,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
                 {printStep === 1 ? (
                   <>
-                    <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 mb-4 pb-2 border-b border-gray-850 flex items-center gap-2">
+                    <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mb-4 pb-2 border-b border-gray-850 flex items-center gap-2">
                       🖨️ لغة تصدير التقرير / Report Language
                     </h3>
                     <p className="text-xs text-gray-400 mb-6 leading-relaxed">
@@ -2583,10 +2583,10 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       <button
                         type="button"
                         onClick={() => handlePrintLanguageSelect('ar')}
-                        className="p-5 bg-slate-900 hover:bg-orange-950/60 hover:border-orange-500/50 border border-gray-800 rounded-2xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer group"
+                        className="p-5 bg-slate-900 hover:bg-blue-950/60 hover:border-blue-500/50 border border-gray-800 rounded-2xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer group"
                       >
                         <span className="text-2xl">🇪🇬</span>
-                        <span className="text-sm font-black text-white group-hover:text-orange-400">التقرير بالعربية</span>
+                        <span className="text-sm font-black text-white group-hover:text-blue-400">التقرير بالعربية</span>
                         <span className="text-[10px] text-gray-500">من اليمين إلى اليسار (RTL)</span>
                       </button>
 
@@ -2594,17 +2594,17 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       <button
                         type="button"
                         onClick={() => handlePrintLanguageSelect('en')}
-                        className="p-5 bg-slate-900 hover:bg-orange-950/60 hover:border-orange-500/50 border border-gray-800 rounded-2xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer group"
+                        className="p-5 bg-slate-900 hover:bg-blue-950/60 hover:border-blue-500/50 border border-gray-800 rounded-2xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer group"
                       >
                         <span className="text-2xl">🇬🇧</span>
-                        <span className="text-sm font-black text-white group-hover:text-orange-400">English Report</span>
+                        <span className="text-sm font-black text-white group-hover:text-blue-400">English Report</span>
                         <span className="text-[10px] text-gray-500">Left to Right (LTR)</span>
                       </button>
                     </div>
                   </>
                 ) : (
                   <>
-                    <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 mb-4 pb-2 border-b border-gray-850 flex items-center gap-2">
+                    <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mb-4 pb-2 border-b border-gray-850 flex items-center gap-2">
                       📊 نمط التقرير / Report Style
                     </h3>
                     <p className="text-xs text-gray-400 mb-6 leading-relaxed">
@@ -2616,11 +2616,11 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       <button
                         type="button"
                         onClick={() => handlePrintReportFinal(true)}
-                        className="p-4 bg-slate-900 hover:bg-orange-950/20 hover:border-orange-500/50 border border-gray-800 rounded-2xl flex items-center gap-4 text-right transition-all cursor-pointer group"
+                        className="p-4 bg-slate-900 hover:bg-blue-950/20 hover:border-blue-500/50 border border-gray-800 rounded-2xl flex items-center gap-4 text-right transition-all cursor-pointer group"
                       >
                         <span className="text-2xl">📊</span>
                         <div className="flex-1">
-                          <span className="block text-sm font-black text-white group-hover:text-orange-400">تقرير بصري ولوحة معلومات (With Infographics)</span>
+                          <span className="block text-sm font-black text-white group-hover:text-blue-400">تقرير بصري ولوحة معلومات (With Infographics)</span>
                           <span className="block text-[10px] text-gray-500 mt-1">يحتوي على رسومات بيانية ملونة، بطاقات ذكية، وتنسيق رياضي حديث.</span>
                         </div>
                       </button>
@@ -3411,7 +3411,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   <p className="text-lg font-mono font-black text-black">
                     {sayersPeak > 0 ? sayersPeak.toFixed(0) : '—'} <span className="text-xs font-normal">{printLang === 'ar' ? 'وات' : 'Watts'}</span>
                   </p>
-                  <p className="text-xs font-bold text-orange-400 mt-1">
+                  <p className="text-xs font-bold text-blue-400 mt-1">
                     {sayersPeak > 0 && mass > 0 ? (sayersPeak / mass).toFixed(1) : '—'} <span className="font-normal">W/kg ({printLang === 'ar' ? 'القدرة النسبية' : 'Relative Power'})</span>
                   </p>
                 </div>
@@ -3422,7 +3422,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   <p className="text-lg font-mono font-black text-black">
                     {harmanPeak > 0 ? harmanPeak.toFixed(0) : '—'} <span className="text-xs font-normal">{printLang === 'ar' ? 'وات' : 'Watts'}</span>
                   </p>
-                  <p className="text-xs font-bold text-orange-400 mt-1">
+                  <p className="text-xs font-bold text-blue-400 mt-1">
                     {harmanPeak > 0 && mass > 0 ? (harmanPeak / mass).toFixed(1) : '—'} <span className="font-normal">W/kg ({printLang === 'ar' ? 'القدرة النسبية' : 'Relative Power'})</span>
                   </p>
                 </div>
@@ -3523,7 +3523,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
               <button onClick={() => setShowBenchmarks(false)} className="absolute top-4 left-4 p-2 bg-slate-900 hover:bg-red-500/20 text-gray-400 hover:text-red-500 rounded-full transition-colors cursor-pointer border border-gray-850"><X size={20}/></button>
               
               <div className="text-center mb-6">
-                <BookOpen size={40} className="mx-auto text-orange-400 mb-2" />
+                <BookOpen size={40} className="mx-auto text-blue-400 mb-2" />
                 <h2 className="text-2xl font-black text-white">الجداول المعيارية للأداء الرياضي</h2>
                 <p className="text-gray-400 text-sm">مستندة لبيانات الميكانيكا الحيوية الرياضية للشباب والكبار</p>
               </div>
@@ -3532,35 +3532,35 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 
                 {/* Men Table */}
                 <div className="bg-black/20 p-4 rounded-2xl border border-slate-800">
-                  <h3 className="text-lg font-bold text-orange-400 mb-3 border-b border-slate-800 pb-2">معايير الرجال (18+ سنة)</h3>
+                  <h3 className="text-lg font-bold text-blue-400 mb-3 border-b border-slate-800 pb-2">معايير الرجال (18+ سنة)</h3>
                   <div className="grid grid-cols-4 text-center text-xs font-bold text-gray-450 mb-2">
                     <div>التقييم</div><div>الارتفاع (cm)</div><div>الطيران (s)</div><div>القدرة (W/kg)</div>
                   </div>
                   <div className="space-y-2 text-sm">
-                    <div className="grid grid-cols-4 text-center items-center bg-orange-950/20 p-2 rounded-xl border border-orange-500/30"><span className="text-orange-400 font-bold">نخبة عالمية</span><span>85+</span><span>0.75+</span><span>65+</span></div>
-                    <div className="grid grid-cols-4 text-center items-center bg-black/40 p-2 rounded-xl border border-gray-850"><span className="text-amber-500 font-bold">ممتاز</span><span>76 - 84</span><span>0.68 - 0.74</span><span>55 - 64</span></div>
-                    <div className="grid grid-cols-4 text-center items-center bg-black/40 p-2 rounded-xl border border-gray-850"><span className="text-amber-400 font-bold">جيد</span><span>66 - 75</span><span>0.60 - 0.67</span><span>45 - 54</span></div>
+                    <div className="grid grid-cols-4 text-center items-center bg-blue-950/20 p-2 rounded-xl border border-blue-500/30"><span className="text-blue-400 font-bold">نخبة عالمية</span><span>85+</span><span>0.75+</span><span>65+</span></div>
+                    <div className="grid grid-cols-4 text-center items-center bg-black/40 p-2 rounded-xl border border-gray-850"><span className="text-cyan-500 font-bold">ممتاز</span><span>76 - 84</span><span>0.68 - 0.74</span><span>55 - 64</span></div>
+                    <div className="grid grid-cols-4 text-center items-center bg-black/40 p-2 rounded-xl border border-gray-850"><span className="text-cyan-400 font-bold">جيد</span><span>66 - 75</span><span>0.60 - 0.67</span><span>45 - 54</span></div>
                     <div className="grid grid-cols-4 text-center items-center bg-black/40 p-2 rounded-xl border border-gray-850"><span className="text-gray-400 font-bold">مقبول</span><span>55 - 65</span><span>0.55 - 0.59</span><span>38 - 44</span></div>
                   </div>
                 </div>
 
                 {/* Women Table */}
                 <div className="bg-black/20 p-4 rounded-2xl border border-slate-800">
-                  <h3 className="text-lg font-bold text-orange-400 mb-3 border-b border-slate-800 pb-2">معايير السيدات (18+ سنة)</h3>
+                  <h3 className="text-lg font-bold text-blue-400 mb-3 border-b border-slate-800 pb-2">معايير السيدات (18+ سنة)</h3>
                   <div className="grid grid-cols-4 text-center text-xs font-bold text-gray-455 mb-2">
                     <div>التقييم</div><div>الارتفاع (cm)</div><div>الطيران (s)</div><div>القدرة (W/kg)</div>
                   </div>
                   <div className="space-y-2 text-sm">
-                    <div className="grid grid-cols-4 text-center items-center bg-orange-950/20 p-2 rounded-xl border border-orange-500/30"><span className="text-orange-400 font-bold">نخبة عالمية</span><span>66+</span><span>0.65+</span><span>52+</span></div>
-                    <div className="grid grid-cols-4 text-center items-center bg-black/40 p-2 rounded-xl border border-gray-850"><span className="text-amber-500 font-bold">ممتاز</span><span>56 - 65</span><span>0.58 - 0.64</span><span>45 - 51</span></div>
-                    <div className="grid grid-cols-4 text-center items-center bg-black/40 p-2 rounded-xl border border-gray-850"><span className="text-amber-400 font-bold">جيد</span><span>46 - 55</span><span>0.52 - 0.57</span><span>38 - 44</span></div>
+                    <div className="grid grid-cols-4 text-center items-center bg-blue-950/20 p-2 rounded-xl border border-blue-500/30"><span className="text-blue-400 font-bold">نخبة عالمية</span><span>66+</span><span>0.65+</span><span>52+</span></div>
+                    <div className="grid grid-cols-4 text-center items-center bg-black/40 p-2 rounded-xl border border-gray-850"><span className="text-cyan-500 font-bold">ممتاز</span><span>56 - 65</span><span>0.58 - 0.64</span><span>45 - 51</span></div>
+                    <div className="grid grid-cols-4 text-center items-center bg-black/40 p-2 rounded-xl border border-gray-850"><span className="text-cyan-400 font-bold">جيد</span><span>46 - 55</span><span>0.52 - 0.57</span><span>38 - 44</span></div>
                     <div className="grid grid-cols-4 text-center items-center bg-black/40 p-2 rounded-xl border border-gray-850"><span className="text-gray-400 font-bold">مقبول</span><span>38 - 45</span><span>0.48 - 0.51</span><span>32 - 37</span></div>
                   </div>
                 </div>
 
                 {/* Egyptian volleyball club benchmarks */}
-                <div className="bg-black/20 p-4 rounded-2xl border border-orange-500/30">
-                  <h3 className="text-lg font-bold text-orange-400 mb-3 border-b border-orange-500/20 pb-2">🏐 معايير الأندية المصرية - الكرة الطائرة</h3>
+                <div className="bg-black/20 p-4 rounded-2xl border border-blue-500/30">
+                  <h3 className="text-lg font-bold text-blue-400 mb-3 border-b border-blue-500/20 pb-2">🏐 معايير الأندية المصرية - الكرة الطائرة</h3>
                   <div className="grid grid-cols-5 text-center text-xs font-bold text-gray-450 mb-2">
                     <div>النادي</div><div>نخبة (Elite)</div><div>ممتاز</div><div>جيد</div><div>مقبول</div>
                   </div>
@@ -3568,15 +3568,15 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                     <div className="grid grid-cols-5 text-center items-center bg-red-950/15 p-2 rounded-xl border border-red-500/20"><span className="text-red-400 font-bold">الأهلي</span><span>+34" (86+)</span><span>30"-33"</span><span>26"-29"</span><span>22"-25"</span></div>
                     <div className="grid grid-cols-5 text-center items-center bg-white/[0.02] p-2 rounded-xl border border-gray-750"><span className="text-white font-bold">الزمالك</span><span>+34" (86+)</span><span>30"-33"</span><span>26"-29"</span><span>22"-25"</span></div>
                     <div className="grid grid-cols-5 text-center items-center bg-blue-950/15 p-2 rounded-xl border border-blue-500/20"><span className="text-blue-400 font-bold">سموحة</span><span>+32" (81+)</span><span>28"-31"</span><span>24"-27"</span><span>20"-23"</span></div>
-                    <div className="grid grid-cols-5 text-center items-center bg-yellow-950/15 p-2 rounded-xl border border-yellow-500/20"><span className="text-yellow-400 font-bold">سبورتنج</span><span>+32" (81+)</span><span>28"-31"</span><span>24"-27"</span><span>20"-23"</span></div>
+                    <div className="grid grid-cols-5 text-center items-center bg-yellow-950/15 p-2 rounded-xl border border-blue-500/20"><span className="text-blue-400 font-bold">سبورتنج</span><span>+32" (81+)</span><span>28"-31"</span><span>24"-27"</span><span>20"-23"</span></div>
                   </div>
                   <p className="text-[10px] text-gray-500 mt-2 text-center">* معايير السيدات (18+): نخبة: +26" (66+) | ممتاز: 22"-25" | جيد: 18"-21"</p>
                 </div>
 
-                <div className="bg-orange-950/10 border border-orange-500/30 p-4 rounded-xl flex gap-2">
-                  <ShieldAlert className="text-orange-400 shrink-0" size={18} />
+                <div className="bg-blue-950/10 border border-blue-500/30 p-4 rounded-xl flex gap-2">
+                  <ShieldAlert className="text-blue-400 shrink-0" size={18} />
                   <div>
-                     <p className="text-xs text-orange-400 font-bold mb-0.5">معايير الناشئين والناشئات (أقل من 17 سنة):</p>
+                     <p className="text-xs text-blue-400 font-bold mb-0.5">معايير الناشئين والناشئات (أقل من 17 سنة):</p>
                      <p className="text-xs text-gray-405 leading-relaxed">يقوم المحرك تلقائياً بتخفيض الحدود المعيارية السابقة بنسبة 15% لملاءمة معدلات التطور البدني والفسيولوجي لسن اللاعب المحدد. ينطبق هذا على جميع الأندية والمنتخبات أعلاه.</p>
                   </div>
                 </div>
