@@ -6,6 +6,134 @@ import { supabase } from './supabaseClient';
 
 
 // Cyber Arc Speedometer Component
+
+// Holographic Joint & Muscular Heatmap SVG Component
+const HolographicBodyHeatmap = ({ eur, rsi, cmjVal, language = 'ar' }) => {
+  const isEn = language === 'en';
+  
+  // Dynamic joint statuses
+  const ankleStatus = rsi >= 2.2 ? '#06b6d4' : rsi >= 1.5 ? '#3b82f6' : '#f43f5e';
+  const kneeStatus = eur >= 1.05 && eur <= 1.15 ? '#10b981' : eur < 1.05 ? '#f43f5e' : '#eab308';
+  const hipStatus = cmjVal >= 45 ? '#3b82f6' : '#94a3b8';
+
+  return (
+    <div className="glass-panel p-5 hud-card flex flex-col justify-between metallic-glass-border">
+      <div className="flex items-center justify-between border-b border-gray-800/80 pb-3 mb-3">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 pulse-glow-live" />
+          <h4 className="text-xs font-black text-white uppercase tracking-wider">
+            {isEn ? 'Holographic Joint & Tendon Heatmap' : 'مخطط تشريح أوتار ومفاصل الجسم الهولوغرامي'}
+          </h4>
+        </div>
+        <span className="text-[9px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30">Anatomical HUD</span>
+      </div>
+
+      <div className="flex items-center justify-around py-2">
+        {/* SVG Lower Body Silhouette with Interactive Glowing Nodes */}
+        <div className="relative w-36 h-48 flex items-center justify-center">
+          <svg className="w-full h-full" viewBox="0 0 100 160">
+            {/* Pelvis & Hips */}
+            <path d="M 35 30 L 65 30 L 58 55 L 42 55 Z" fill="none" stroke="#475569" strokeWidth="2" />
+            <circle cx="38" cy="40" r="5" fill={hipStatus} opacity="0.8" className="pulse-glow-live" />
+            <circle cx="62" cy="40" r="5" fill={hipStatus} opacity="0.8" className="pulse-glow-live" />
+
+            {/* Left & Right Thigh (Femur) */}
+            <line x1="38" y1="40" x2="32" y2="85" stroke="#334155" strokeWidth="4" />
+            <line x1="62" y1="40" x2="68" y2="85" stroke="#334155" strokeWidth="4" />
+
+            {/* Knees */}
+            <circle cx="32" cy="85" r="7" fill={kneeStatus} opacity="0.9" className="pulse-glow-live" />
+            <circle cx="68" cy="85" r="7" fill={kneeStatus} opacity="0.9" className="pulse-glow-live" />
+
+            {/* Left & Right Calves (Tibia) */}
+            <line x1="32" y1="85" x2="35" y2="135" stroke="#334155" strokeWidth="3" />
+            <line x1="68" y1="85" x2="65" y2="135" stroke="#334155" strokeWidth="3" />
+
+            {/* Ankles */}
+            <circle cx="35" cy="135" r="6" fill={ankleStatus} opacity="0.9" className="pulse-glow-live" />
+            <circle cx="65" cy="135" r="6" fill={ankleStatus} opacity="0.9" className="pulse-glow-live" />
+
+            {/* Feet Base */}
+            <path d="M 28 142 L 38 142 L 35 135 Z" fill="#334155" />
+            <path d="M 62 142 L 72 142 L 65 135 Z" fill="#334155" />
+          </svg>
+        </div>
+
+        {/* Dynamic Joint Legend Badges */}
+        <div className="space-y-3 font-mono text-xs">
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: ankleStatus }} />
+            <div>
+              <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Ankle Stiffness (RSI):' : 'صلابة الكاحل (RSI):'}</span>
+              <span className="text-xs font-black text-white">{rsi > 0 ? `${rsi.toFixed(2)} Index` : 'N/A'}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: kneeStatus }} />
+            <div>
+              <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Knee SSC Elasticity:' : 'مطاطية الركبة (EUR):'}</span>
+              <span className="text-xs font-black text-white">{eur > 0 ? `${eur.toFixed(2)} Ratio` : 'N/A'}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: hipStatus }} />
+            <div>
+              <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Hip Power Drive:' : 'دفع الفخذ (CMJ):'}</span>
+              <span className="text-xs font-black text-white">{cmjVal > 0 ? `${cmjVal.toFixed(1)} cm` : 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Biomechanical Takeoff Impulse Waveform Component
+const ImpulseWaveformVisualizer = ({ peakPower, velocity, language = 'ar' }) => {
+  const isEn = language === 'en';
+
+  return (
+    <div className="glass-panel p-5 hud-card flex flex-col justify-between metallic-glass-border">
+      <div className="flex items-center justify-between border-b border-gray-800/80 pb-3 mb-2">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-glow-live" />
+          <h4 className="text-xs font-black text-white uppercase tracking-wider">
+            {isEn ? 'Live Force Impulse Waveform' : 'موجات سريان القوة والدفع الحية'}
+          </h4>
+        </div>
+        <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">Impulse Wave</span>
+      </div>
+
+      <div className="w-full h-24 flex items-center justify-center py-1">
+        <svg className="w-full h-full" viewBox="0 0 300 80">
+          <defs>
+            <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#2563eb" />
+              <stop offset="50%" stopColor="#06b6d4" />
+              <stop offset="100%" stopColor="#10b981" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M 10 50 Q 50 50 80 48 T 130 15 T 170 70 T 220 50 T 290 50"
+            fill="none"
+            stroke="url(#waveGrad)"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+          />
+          <circle cx="130" cy="15" r="4" fill="#06b6d4" className="pulse-glow-live" />
+        </svg>
+      </div>
+
+      <div className="flex justify-between items-center text-[10px] font-mono text-gray-400 border-t border-gray-800/60 pt-2">
+        <span>{isEn ? 'Peak Impulse:' : 'ذروة النبض:'} <strong className="text-cyan-400">{peakPower > 0 ? `${peakPower.toFixed(0)} W` : '—'}</strong></span>
+        <span>{isEn ? 'Takeoff Velocity:' : 'سرعة الانطلاق:'} <strong className="text-emerald-400">{velocity > 0 ? `${velocity.toFixed(2)} m/s` : '—'}</strong></span>
+      </div>
+    </div>
+  );
+};
+
 const CyberArcGauge = ({ value, max, label, unit, color = "#3b82f6" }) => {
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
   const strokeDash = (pct * 188.5) / 100;
@@ -1433,6 +1561,13 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   </div>
                 </div>
 
+
+                {/* Holographic Joint Heatmap & Impulse Waveform Row */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  <HolographicBodyHeatmap eur={eur} rsi={latestRsi} cmjVal={heightCm} language={language} />
+                  <ImpulseWaveformVisualizer peakPower={peakPower} velocity={velocity} language={language} />
+                </div>
+  
 {/* Visual Cockpit Dashboard */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   

@@ -280,3 +280,34 @@ body, button, input, select, textarea, text, span, div, p, h1, h2, h3, h4, h5, h
   animation: cyberPulse 2s infinite ease-in-out;
 }
 
+/* Ultra Luxury Cyber Grid Dots & Metallic Glass Borders */
+.cyber-grid-bg {
+  background-image: radial-gradient(rgba(59, 130, 246, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.metallic-glass-border {
+  position: relative;
+  background: var(--bg-panel);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+.metallic-glass-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.6) 0%, rgba(6, 182, 212, 0.3) 50%, rgba(37, 99, 235, 0.6) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.vip-shield-glow {
+  box-shadow: 0 0 25px rgba(37, 99, 235, 0.35), inset 0 0 15px rgba(6, 182, 212, 0.2);
+}
+
+
