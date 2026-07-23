@@ -1318,7 +1318,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
                 </div>
                 
                 {/* Timeline Slider Container */}
-                <div ref={timelineTrackRef} className="relative w-full md:flex-1 h-12 bg-[#050b16] border border-cyan-950/40 rounded-2xl select-none flex items-center px-4">
+                <div ref={timelineTrackRef} className="relative w-full md:flex-1 h-12 bg-[#080b12] border border-orange-500/30 rounded-2xl select-none flex items-center px-4">
                   {/* Ruler marks background */}
                   <div className="absolute inset-0 flex justify-between items-center px-4 pointer-events-none opacity-20">
                     {Array.from({ length: 25 }).map((_, i) => (
@@ -1494,11 +1494,11 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
         </div>
 
         {/* Time Calculation selector & Advisor */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-cyan-950/20 pt-4" style={{ direction: 'rtl' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-orange-500/30 pt-4" style={{ direction: 'rtl' }}>
           <div className="space-y-3">
             <div>
               <label className="block text-[10px] text-gray-500 mb-1">طريقة حساب الوقت (Time Calculation)</label>
-              <div className="flex bg-black/25 rounded-xl border border-cyan-950/20 p-1">
+              <div className="flex bg-black/25 rounded-xl border border-orange-500/30 p-1">
                 {[
                   { id: 'fps', name: '⏱️ حساب تلقائي من الـ FPS' },
                   { id: 'manual', name: '✏️ كتابة زمن إطار يدوي' }
@@ -1617,7 +1617,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
             
             {/* Primary Radial RSI score ring */}
             <div className="bg-[#111827]/30 border border-gray-850 p-6 rounded-3xl flex flex-col items-center justify-center text-center relative overflow-hidden shadow-lg lg:col-span-1">
-              <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 to-transparent pointer-events-none"></div>
               <span className="text-xs font-bold text-gray-450 mb-6 block uppercase tracking-wider">مؤشر القوة التفاعلية الأخير</span>
               
               <div className="relative w-40 h-40 flex items-center justify-center bg-black/15 rounded-full border border-gray-850 shadow-inner">
@@ -1722,7 +1722,7 @@ export default function RSICalculator({ activePlayer, selectedPlayerId, onSaveSu
       {/* Fullscreen Export Progress Overlay */}
       {isExporting && (
         <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md text-white p-6">
-          <div className="bg-[#0b1329] border border-orange-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(255,107,0,0.15)] animate-fade-in">
+          <div className="bg-[#0a0d14] border border-orange-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(255,107,0,0.15)] animate-fade-in">
             <div className="relative w-20 h-20">
               <svg className="w-full h-full transform -rotate-90">
                 <circle

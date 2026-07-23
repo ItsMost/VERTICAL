@@ -1515,7 +1515,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       
                       <div className="mt-4">
                         <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-purple-500 to-cyan-500" style={{ width: `${evalPower.progress}%` }}></div>
+                          <div className="h-full bg-gradient-to-r from-purple-500 to-orange-500" style={{ width: `${evalPower.progress}%` }}></div>
                         </div>
                         <div className="flex justify-between text-[8px] text-gray-500 mt-2 font-mono">
                           <span>0</span>
@@ -1652,7 +1652,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
 
                 {/* EUR Muscle-Tendon Balance Diagnostics Card */}
                 {sjNoArms > 0 && cmjNoArms > 0 && (
-                  <div className="glass-panel p-6 shadow-lg border border-cyan-950/40 relative overflow-hidden">
+                  <div className="glass-panel p-6 shadow-lg border border-orange-500/30 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
                     
                     <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
@@ -1710,7 +1710,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   const maxTouch = isStandingReachValid ? (standingReachNum + heightCm) : null;
                   return (
                     <>
-                      <div className="glass-panel p-6 shadow-lg border border-cyan-950/40 relative overflow-hidden mt-6">
+                      <div className="glass-panel p-6 shadow-lg border border-orange-500/30 relative overflow-hidden mt-6">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
                         
                         <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
@@ -1776,7 +1776,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       </div>
 
                       {/* Field-Specific Prediction Engine */}
-                      <div className="glass-panel p-6 shadow-lg border border-cyan-950/40 relative overflow-hidden mt-6">
+                      <div className="glass-panel p-6 shadow-lg border border-orange-500/30 relative overflow-hidden mt-6">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none"></div>
                         
                         <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400 border-b border-gray-800/80 pb-2.5 mb-4 flex items-center gap-2">
@@ -2325,7 +2325,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 initial={{ scale: 0.9, opacity: 0 }} 
                 animate={{ scale: 1, opacity: 1 }} 
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-[#0b1329] border border-cyan-950/40 rounded-3xl p-6 w-full max-w-xl shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+                className="bg-[#0a0d14] border border-orange-500/30 rounded-3xl p-6 w-full max-w-xl shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
               >
                 {/* Close Button */}
                 <button 
@@ -2411,7 +2411,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 initial={{ scale: 0.9, opacity: 0 }} 
                 animate={{ scale: 1, opacity: 1 }} 
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-[#0b1329] border border-cyan-950/40 rounded-3xl p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+                className="bg-[#0a0d14] border border-orange-500/30 rounded-3xl p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
               >
                 {/* Close Button */}
                 <button 
@@ -2558,7 +2558,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                 initial={{ scale: 0.9, opacity: 0 }} 
                 animate={{ scale: 1, opacity: 1 }} 
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-[#0b1329] border border-cyan-950/40 rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
+                className="bg-[#0a0d14] border border-orange-500/30 rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
               >
                 {/* Close Button */}
                 <button 
@@ -2583,7 +2583,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       <button
                         type="button"
                         onClick={() => handlePrintLanguageSelect('ar')}
-                        className="p-5 bg-slate-900 hover:bg-cyan-955/20 hover:border-orange-500/50 border border-gray-800 rounded-2xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer group"
+                        className="p-5 bg-slate-900 hover:bg-orange-950/60 hover:border-orange-500/50 border border-gray-800 rounded-2xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer group"
                       >
                         <span className="text-2xl">🇪🇬</span>
                         <span className="text-sm font-black text-white group-hover:text-orange-400">التقرير بالعربية</span>
@@ -2594,7 +2594,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                       <button
                         type="button"
                         onClick={() => handlePrintLanguageSelect('en')}
-                        className="p-5 bg-slate-900 hover:bg-cyan-955/20 hover:border-orange-500/50 border border-gray-800 rounded-2xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer group"
+                        className="p-5 bg-slate-900 hover:bg-orange-950/60 hover:border-orange-500/50 border border-gray-800 rounded-2xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer group"
                       >
                         <span className="text-2xl">🇬🇧</span>
                         <span className="text-sm font-black text-white group-hover:text-orange-400">English Report</span>
@@ -3411,7 +3411,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   <p className="text-lg font-mono font-black text-black">
                     {sayersPeak > 0 ? sayersPeak.toFixed(0) : '—'} <span className="text-xs font-normal">{printLang === 'ar' ? 'وات' : 'Watts'}</span>
                   </p>
-                  <p className="text-xs font-bold text-cyan-650 mt-1">
+                  <p className="text-xs font-bold text-orange-400 mt-1">
                     {sayersPeak > 0 && mass > 0 ? (sayersPeak / mass).toFixed(1) : '—'} <span className="font-normal">W/kg ({printLang === 'ar' ? 'القدرة النسبية' : 'Relative Power'})</span>
                   </p>
                 </div>
@@ -3422,7 +3422,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
                   <p className="text-lg font-mono font-black text-black">
                     {harmanPeak > 0 ? harmanPeak.toFixed(0) : '—'} <span className="text-xs font-normal">{printLang === 'ar' ? 'وات' : 'Watts'}</span>
                   </p>
-                  <p className="text-xs font-bold text-cyan-655 mt-1">
+                  <p className="text-xs font-bold text-orange-400 mt-1">
                     {harmanPeak > 0 && mass > 0 ? (harmanPeak / mass).toFixed(1) : '—'} <span className="font-normal">W/kg ({printLang === 'ar' ? 'القدرة النسبية' : 'Relative Power'})</span>
                   </p>
                 </div>

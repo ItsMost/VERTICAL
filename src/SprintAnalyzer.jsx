@@ -276,7 +276,7 @@ export default function SprintAnalyzer() {
 
       <div className="mb-6 bg-[#0f1423] p-4 rounded-2xl border border-gray-800 inline-block w-full max-w-md">
          <label className="block text-xs text-gray-400 mb-2">المسافة بين القمعين للمعايرة (بالمتر) - مثال: 5 أو 10</label>
-         <input type="number" step="0.5" value={referenceLength} onChange={e => setReferenceLength(e.target.value)} className="w-full bg-[#1f2937] border border-cyan-700/50 p-2 text-orange-400 font-bold rounded-xl text-center outline-none focus:border-orange-400 mb-3" />
+         <input type="number" step="0.5" value={referenceLength} onChange={e => setReferenceLength(e.target.value)} className="w-full bg-[#1f2937] border border-orange-500/30 p-2 text-orange-400 font-bold rounded-xl text-center outline-none focus:border-orange-400 mb-3" />
          {!isCalibrating ? (
            <button onClick={() => { setIsCalibrating(true); setCalibrationStep(1); calibrationClicksRef.current = []; pixelsPerMeterRef.current = null; if(videoRef.current) { videoRef.current.pause(); setIsPlaying(false); } }} className="w-full px-6 py-2 bg-[#1f2937] border border-orange-500/50 text-orange-400 hover:bg-gray-700 rounded-xl font-bold text-sm transition-all">
               📏 بدء معايرة الكاميرا (تحديد القمعين)
@@ -301,7 +301,7 @@ export default function SprintAnalyzer() {
           <div className="w-full bg-[#0f1423] p-4 rounded-2xl border border-gray-800">
             <div className="flex items-center gap-4 mb-4">
               <span className="text-xs text-gray-400 font-mono bg-gray-800 px-2 py-1 rounded">{currentTime.toFixed(2)}s</span>
-              <input type="range" min="0" max={duration} step="0.001" value={currentTime} onChange={handleSeek} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500" />
+              <input type="range" min="0" max={duration} step="0.001" value={currentTime} onChange={handleSeek} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500" />
               <span className="text-xs text-gray-400 font-mono bg-gray-800 px-2 py-1 rounded">{duration.toFixed(2)}s</span>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
@@ -314,7 +314,7 @@ export default function SprintAnalyzer() {
       </div>
 
       <div className="flex flex-wrap justify-center gap-4 mb-8">
-        <button onClick={() => { setShowTrail(!showTrail); if (videoRef.current && poseRef.current && videoRef.current.paused) { poseRef.current.send({ image: videoRef.current }); } }} className={`px-6 py-3 rounded-xl font-bold transition-all shadow-lg border ${showTrail ? 'bg-orange-900/40 text-orange-400 border-cyan-700' : 'bg-[#1f2937] text-gray-400 border-gray-600'}`}>
+        <button onClick={() => { setShowTrail(!showTrail); if (videoRef.current && poseRef.current && videoRef.current.paused) { poseRef.current.send({ image: videoRef.current }); } }} className={`px-6 py-3 rounded-xl font-bold transition-all shadow-lg border ${showTrail ? 'bg-orange-900/40 text-orange-400 border-orange-500/30' : 'bg-[#1f2937] text-gray-400 border-gray-600'}`}>
           {showTrail ? '🙈 إخفاء مسار الحوض' : '👁️ إظهار مسار الحوض'}
         </button>
 
@@ -322,7 +322,7 @@ export default function SprintAnalyzer() {
           {isTracking ? '⏹ إيقاف التسجيل' : '⏺ بدء تسجيل السبرينت'}
         </button>
 
-        <button onClick={handleAnalyzeSprint} className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl font-bold shadow-lg transition-transform hover:scale-105">
+        <button onClick={handleAnalyzeSprint} className="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-500 hover:to-blue-500 text-white rounded-xl font-bold shadow-lg transition-transform hover:scale-105">
           📊 تحليل سرعة الجري
         </button>
       </div>

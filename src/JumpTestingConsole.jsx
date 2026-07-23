@@ -1950,7 +1950,7 @@ export default function JumpTestingConsole({
                     </div>
 
                     <div className="flex justify-center">
-                      <button onClick={togglePlay} className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 text-xs shadow-lg hover:shadow-cyan-500/10 cursor-pointer w-full max-w-[200px]">
+                      <button onClick={togglePlay} className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 text-xs shadow-lg hover:shadow-orange-500/20 cursor-pointer w-full max-w-[200px]">
                         {isPlaying ? <><Pause size={14}/> إيقاف مؤقت</> : <><Play size={14}/> تشغيل الفيديو</>}
                       </button>
                     </div>
@@ -2252,7 +2252,7 @@ export default function JumpTestingConsole({
                       step="1" 
                       value={bodyMass} 
                       onChange={(e) => { setBodyMass(Number(e.target.value)); setShowResults(false); }} 
-                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-cyan-500" 
+                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" 
                     />
                     <button type="button" onClick={() => { setBodyMass(prev => Math.min(150, prev + 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-850 border border-gray-800 text-white font-black flex items-center justify-center">+</button>
                   </div>
@@ -2273,7 +2273,7 @@ export default function JumpTestingConsole({
                       step="0.01" 
                       value={legLength} 
                       onChange={(e) => { setLegLength(Number(e.target.value)); setShowResults(false); }} 
-                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-cyan-500" 
+                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" 
                     />
                     <button type="button" onClick={() => { setLegLength(prev => Math.min(1.30, prev + 0.02)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-855 border border-gray-800 text-white font-black flex items-center justify-center">+</button>
                   </div>
@@ -2294,7 +2294,7 @@ export default function JumpTestingConsole({
                       step="1" 
                       value={playerHeight} 
                       onChange={(e) => { handleHeightChange(Number(e.target.value)); setShowResults(false); }} 
-                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-cyan-500" 
+                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" 
                     />
                     <button type="button" onClick={() => { handleHeightChange(Math.min(220, playerHeight + 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-855 border border-gray-800 text-white font-black flex items-center justify-center">+</button>
                   </div>
@@ -2315,7 +2315,7 @@ export default function JumpTestingConsole({
                       step="1" 
                       value={standingReach} 
                       onChange={(e) => { handleStandingReachChange(Number(e.target.value)); setShowResults(false); }} 
-                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-cyan-500" 
+                      className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" 
                     />
                     <button type="button" onClick={() => { handleStandingReachChange(Math.min(300, standingReach + 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-855 border border-gray-800 text-white font-black flex items-center justify-center">+</button>
                   </div>
@@ -2336,7 +2336,7 @@ export default function JumpTestingConsole({
         {showResults && (
           <div className="col-span-12 bg-[#111827]/40 backdrop-blur-xl border border-gray-800 rounded-3xl p-6 mt-4 space-y-6 animate-fade-in text-right">
             <div className="flex justify-between items-center border-b border-orange-500/20 pb-3">
-              <div className="text-sm font-extrabold text-cyan-405 flex items-center gap-1.5">
+              <div className="text-sm font-extrabold text-orange-400 flex items-center gap-1.5">
                 🚀 لوحة القيادة والتحليل الميكانيكي الحيوي (Cockpit Analysis HUD)
               </div>
               <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-orange-500/20">
@@ -2360,7 +2360,7 @@ export default function JumpTestingConsole({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
               {/* Column 1: Altimeter scale */}
               <div className="bg-black/35 p-5 rounded-3xl border border-orange-500/20 flex flex-col items-center justify-between text-center relative overflow-hidden min-h-[300px]">
-                <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent pointer-events-none animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 via-transparent to-transparent pointer-events-none animate-pulse"></div>
                 <span className="text-[10px] text-orange-400 font-extrabold uppercase tracking-wider mb-4 block">
                   📊 Biomechanical Altimeter (الارتفاع الرأسي)
                 </span>
@@ -2387,7 +2387,7 @@ export default function JumpTestingConsole({
                       const pct = Math.min(100, (heightCm / 100) * 100);
                       return (
                         <div 
-                          className="w-full bg-gradient-to-t from-cyan-600 to-cyan-400 rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(255,107,0,0.6)]"
+                          className="w-full bg-gradient-to-t from-orange-500 to-orange-500 rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(255,107,0,0.6)]"
                           style={{ height: `${pct}%` }}
                         />
                       );
@@ -2479,7 +2479,7 @@ export default function JumpTestingConsole({
 
               {/* Column 3: Stepper phase */}
               <div className="bg-black/35 p-5 rounded-3xl border border-gray-800 flex flex-col justify-start min-h-[300px]">
-                <span className="text-[10px] text-cyan-450 font-extrabold uppercase tracking-wider mb-4 block">
+                <span className="text-[10px] text-orange-400 font-extrabold uppercase tracking-wider mb-4 block">
                   📊 Biomechanical Phase Stepper (مراحل الحركة بالزوايا)
                 </span>
                 
@@ -2662,7 +2662,7 @@ export default function JumpTestingConsole({
                       <span className="text-[10px] text-gray-500 mr-1">({parseFloat(stats.heightInches).toFixed(1)} بوصة)</span>
                     </span>
                   </div>
-                  <div className="border-t border-cyan-950/50 pt-2 flex justify-between items-center">
+                  <div className="border-t border-orange-500/30 pt-2 flex justify-between items-center">
                     <span className="text-gray-300 font-bold">الفارق البيوميكانيكي بين القياسين:</span>
                     <span className="font-bold text-amber-400 font-mono">
                       {Math.abs((maxTouchHeight - standingReach) - parseFloat(stats.heightCm)).toFixed(1)} سم
@@ -2886,7 +2886,7 @@ export default function JumpTestingConsole({
                     </div>
 
                     <div className="flex justify-center">
-                      <button onClick={togglePlay} className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 text-[10px] shadow-lg cursor-pointer w-full max-w-[160px]">
+                      <button onClick={togglePlay} className="px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 text-[10px] shadow-lg cursor-pointer w-full max-w-[160px]">
                         {isPlaying ? <><Pause size={12}/> إيقاف مؤقت</> : <><Play size={12}/> تشغيل الفيديو</>}
                       </button>
                     </div>
@@ -3162,7 +3162,7 @@ export default function JumpTestingConsole({
                   <span className="font-mono font-black text-white bg-orange-950/40 px-2 py-0.5 rounded">{bodyMass} kg</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="range" min="40" max="150" step="1" value={bodyMass} onChange={(e) => { setBodyMass(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-cyan-500" />
+                  <input type="range" min="40" max="150" step="1" value={bodyMass} onChange={(e) => { setBodyMass(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" />
                 </div>
               </div>
 
@@ -3172,7 +3172,7 @@ export default function JumpTestingConsole({
                   <span className="font-mono font-black text-white bg-orange-950/40 px-2 py-0.5 rounded">{playerHeight} cm</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="range" min="120" max="230" step="1" value={playerHeight} onChange={(e) => { handleHeightChange(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-cyan-500" />
+                  <input type="range" min="120" max="230" step="1" value={playerHeight} onChange={(e) => { handleHeightChange(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" />
                 </div>
               </div>
 
@@ -3182,7 +3182,7 @@ export default function JumpTestingConsole({
                   <span className="font-mono font-black text-white bg-orange-950/40 px-2 py-0.5 rounded">{standingReach} cm</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="range" min="150" max="300" step="1" value={standingReach} onChange={(e) => { handleStandingReachChange(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-cyan-500" />
+                  <input type="range" min="150" max="300" step="1" value={standingReach} onChange={(e) => { handleStandingReachChange(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-orange-500" />
                 </div>
               </div>
 
@@ -3239,7 +3239,7 @@ export default function JumpTestingConsole({
                 <div className="flex items-end gap-4 h-48 w-full justify-center">
                   <div className="w-12 h-full bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden relative flex flex-col justify-end p-1">
                     <div 
-                      className="w-full bg-gradient-to-t from-cyan-600 to-cyan-400 rounded-xl transition-all duration-1000 shadow-[0_0_12px_rgba(255,107,0,0.4)]"
+                      className="w-full bg-gradient-to-t from-orange-500 to-orange-500 rounded-xl transition-all duration-1000 shadow-[0_0_12px_rgba(255,107,0,0.4)]"
                       style={{ 
                         height: `${Math.min(100, (parseFloat(stats.heightCm) / (displayUnit === 'cm' ? 100 : 40)) * 100)}%` 
                       }}
@@ -3420,7 +3420,7 @@ export default function JumpTestingConsole({
       {/* Fullscreen Export Progress Overlay */}
       {isExporting && (
         <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/60 text-white p-6">
-          <div className="bg-[#0b1329] border border-orange-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(255,107,0,0.15)] animate-fade-in">
+          <div className="bg-[#0a0d14] border border-orange-500/30 p-8 rounded-3xl flex flex-col items-center gap-4 max-w-sm w-full text-center shadow-[0_0_50px_rgba(255,107,0,0.15)] animate-fade-in">
             <div className="relative w-20 h-20">
               <svg className="w-full h-full transform -rotate-90">
                 <circle
@@ -3463,7 +3463,7 @@ export default function JumpTestingConsole({
       {/* Export Success Modal */}
       {exportedVideoUrl && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in" style={{ direction: 'rtl' }}>
-          <div className="bg-[#0b1329]/95 border border-orange-500/30 p-6 md:p-8 rounded-3xl flex flex-col items-center gap-5 max-w-md w-full text-center shadow-[0_0_60px_rgba(255,107,0,0.25)] relative backdrop-blur-xl">
+          <div className="bg-[#0a0d14]/95 border border-orange-500/30 p-6 md:p-8 rounded-3xl flex flex-col items-center gap-5 max-w-md w-full text-center shadow-[0_0_60px_rgba(255,107,0,0.25)] relative backdrop-blur-xl">
             {/* Close button */}
             <button 
               onClick={() => {
@@ -3509,7 +3509,7 @@ export default function JumpTestingConsole({
               {/* Share Button */}
               <button 
                 onClick={handleShareVideo}
-                className="py-3 bg-orange-600 hover:bg-orange-500 text-white font-black text-sm rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/20 active:scale-95"
+                className="py-3 bg-orange-600 hover:bg-orange-500 text-white font-black text-sm rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95"
               >
                 <Share2 size={16} />
                 {language === 'en' ? 'Share Video' : 'مشاركة الفيديو'}

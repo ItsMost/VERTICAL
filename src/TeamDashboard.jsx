@@ -402,7 +402,7 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
 
   const getBorderGlowClass = (score) => {
     const isEn = language === 'en';
-    if (score >= 90) return isEn ? 'border-l-4 border-l-cyan-500 border-r-0' : 'border-r-4 border-r-cyan-500 border-l-0';
+    if (score >= 90) return isEn ? 'border-l-4 border-l-orange-500 border-r-0' : 'border-r-4 border-r-orange-500 border-l-0';
     if (score >= 75) return isEn ? 'border-l-4 border-l-emerald-500 border-r-0' : 'border-r-4 border-r-emerald-500 border-l-0';
     if (score >= 60) return isEn ? 'border-l-4 border-l-yellow-500 border-r-0' : 'border-r-4 border-r-yellow-500 border-l-0';
     if (score > 0) return isEn ? 'border-l-4 border-l-orange-500 border-r-0' : 'border-r-4 border-r-orange-500 border-l-0';
