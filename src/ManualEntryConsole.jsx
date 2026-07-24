@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Edit3, Activity, Zap, Save, Printer, ArrowUpCircle, Scale, ShieldCheck, Dumbbell, Award, HelpCircle } from 'lucide-react';
+import { Edit3, Activity, Zap, Save, Printer, ArrowUpCircle, Scale, ShieldCheck, Dumbbell, Award, HelpCircle, X, Download, Trash2, Calendar, FileText, CheckCircle2, ChevronRight } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
 export default function ManualEntryConsole({ 
@@ -25,6 +25,29 @@ export default function ManualEntryConsole({
   });
 
   const [isSaving, setIsSaving] = useState(false);
+
+  // Print modal states for Infographic PDF Report
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [printLang, setPrintLang] = useState(language);
+  const [printStep, setPrintStep] = useState(1);
+  const [printWithInfographics, setPrintWithInfographics] = useState(true);
+
+  const handlePrintLanguageSelect = (lang) => {
+    setPrintLang(lang);
+    setPrintStep(2);
+  };
+
+  const handlePrintReportFinal = (withInfographics) => {
+    setPrintWithInfographics(withInfographics);
+    setIsPrintModalOpen(false);
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => {
+        setPrintStep(1);
+      }, 1000);
+    }, 300);
+  };
+
 
   // Sync player data when activePlayer changes
   const weight = parseFloat(activePlayer?.weight_kg) || 72;
@@ -161,7 +184,7 @@ export default function ManualEntryConsole({
       <div className="screen-only-manual space-y-6">
         
         {/* Header Title Card */}
-        <div className="glass-card p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="glass-panel p-6 metallic-glass-border hud-card flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-500 flex items-center justify-center text-white text-2xl shadow-lg border border-blue-400/40 shrink-0">
               <Edit3 size={24} />
@@ -180,7 +203,7 @@ export default function ManualEntryConsole({
 
           <div className="flex items-center gap-3 w-full md:w-auto justify-end">
             <button
-              onClick={handlePrint}
+              onClick={() => setIsPrintModalOpen(true)}
               className="px-4 py-2.5 bg-black/40 hover:bg-blue-600/20 text-blue-400 border border-blue-800/40 rounded-xl text-xs font-black flex items-center gap-2 transition-all shadow-md cursor-pointer"
             >
               <Printer size={16} />
@@ -217,7 +240,7 @@ export default function ManualEntryConsole({
         <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto">
           
           {/* Left Column: Manual Form Fields */}
-          <div className="w-full bg-black/20 p-6 rounded-xl border border-gray-800 space-y-5">
+          <div className="w-full glass-panel p-6 metallic-glass-border hud-card space-y-5">
             <h3 className="font-black text-sm text-blue-400 border-b border-gray-800 pb-2.5 flex items-center gap-2">
               <Activity size={18} /> {isEn ? 'Manual Measurement Inputs' : 'مدخلات الأرقام والقياسات اليدوية'}
             </h3>
@@ -285,6 +308,25 @@ export default function ManualEntryConsole({
                     onChange={(e) => handleInputChange('cleanWeightKg', e.target.value)}
                     className="w-full bg-black/40 border border-emerald-500/40 p-3.5 text-base text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner"
                   />
+                </div>
+
+                {/* Barbell Weight Quick Presets */}
+                <div className="space-y-1.5 pt-2">
+                  <label className="block text-[10px] text-cyan-400 font-bold uppercase tracking-wider">
+                    ⚡ {isEn ? 'Quick Barbell Weight Presets:' : 'إضافة أوزان البار السريعة:'}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {[20, 40, 60, 80, 100, 120].map((w) => (
+                      <button
+                        key={w}
+                        type="button"
+                        onClick={() => handleInputChange('cleanWeightKg', w.toString())}
+                        className="px-3 py-1.5 bg-blue-950/40 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 rounded-lg text-xs font-mono font-black transition-all cursor-pointer"
+                      >
+                        +{w} kg
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
@@ -373,7 +415,7 @@ export default function ManualEntryConsole({
           <div className="w-full space-y-5">
             
             {/* Live Metrics Cockpit Card */}
-            <div className="bg-[var(--bg-surface)] p-6 rounded-xl border border-[var(--border-color)] space-y-5">
+            <div className="glass-panel p-6 metallic-glass-border hud-card space-y-5">
               
 
               <h3 className="font-black text-sm text-blue-400 border-b border-gray-800 pb-2.5 flex items-center justify-between">
@@ -505,7 +547,7 @@ export default function ManualEntryConsole({
 
       </div>
 
-      {/* ================= PRINTABLE A4 SHEET (HIDDEN ON SCREEN) ================= */}
+      {/* ================= PRINTABLE A4 SHEET (STRICTLY HIDDEN ON SCREEN) ================= */}
       <div className="printable-manual-sheet text-black space-y-6">
         
         {/* Printable Header */}
@@ -583,6 +625,159 @@ export default function ManualEntryConsole({
         </div>
 
       </div>
+
+      {/* ======================================================== */}
+      {/* LIVE RECORDED TESTS LOG MATRIX TABLE                     */}
+      {/* ======================================================== */}
+      <div className="glass-panel p-6 metallic-glass-border hud-card space-y-4">
+        <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-blue-500/10 rounded-xl text-blue-400 border border-blue-500/20">
+              <FileText size={20} />
+            </div>
+            <div>
+              <h3 className="text-base font-black text-white">
+                {isEn ? 'Recorded Measurements Log & History' : 'سجل القياسات اليدوية واختبارات اللاعب الحالية'}
+              </h3>
+              <p className="text-[11px] text-gray-400 font-semibold">
+                {isEn ? 'All recorded manual tests for the selected athlete' : 'عرض كامل الاختبارات المعتمدة المسجلة للاعب المختار في النظام'}
+              </p>
+            </div>
+          </div>
+          <span className="text-xs font-mono font-black text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-xl border border-cyan-500/30">
+            {playerHistory.length} {isEn ? 'Tests Saved' : 'اختبار مسجل'}
+          </span>
+        </div>
+
+        {playerHistory.length === 0 ? (
+          <div className="text-center py-10 text-gray-500 border border-dashed border-gray-800 rounded-2xl p-6">
+            <Activity size={36} className="mx-auto text-blue-500/40 mb-2 animate-pulse" />
+            <p className="text-xs font-bold text-gray-400">
+              {isEn ? 'No measurements recorded for this athlete yet.' : 'لا توجد قياسات يدوية مسجلة لهذا اللاعب حتى الآن.'}
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-center border-collapse">
+              <thead>
+                <tr className="bg-blue-950/40 text-blue-300 font-bold border-b border-gray-800">
+                  <th className="p-3">{isEn ? 'Date' : 'التاريخ'}</th>
+                  <th className="p-3">{isEn ? 'Test Category' : 'نوع الاختبار'}</th>
+                  <th className="p-3">{isEn ? 'Jump Height' : 'ارتفاع القفز'}</th>
+                  <th className="p-3">{isEn ? 'Flight Time' : 'زمن الطيران'}</th>
+                  <th className="p-3">{isEn ? 'Peak Power' : 'ذروة القدرة'}</th>
+                  <th className="p-3">{isEn ? 'Relative Power' : 'القدرة النسبية'}</th>
+                  <th className="p-3">{isEn ? 'RSI Index' : 'مؤشر RSI'}</th>
+                  <th className="p-3">{isEn ? 'Actions' : 'إجراءات'}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800/60 font-mono text-gray-300">
+                {playerHistory.map((jump, idx) => {
+                  const hCm = parseFloat(jump.jump_height_cm) || 0;
+                  const fSec = parseFloat(jump.flight_time_sec) || 0;
+                  const pWatts = parseFloat(jump.peak_power_watts) || 0;
+                  const rWatts = weight > 0 && pWatts > 0 ? (pWatts / weight).toFixed(1) : '—';
+                  const rsi = parseFloat(jump.rsi_score) || 0;
+
+                  return (
+                    <tr key={jump.id || idx} className="hover:bg-blue-600/10 transition-colors">
+                      <td className="p-3 text-gray-400">{new Date(jump.created_at).toLocaleDateString('ar-EG')}</td>
+                      <td className="p-3 font-sans font-bold text-white uppercase">{jump.test_type}</td>
+                      <td className="p-3 text-cyan-400 font-black">{hCm > 0 ? `${hCm} cm` : '—'}</td>
+                      <td className="p-3 text-gray-300">{fSec > 0 ? `${fSec} s` : '—'}</td>
+                      <td className="p-3 text-blue-400 font-bold">{pWatts > 0 ? `${pWatts} W` : '—'}</td>
+                      <td className="p-3 text-emerald-400 font-bold">{rWatts !== '—' ? `${rWatts} W/kg` : '—'}</td>
+                      <td className="p-3 text-amber-400 font-bold">{rsi > 0 ? rsi.toFixed(2) : '—'}</td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => setIsPrintModalOpen(true)}
+                          className="px-2.5 py-1 bg-blue-950/40 hover:bg-blue-600/30 text-blue-300 rounded-lg text-[10px] font-sans font-bold transition-all border border-blue-500/20 cursor-pointer"
+                        >
+                          🖨️ {isEn ? 'Print PDF' : 'طباعة PDF'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ======================================================== */}
+      {/* 2-STEP INFOGRAPHICS PDF PRINT SELECTION MODAL            */}
+      {/* ======================================================== */}
+      {isPrintModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="glass-panel p-6 max-w-md w-full metallic-glass-border hud-card space-y-5 relative">
+            <button 
+              onClick={() => { setIsPrintModalOpen(false); setPrintStep(1); }} 
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <X size={20} />
+            </button>
+
+            {printStep === 1 ? (
+              <div className="space-y-4 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center mx-auto text-blue-400">
+                  <Printer size={28} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-white">اختر لغة تقرير الـ PDF الرسمية</h3>
+                  <p className="text-xs text-gray-400 mt-1">اختر اللغة المطلوبة لطباعة تقرير القياس اليدوي للاعب</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <button
+                    onClick={() => handlePrintLanguageSelect('ar')}
+                    className="p-4 bg-blue-950/50 hover:bg-blue-600/30 border border-blue-500/40 rounded-xl text-white font-black text-sm transition-all cursor-pointer flex flex-col items-center gap-1"
+                  >
+                    <span>🇸🇦 العربية (Arabic)</span>
+                    <span className="text-[10px] text-blue-300 font-normal">تقرير عربي معتمد</span>
+                  </button>
+                  <button
+                    onClick={() => handlePrintLanguageSelect('en')}
+                    className="p-4 bg-blue-950/50 hover:bg-blue-600/30 border border-blue-500/40 rounded-xl text-white font-black text-sm transition-all cursor-pointer flex flex-col items-center gap-1"
+                  >
+                    <span>🇬🇧 الإنجليزية (English)</span>
+                    <span className="text-[10px] text-blue-300 font-normal">Official English PDF</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
+                  <FileText size={28} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-white">اختر نمط التقرير البيوميكانيكي</h3>
+                  <p className="text-xs text-gray-400 mt-1">اختر التنسيق البصري للطباعة المعتمدة</p>
+                </div>
+                <div className="space-y-3 pt-2">
+                  <button
+                    onClick={() => handlePrintReportFinal(true)}
+                    className="w-full p-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:opacity-95 text-white font-black text-sm rounded-xl transition-all cursor-pointer flex items-center justify-between shadow-lg"
+                  >
+                    <div className="text-right">
+                      <span className="block">📊 تقرير الإنفوجرافيك الملون (Infographic Report)</span>
+                      <span className="text-[10px] text-cyan-200 font-normal block">يتضمن ألوان النخبة، العدادات، والتشخيص البصري</span>
+                    </div>
+                    <ChevronRight size={18} />
+                  </button>
+
+                  <button
+                    onClick={() => handlePrintReportFinal(false)}
+                    className="w-full p-3.5 bg-slate-900/80 hover:bg-slate-800 text-gray-300 border border-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center justify-between"
+                  >
+                    <span>📄 التقرير الرقمي المبسط (Standard Sheet)</span>
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
     </div>
   );
