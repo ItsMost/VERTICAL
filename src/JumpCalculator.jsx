@@ -10,16 +10,13 @@ import TeamDashboard from './TeamDashboard';
 import JumpTestingConsole from './JumpTestingConsole'; 
 import Leaderboard from './Leaderboard';
 import ManualEntryConsole from './ManualEntryConsole';
+import AppLogo from './AppLogo';
+
 // Animated counter helper
 const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
   const [count, setCount] = useState(0);
   useEffect(() => {
     let start = 0;
-    const end = parseFloat(value) || 0;
-    if (end === 0) {
-      setCount(0);
-      return;
-    }
     const startTime = performance.now();
     const updateCount = (now) => {
       const elapsed = now - startTime;
@@ -1425,9 +1422,7 @@ export default function JumpCalculator() {
           {/* Logo & App Branding */}
           <div className="flex items-center justify-between lg:justify-start w-full lg:w-auto gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-500 flex items-center justify-center text-white shadow-[0_0_20px_rgba(37, 99, 235, 0.45)] border border-blue-400/40 shrink-0">
-                <span className="text-xl font-bold font-mono">🧪</span>
-              </div>
+              <AppLogo size={42} />
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-xl font-extrabold tracking-wider bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent font-sans">

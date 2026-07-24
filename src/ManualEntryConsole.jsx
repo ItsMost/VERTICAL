@@ -1,716 +1,624 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Edit3, Activity, Zap, Save, Printer, ArrowUpCircle, Scale, ShieldCheck, Dumbbell, Award, HelpCircle, X, Download, Trash2, Calendar, FileText, CheckCircle2, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Edit3, Save, Printer, User, Trash2, ShieldCheck, Sparkles, Check, ChevronDown, Activity, Zap, Scale, Calendar, FileText, ArrowRight, Award, Plus } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import AppLogo from './AppLogo';
 
-export default function ManualEntryConsole({ 
-  activePlayer, 
-  selectedPlayerId, 
-  onSaveSuccess, 
-  language = 'ar',
-  playerHistory = [] 
+export default function ManualEntryConsole({
+  players = [],
+  selectedPlayerId = '',
+  onSelectPlayer = () => {},
+  activePlayer = null,
+  playerHistory = [],
+  onHistoryChange = () => {},
+  language = 'ar'
 }) {
   const isEn = language === 'en';
 
+  // Entry Mode Selection: 'jump' | 'strength'
+  const [entryMode, setEntryMode] = useState('jump');
+
+  // Print Language & Modal States
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [printLang, setPrintLang] = useState('ar');
+
+  // Form State
   const [form, setForm] = useState({
-    testType: 'cmj_arms',
+    testType: 'cmj',
     created_at: new Date().toISOString().substring(0, 10),
     jumpHeightCm: '',
     flightTimeSec: '',
     contactTimeSec: '',
-    cleanWeightKg: '',
     addedLoadKg: '',
-    legUsed: 'both',
-    customNotes: ''
+    cleanWeightKg: '',
+    cleanBwRatio: ''
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Print modal states for Infographic PDF Report
-  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
-  const [printLang, setPrintLang] = useState(language);
-  const [printStep, setPrintStep] = useState(1);
-  const [printWithInfographics, setPrintWithInfographics] = useState(true);
+  // Reset or initialize form defaults
+  useEffect(() => {
+    setForm(prev => ({
+      ...prev,
+      created_at: new Date().toISOString().substring(0, 10)
+    }));
+  }, [selectedPlayerId]);
 
-  const handlePrintLanguageSelect = (lang) => {
-    setPrintLang(lang);
-    setPrintStep(2);
-  };
-
-  const handlePrintReportFinal = (withInfographics) => {
-    setPrintWithInfographics(withInfographics);
-    setIsPrintModalOpen(false);
-    setTimeout(() => {
-      window.print();
-      setTimeout(() => {
-        setPrintStep(1);
-      }, 1000);
-    }, 300);
-  };
-
-
-  // Sync player data when activePlayer changes
+  // Derived Player Metrics
   const weight = parseFloat(activePlayer?.weight_kg) || 72;
-  const legLength = parseFloat(activePlayer?.leg_length_m) || 1.0;
-  const playerHeight = parseFloat(activePlayer?.height_cm) || 180;
+  const heightCm = parseFloat(activePlayer?.height_cm) || 178;
+  const legLengthM = parseFloat(activePlayer?.leg_length_m) || 1.0;
 
-  // Bi-directional live calculations
-  const handleInputChange = (field, val) => {
-    let updated = { ...form, [field]: val };
+  // Live Math Calculations
+  const jumpHeight = parseFloat(form.jumpHeightCm) || 0;
+  const flightTime = parseFloat(form.flightTimeSec) || 0;
+  const contactTime = parseFloat(form.contactTimeSec) || 0;
+  const addedLoad = parseFloat(form.addedLoadKg) || 0;
+  const cleanWeight = parseFloat(form.cleanWeightKg) || 0;
 
-    const calcFlightTime = (hCm) => Math.sqrt((8 * (parseFloat(hCm) / 100)) / 9.81);
-    const calcHeight = (fSec) => 1.22625 * Math.pow(parseFloat(fSec), 2) * 100;
+  // Peak Power Formula (Sayers Model: 61.9 * H_cm + 36.0 * BW_kg - 1822)
+  const peakPower = jumpHeight > 0 ? (61.9 * jumpHeight + 36.0 * weight - 1822) : 0;
+  const relativePower = weight > 0 && peakPower > 0 ? peakPower / weight : 0;
+
+  // RSI Score (Flight Time / Contact Time)
+  const rsiScore = flightTime > 0 && contactTime > 0 ? flightTime / contactTime : 0;
+
+  // Takeoff Ground Reaction Force (GRF)
+  const pushDistanceM = legLengthM * 0.45;
+  const takeoffForceN = jumpHeight > 0 ? weight * 9.81 * ((jumpHeight / 100) / pushDistanceM + 1) : 0;
+  const takeoffForceBW = weight > 0 ? takeoffForceN / (weight * 9.81) : 0;
+
+  // Clean BW Ratio
+  const cleanBwRatio = weight > 0 && cleanWeight > 0 ? cleanWeight / weight : 0;
+
+  // Handle Input Changes with Smart Auto-Calculations
+  const handleInputChange = (field, value) => {
+    const updated = { ...form, [field]: value };
 
     if (field === 'jumpHeightCm') {
-      const h = parseFloat(val);
+      const h = parseFloat(value);
       if (h > 0) {
-        updated.flightTimeSec = calcFlightTime(h).toFixed(3);
+        // Auto calculate flight time: t_f = sqrt(8 * h / 9.81)
+        const ft = Math.sqrt((8 * (h / 100)) / 9.81);
+        updated.flightTimeSec = ft.toFixed(3);
       } else {
         updated.flightTimeSec = '';
       }
     } else if (field === 'flightTimeSec') {
-      const ft = parseFloat(val);
+      const ft = parseFloat(value);
       if (ft > 0) {
-        updated.jumpHeightCm = calcHeight(ft).toFixed(1);
-      } else {
-        updated.jumpHeightCm = '';
+        // Auto calculate height: h = 1.22625 * t_f^2 * 100
+        const h = 1.22625 * Math.pow(ft, 2) * 100;
+        updated.jumpHeightCm = h.toFixed(1);
       }
     }
 
     setForm(updated);
   };
 
-  // Calculated metrics
-  const jumpHeight = parseFloat(form.jumpHeightCm) || 0;
-  const flightTime = parseFloat(form.flightTimeSec) || 0;
-  const contactTime = parseFloat(form.contactTimeSec) || 0;
-  const cleanWeight = parseFloat(form.cleanWeightKg) || 0;
-  const addedLoad = parseFloat(form.addedLoadKg) || 0;
+  // Quick Preset Handlers
+  const applyJumpPreset = (cm) => {
+    const ft = Math.sqrt((8 * (cm / 100)) / 9.81);
+    setForm(prev => ({
+      ...prev,
+      jumpHeightCm: cm.toString(),
+      flightTimeSec: ft.toFixed(3)
+    }));
+  };
 
-  const totalMass = weight + addedLoad;
-  const harmanPower = (jumpHeight > 0 && totalMass > 0) ? (61.9 * jumpHeight + 36.0 * totalMass - 1822) : 0;
-  const sayersPower = (jumpHeight > 0 && totalMass > 0) ? (60.7 * jumpHeight + 45.3 * totalMass - 2055) : 0;
-  const peakPower = harmanPower > 0 ? harmanPower : (sayersPower > 0 ? sayersPower : 0);
-  const relativePower = (peakPower > 0 && weight > 0) ? (peakPower / weight) : 0;
+  const applyCleanPreset = (kg) => {
+    setForm(prev => ({
+      ...prev,
+      cleanWeightKg: kg.toString()
+    }));
+  };
 
-  const pushDistance = legLength * 0.45;
-  const takeoffForceN = (jumpHeight > 0 && totalMass > 0) 
-    ? (totalMass * 9.81 * ((jumpHeight / 100) / pushDistance + 1)) 
-    : 0;
-  const takeoffForceBW = (takeoffForceN > 0 && weight > 0) ? (takeoffForceN / (weight * 9.81)) : 0;
-
-  const rsiScore = (jumpHeight > 0 && contactTime > 0) ? ((jumpHeight / 100) / contactTime) : 0;
-  const cleanBwRatio = (cleanWeight > 0 && weight > 0) ? (cleanWeight / weight) : 0;
-
-  const handleSave = async () => {
+  // Save to Supabase DB
+  const handleSaveToDatabase = async () => {
     if (!selectedPlayerId) {
-      alert(isEn ? "Please select an athlete first." : "الرجاء اختيار لاعب أولاً.");
+      alert(isEn ? 'Please select an active athlete first!' : 'يرجى اختيار اللاعب أولاً من القائمة!');
       return;
     }
-    if (jumpHeight <= 0 && cleanWeight <= 0) {
-      alert(isEn ? "Please enter a jump height or clean weight." : "الرجاء إدخال ارتفاع القفزة أو وزن الكلين.");
+
+    if (jumpHeight === 0 && cleanWeight === 0) {
+      alert(isEn ? 'Please enter valid jump height or clean weight!' : 'يرجى إدخال ارتفاع القفز أو وزن الكلين أولاً!');
       return;
     }
 
     setIsSaving(true);
+    setSaveSuccess(false);
 
     try {
       const payload = {
         player_id: selectedPlayerId,
         test_type: form.testType,
+        created_at: new Date(form.created_at).toISOString(),
         jump_height_cm: jumpHeight > 0 ? jumpHeight.toFixed(1) : 0,
         flight_time_sec: flightTime > 0 ? flightTime.toFixed(3) : 0,
-        contact_time_sec: contactTime > 0 ? contactTime.toFixed(3) : null,
-        rsi_score: rsiScore > 0 ? rsiScore.toFixed(2) : null,
-        takeoff_velocity_ms: jumpHeight > 0 ? Math.sqrt(2 * 9.81 * (jumpHeight / 100)).toFixed(2) : 0,
+        takeoff_velocity_ms: flightTime > 0 ? ((9.81 * flightTime) / 2).toFixed(2) : 0,
         mean_power_watts: peakPower > 0 ? (peakPower / 2.1).toFixed(0) : 0,
         peak_power_watts: peakPower > 0 ? peakPower.toFixed(0) : 0,
         mean_force_newtons: takeoffForceN > 0 ? takeoffForceN.toFixed(0) : 0,
-        leg_used: form.legUsed,
-        created_at: form.created_at ? new Date(form.created_at).toISOString() : new Date().toISOString()
+        contact_time_sec: contactTime > 0 ? contactTime.toFixed(3) : null,
+        rsi_score: rsiScore > 0 ? rsiScore.toFixed(2) : null,
+        added_load_kg: addedLoad > 0 ? addedLoad : 0,
+        clean_weight_kg: cleanWeight > 0 ? cleanWeight : 0,
+        clean_bw_ratio: cleanBwRatio > 0 ? cleanBwRatio.toFixed(2) : 0
       };
 
-      const { data, error } = await supabase
-        .from('lab_jump_measurements')
-        .insert([payload])
-        .select();
+      const { data, error } = await supabase.from('lab_jump_measurements').insert([payload]).select();
 
       if (error) throw error;
 
       if (data && data.length > 0) {
-        if (onSaveSuccess) onSaveSuccess(data[0]);
-        alert(isEn ? "✅ Measurement saved successfully!" : "✅ تم حفظ القياس اليدوي بنجاح في سجل اللاعب!");
+        onHistoryChange([...playerHistory, data[0]]);
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
       }
     } catch (err) {
-      alert((isEn ? "Error saving measurement: " : "خطأ في حفظ القياس: ") + err.message);
+      console.error('Error saving measurement:', err);
+      alert(isEn ? 'Failed to save measurement. Check connection.' : 'تعذر حفظ القياس اليدوي. يرجى التحقق من الاتصال.');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  // Delete Test Measurement
+  const handleDeleteTest = async (testId) => {
+    if (!window.confirm(isEn ? 'Are you sure you want to delete this test measurement?' : 'هل أنت تأكد من رغبتك في حذف هذا الاختبار المعتمد؟')) return;
+
+    try {
+      const { error } = await supabase.from('lab_jump_measurements').delete().eq('id', testId);
+      if (error) throw error;
+
+      onHistoryChange(playerHistory.filter(item => item.id !== testId));
+    } catch (err) {
+      console.error('Error deleting test:', err);
+      alert(isEn ? 'Failed to delete test record.' : 'حدث خطأ أثناء حذف الاختبار.');
+    }
   };
 
   return (
-    <div className={`space-y-6 ${isEn ? 'text-left' : 'text-right'}`} style={{ direction: isEn ? 'ltr' : 'rtl' }}>
+    <div className="space-y-6">
       
-      {/* Printable CSS Rules */}
-      <style dangerouslySetInnerHTML={{__html: `
-        @media print {
-          body * {
-            visibility: hidden;
+      {/* ======================================================== */}
+      {/* PRINT REPORT SHEET (HIDDEN ON REGULAR SCREEN)           */}
+      {/* ======================================================== */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @media screen {
+            .printable-manual-sheet { display: none !important; }
           }
-          .printable-manual-sheet, .printable-manual-sheet * {
-            visibility: visible !important;
+          @media print {
+            body * { visibility: hidden !important; }
+            .printable-manual-sheet, .printable-manual-sheet * { visibility: visible !important; }
+            .printable-manual-sheet {
+              display: block !important;
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              background: #ffffff !important;
+              color: #000000 !important;
+              padding: 24px !important;
+            }
           }
-          .printable-manual-sheet {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            background: #ffffff !important;
-            color: #000000 !important;
-            padding: 25px !important;
-            font-family: 'Cairo', sans-serif !important;
-          }
-          .screen-only-manual {
-            display: none !important;
-          }
-        }
-      `}} />
+        `
+      }} />
 
-      {/* ================= SCREEN VIEW ================= */}
-      <div className="screen-only-manual space-y-6">
-        
-        {/* Header Title Card */}
-        <div className="glass-panel p-6 metallic-glass-border hud-card flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="printable-manual-sheet font-sans" style={{ direction: printLang === 'en' ? 'ltr' : 'rtl' }}>
+        {/* Printable Header */}
+        <div className="flex justify-between items-center pb-4 mb-6 border-b-2 border-blue-600">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-500 flex items-center justify-center text-white text-2xl shadow-lg border border-blue-400/40 shrink-0">
-              <Edit3 size={24} />
-            </div>
+            <AppLogo size={44} showGlow={false} />
             <div>
-              <h2 className="text-2xl font-black bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent">
-                {isEn ? 'Manual Data Entry & Clean Assessment' : 'شاشة الإدخال اليدوي الحُر ورفعات الكلين'}
-              </h2>
-              <p className="text-xs text-gray-400 font-bold mt-0.5">
-                {isEn 
-                  ? 'Input jump heights, flight times, contact times & Power Clean weights with instant physics calculations.'
-                  : 'إدخال كامل الأرقام يدوياً مع حسابات فورية للأوتار، القدرة الانفجارية، ورفعة الكلين.'}
+              <h1 className="text-xl font-black text-blue-900">
+                {printLang === 'en' ? 'Athletic Performance & Biomechanics Lab' : 'مختبر الأداء الرياضي والميكانيكا الحيوية'}
+              </h1>
+              <p className="text-xs text-gray-700 font-bold">
+                {printLang === 'en' ? 'Official Biomechanical Test Entry Report' : 'تقرير قياس الأداء الحركي والارتقاء (إدخال يدوي)'}
               </p>
             </div>
           </div>
-
-          <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-            <button
-              onClick={() => setIsPrintModalOpen(true)}
-              className="px-4 py-2.5 bg-black/40 hover:bg-blue-600/20 text-blue-400 border border-blue-800/40 rounded-xl text-xs font-black flex items-center gap-2 transition-all shadow-md cursor-pointer"
-            >
-              <Printer size={16} />
-              <span>{isEn ? 'Print Report' : 'طباعة التقرير PDF'}</span>
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="px-6 py-2.5 btn-orange-gradient text-xs font-black flex items-center gap-2 shadow-lg cursor-pointer"
-            >
-              <Save size={16} />
-              <span>{isSaving ? (isEn ? 'Saving...' : 'جاري الحفظ...') : (isEn ? 'Save to Athlete Record' : 'حفظ القياس في سجل اللاعب')}</span>
-            </button>
+          <div className="text-right text-[10px] font-mono text-gray-800">
+            <p>{printLang === 'en' ? 'Date:' : 'التاريخ:'} {form.created_at}</p>
+            <p>{printLang === 'en' ? 'Method:' : 'طريقة القياس:'} Manual Calibrated HUD</p>
           </div>
         </div>
 
-        {/* Athlete Info Banner */}
-        <div className="bg-black/30 border border-gray-800 p-4 rounded-lg flex flex-wrap items-center justify-between gap-4 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-400 font-bold">{isEn ? 'Selected Athlete:' : 'اللاعب المختار:'}</span>
-            <span className="font-black text-white bg-blue-950/60 px-3 py-1 rounded-xl border border-blue-500/30 text-sm">
-              {activePlayer ? activePlayer.full_name : (isEn ? 'No Athlete Selected' : 'لم يتم اختيار لاعب')}
+        {/* Printable Athlete Specs */}
+        <div className="bg-slate-50 p-4 rounded-xl border border-slate-300 mb-6 text-xs">
+          <h3 className="font-black text-blue-900 mb-2">
+            {printLang === 'en' ? 'Athlete Profile' : 'بيانات اللاعب الشخصية'}
+          </h3>
+          <div className="grid grid-cols-4 gap-4 text-slate-900 font-medium">
+            <p><strong>{printLang === 'en' ? 'Name:' : 'الاسم:'}</strong> {activePlayer?.full_name || '—'}</p>
+            <p><strong>{printLang === 'en' ? 'Weight:' : 'الوزن:'}</strong> {weight} kg</p>
+            <p><strong>{printLang === 'en' ? 'Height:' : 'الطول:'}</strong> {heightCm} cm</p>
+            <p><strong>{printLang === 'en' ? 'Test:' : 'الاختبار:'}</strong> {form.testType.toUpperCase()}</p>
+          </div>
+        </div>
+
+        {/* Executive Metrics Grid for Print */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="border-2 border-blue-600 p-4 rounded-xl text-center bg-blue-50/30">
+            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Jump Height' : 'ارتفاع القفز'}</span>
+            <span className="text-2xl font-black text-blue-900 font-mono">{jumpHeight > 0 ? `${jumpHeight} cm` : '—'}</span>
+          </div>
+
+          <div className="border-2 border-slate-300 p-4 rounded-xl text-center bg-white">
+            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Flight Time' : 'زمن الطيران'}</span>
+            <span className="text-2xl font-black text-slate-900 font-mono">{flightTime > 0 ? `${flightTime} s` : '—'}</span>
+          </div>
+
+          <div className="border-2 border-emerald-600 p-4 rounded-xl text-center bg-emerald-50/30">
+            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Peak Power' : 'ذروة القدرة'}</span>
+            <span className="text-2xl font-black text-emerald-900 font-mono">{peakPower > 0 ? `${peakPower.toFixed(0)} W` : '—'}</span>
+          </div>
+        </div>
+
+        {/* Validation Signatures */}
+        <div className="mt-12 flex justify-between items-center text-xs pt-6 border-t border-dashed border-gray-400">
+          <div className="text-center w-48">
+            <p className="font-black text-gray-900">{printLang === 'en' ? 'Biokinetic Specialist' : 'أخصائي القياس الحركي'}</p>
+            <p className="text-xs text-gray-800 mt-1 font-bold">{printLang === 'en' ? 'Mahmoud Ali' : 'محمود علي'}</p>
+            <div className="h-8"></div>
+            <p className="text-gray-400">....................................</p>
+          </div>
+          <div className="text-center w-48">
+            <p className="font-black text-gray-900">{printLang === 'en' ? 'Assistant Specialist' : 'مساعد أخصائي القياس'}</p>
+            <p className="text-xs text-gray-800 mt-1 font-bold">{printLang === 'en' ? 'Mostafa Ali' : 'مصطفى علي'}</p>
+            <div className="h-8"></div>
+            <p className="text-gray-400">....................................</p>
+          </div>
+        </div>
+      </div>
+
+
+      {/* ======================================================== */}
+      {/* SCREEN CONTROL HUD                                       */}
+      {/* ======================================================== */}
+
+      {/* 1. Header & Active Athlete Selection Bar */}
+      <div className="glass-panel p-6 border-l-4 border-l-cyan-500 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 hud-card">
+        <div className="flex items-center gap-4">
+          <AppLogo size={46} />
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-black text-white">
+                {isEn ? 'Manual Biomechanical Entry Terminal' : 'محطة الإدخال والتسجيل اليدوي المعاير'}
+              </h2>
+              <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[9px] px-2.5 py-0.5 rounded-full font-mono font-bold">
+                Smart HUD v2.5
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 font-medium mt-0.5">
+              {isEn ? 'Instant kinetic calculations & calibrated jump logging' : 'حسابات ميكانيكية فورية وحفظ الاختبارات في ملف اللاعب المسجل'}
+            </p>
+          </div>
+        </div>
+
+        {/* Athlete Quick Selector */}
+        <div className="flex items-center gap-3 bg-black/40 border border-gray-800 p-2.5 rounded-2xl">
+          <User className="text-cyan-400 shrink-0" size={18} />
+          <div className="flex flex-col">
+            <span className="text-[9px] text-gray-400 font-bold uppercase">{isEn ? 'Active Athlete:' : 'اللاعب الحالي:'}</span>
+            <select
+              value={selectedPlayerId}
+              onChange={(e) => onSelectPlayer(e.target.value)}
+              className="bg-transparent text-xs font-bold text-white outline-none cursor-pointer pr-4"
+            >
+              <option value="" className="bg-gray-900 text-gray-400">{isEn ? '-- Select Athlete --' : '-- اختر لاعباً --'}</option>
+              {players.map(p => (
+                <option key={p.id} value={p.id} className="bg-gray-900 text-white">
+                  {p.full_name} ({p.weight_kg}kg)
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+
+      {/* 2. Dual Mode Entry Console */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Left Form Panel (7 cols) */}
+        <div className="lg:col-span-7 glass-panel p-6 space-y-6 hud-card">
+          
+          {/* Mode Switcher Tabs */}
+          <div className="flex items-center justify-between border-b border-gray-800 pb-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setEntryMode('jump')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+                  entryMode === 'jump'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                    : 'bg-black/30 text-gray-400 hover:text-white'
+                }`}
+              >
+                <Activity size={16} />
+                {isEn ? 'Vertical Jump Engine' : 'اختبارات الوثب العمودي'}
+              </button>
+
+              <button
+                onClick={() => setEntryMode('strength')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+                  entryMode === 'strength'
+                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20'
+                    : 'bg-black/30 text-gray-400 hover:text-white'
+                }`}
+              >
+                <Zap size={16} />
+                {isEn ? 'Strength & 1RM Engine' : 'أحمال الكلين والقوة (1RM)'}
+              </button>
+            </div>
+
+            <span className="text-[10px] font-mono text-gray-400">
+              {form.created_at}
             </span>
           </div>
 
-          <div className="flex items-center gap-6 font-mono text-gray-300">
-            <span>{isEn ? 'Weight:' : 'الوزن:'} <strong className="text-blue-400">{weight} kg</strong></span>
-            <span>{isEn ? 'Height:' : 'القامة:'} <strong className="text-blue-400">{playerHeight} cm</strong></span>
-            <span>{isEn ? 'Leg Length:' : 'طول الرجل:'} <strong className="text-blue-400">{legLength.toFixed(2)} m</strong></span>
-          </div>
-        </div>
 
-        {/* Input Controls Grid */}
-        <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto">
-          
-          {/* Left Column: Manual Form Fields */}
-          <div className="w-full glass-panel p-6 metallic-glass-border hud-card space-y-5">
-            <h3 className="font-black text-sm text-blue-400 border-b border-gray-800 pb-2.5 flex items-center gap-2">
-              <Activity size={18} /> {isEn ? 'Manual Measurement Inputs' : 'مدخلات الأرقام والقياسات اليدوية'}
-            </h3>
-
-            {/* Test Type Selector */}
-            <div className="space-y-1.5">
-              <label className="block text-xs text-gray-400 font-bold">{isEn ? 'Test Category / Tag:' : 'نوع القياس أو القفزة:'}</label>
-              <select
-                value={form.testType}
-                onChange={(e) => handleInputChange('testType', e.target.value)}
-                className="w-full bg-[var(--bg-input)] border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-blue-500 font-bold"
-              >
-                <option value="sj_no_arms" className="bg-gray-900 text-white">Squat Jump - SJ (بدون يدين)</option>
-                <option value="cmj_no_arms" className="bg-gray-900 text-white">Countermovement Jump - CMJ (بدون يدين)</option>
-                <option value="sj_arms" className="bg-gray-900 text-white">Squat Jump - SJ (باليدين)</option>
-                <option value="cmj_arms" className="bg-gray-900 text-white">Countermovement Jump - CMJ (باليدين)</option>
-                <option value="approach" className="bg-gray-900 text-white">Approach Jump (قفزة اقتراب)</option>
-                <option value="rsi" className="bg-gray-900 text-white">Drop Jump / RSI (الوثب الساقط)</option>
-                <option value="clean" className="bg-gray-900 text-white">🏋️‍♂️ Power Clean / Clean (رفعة الكلين)</option>
-                <option value="loaded_jump" className="bg-gray-900 text-white">🏋️‍♂️ Loaded Jump (قفزة بأوزان)</option>
-              </select>
-            </div>
-
-            {/* Test Date & Leg Used */}
-            <div className="grid grid-cols-2 gap-4">
+          {/* JUMP MODE FORM */}
+          {entryMode === 'jump' ? (
+            <div className="space-y-4">
+              
+              {/* Test Type Select */}
               <div>
-                <label className="block text-xs text-gray-400 font-bold mb-1">{isEn ? 'Measurement Date:' : 'تاريخ القياس:'}</label>
-                <input
-                  type="date"
-                  value={form.created_at}
-                  onChange={(e) => handleInputChange('created_at', e.target.value)}
-                  className="w-full bg-[var(--bg-input)] border border-gray-800 p-2.5 text-xs text-white rounded-xl outline-none font-mono"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 font-bold mb-1">{isEn ? 'Leg Used:' : 'الرجل المستخدمة:'}</label>
-                <select
-                  value={form.legUsed}
-                  onChange={(e) => handleInputChange('legUsed', e.target.value)}
-                  className="w-full bg-[var(--bg-input)] border border-gray-800 p-2.5 text-xs text-white rounded-xl outline-none font-bold"
-                >
-                  <option value="both" className="bg-gray-900 text-white">{isEn ? 'Both Legs' : 'كلا الرجلين (Both)'}</option>
-                  <option value="right" className="bg-gray-900 text-white">{isEn ? 'Right Leg' : 'الرجل اليمنى (Right)'}</option>
-                  <option value="left" className="bg-gray-900 text-white">{isEn ? 'Left Leg' : 'الرجل اليسرى (Left)'}</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Dynamic Input Fields Based on Test Category */}
-            {form.testType === 'clean' ? (
-              /* CLEAN LIFT ONLY INPUTS */
-              <div className="space-y-4">
-                <div className="bg-emerald-950/20 p-5 rounded-lg border border-emerald-500/30 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <label className="text-xs text-emerald-400 font-extrabold flex items-center gap-1.5">
-                      <Dumbbell size={18} /> {isEn ? 'Clean / Power Clean Weight (kg):' : 'وزن رفعة الكلين (Power Clean 1RM kg):'}
-                    </label>
-                    <span className="text-[10px] text-emerald-500 font-mono font-bold">Clean 1RM</span>
-                  </div>
-                  <input
-                    type="number"
-                    step="0.5"
-                    placeholder="مثال: 95"
-                    value={form.cleanWeightKg}
-                    onChange={(e) => handleInputChange('cleanWeightKg', e.target.value)}
-                    className="w-full bg-black/40 border border-emerald-500/40 p-3.5 text-base text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner"
-                  />
+                <label className="text-xs font-bold text-gray-300 block mb-1.5">
+                  {isEn ? 'Jump Test Category' : 'نوع اختبار الوثب العمودي'}
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'cmj', nameAr: 'ارتداد باليدين (CMJ)', nameEn: 'CMJ (Arms)' },
+                    { id: 'cmj_no_arms', nameAr: 'ارتداد بدون يدين', nameEn: 'CMJ (No Arms)' },
+                    { id: 'sj_no_arms', nameAr: 'ثبات بدون يدين (SJ)', nameEn: 'Squat Jump (SJ)' },
+                    { id: 'rsi', nameAr: 'ساقط ارتدادي (Drop Jump)', nameEn: 'Drop Jump (RSI)' },
+                  ].map(item => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, testType: item.id }))}
+                      className={`p-2.5 rounded-xl border text-center transition-all ${
+                        form.testType === item.id
+                          ? 'bg-blue-600/20 border-blue-500 text-cyan-400 font-black'
+                          : 'bg-black/30 border-gray-800 text-gray-400 hover:border-gray-700'
+                      }`}
+                    >
+                      <span className="text-xs block">{isEn ? item.nameEn : item.nameAr}</span>
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                {/* Barbell Weight Quick Presets */}
-                <div className="space-y-1.5 pt-2">
-                  <label className="block text-[10px] text-cyan-400 font-bold uppercase tracking-wider">
-                    ⚡ {isEn ? 'Quick Barbell Weight Presets:' : 'إضافة أوزان البار السريعة:'}
+              {/* Jump Height Input */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-gray-300">
+                    {isEn ? 'Jump Height (cm)' : 'ارتفاع القفزة العمودية (سم)'}
                   </label>
-                  <div className="flex flex-wrap gap-2">
-                    {[20, 40, 60, 80, 100, 120].map((w) => (
-                      <button
-                        key={w}
-                        type="button"
-                        onClick={() => handleInputChange('cleanWeightKg', w.toString())}
-                        className="px-3 py-1.5 bg-blue-950/40 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 rounded-lg text-xs font-mono font-black transition-all cursor-pointer"
-                      >
-                        +{w} kg
-                      </button>
-                    ))}
-                  </div>
+                  <span className="text-[10px] text-cyan-400 font-mono">Auto-calculates flight time</span>
                 </div>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="مثال: 55.5"
+                  value={form.jumpHeightCm}
+                  onChange={(e) => handleInputChange('jumpHeightCm', e.target.value)}
+                  className="w-full bg-black/40 border border-gray-800 rounded-xl p-3 text-white font-mono font-bold text-lg focus:border-cyan-500 outline-none transition-all"
+                />
 
-                <div className="space-y-1.5">
-                  <label className="block text-xs text-gray-400 font-bold">{isEn ? 'Added Barbell Load (kg if any):' : 'الوزن الإضافي للبار (كجم إن وجد):'}</label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    placeholder="مثال: 5"
-                    value={form.addedLoadKg}
-                    onChange={(e) => handleInputChange('addedLoadKg', e.target.value)}
-                    className="w-full bg-[var(--bg-input)] border border-gray-800 p-3 text-xs text-white rounded-xl outline-none font-mono"
-                  />
+                {/* Quick Presets */}
+                <div className="flex items-center gap-2 pt-1">
+                  <span className="text-[10px] text-gray-500 font-bold">{isEn ? 'Presets:' : 'اختصارات سريعة:'}</span>
+                  {[40, 50, 60, 70, 80].map(cm => (
+                    <button
+                      key={cm}
+                      type="button"
+                      onClick={() => applyJumpPreset(cm)}
+                      className="px-2.5 py-1 bg-gray-900 hover:bg-blue-600/30 border border-gray-800 rounded-lg text-[10px] font-mono text-gray-300 transition-all"
+                    >
+                      {cm} cm
+                    </button>
+                  ))}
                 </div>
               </div>
-            ) : (
-              /* JUMP MEASUREMENT INPUTS */
-              <div className="space-y-4">
-                {/* Jump Height & Flight Time (Bi-directional Sync) */}
-                <div className="grid grid-cols-2 gap-4 bg-blue-950/20 p-4 rounded-lg border border-blue-500/20">
-                  <div>
-                    <label className="block text-xs text-blue-400 font-extrabold mb-1">
-                      📏 {isEn ? 'Jump Height (cm):' : 'ارتفاع القفزة (سم):'}
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      placeholder="مثال: 48.5"
-                      value={form.jumpHeightCm}
-                      onChange={(e) => handleInputChange('jumpHeightCm', e.target.value)}
-                      className="w-full bg-black/40 border border-blue-500/40 p-3 text-sm text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
 
-                  <div>
-                    <label className="block text-xs text-blue-400 font-extrabold mb-1">
-                      ⏱️ {isEn ? 'Flight Time (s):' : 'زمن الطيران (ثانية):'}
-                    </label>
-                    <input
-                      type="number"
-                      step="0.001"
-                      placeholder="مثال: 0.628"
-                      value={form.flightTimeSec}
-                      onChange={(e) => handleInputChange('flightTimeSec', e.target.value)}
-                      className="w-full bg-black/40 border border-blue-500/40 p-3 text-sm text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+              {/* Flight Time & Contact Time Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-400">
+                    {isEn ? 'Flight Time (sec)' : 'زمن الطيران (ثانية)'}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.001"
+                    placeholder="0.670"
+                    value={form.flightTimeSec}
+                    onChange={(e) => handleInputChange('flightTimeSec', e.target.value)}
+                    className="w-full bg-black/40 border border-gray-800 rounded-xl p-2.5 text-white font-mono text-sm focus:border-cyan-500 outline-none"
+                  />
                 </div>
 
-                {/* Ground Contact Time ONLY for Drop Jump / RSI */}
                 {form.testType === 'rsi' && (
-                  <div className="bg-cyan-950/20 p-4 rounded-lg border border-cyan-500/25 space-y-2">
-                    <label className="block text-xs text-cyan-400 font-extrabold">
-                      ⚡ {isEn ? 'Ground Contact Time (s):' : 'زمن التلامس مع الأرض (ثانية):'}
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-yellow-400">
+                      {isEn ? 'Ground Contact Time (sec)' : 'زمن التلامس الأرضي (ثانية)'}
                     </label>
                     <input
                       type="number"
                       step="0.001"
-                      placeholder="مثال: 0.190"
+                      placeholder="0.220"
                       value={form.contactTimeSec}
                       onChange={(e) => handleInputChange('contactTimeSec', e.target.value)}
-                      className="w-full bg-black/40 border border-cyan-500/40 p-3 text-sm text-white font-mono font-black rounded-xl outline-none focus:ring-2 focus:ring-cyan-500"
-                    />
-                  </div>
-                )}
-
-                {/* Added Load ONLY for Loaded Jumps */}
-                {form.testType === 'loaded_jump' && (
-                  <div className="space-y-1.5">
-                    <label className="block text-xs text-gray-400 font-bold">{isEn ? 'Added Barbell Load (kg):' : 'الوزن الإضافي للقفزة (كجم):'}</label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      placeholder="مثال: 20"
-                      value={form.addedLoadKg}
-                      onChange={(e) => handleInputChange('addedLoadKg', e.target.value)}
-                      className="w-full bg-[var(--bg-input)] border border-gray-800 p-2.5 text-xs text-white rounded-xl outline-none font-mono"
+                      className="w-full bg-black/40 border border-yellow-500/40 rounded-xl p-2.5 text-white font-mono text-sm focus:border-yellow-500 outline-none"
                     />
                   </div>
                 )}
               </div>
-            )}
 
-          </div>
-
-          {/* Right Column: Live Telemetry & Calculations Cockpit */}
-          <div className="w-full space-y-5">
-            
-            {/* Live Metrics Cockpit Card */}
-            <div className="glass-panel p-6 metallic-glass-border hud-card space-y-5">
+            </div>
+          ) : (
+            /* STRENGTH & CLEAN MODE FORM */
+            <div className="space-y-4">
               
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-emerald-400">
+                  {isEn ? 'Power Clean 1RM (kg)' : 'وزن أقصى رفعة كلين (Power Clean 1RM)'}
+                </label>
+                <input
+                  type="number"
+                  step="0.5"
+                  placeholder="مثال: 95"
+                  value={form.cleanWeightKg}
+                  onChange={(e) => handleInputChange('cleanWeightKg', e.target.value)}
+                  className="w-full bg-black/40 border border-emerald-500/40 rounded-xl p-3 text-white font-mono font-bold text-lg focus:border-emerald-500 outline-none"
+                />
 
-              <h3 className="font-black text-sm text-blue-400 border-b border-gray-800 pb-2.5 flex items-center justify-between">
-                <span className="flex items-center gap-2"><Zap size={18} /> {isEn ? 'Live Biomechanical Physics Output' : 'مخرجات الفيزياء والميكانيكا الحيوية الحية'}</span>
-                <span className="text-[9px] font-mono bg-blue-950/80 px-2 py-0.5 rounded text-blue-300 border border-blue-500/30">Auto Engine v2.0</span>
-              </h3>
-
-              {/* Dynamic Live Telemetry Grid */}
-              {form.testType === 'clean' ? (
-                /* CLEAN LIFT TELEMETRY CARDS */
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-emerald-950/30 p-4 rounded-lg border border-emerald-500/40 space-y-1">
-                    <span className="text-[10px] text-emerald-400 font-bold block">{isEn ? 'Clean / Bodyweight Ratio:' : 'نسبة الكلين لوزن الجسم:'}</span>
-                    <div className="text-2xl font-black text-emerald-400 font-mono">
-                      {cleanBwRatio > 0 ? `${cleanBwRatio.toFixed(2)}x` : '—'} <span className="text-xs text-gray-400 font-sans">BW</span>
-                    </div>
-                    <span className="text-[9px] text-gray-400 block font-mono">
-                      {cleanWeight > 0 ? `${cleanWeight} kg 1RM` : (isEn ? 'Enter Clean weight' : 'أدخل وزن الكلين')}
-                    </span>
-                  </div>
-
-                  <div className="bg-black/40 p-4 rounded-lg border border-gray-800 space-y-1">
-                    <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Total Lift Mass:' : 'إجمالي حمولة الرفعة:'}</span>
-                    <div className="text-2xl font-black text-white font-mono">
-                      {(cleanWeight + addedLoad) > 0 ? (cleanWeight + addedLoad) : '—'} <span className="text-xs text-gray-400 font-sans">kg</span>
-                    </div>
-                    <span className="text-[9px] text-gray-500 block font-mono">
-                      {isEn ? `Athlete Mass: ${weight} kg` : `وزن اللاعب: ${weight} كجم`}
-                    </span>
-                  </div>
+                {/* Clean Barbell Presets */}
+                <div className="flex items-center gap-2 pt-1">
+                  <span className="text-[10px] text-gray-500 font-bold">{isEn ? 'Barbell Load:' : 'أوزان البار:'}</span>
+                  {[60, 80, 100, 120].map(kg => (
+                    <button
+                      key={kg}
+                      type="button"
+                      onClick={() => applyCleanPreset(kg)}
+                      className="px-2.5 py-1 bg-gray-900 hover:bg-emerald-600/30 border border-gray-800 rounded-lg text-[10px] font-mono text-gray-300 transition-all"
+                    >
+                      {kg} kg
+                    </button>
+                  ))}
                 </div>
-              ) : form.testType === 'rsi' ? (
-                /* RSI DROP JUMP TELEMETRY CARDS */
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-cyan-950/30 p-4 rounded-lg border border-cyan-500/40 space-y-1">
-                    <span className="text-[10px] text-cyan-400 font-bold block">{isEn ? 'RSI Rebound Index:' : 'مؤشر القوة التفاعلية (RSI):'}</span>
-                    <div className="text-2xl font-black text-cyan-400 font-mono">
-                      {rsiScore > 0 ? rsiScore.toFixed(2) : '—'}
-                    </div>
-                    <span className="text-[9px] text-gray-400 block font-mono">
-                      {contactTime > 0 ? `Tc: ${contactTime}s` : '—'}
-                    </span>
-                  </div>
-
-                  <div className="bg-black/40 p-4 rounded-lg border border-gray-800 space-y-1">
-                    <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Jump Height & Flight:' : 'ارتفاع القفزة والطيران:'}</span>
-                    <div className="text-xl font-black text-blue-400 font-mono">
-                      {jumpHeight > 0 ? `${jumpHeight} cm` : '—'}
-                    </div>
-                    <span className="text-[9px] text-gray-500 block font-mono">
-                      {flightTime > 0 ? `Tf: ${flightTime}s` : '—'}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                /* STANDARD VERTICAL JUMP TELEMETRY CARDS */
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-black/40 p-4 rounded-lg border border-gray-800 space-y-1">
-                    <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Peak Power (Harman/Sayers):' : 'ذروة القدرة (الوات):'}</span>
-                    <div className="text-xl font-black text-blue-400 font-mono">
-                      {peakPower > 0 ? peakPower.toFixed(0) : '—'} <span className="text-xs text-gray-400 font-sans">W</span>
-                    </div>
-                    <span className="text-[9px] text-gray-500 block font-mono">
-                      {relativePower > 0 ? `${relativePower.toFixed(1)} W/kg (${isEn ? 'Relative' : 'النسبية'})` : '—'}
-                    </span>
-                  </div>
-
-                  <div className="bg-black/40 p-4 rounded-lg border border-gray-800 space-y-1">
-                    <span className="text-[10px] text-gray-400 font-bold block">{isEn ? 'Takeoff Force (GRF):' : 'قوة الدفع الأرضي:'}</span>
-                    <div className="text-xl font-black text-cyan-400 font-mono">
-                      {takeoffForceN > 0 ? takeoffForceN.toFixed(0) : '—'} <span className="text-xs text-gray-400 font-sans">N</span>
-                    </div>
-                    <span className="text-[9px] text-gray-500 block font-mono">
-                      {takeoffForceBW > 0 ? `${takeoffForceBW.toFixed(2)} BW (${isEn ? 'Ratio' : 'مضاعف الوزن'})` : '—'}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Clean Strength Evaluation Box */}
-              {cleanWeight > 0 && (
-                <div className="bg-emerald-950/20 border border-emerald-500/30 p-4 rounded-lg space-y-2 text-xs">
-                  <h4 className="font-black text-emerald-400 flex items-center gap-1.5">
-                    🏋️‍♂️ {isEn ? 'Clean & Explosive Power Synergy' : 'مؤشر التوافق بين رفعة الكلين والقفز الانفجاري'}
-                  </h4>
-                  <p className="text-gray-300 text-[11px] leading-relaxed">
-                    {cleanBwRatio >= 1.5 ? (
-                      isEn 
-                        ? `👑 Elite Strength Rating (${cleanBwRatio.toFixed(2)}x BW). The athlete exhibits exceptional posterior chain force production.`
-                        : `👑 مستوى نخبة ممتازة في القوة انفجارية (${cleanBwRatio.toFixed(2)} ضعف وزن الجسم). يمتلك اللاعب محرك قوة عضلية قوي جداً.`
-                    ) : cleanBwRatio >= 1.2 ? (
-                      isEn
-                        ? `🏆 Advanced Strength Level (${cleanBwRatio.toFixed(2)}x BW). Good force capacity to support vertical leap drive.`
-                        : `🏆 مستوى متقدم في القوة (${cleanBwRatio.toFixed(2)} ضعف وزن الجسم). القوة العضلية تدعم الارتقاء الرأسي بامتياز.`
-                    ) : (
-                      isEn
-                        ? `⚡ Developing Strength Level (${cleanBwRatio.toFixed(2)}x BW). Increasing Clean 1RM will directly improve takeoff power.`
-                        : `⚡ مستوى تطويري في رفعة الكلين (${cleanBwRatio.toFixed(2)} ضعف وزن الجسم). زيادة وزن الكلين ستنعكس فوراً على زيادة القوة الانفجارية للقفز.`
-                    )}
-                  </p>
-                </div>
-              )}
-
-              {/* Live Action Buttons */}
-              <div className="pt-2 flex flex-col gap-3">
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="w-full py-4 btn-orange-gradient font-black text-xs rounded-lg shadow-xl flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Save size={18} />
-                  <span>{isSaving ? (isEn ? 'Saving...' : 'جاري الحفظ...') : (isEn ? 'Save Measurement to Database' : 'حفظ القياس في سجل اللاعب')}</span>
-                </button>
-
-                <button
-                  onClick={handlePrint}
-                  className="w-full py-3.5 bg-blue-950/40 hover:bg-blue-900/50 border border-blue-500/40 text-blue-300 font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Printer size={16} />
-                  <span>{isEn ? 'Print Official Assessment Sheet (PDF)' : 'طباعة التقرير الفني والميكانيكي (PDF)'}</span>
-                </button>
               </div>
 
             </div>
+          )}
 
+
+          {/* Save & Print Action Bar */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-gray-800">
+            <button
+              onClick={handleSaveToDatabase}
+              disabled={isSaving}
+              className="w-full sm:flex-1 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isSaving ? <Activity className="animate-spin" size={16} /> : <Save size={16} />}
+              {isEn ? 'Save Measurement to Athlete Dossier' : 'حفظ القياس في ملف اللاعب المعاير'}
+            </button>
+
+            <button
+              onClick={() => {
+                setPrintLang(language);
+                setIsPrintModalOpen(true);
+              }}
+              className="w-full sm:w-auto px-5 py-3 bg-gray-900 hover:bg-gray-800 text-gray-200 border border-gray-800 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <Printer size={16} />
+              {isEn ? 'Print PDF Report' : 'طباعة تقرير PDF'}
+            </button>
           </div>
+
+          {saveSuccess && (
+            <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 font-bold flex items-center gap-2">
+              <Check size={16} />
+              {isEn ? 'Measurement successfully saved to athlete dossier!' : 'تم حفظ القياس بنجاح وتسجيله في ملف اللاعب!'}
+            </div>
+          )}
 
         </div>
 
-      </div>
 
-      
-      {/* ======================================================== */}
-      {/* HIGH-TECH INFOGRAPHICS PDF PRINT REPORT SHEET            */}
-      {/* ======================================================== */}
-      <div className="print-report-sheet print-infographics text-gray-900 space-y-6">
-        
-        {/* Infographics Header Banner */}
-        <div className="flex justify-between items-center border-b-2 border-blue-600 pb-4 mb-4" style={{ direction: printLang === 'en' ? 'ltr' : 'rtl' }}>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-xl shadow-md">
-              ⚡
-            </div>
-            <div>
-              <h1 className="text-xl font-black text-blue-600 tracking-tight">
-                {printLang === 'en' ? 'Sports Performance & Biomechanics Lab' : 'مختبر الأداء الرياضي والميكانيكا الحيوية'}
-              </h1>
-              <p className="text-xs text-gray-700 font-bold">
-                {printLang === 'en' ? 'Official Manual Measurement & Clean Assessment Report' : 'تقرير القياسات اليدوية المعيارية ورفعات الكلين الرسمية'}
-              </p>
-            </div>
-          </div>
+        {/* Right Live Physics Engine Panel (5 cols) */}
+        <div className="lg:col-span-5 glass-panel p-6 space-y-4 hud-card flex flex-col justify-between">
           
-          <div className="text-right text-[11px] font-mono text-gray-800 bg-blue-50 p-2.5 rounded-xl border border-blue-200">
-            <p><strong>{printLang === 'en' ? 'Date:' : 'التاريخ:'}</strong> {form.created_at}</p>
-            <p><strong>{printLang === 'en' ? 'Method:' : 'طريقة القياس:'}</strong> Manual Input Console</p>
-            <p className="text-blue-600 font-black">Official Verification ✅</p>
+          <div className="border-b border-gray-800 pb-3 flex items-center justify-between">
+            <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <Sparkles size={14} className="text-cyan-400" />
+              {isEn ? 'Live Kinematic Calculator Engine' : 'محرك الحسابات الميكانيكية اللحظي'}
+            </h3>
+            <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/30">
+              Live Realtime
+            </span>
           </div>
-        </div>
 
-        {/* Athlete Specs Slate Card */}
-        <div className="slate-card space-y-2">
-          <h3 className="font-black text-sm text-blue-600 border-b border-blue-200 pb-1 flex items-center gap-2">
-            👤 {printLang === 'en' ? 'Athlete Physical & Anthropometric Profile' : 'بيانات اللاعب والأنثروبوميتري المعتمدة'}
-          </h3>
-          <div className="dashboard-grid-4 text-xs font-mono pt-1">
-            <div>
-              <span className="text-gray-500 block text-[10px]">{printLang === 'en' ? 'Athlete Name:' : 'اسم اللاعب:'}</span>
-              <strong className="text-gray-900 text-sm">{activePlayer?.full_name || 'Athlete'}</strong>
-            </div>
-            <div>
-              <span className="text-gray-500 block text-[10px]">{printLang === 'en' ? 'Body Weight:' : 'الوزن الصافي:'}</span>
-              <strong className="text-blue-600">{weight} kg</strong>
-            </div>
-            <div>
-              <span className="text-gray-500 block text-[10px]">{printLang === 'en' ? 'Standing Height:' : 'قامة اللاعب:'}</span>
-              <strong className="text-gray-900">{playerHeight} cm</strong>
-            </div>
-            <div>
-              <span className="text-gray-500 block text-[10px]">{printLang === 'en' ? 'Leg Length:' : 'طول الرجل:'}</span>
-              <strong className="text-gray-900">{legLength.toFixed(2)} m</strong>
-            </div>
-          </div>
-        </div>
-
-        {/* Modern Dashboard Metrics Grid */}
-        <div className="space-y-4 pt-4">
-          <h3 className="font-black text-sm text-blue-600 border-b-2 border-blue-100 pb-2 flex items-center gap-2">
-            🚀 {printLang === 'en' ? 'Biomechanical Performance Dashboard' : 'لوحة القياسات الحيوية والقدرة الانفجارية'}
-          </h3>
-
-          <div className="dashboard-metrics-grid">
-            <div className="metric-box">
-              <span className="metric-box-title">{printLang === 'en' ? 'Test Category' : 'نوع الاختبار'}</span>
-              <span className="metric-box-value" style={{ fontSize: '18px', color: '#2563eb' }}>{form.testType.toUpperCase()}</span>
-            </div>
-            
-            <div className="metric-box metric-box-accent">
-              <span className="metric-box-title">{printLang === 'en' ? 'Jump Height' : 'ارتفاع القفز'}</span>
-              <span className="metric-box-value">{jumpHeight > 0 ? `${jumpHeight} cm` : '—'}</span>
+          <div className="space-y-3 font-mono">
+            {/* Peak Power Card */}
+            <div className="p-3.5 bg-black/40 border border-gray-800 rounded-xl flex items-center justify-between">
+              <div>
+                <span className="text-[10px] text-gray-400 font-bold font-sans block">{isEn ? 'Sayers Peak Power:' : 'ذروة القدرة الميكانيكية:'}</span>
+                <span className="text-lg font-black text-cyan-400">{peakPower > 0 ? `${peakPower.toFixed(0)} W` : '—'}</span>
+              </div>
+              <span className="text-xs font-bold text-emerald-400 bg-emerald-950/30 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                {relativePower > 0 ? `${relativePower.toFixed(1)} W/kg` : '—'}
+              </span>
             </div>
 
-            <div className="metric-box">
-              <span className="metric-box-title">{printLang === 'en' ? 'Flight Time' : 'زمن الطيران'}</span>
-              <span className="metric-box-value">{flightTime > 0 ? `${flightTime} s` : '—'}</span>
+            {/* Takeoff Force Card */}
+            <div className="p-3.5 bg-black/40 border border-gray-800 rounded-xl flex items-center justify-between">
+              <div>
+                <span className="text-[10px] text-gray-400 font-bold font-sans block">{isEn ? 'Takeoff Ground Force (GRF):' : 'قوة الدفع لحظة الإقلاع:'}</span>
+                <span className="text-base font-black text-white">{takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} N` : '—'}</span>
+              </div>
+              <span className="text-xs font-bold text-blue-400 bg-blue-950/30 px-2.5 py-1 rounded-lg border border-blue-500/20">
+                {takeoffForceBW > 0 ? `${takeoffForceBW.toFixed(2)} BW` : '—'}
+              </span>
             </div>
 
-            <div className="metric-box">
-              <span className="metric-box-title">{printLang === 'en' ? 'Peak Power' : 'ذروة القدرة'}</span>
-              <span className="metric-box-value">{peakPower > 0 ? `${peakPower.toFixed(0)} W` : '—'}</span>
-            </div>
-
-            <div className="metric-box metric-box-accent">
-              <span className="metric-box-title">{printLang === 'en' ? 'Relative Power' : 'القدرة النسبية'}</span>
-              <span className="metric-box-value" style={{ color: '#059669' }}>{relativePower > 0 ? `${relativePower.toFixed(1)} W/kg` : '—'}</span>
-            </div>
-
-            <div className="metric-box">
-              <span className="metric-box-title">{printLang === 'en' ? 'RSI Index' : 'مؤشر التفاعل RSI'}</span>
-              <span className="metric-box-value">{rsiScore > 0 ? rsiScore.toFixed(2) : '—'}</span>
-            </div>
-
-            {form.testType === 'clean' && (
-              <>
-                <div className="metric-box metric-box-accent">
-                  <span className="metric-box-title">{printLang === 'en' ? 'Power Clean 1RM' : 'رفعة الكلين'}</span>
-                  <span className="metric-box-value">{cleanWeight > 0 ? `${cleanWeight} kg` : '—'}</span>
+            {/* RSI Score Card */}
+            {form.testType === 'rsi' && (
+              <div className="p-3.5 bg-yellow-950/20 border border-yellow-500/30 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-yellow-400 font-bold font-sans block">{isEn ? 'Reactive Strength Index (RSI):' : 'مؤشر القوة التفاعلية (RSI):'}</span>
+                  <span className="text-lg font-black text-yellow-400">{rsiScore > 0 ? rsiScore.toFixed(2) : '—'}</span>
                 </div>
-                <div className="metric-box">
-                  <span className="metric-box-title">{printLang === 'en' ? 'Clean/BW Ratio' : 'نسبة الكلين/الوزن'}</span>
-                  <span className="metric-box-value" style={{ color: '#059669' }}>{cleanBwRatio > 0 ? `${cleanBwRatio.toFixed(2)}x` : '—'}</span>
+                <span className="text-[10px] font-bold text-yellow-300 bg-yellow-950/50 px-2 py-0.5 rounded">
+                  {rsiScore >= 2.2 ? 'Elite 👑' : rsiScore >= 1.5 ? 'Good ⭐' : 'Normal ⚡'}
+                </span>
+              </div>
+            )}
+
+            {/* Clean BW Ratio Card */}
+            {cleanWeight > 0 && (
+              <div className="p-3.5 bg-emerald-950/20 border border-emerald-500/30 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-emerald-400 font-bold font-sans block">{isEn ? 'Clean Bodyweight Ratio:' : 'نسبة رفع الكلين للوزن:'}</span>
+                  <span className="text-lg font-black text-emerald-400">{cleanBwRatio > 0 ? `${cleanBwRatio.toFixed(2)}x BW` : '—'}</span>
                 </div>
-              </>
+                <span className="text-[10px] font-bold text-emerald-300 bg-emerald-950/50 px-2 py-0.5 rounded">
+                  {cleanBwRatio >= 1.4 ? 'Elite 👑' : 'Good ⭐'}
+                </span>
+              </div>
             )}
           </div>
-        </div>
 
-        {/* Detailed Physics Crimson Callout Summary */}
-        <div className="crimson-callout text-xs space-y-2">
-          <h3 className="font-black text-blue-600 border-b border-blue-200 pb-1 flex items-center gap-1.5">
-            🔬 {printLang === 'en' ? 'Biomechanical Force & Takeoff Impulse Diagnostic' : 'التشخيص الميكانيكي الحيوي والدفع الأرضي'}
-          </h3>
-          <div className="grid grid-cols-2 gap-4 font-sans text-sm text-gray-800">
-            <p>• {printLang === 'en' ? 'Takeoff Ground Reaction Force (GRF):' : 'قوة الدفع لحظة الإقلاع:'} <strong className="text-gray-900" style={{ fontSize: "14px" }}>{takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} N (${takeoffForceBW.toFixed(2)} BW)` : 'N/A'}</strong></p>
-            <p>• {printLang === 'en' ? 'Reactive Strength Index (RSI):' : 'مؤشر القوة التفاعلية (RSI):'} <strong className="text-gray-900" style={{ fontSize: "14px" }}>{rsiScore > 0 ? rsiScore.toFixed(2) : 'N/A'}</strong></p>
-            <p>• {printLang === 'en' ? 'Equation Models:' : 'نموذج المعادلة:'} Harman & Sayers Biomechanical Equations</p>
-            <p>• {printLang === 'en' ? 'Added Barbell Load:' : 'الأوزان الإضافية:'} <strong className="text-gray-900" style={{ fontSize: "14px" }}>{addedLoad > 0 ? `${addedLoad} kg` : '0 kg'}</strong></p>
+          <div className="p-3 bg-blue-950/20 border border-blue-500/20 rounded-xl text-[10px] text-blue-300 font-semibold leading-relaxed">
+            💡 {isEn ? 'All biomechanical formulas use Harman & Sayers equations calibrated for elite athletic testing.' : 'تستخدم المعادلة الحسابية نموذج Sayers و Harman المعاير دولياً لاختبارات الأداء الحركي.'}
           </div>
-        </div>
 
-        {/* Validation signatures with Mahmoud Ali & Mostafa Ali */}
-        <div className="mt-10 flex justify-between items-center text-xs pt-6 border-t border-dashed border-gray-400">
-          <div className="text-center w-52">
-            <p className="font-black text-gray-900">
-              {printLang === 'en' ? 'Biokinetic Specialist' : 'أخصائي القياس الحركي'}
-            </p>
-            <p className="text-xs text-gray-800 mt-1 font-bold">
-              {printLang === 'en' ? 'Mahmoud Ali' : 'محمود علي'}
-            </p>
-            <div className="h-8"></div>
-            <p className="text-gray-400">....................................</p>
-          </div>
-          
-          <div className="text-center w-52">
-            <p className="font-black text-gray-900">
-              {printLang === 'en' ? 'Assistant Biokinetic Specialist' : 'مساعد أخصائي القياس الحركي'}
-            </p>
-            <p className="text-xs text-gray-800 mt-1 font-bold">
-              {printLang === 'en' ? 'Mostafa Ali' : 'مصطفى علي'}
-            </p>
-            <div className="h-8"></div>
-            <p className="text-gray-400">....................................</p>
-          </div>
         </div>
 
       </div>
 
-      {/* ======================================================== */}
-      {/* LIVE RECORDED TESTS LOG MATRIX TABLE                     */}
-      {/* ======================================================== */}
-      <div className="glass-panel p-6 metallic-glass-border hud-card space-y-4">
+
+      {/* 3. Interactive Measurements History Log Matrix */}
+      <div className="glass-panel p-6 hud-card space-y-4">
         <div className="flex items-center justify-between border-b border-gray-800 pb-3">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-500/10 rounded-xl text-blue-400 border border-blue-500/20">
+            <div className="p-2.5 bg-blue-500/10 rounded-xl text-cyan-400 border border-blue-500/20">
               <FileText size={20} />
             </div>
             <div>
               <h3 className="text-base font-black text-white">
-                {isEn ? 'Recorded Measurements Log & History' : 'سجل القياسات اليدوية واختبارات اللاعب الحالية'}
+                {isEn ? 'Recorded Measurements History Log' : 'سجل القياسات اليدوية واختبارات اللاعب الحالية'}
               </h3>
               <p className="text-[11px] text-gray-400 font-semibold">
                 {isEn ? 'All recorded manual tests for the selected athlete' : 'عرض كامل الاختبارات المعتمدة المسجلة للاعب المختار في النظام'}
               </p>
             </div>
           </div>
+
           <span className="text-xs font-mono font-black text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-xl border border-cyan-500/30">
             {playerHistory.length} {isEn ? 'Tests Saved' : 'اختبار مسجل'}
           </span>
@@ -718,7 +626,7 @@ export default function ManualEntryConsole({
 
         {playerHistory.length === 0 ? (
           <div className="text-center py-10 text-gray-500 border border-dashed border-gray-800 rounded-2xl p-6">
-            <Activity size={36} className="mx-auto text-blue-500/40 mb-2 animate-pulse" />
+            <Activity size={32} className="mx-auto text-cyan-500/40 mb-2 animate-pulse" />
             <p className="text-xs font-bold text-gray-400">
               {isEn ? 'No measurements recorded for this athlete yet.' : 'لا توجد قياسات يدوية مسجلة لهذا اللاعب حتى الآن.'}
             </p>
@@ -729,12 +637,12 @@ export default function ManualEntryConsole({
               <thead>
                 <tr className="bg-blue-950/40 text-blue-300 font-bold border-b border-gray-800">
                   <th className="p-3">{isEn ? 'Date' : 'التاريخ'}</th>
-                  <th className="p-3">{isEn ? 'Test Category' : 'نوع الاختبار'}</th>
+                  <th className="p-3">{isEn ? 'Category' : 'نوع الاختبار'}</th>
                   <th className="p-3">{isEn ? 'Jump Height' : 'ارتفاع القفز'}</th>
                   <th className="p-3">{isEn ? 'Flight Time' : 'زمن الطيران'}</th>
                   <th className="p-3">{isEn ? 'Peak Power' : 'ذروة القدرة'}</th>
                   <th className="p-3">{isEn ? 'Relative Power' : 'القدرة النسبية'}</th>
-                  <th className="p-3">{isEn ? 'RSI Index' : 'مؤشر RSI'}</th>
+                  <th className="p-3">{isEn ? 'Clean 1RM' : 'الكلين'}</th>
                   <th className="p-3">{isEn ? 'Actions' : 'إجراءات'}</th>
                 </tr>
               </thead>
@@ -744,7 +652,7 @@ export default function ManualEntryConsole({
                   const fSec = parseFloat(jump.flight_time_sec) || 0;
                   const pWatts = parseFloat(jump.peak_power_watts) || 0;
                   const rWatts = weight > 0 && pWatts > 0 ? (pWatts / weight).toFixed(1) : '—';
-                  const rsi = parseFloat(jump.rsi_score) || 0;
+                  const cleanKg = parseFloat(jump.clean_weight_kg) || 0;
 
                   return (
                     <tr key={jump.id || idx} className="hover:bg-blue-600/10 transition-colors">
@@ -754,13 +662,14 @@ export default function ManualEntryConsole({
                       <td className="p-3 text-gray-300">{fSec > 0 ? `${fSec} s` : '—'}</td>
                       <td className="p-3 text-blue-400 font-bold">{pWatts > 0 ? `${pWatts} W` : '—'}</td>
                       <td className="p-3 text-emerald-400 font-bold">{rWatts !== '—' ? `${rWatts} W/kg` : '—'}</td>
-                      <td className="p-3 text-amber-400 font-bold">{rsi > 0 ? rsi.toFixed(2) : '—'}</td>
+                      <td className="p-3 text-yellow-400 font-bold">{cleanKg > 0 ? `${cleanKg} kg` : '—'}</td>
                       <td className="p-3">
                         <button
-                          onClick={() => setIsPrintModalOpen(true)}
-                          className="px-2.5 py-1 bg-blue-950/40 hover:bg-blue-600/30 text-blue-300 rounded-lg text-[10px] font-sans font-bold transition-all border border-blue-500/20 cursor-pointer"
+                          onClick={() => handleDeleteTest(jump.id)}
+                          className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                          title="Delete test record"
                         >
-                          🖨️ {isEn ? 'Print PDF' : 'طباعة PDF'}
+                          <Trash2 size={14} />
                         </button>
                       </td>
                     </tr>
@@ -772,76 +681,55 @@ export default function ManualEntryConsole({
         )}
       </div>
 
-      {/* ======================================================== */}
-      {/* 2-STEP INFOGRAPHICS PDF PRINT SELECTION MODAL            */}
-      {/* ======================================================== */}
+
+      {/* Print Language Selection Modal */}
       {isPrintModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="glass-panel p-6 max-w-md w-full metallic-glass-border hud-card space-y-5 relative">
-            <button 
-              onClick={() => { setIsPrintModalOpen(false); setPrintStep(1); }} 
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-panel max-w-md w-full p-6 space-y-6 hud-card border-blue-500/30">
+            <div className="flex items-center gap-3">
+              <AppLogo size={36} />
+              <div>
+                <h3 className="text-base font-black text-white">
+                  {isEn ? 'Print Report Options' : 'خيارات طباعة التقرير اليدوي'}
+                </h3>
+                <p className="text-xs text-gray-400">
+                  {isEn ? 'Select language for printable report' : 'اختر لغة طباعة التقرير المستخرج'}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => {
+                  setPrintLang('ar');
+                  setIsPrintModalOpen(false);
+                  setTimeout(() => window.print(), 200);
+                }}
+                className="p-4 bg-blue-950/40 hover:bg-blue-600/30 border border-blue-500/40 rounded-xl text-center transition-all cursor-pointer"
+              >
+                <span className="text-sm font-black text-white block">العربية (Arabic)</span>
+                <span className="text-[10px] text-gray-400 block mt-1">تقرير باللغة العربية</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setPrintLang('en');
+                  setIsPrintModalOpen(false);
+                  setTimeout(() => window.print(), 200);
+                }}
+                className="p-4 bg-cyan-950/40 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-xl text-center transition-all cursor-pointer"
+              >
+                <span className="text-sm font-black text-white block">English</span>
+                <span className="text-[10px] text-gray-400 block mt-1">English Report</span>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setIsPrintModalOpen(false)}
+              className="w-full py-2.5 bg-gray-900 hover:bg-gray-800 text-gray-400 text-xs font-bold rounded-xl"
             >
-              <X size={20} />
+              {isEn ? 'Cancel' : 'إلغاء'}
             </button>
-
-            {printStep === 1 ? (
-              <div className="space-y-4 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center mx-auto text-blue-400">
-                  <Printer size={28} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-white">اختر لغة تقرير الـ PDF الرسمية</h3>
-                  <p className="text-xs text-gray-400 mt-1">اختر اللغة المطلوبة لطباعة تقرير القياس اليدوي للاعب</p>
-                </div>
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <button
-                    onClick={() => handlePrintLanguageSelect('ar')}
-                    className="p-4 bg-blue-950/50 hover:bg-blue-600/30 border border-blue-500/40 rounded-xl text-white font-black text-sm transition-all cursor-pointer flex flex-col items-center gap-1"
-                  >
-                    <span>🇸🇦 العربية (Arabic)</span>
-                    <span className="text-[10px] text-blue-300 font-normal">تقرير عربي معتمد</span>
-                  </button>
-                  <button
-                    onClick={() => handlePrintLanguageSelect('en')}
-                    className="p-4 bg-blue-950/50 hover:bg-blue-600/30 border border-blue-500/40 rounded-xl text-white font-black text-sm transition-all cursor-pointer flex flex-col items-center gap-1"
-                  >
-                    <span>🇬🇧 الإنجليزية (English)</span>
-                    <span className="text-[10px] text-blue-300 font-normal">Official English PDF</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
-                  <FileText size={28} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-white">اختر نمط التقرير البيوميكانيكي</h3>
-                  <p className="text-xs text-gray-400 mt-1">اختر التنسيق البصري للطباعة المعتمدة</p>
-                </div>
-                <div className="space-y-3 pt-2">
-                  <button
-                    onClick={() => handlePrintReportFinal(true)}
-                    className="w-full p-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:opacity-95 text-white font-black text-sm rounded-xl transition-all cursor-pointer flex items-center justify-between shadow-lg"
-                  >
-                    <div className="text-right">
-                      <span className="block">📊 تقرير الإنفوجرافيك الملون (Infographic Report)</span>
-                      <span className="text-[10px] text-cyan-200 font-normal block">يتضمن ألوان النخبة، العدادات، والتشخيص البصري</span>
-                    </div>
-                    <ChevronRight size={18} />
-                  </button>
-
-                  <button
-                    onClick={() => handlePrintReportFinal(false)}
-                    className="w-full p-3.5 bg-slate-900/80 hover:bg-slate-800 text-gray-300 border border-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center justify-between"
-                  >
-                    <span>📄 التقرير الرقمي المبسط (Standard Sheet)</span>
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
