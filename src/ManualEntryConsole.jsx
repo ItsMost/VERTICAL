@@ -183,7 +183,7 @@ export default function ManualEntryConsole({
     <div className="space-y-6">
       
       {/* ======================================================== */}
-      {/* PRINT REPORT SHEET (HIDDEN ON REGULAR SCREEN)           */}
+      {/* SPORTY ORANGE INFOGRAPHIC PRINT REPORT SHEET             */}
       {/* ======================================================== */}
       <style dangerouslySetInnerHTML={{
         __html: `
@@ -200,77 +200,130 @@ export default function ManualEntryConsole({
               top: 0 !important;
               width: 100% !important;
               background: #ffffff !important;
-              color: #000000 !important;
-              padding: 24px !important;
+              color: #0f172a !important;
+              padding: 28px !important;
+              box-sizing: border-box !important;
+            }
+
+            .print-orange-header {
+              border-bottom: 4px solid #ea580c !important;
+              padding-bottom: 16px !important;
+              margin-bottom: 20px !important;
+            }
+
+            .print-infographic-card {
+              border: 2px solid #fdba74 !important;
+              background-color: #fffaf0 !important;
+              border-radius: 16px !important;
+              padding: 16px !important;
+              box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.05) !important;
             }
           }
         `
       }} />
 
       <div className="printable-manual-sheet font-sans" style={{ direction: printLang === 'en' ? 'ltr' : 'rtl' }}>
-        {/* Printable Header */}
-        <div className="flex justify-between items-center pb-4 mb-6 border-b-2 border-blue-600">
-          <div className="flex items-center gap-3">
-            <AppLogo size={44} showGlow={false} />
+        {/* Infographic Header */}
+        <div className="print-orange-header flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <AppLogo size={50} showGlow={false} />
             <div>
-              <h1 className="text-xl font-black text-blue-900">
-                {printLang === 'en' ? 'Athletic Performance & Biomechanics Lab' : 'مختبر الأداء الرياضي والميكانيكا الحيوية'}
-              </h1>
-              <p className="text-xs text-gray-700 font-bold">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-black text-slate-900">
+                  {printLang === 'en' ? 'Athletic Performance & Biomechanics Lab' : 'مختبر الأداء الرياضي والميكانيكا الحيوية'}
+                </h1>
+                <span className="text-[10px] font-black px-2 py-0.5 bg-[#ea580c] text-white rounded-md">
+                  MANUAL ENTRY INFOGRAPHIC
+                </span>
+              </div>
+              <p className="text-xs text-orange-700 font-bold mt-0.5">
                 {printLang === 'en' ? 'Official Biomechanical Test Entry Report' : 'تقرير قياس الأداء الحركي والارتقاء (إدخال يدوي)'}
               </p>
             </div>
           </div>
-          <div className="text-right text-[10px] font-mono text-gray-800">
-            <p>{printLang === 'en' ? 'Date:' : 'التاريخ:'} {form.created_at}</p>
-            <p>{printLang === 'en' ? 'Method:' : 'طريقة القياس:'} Manual Calibrated HUD</p>
+          <div className="text-right text-[10px] font-mono text-slate-700">
+            <p><strong>{printLang === 'en' ? 'Date:' : 'التاريخ:'}</strong> {form.created_at}</p>
+            <p><strong>{printLang === 'en' ? 'Method:' : 'طريقة القياس:'}</strong> Calibrated HUD Terminal</p>
           </div>
         </div>
 
-        {/* Printable Athlete Specs */}
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-300 mb-6 text-xs">
-          <h3 className="font-black text-blue-900 mb-2">
+        {/* Athlete Personal Specs */}
+        <div className="bg-slate-900 text-white p-5 rounded-2xl mb-6 shadow-md">
+          <h3 className="font-black text-orange-400 mb-2 text-xs uppercase tracking-wider">
             {printLang === 'en' ? 'Athlete Profile' : 'بيانات اللاعب الشخصية'}
           </h3>
-          <div className="grid grid-cols-4 gap-4 text-slate-900 font-medium">
-            <p><strong>{printLang === 'en' ? 'Name:' : 'الاسم:'}</strong> {activePlayer?.full_name || '—'}</p>
-            <p><strong>{printLang === 'en' ? 'Weight:' : 'الوزن:'}</strong> {weight} kg</p>
-            <p><strong>{printLang === 'en' ? 'Height:' : 'الطول:'}</strong> {heightCm} cm</p>
-            <p><strong>{printLang === 'en' ? 'Test:' : 'الاختبار:'}</strong> {form.testType.toUpperCase()}</p>
+          <div className="grid grid-cols-4 gap-4 text-xs font-mono">
+            <p><strong>{printLang === 'en' ? 'Name:' : 'الاسم:'}</strong> <span className="text-white">{activePlayer?.full_name || '—'}</span></p>
+            <p><strong>{printLang === 'en' ? 'Weight:' : 'الوزن:'}</strong> <span className="text-white">{weight} kg</span></p>
+            <p><strong>{printLang === 'en' ? 'Height:' : 'الطول:'}</strong> <span className="text-white">{heightCm} cm</span></p>
+            <p><strong>{printLang === 'en' ? 'Category:' : 'الفئة:'}</strong> <span className="text-orange-400 font-bold">{form.testType.toUpperCase()}</span></p>
           </div>
         </div>
 
-        {/* Executive Metrics Grid for Print */}
+        {/* Infographic Metric Cards Grid */}
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="border-2 border-blue-600 p-4 rounded-xl text-center bg-blue-50/30">
-            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Jump Height' : 'ارتفاع القفز'}</span>
-            <span className="text-2xl font-black text-blue-900 font-mono">{jumpHeight > 0 ? `${jumpHeight} cm` : '—'}</span>
+          <div className="print-infographic-card text-center">
+            <span className="text-[10px] text-orange-800 font-black uppercase block mb-1">
+              🚀 {printLang === 'en' ? 'Jump Height' : 'ارتفاع القفز'}
+            </span>
+            <span className="text-3xl font-black text-orange-600 font-mono block">
+              {jumpHeight > 0 ? `${jumpHeight} cm` : '—'}
+            </span>
+            <span className="text-[10px] font-bold text-slate-600 font-mono block mt-1">
+              ({(jumpHeight * 0.393701).toFixed(1)} inches)
+            </span>
           </div>
 
-          <div className="border-2 border-slate-300 p-4 rounded-xl text-center bg-white">
-            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Flight Time' : 'زمن الطيران'}</span>
-            <span className="text-2xl font-black text-slate-900 font-mono">{flightTime > 0 ? `${flightTime} s` : '—'}</span>
+          <div className="print-infographic-card text-center" style={{ backgroundColor: '#f0fdfa', borderColor: '#99f6e4' }}>
+            <span className="text-[10px] text-teal-800 font-black uppercase block mb-1">
+              ⏱️ {printLang === 'en' ? 'Flight Time' : 'زمن الطيران'}
+            </span>
+            <span className="text-3xl font-black text-teal-700 font-mono block">
+              {flightTime > 0 ? `${flightTime} s` : '—'}
+            </span>
+            <span className="text-[10px] font-bold text-teal-800 font-mono block mt-1">
+              Airborne Duration
+            </span>
           </div>
 
-          <div className="border-2 border-emerald-600 p-4 rounded-xl text-center bg-emerald-50/30">
-            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Peak Power' : 'ذروة القدرة'}</span>
-            <span className="text-2xl font-black text-emerald-900 font-mono">{peakPower > 0 ? `${peakPower.toFixed(0)} W` : '—'}</span>
+          <div className="print-infographic-card text-center" style={{ backgroundColor: '#f8fafc', borderColor: '#cbd5e1' }}>
+            <span className="text-[10px] text-slate-800 font-black uppercase block mb-1">
+              ⚡ {printLang === 'en' ? 'Peak Power Output' : 'ذروة القدرة الميكانيكية'}
+            </span>
+            <span className="text-3xl font-black text-slate-900 font-mono block">
+              {peakPower > 0 ? `${peakPower.toFixed(0)} W` : '—'}
+            </span>
+            <span className="text-[10px] font-bold text-slate-600 font-mono block mt-1">
+              ({relativePower > 0 ? `${relativePower.toFixed(1)} W/kg` : '—'})
+            </span>
           </div>
+        </div>
+
+        {/* Diagnostic Callout Box with Sporty Orange Left Border */}
+        <div className="border-r-8 border-[#ea580c] bg-[#fffaf0] p-4 rounded-xl mb-6 text-xs leading-relaxed font-mono">
+          <p className="font-black text-slate-900 mb-1">
+            🔬 {printLang === 'en' ? 'Takeoff Kinematics & Force Diagnostics:' : 'التشخيص الحركي وقوة الدفع:'}
+          </p>
+          <p className="text-slate-800 font-medium">
+            • {printLang === 'en'
+                ? `Takeoff Ground Reaction Force (GRF): ${takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} N (${takeoffForceBW.toFixed(2)} BW)` : 'N/A'}. RSI Index: ${rsiScore > 0 ? rsiScore.toFixed(2) : 'N/A'}.`
+                : `قوة الدفع لحظة الإقلاع (GRF): ${takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} نيوتن (${takeoffForceBW.toFixed(2)} ضعفي الوزن)` : 'غير متوفر'}. مؤشر القوة التفاعلية RSI: ${rsiScore > 0 ? rsiScore.toFixed(2) : 'غير متوفر'}.`}
+          </p>
         </div>
 
         {/* Validation Signatures */}
-        <div className="mt-12 flex justify-between items-center text-xs pt-6 border-t border-dashed border-gray-400">
-          <div className="text-center w-48">
-            <p className="font-black text-gray-900">{printLang === 'en' ? 'Biokinetic Specialist' : 'أخصائي القياس الحركي'}</p>
-            <p className="text-xs text-gray-800 mt-1 font-bold">{printLang === 'en' ? 'Mahmoud Ali' : 'محمود علي'}</p>
+        <div className="mt-8 flex justify-between items-center text-xs pt-6 border-t-2 border-slate-300">
+          <div className="text-center w-52">
+            <p className="font-black text-slate-900">{printLang === 'en' ? 'Biokinetic Specialist' : 'أخصائي القياس الحركي'}</p>
+            <p className="text-xs text-orange-700 font-bold mt-1">{printLang === 'en' ? 'Mahmoud Ali' : 'محمود علي'}</p>
             <div className="h-8"></div>
-            <p className="text-gray-400">....................................</p>
+            <p className="text-slate-400">....................................</p>
           </div>
-          <div className="text-center w-48">
-            <p className="font-black text-gray-900">{printLang === 'en' ? 'Assistant Specialist' : 'مساعد أخصائي القياس'}</p>
-            <p className="text-xs text-gray-800 mt-1 font-bold">{printLang === 'en' ? 'Mostafa Ali' : 'مصطفى علي'}</p>
+          <div className="text-center w-52">
+            <p className="font-black text-slate-900">{printLang === 'en' ? 'Assistant Specialist' : 'مساعد أخصائي القياس'}</p>
+            <p className="text-xs text-orange-700 font-bold mt-1">{printLang === 'en' ? 'Mostafa Ali' : 'مصطفى علي'}</p>
             <div className="h-8"></div>
-            <p className="text-gray-400">....................................</p>
+            <p className="text-slate-400">....................................</p>
           </div>
         </div>
       </div>
@@ -513,10 +566,10 @@ export default function ManualEntryConsole({
                 setPrintLang(language);
                 setIsPrintModalOpen(true);
               }}
-              className="w-full sm:w-auto px-5 py-3 bg-gray-900 hover:bg-gray-800 text-gray-200 border border-gray-800 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-black rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-orange-500/20"
             >
               <Printer size={16} />
-              {isEn ? 'Print PDF Report' : 'طباعة تقرير PDF'}
+              {isEn ? 'Print Infographic PDF' : 'طباعة تقرير Infographic'}
             </button>
           </div>
 
@@ -685,12 +738,12 @@ export default function ManualEntryConsole({
       {/* Print Language Selection Modal */}
       {isPrintModalOpen && (
         <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-panel max-w-md w-full p-6 space-y-6 hud-card border-blue-500/30">
+          <div className="glass-panel max-w-md w-full p-6 space-y-6 hud-card border-orange-500/30">
             <div className="flex items-center gap-3">
               <AppLogo size={36} />
               <div>
                 <h3 className="text-base font-black text-white">
-                  {isEn ? 'Print Report Options' : 'خيارات طباعة التقرير اليدوي'}
+                  {isEn ? 'Print Infographic PDF Report' : 'طباعة التقرير Infographic PDF'}
                 </h3>
                 <p className="text-xs text-gray-400">
                   {isEn ? 'Select language for printable report' : 'اختر لغة طباعة التقرير المستخرج'}
@@ -705,10 +758,10 @@ export default function ManualEntryConsole({
                   setIsPrintModalOpen(false);
                   setTimeout(() => window.print(), 200);
                 }}
-                className="p-4 bg-blue-950/40 hover:bg-blue-600/30 border border-blue-500/40 rounded-xl text-center transition-all cursor-pointer"
+                className="p-4 bg-orange-950/40 hover:bg-orange-600/30 border border-orange-500/40 rounded-xl text-center transition-all cursor-pointer"
               >
                 <span className="text-sm font-black text-white block">العربية (Arabic)</span>
-                <span className="text-[10px] text-gray-400 block mt-1">تقرير باللغة العربية</span>
+                <span className="text-[10px] text-orange-400 block mt-1">تقرير برتقالي عالي التباين</span>
               </button>
 
               <button
@@ -720,7 +773,7 @@ export default function ManualEntryConsole({
                 className="p-4 bg-cyan-950/40 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-xl text-center transition-all cursor-pointer"
               >
                 <span className="text-sm font-black text-white block">English</span>
-                <span className="text-[10px] text-gray-400 block mt-1">English Report</span>
+                <span className="text-[10px] text-cyan-400 block mt-1">English Infographic Report</span>
               </button>
             </div>
 

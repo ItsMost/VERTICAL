@@ -135,7 +135,7 @@ export default function PlayerProfile({
     <div className="space-y-6">
 
       {/* ======================================================== */}
-      {/* PRINT REPORT SHEET (HIDDEN ON SCREEN)                    */}
+      {/* SPORTY ORANGE INFOGRAPHIC PRINT REPORT SHEET             */}
       {/* ======================================================== */}
       <style dangerouslySetInnerHTML={{
         __html: `
@@ -152,98 +152,327 @@ export default function PlayerProfile({
               top: 0 !important;
               width: 100% !important;
               background: #ffffff !important;
-              color: #000000 !important;
-              padding: 24px !important;
+              color: #0f172a !important;
+              padding: 28px !important;
+              box-sizing: border-box !important;
+            }
+
+            .print-orange-header {
+              border-bottom: 4px solid #ea580c !important;
+              padding-bottom: 16px !important;
+              margin-bottom: 20px !important;
+            }
+
+            .print-infographic-card {
+              border: 2px solid #fdba74 !important;
+              background-color: #fffaf0 !important;
+              border-radius: 16px !important;
+              padding: 16px !important;
+              box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.05) !important;
+            }
+
+            .print-infographic-card-teal {
+              border: 2px solid #99f6e4 !important;
+              background-color: #f0fdfa !important;
+            }
+
+            .print-infographic-card-slate {
+              border: 2px solid #cbd5e1 !important;
+              background-color: #f8fafc !important;
+            }
+
+            .print-table-orange {
+              width: 100% !important;
+              border-collapse: collapse !important;
+              border-radius: 12px !important;
+              overflow: hidden !important;
+              border: 1px solid #fed7aa !important;
+            }
+
+            .print-table-orange th {
+              background-color: #ea580c !important;
+              color: #ffffff !important;
+              font-weight: 900 !important;
+              padding: 10px !important;
+              font-size: 11px !important;
+            }
+
+            .print-table-orange td {
+              padding: 10px !important;
+              border-bottom: 1px solid #ffedd5 !important;
+              font-size: 11px !important;
+              text-align: center !important;
+            }
+
+            .print-table-orange tr:nth-child(even) {
+              background-color: #fff7ed !important;
             }
           }
         `
       }} />
 
       <div className="printable-profile-sheet font-sans" style={{ direction: printLang === 'en' ? 'ltr' : 'rtl' }}>
-        {/* Printable Header */}
-        <div className="flex justify-between items-center pb-4 mb-6 border-b-2 border-blue-600">
-          <div className="flex items-center gap-3">
-            <AppLogo size={44} showGlow={false} />
+        
+        {/* Infographic Header with Sporty Orange Accent */}
+        <div className="print-orange-header flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <AppLogo size={50} showGlow={false} />
             <div>
-              <h1 className="text-xl font-black text-blue-900">
-                {printLang === 'en' ? 'Athletic Performance & Biomechanics Lab' : 'مختبر الأداء الرياضي والميكانيكا الحيوية'}
-              </h1>
-              <p className="text-xs text-gray-700 font-bold">
-                {printLang === 'en' ? 'Official Biomechanical Dossier Report' : 'تقرير الملف الحركي المعاير والقدرة الانفجارية للاعب'}
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-black text-slate-900">
+                  {printLang === 'en' ? 'Athletic Performance & Biomechanics Lab' : 'مختبر الأداء الرياضي والميكانيكا الحيوية'}
+                </h1>
+                <span className="text-[10px] font-black px-2 py-0.5 bg-[#ea580c] text-white rounded-md">
+                  INFOGRAPHIC PDF
+                </span>
+              </div>
+              <p className="text-xs text-orange-700 font-bold mt-0.5">
+                {printLang === 'en' ? 'Official Athlete Biomechanical Dossier & Jump Analytics' : 'تقرير الملف الحركي المعاير والتحليل البيوميكانيكي المتكامل للوثب'}
               </p>
             </div>
           </div>
-          <div className="text-right text-[10px] font-mono text-gray-800">
-            <p>{printLang === 'en' ? 'Date:' : 'التاريخ:'} {new Date().toLocaleDateString(printLang === 'en' ? 'en-US' : 'ar-EG')}</p>
-            <p>{printLang === 'en' ? 'Dossier ID:' : 'معرف الملف:'} ATH-{activePlayer.id.substring(0, 6)}</p>
+          <div className="text-right text-[10px] font-mono text-slate-700">
+            <p><strong>{printLang === 'en' ? 'Report Date:' : 'تاريخ التقرير:'}</strong> {new Date().toLocaleDateString(printLang === 'en' ? 'en-US' : 'ar-EG')}</p>
+            <p><strong>{printLang === 'en' ? 'Dossier ID:' : 'كود الملف:'}</strong> ATH-{activePlayer.id.substring(0, 6).toUpperCase()}</p>
           </div>
         </div>
 
-        {/* Athlete Personal Specs */}
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-300 mb-6 text-xs">
-          <h3 className="font-black text-blue-900 mb-2">
-            {printLang === 'en' ? 'Athlete Profile Specs' : 'بيانات اللاعب البدنية والشخصية'}
-          </h3>
-          <div className="grid grid-cols-4 gap-4 text-slate-900 font-medium">
-            <p><strong>{printLang === 'en' ? 'Full Name:' : 'الاسم الكامل:'}</strong> {activePlayer.full_name}</p>
-            <p><strong>{printLang === 'en' ? 'Age:' : 'العمر:'}</strong> {age} {printLang === 'en' ? 'yrs' : 'سنة'}</p>
-            <p><strong>{printLang === 'en' ? 'Weight:' : 'الوزن:'}</strong> {mass} kg</p>
-            <p><strong>{printLang === 'en' ? 'Height:' : 'الطول:'}</strong> {playerHeight} cm</p>
-            <p><strong>{printLang === 'en' ? 'Standing Reach:' : 'المدى العمودي:'}</strong> {standingReach} cm</p>
-            <p><strong>{printLang === 'en' ? 'Total Touch Reach:' : 'الوصول الأقصى:'}</strong> {totalTouchReachCm} cm</p>
+        {/* Athlete Personal Specs Dossier */}
+        <div className="bg-slate-900 text-white p-5 rounded-2xl mb-6 shadow-md">
+          <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#ea580c] text-white font-black flex items-center justify-center text-lg font-mono">
+                {activePlayer.full_name ? activePlayer.full_name[0] : 'P'}
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-white">{activePlayer.full_name}</h2>
+                <span className="text-[10px] text-orange-400 font-bold">{isEn ? 'Biomechanical Athlete Profile' : 'الملف البدني والحركي المعاير'}</span>
+              </div>
+            </div>
+            <span className="text-xs font-black px-3 py-1 bg-[#ea580c] text-white rounded-xl">
+              {overallRating}% BIO GRADE
+            </span>
+          </div>
+
+          <div className="grid grid-cols-6 gap-3 text-xs text-center font-mono">
+            <div className="bg-slate-800/80 p-2 rounded-xl">
+              <span className="text-[9px] text-gray-400 font-sans block">{printLang === 'en' ? 'Age' : 'العمر'}</span>
+              <strong className="text-white text-sm">{age} yrs</strong>
+            </div>
+            <div className="bg-slate-800/80 p-2 rounded-xl">
+              <span className="text-[9px] text-gray-400 font-sans block">{printLang === 'en' ? 'Weight' : 'الوزن'}</span>
+              <strong className="text-white text-sm">{mass} kg</strong>
+            </div>
+            <div className="bg-slate-800/80 p-2 rounded-xl">
+              <span className="text-[9px] text-gray-400 font-sans block">{printLang === 'en' ? 'Height' : 'الطول'}</span>
+              <strong className="text-white text-sm">{playerHeight} cm</strong>
+            </div>
+            <div className="bg-slate-800/80 p-2 rounded-xl">
+              <span className="text-[9px] text-gray-400 font-sans block">{printLang === 'en' ? 'Standing Reach' : 'المدى العمودي'}</span>
+              <strong className="text-orange-400 text-sm">{standingReach} cm</strong>
+            </div>
+            <div className="bg-slate-800/80 p-2 rounded-xl col-span-2">
+              <span className="text-[9px] text-gray-400 font-sans block">{printLang === 'en' ? 'Total Touch Reach' : 'الوصول الأقصى باليد'}</span>
+              <strong className="text-emerald-400 text-sm">{totalTouchReachCm} cm ({(totalTouchReachCm*0.393701).toFixed(1)}")</strong>
+            </div>
           </div>
         </div>
 
-        {/* Printable Executive Metric Cards */}
+
+        {/* 4 Major Sporty Orange Infographic Cards */}
         <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="border-2 border-blue-600 p-4 rounded-xl text-center bg-blue-50/30">
-            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Peak Vertical Jump' : 'الوثب الرأسي الأقصى'}</span>
-            <span className="text-2xl font-black text-blue-900 font-mono">{heightCm > 0 ? `${heightCm.toFixed(1)} cm` : '—'}</span>
+          
+          {/* Card 1: Max Vertical Jump */}
+          <div className="print-infographic-card text-center">
+            <span className="text-[10px] text-orange-800 font-black uppercase block mb-1">
+              🚀 {printLang === 'en' ? 'Max Vertical Jump' : 'أقصى ارتقاء رأسي'}
+            </span>
+            <span className="text-3xl font-black text-orange-600 font-mono block">
+              {heightCm > 0 ? `${heightCm.toFixed(1)}` : '—'} <span className="text-xs text-slate-700">cm</span>
+            </span>
+            <span className="text-[10px] font-bold text-slate-600 font-mono block mt-1">
+              ({heightInches} inches)
+            </span>
           </div>
 
-          <div className="border-2 border-slate-300 p-4 rounded-xl text-center bg-white">
-            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Volleyball Clearance' : 'فوق شبكة الفولي'}</span>
-            <span className="text-2xl font-black text-slate-900 font-mono">{vballClearanceCm > 0 ? `+${vballClearanceCm.toFixed(1)} cm` : '—'}</span>
+          {/* Card 2: Hang Flight Time */}
+          <div className="print-infographic-card print-infographic-card-slate text-center">
+            <span className="text-[10px] text-slate-700 font-black uppercase block mb-1">
+              ⏱️ {printLang === 'en' ? 'Hang Flight Time' : 'زمن الطيران المعلق'}
+            </span>
+            <span className="text-3xl font-black text-slate-900 font-mono block">
+              {flightTime > 0 ? `${flightTime.toFixed(3)}` : '—'} <span className="text-xs text-slate-600">sec</span>
+            </span>
+            <span className="text-[10px] font-bold text-slate-500 font-mono block mt-1">
+              {flightTime >= 0.68 ? 'Elite Hangtime 👑' : 'Normal Flight ⚡'}
+            </span>
           </div>
 
-          <div className="border-2 border-emerald-600 p-4 rounded-xl text-center bg-emerald-50/30">
-            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Power Density' : 'الكثافة النسبية'}</span>
-            <span className="text-2xl font-black text-emerald-900 font-mono">{relativePower > 0 ? `${relativePower.toFixed(1)} W/kg` : '—'}</span>
+          {/* Card 3: Relative Power Density */}
+          <div className="print-infographic-card print-infographic-card-teal text-center">
+            <span className="text-[10px] text-teal-800 font-black uppercase block mb-1">
+              ⚡ {printLang === 'en' ? 'Relative Power' : 'الكثافة النسبية'}
+            </span>
+            <span className="text-3xl font-black text-teal-700 font-mono block">
+              {relativePower > 0 ? `${relativePower.toFixed(1)}` : '—'} <span className="text-xs text-slate-600">W/kg</span>
+            </span>
+            <span className="text-[10px] font-bold text-teal-800 font-mono block mt-1">
+              Sayers: {sayersPeak > 0 ? `${sayersPeak.toFixed(0)} W` : '—'}
+            </span>
           </div>
 
-          <div className="border-2 border-yellow-600 p-4 rounded-xl text-center bg-yellow-50/30">
-            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Dunk Ability Margin' : 'هامش الـ Dunk'}</span>
-            <span className="text-2xl font-black text-yellow-900 font-mono">{dunkMarginCm >= 0 ? `+${dunkMarginCm.toFixed(1)} cm` : `${dunkMarginCm.toFixed(1)} cm`}</span>
+          {/* Card 4: RSI Stiffness */}
+          <div className="print-infographic-card text-center" style={{ backgroundColor: '#fffbebf0', borderColor: '#fde68a' }}>
+            <span className="text-[10px] text-amber-800 font-black uppercase block mb-1">
+              🎯 {printLang === 'en' ? 'RSI Stiffness Index' : 'مؤشر RSI الارتدادي'}
+            </span>
+            <span className="text-3xl font-black text-amber-600 font-mono block">
+              {rsiScore > 0 ? `${rsiScore.toFixed(2)}` : '—'}
+            </span>
+            <span className="text-[10px] font-bold text-amber-800 font-mono block mt-1">
+              {rsiScore >= 2.2 ? 'Tendon Stiffness 👑' : 'Normal SSC ⚡'}
+            </span>
           </div>
+
         </div>
 
-        {/* Diagnostic Notes */}
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-300 mb-6 text-xs leading-relaxed font-mono">
-          <p className="font-bold text-blue-900 mb-1">
-            🔬 {printLang === 'en' ? 'Biomechanical Critique & Sport Specific Metrics:' : 'التشخيص الحركي ومستويات الألعاب الرياضية:'}
+
+        {/* Sport Specific Clearance Infographic Showcase */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          
+          {/* Volleyball Clearance Box */}
+          <div className="border-2 border-orange-500 bg-orange-50/50 p-4 rounded-2xl flex items-center justify-between">
+            <div>
+              <span className="text-xs font-black text-orange-900 block mb-1">
+                🏐 {printLang === 'en' ? 'Volleyball Net Clearance:' : 'الارتفاع فوق شبكة الكرة الطائرة:'}
+              </span>
+              <span className="text-2xl font-black text-orange-600 font-mono">
+                {vballClearanceCm > 0 ? `+${vballClearanceCm.toFixed(1)} cm` : '—'}
+              </span>
+              <span className="text-[10px] text-slate-700 font-bold block mt-0.5">
+                ({(vballClearanceCm * 0.393701).toFixed(1)}" above {vballNetHeightCm} cm net)
+              </span>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] font-black px-2.5 py-1 bg-orange-600 text-white rounded-lg inline-block">
+                {vballClearanceCm >= 30 ? 'Spike Clearance 👑' : 'Standard Clearance'}
+              </span>
+            </div>
+          </div>
+
+          {/* Basketball Dunk Box */}
+          <div className="border-2 border-slate-800 bg-slate-900 text-white p-4 rounded-2xl flex items-center justify-between">
+            <div>
+              <span className="text-xs font-black text-orange-400 block mb-1">
+                🏀 {printLang === 'en' ? 'Basketball Dunk Predictor:' : 'قدرة وهيئة عمل الدانك (Dunk Status):'}
+              </span>
+              <span className="text-xl font-black text-white font-mono">
+                {dunkMarginCm >= 0
+                  ? (printLang === 'en' ? 'CAN DUNK EASILY 🏀🔥' : 'يستطيع عمل Dunk بسهولة! 🏀🔥')
+                  : rimMarginCm >= 0
+                    ? (printLang === 'en' ? 'CAN TOUCH RIM 🏀' : 'يستطيع لمس الحلقة! 🏀')
+                    : (printLang === 'en' ? `Needs ${Math.abs(dunkMarginCm).toFixed(1)} cm` : `يحتاج ${Math.abs(dunkMarginCm).toFixed(1)} سم إضافية`)}
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                Reach {totalTouchReachCm} cm vs 305 cm rim
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+
+        {/* All Tests Comparison Table (Infographic Orange Style) */}
+        <div className="mb-6">
+          <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-2">
+            📊 {printLang === 'en' ? 'Complete Biomechanical Tests Matrix' : 'مصفوفة جميع اختبارات الوثب والقدرة الميكانيكية المسجلة'}
+          </h3>
+          <table className="print-table-orange">
+            <thead>
+              <tr>
+                <th style={{ textAlign: printLang === 'en' ? 'left' : 'right' }}>{printLang === 'en' ? 'Test Category' : 'نوع الاختبار'}</th>
+                <th>{printLang === 'en' ? 'Height (cm)' : 'الارتفاع (سم)'}</th>
+                <th>{printLang === 'en' ? 'Height (in)' : 'الارتفاع (إنش)'}</th>
+                <th>{printLang === 'en' ? 'Flight Time (s)' : 'زمن الطيران'}</th>
+                <th>{printLang === 'en' ? 'Peak Power (W)' : 'ذروة القدرة'}</th>
+                <th>{printLang === 'en' ? 'Relative Power' : 'القدرة النسبية'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>
+                  {printLang === 'en' ? 'CMJ (With Arms)' : 'قفزة الارتداد بأرجحة اليدين (CMJ)'}
+                </td>
+                <td className="font-mono font-black text-orange-600">{maxCmj > 0 ? `${maxCmj.toFixed(1)} cm` : '—'}</td>
+                <td className="font-mono">{maxCmj > 0 ? `${(maxCmj * 0.393701).toFixed(1)}"` : '—'}</td>
+                <td className="font-mono">{maxCmj > 0 ? `${Math.sqrt((8 * (maxCmj/100))/9.81).toFixed(3)} s` : '—'}</td>
+                <td className="font-mono font-bold text-slate-900">{maxCmj > 0 ? `${(61.9 * maxCmj + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
+                <td className="font-mono font-bold text-emerald-700">{maxCmj > 0 && mass > 0 ? `${((61.9 * maxCmj + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
+              </tr>
+              <tr>
+                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>
+                  {printLang === 'en' ? 'CMJ (No Arms)' : 'قفزة الارتداد بدون يدين (CMJ No Arms)'}
+                </td>
+                <td className="font-mono font-black text-orange-600">{maxCmjNoArms > 0 ? `${maxCmjNoArms.toFixed(1)} cm` : '—'}</td>
+                <td className="font-mono">{maxCmjNoArms > 0 ? `${(maxCmjNoArms * 0.393701).toFixed(1)}"` : '—'}</td>
+                <td className="font-mono">{maxCmjNoArms > 0 ? `${Math.sqrt((8 * (maxCmjNoArms/100))/9.81).toFixed(3)} s` : '—'}</td>
+                <td className="font-mono font-bold text-slate-900">{maxCmjNoArms > 0 ? `${(61.9 * maxCmjNoArms + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
+                <td className="font-mono font-bold text-emerald-700">{maxCmjNoArms > 0 && mass > 0 ? `${((61.9 * maxCmjNoArms + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
+              </tr>
+              <tr>
+                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>
+                  {printLang === 'en' ? 'Squat Jump (No Arms)' : 'قفزة الثبات بدون يدين (Squat Jump)'}
+                </td>
+                <td className="font-mono font-black text-orange-600">{maxSjNoArms > 0 ? `${maxSjNoArms.toFixed(1)} cm` : '—'}</td>
+                <td className="font-mono">{maxSjNoArms > 0 ? `${(maxSjNoArms * 0.393701).toFixed(1)}"` : '—'}</td>
+                <td className="font-mono">{maxSjNoArms > 0 ? `${Math.sqrt((8 * (maxSjNoArms/100))/9.81).toFixed(3)} s` : '—'}</td>
+                <td className="font-mono font-bold text-slate-900">{maxSjNoArms > 0 ? `${(61.9 * maxSjNoArms + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
+                <td className="font-mono font-bold text-emerald-700">{maxSjNoArms > 0 && mass > 0 ? `${((61.9 * maxSjNoArms + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
+              </tr>
+              <tr>
+                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>
+                  {printLang === 'en' ? 'Approach Jump' : 'قفزة الاقتراب والركض (Approach Jump)'}
+                </td>
+                <td className="font-mono font-black text-orange-600">{maxApproach > 0 ? `${maxApproach.toFixed(1)} cm` : '—'}</td>
+                <td className="font-mono">{maxApproach > 0 ? `${(maxApproach * 0.393701).toFixed(1)}"` : '—'}</td>
+                <td className="font-mono">{maxApproach > 0 ? `${Math.sqrt((8 * (maxApproach/100))/9.81).toFixed(3)} s` : '—'}</td>
+                <td className="font-mono font-bold text-slate-900">{maxApproach > 0 ? `${(61.9 * maxApproach + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
+                <td className="font-mono font-bold text-emerald-700">{maxApproach > 0 && mass > 0 ? `${((61.9 * maxApproach + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+
+        {/* Biomechanical Diagnostic Callout Box with Sporty Orange Left Border */}
+        <div className="border-r-8 border-[#ea580c] bg-[#fffaf0] p-4 rounded-xl mb-6 text-xs leading-relaxed font-mono">
+          <p className="font-black text-slate-900 mb-1">
+            🔬 {printLang === 'en' ? 'Biomechanical Diagnostic Critique & Recommendations:' : 'التشخيص البيوميكانيكي والتوصيات الحركية:'}
           </p>
-          <p className="text-slate-800">
+          <p className="text-slate-800 font-medium">
             • {printLang === 'en'
-                ? `Total Reach: ${totalTouchReachCm} cm. Basketball Dunk: ${dunkMarginCm >= 0 ? 'CAN DUNK EASILY 🏀🔥' : `Needs ${Math.abs(dunkMarginCm).toFixed(1)} cm more for Dunk`}. Volleyball Net Clearance: +${vballClearanceCm.toFixed(1)} cm.`
-                : `الوصول الأقصى باليد: ${totalTouchReachCm} سم. قدرة السلة Dunk: ${dunkMarginCm >= 0 ? 'يستطيع عمل Dunk بسهولة 🏀🔥' : `يحتاج إلى ${Math.abs(dunkMarginCm).toFixed(1)} سم إضافية للـ Dunk`}. الارتفاع فوق شبكة الكرة الطائرة: +${vballClearanceCm.toFixed(1)} سم.`}
+                ? `Elastic Utilization Ratio (EUR): ${eur > 0 ? eur.toFixed(2) : 'N/A'}. Arm Swing Contribution: ${armSwing > 0 ? `+${armSwing.toFixed(1)}%` : 'N/A'}. Sayers Peak Power: ${sayersPeak > 0 ? sayersPeak.toFixed(0) : 'N/A'} Watts (${relativePower > 0 ? relativePower.toFixed(1) : 'N/A'} W/kg).`
+                : `مؤشر الاستغلال المطاطي للأوتار (EUR): ${eur > 0 ? eur.toFixed(2) : 'غير متوفر'}. مساهمة أرجحة الذراعين: ${armSwing > 0 ? `+${armSwing.toFixed(1)}%` : 'غير متوفر'}. ذروة قدرة Sayers: ${sayersPeak > 0 ? sayersPeak.toFixed(0) : 'غير متوفر'} وات (${relativePower > 0 ? relativePower.toFixed(1) : 'غير متوفر'} W/kg).`}
           </p>
         </div>
 
-        {/* Validation Signatures */}
-        <div className="mt-12 flex justify-between items-center text-xs pt-6 border-t border-dashed border-gray-400">
-          <div className="text-center w-48">
-            <p className="font-black text-gray-900">{printLang === 'en' ? 'Biokinetic Specialist' : 'أخصائي القياس الحركي'}</p>
-            <p className="text-xs text-gray-800 mt-1 font-bold">{printLang === 'en' ? 'Mahmoud Ali' : 'محمود علي'}</p>
+
+        {/* Official Specialist Validation Signatures */}
+        <div className="mt-8 flex justify-between items-center text-xs pt-6 border-t-2 border-slate-300">
+          <div className="text-center w-52">
+            <p className="font-black text-slate-900">{printLang === 'en' ? 'Biokinetic Specialist' : 'أخصائي القياس الحركي'}</p>
+            <p className="text-xs text-orange-700 font-bold mt-1">{printLang === 'en' ? 'Mahmoud Ali' : 'محمود علي'}</p>
             <div className="h-8"></div>
-            <p className="text-gray-400">....................................</p>
+            <p className="text-slate-400">....................................</p>
           </div>
-          <div className="text-center w-48">
-            <p className="font-black text-gray-900">{printLang === 'en' ? 'Assistant Specialist' : 'مساعد أخصائي القياس'}</p>
-            <p className="text-xs text-gray-800 mt-1 font-bold">{printLang === 'en' ? 'Mostafa Ali' : 'مصطفى علي'}</p>
+          <div className="text-center w-52">
+            <p className="font-black text-slate-900">{printLang === 'en' ? 'Assistant Biokinetic Specialist' : 'مساعد أخصائي القياس الحركي'}</p>
+            <p className="text-xs text-orange-700 font-bold mt-1">{printLang === 'en' ? 'Mostafa Ali' : 'مصطفى علي'}</p>
             <div className="h-8"></div>
-            <p className="text-gray-400">....................................</p>
+            <p className="text-slate-400">....................................</p>
           </div>
         </div>
+
       </div>
 
 
@@ -297,10 +526,10 @@ export default function PlayerProfile({
 
           <button
             onClick={() => setIsPrintModalOpen(true)}
-            className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
+            className="px-5 py-2.5 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-orange-500/20 transition-all cursor-pointer"
           >
             <Printer size={16} />
-            {isEn ? 'Print Dossier PDF' : 'طباعة التقرير PDF'}
+            {isEn ? 'Print Infographic PDF' : 'طباعة التقرير Infographic'}
           </button>
         </div>
 
@@ -448,7 +677,7 @@ export default function PlayerProfile({
           </div>
 
 
-          {/* NEW: VOLLEYBALL NET & BASKETBALL DUNK SPECIFIC KPIS */}
+          {/* VOLLEYBALL NET & BASKETBALL DUNK SPECIFIC KPIS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* Volleyball Net Clearance Card */}
@@ -532,7 +761,7 @@ export default function PlayerProfile({
           </div>
 
 
-          {/* NEW: COMPLETE ALL TESTS PERFORMANCE COMPARISON MATRIX TABLE */}
+          {/* COMPLETE ALL TESTS PERFORMANCE COMPARISON MATRIX TABLE */}
           <div className="glass-panel p-6 hud-card space-y-4">
             <div className="flex items-center justify-between border-b border-gray-800 pb-3">
               <div className="flex items-center gap-3">
@@ -864,15 +1093,15 @@ export default function PlayerProfile({
       {/* Print Language Selection Modal */}
       {isPrintModalOpen && (
         <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-panel max-w-md w-full p-6 space-y-6 hud-card border-blue-500/30">
+          <div className="glass-panel max-w-md w-full p-6 space-y-6 hud-card border-orange-500/30">
             <div className="flex items-center gap-3">
               <AppLogo size={36} />
               <div>
                 <h3 className="text-base font-black text-white">
-                  {isEn ? 'Print Athlete Dossier' : 'خيارات طباعة تقرير ملف اللاعب'}
+                  {isEn ? 'Print Infographic PDF Report' : 'طباعة التقرير Infographic PDF'}
                 </h3>
                 <p className="text-xs text-gray-400">
-                  {isEn ? 'Select language for official report' : 'اختر لغة طباعة التقرير المستخرج'}
+                  {isEn ? 'Select language for printable report' : 'اختر لغة طباعة التقرير المستخرج'}
                 </p>
               </div>
             </div>
@@ -884,10 +1113,10 @@ export default function PlayerProfile({
                   setIsPrintModalOpen(false);
                   setTimeout(() => window.print(), 200);
                 }}
-                className="p-4 bg-blue-950/40 hover:bg-blue-600/30 border border-blue-500/40 rounded-xl text-center transition-all cursor-pointer"
+                className="p-4 bg-orange-950/40 hover:bg-orange-600/30 border border-orange-500/40 rounded-xl text-center transition-all cursor-pointer"
               >
                 <span className="text-sm font-black text-white block">العربية (Arabic)</span>
-                <span className="text-[10px] text-gray-400 block mt-1">تقرير باللغة العربية</span>
+                <span className="text-[10px] text-orange-400 block mt-1">تقرير برتقالي عالي التباين</span>
               </button>
 
               <button
@@ -899,7 +1128,7 @@ export default function PlayerProfile({
                 className="p-4 bg-cyan-950/40 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-xl text-center transition-all cursor-pointer"
               >
                 <span className="text-sm font-black text-white block">English</span>
-                <span className="text-[10px] text-gray-400 block mt-1">English Report</span>
+                <span className="text-[10px] text-cyan-400 block mt-1">English Infographic Report</span>
               </button>
             </div>
 
