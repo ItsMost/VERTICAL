@@ -1,4 +1,4 @@
-const CACHE_NAME = 'the-lab-v2';
+const CACHE_NAME = 'the-lab-v4';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -20,11 +20,25 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;
+  const url = request.url;
+
+  // Never cache icons or manifest: always check network first for instant PWA icon updates
+  const isPwaIconOrManifest = url.includes('icon.svg') || 
+                               url.includes('pwa-') || 
+                               url.includes('manifest.json') || 
+                               url.includes('favicon');
+
+  if (isPwaIconOrManifest) {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(request))
+    );
+    return;
+  }
+
   const isHtml = request.mode === 'navigate' || 
                  (request.headers.get('accept') && request.headers.get('accept').includes('text/html'));
   
   if (isHtml) {
-    // HTML navigation: always check network first to get fresh asset hashes
     event.respondWith(
       fetch(request)
         .then((response) => {
@@ -37,8 +51,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache static assets (images, icons, fonts)
-  const url = request.url;
   const isStaticAsset = url.match(/\.(png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/);
   
   if (isStaticAsset) {
@@ -52,7 +64,6 @@ self.addEventListener('fetch', (event) => {
       })
     );
   } else {
-    // For JS, CSS bundles, etc: always fetch from network to avoid stale hashed assets
     event.respondWith(fetch(request));
   }
 });
