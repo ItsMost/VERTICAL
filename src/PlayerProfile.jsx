@@ -119,8 +119,9 @@ export default function PlayerProfile({
     return { text: isEn ? 'Normal ⚡' : 'عادي ⚡', color: 'text-gray-400 bg-gray-900 border-gray-800' };
   };
 
-  // Helper function to evaluate test ratings for the PDF report (ممتاز / جيد جداً / جيد)
+  // Helper function to evaluate test ratings for the PDF report (عالمي / ممتاز / جيد جداً / جيد)
   const getTestRatingTag = (hCm, relW) => {
+    if (hCm >= 76.2 || relW >= 70) return { ar: 'عالمي خارق 👑', en: 'World Class 👑', bg: '#fef08a', text: '#854d0e' };
     if (hCm >= 70 || relW >= 60) return { ar: 'ممتاز 🏆', en: 'Elite 🏆', bg: '#dcfce7', text: '#15803d' };
     if (hCm >= 55 || relW >= 48) return { ar: 'جيد جداً ⭐', en: 'Very Good ⭐', bg: '#dbeafe', text: '#1d4ed8' };
     return { ar: 'جيد ⚡', en: 'Good ⚡', bg: '#fef3c7', text: '#b45309' };
@@ -154,7 +155,7 @@ export default function PlayerProfile({
     { tier: 'Tier 1 (Youth / Novice)', avg: '12.0 - 15.0 in (30.5 - 38.1 cm)', good: '15.0 - 18.0 in (38.1 - 45.7 cm)', adv: '18.0 - 21.0 in (45.7 - 53.3 cm)', elite: '21.0+ in (53.3+ cm)' },
     { tier: 'Tier 2 (Intermediate)', avg: '16.0 - 19.0 in (40.6 - 48.3 cm)', good: '19.0 - 22.0 in (48.3 - 55.9 cm)', adv: '22.0 - 24.5 in (55.9 - 62.2 cm)', elite: '24.5+ in (62.2+ cm)' },
     { tier: 'Tier 3 (Athletic)', avg: '18.0 - 21.0 in (45.7 - 53.3 cm)', good: '21.0 - 24.0 in (53.3 - 61.0 cm)', adv: '24.0 - 26.5 in (61.0 - 67.3 cm)', elite: '26.5+ in (67.3+ cm)' },
-    { tier: 'Tier 4 (Collegiate / Elite)', avg: '20.0 - 23.0 in (50.8 - 58.4 cm)', good: '23.0 - 26.0 in (58.4 - 66.0 cm)', adv: '26.0 - 28.5 in (66.0 - 72.4 cm)', elite: '28.5 - 30.0+ in (72.4 - 76.2+ cm)' },
+    { tier: 'Tier 4 (Collegiate / Elite)', avg: '20.0 - 23.0 in (50.8 - 58.4 cm)', good: '23.0 - 26.0 in (58.4 - 66.0 cm)', adv: '26.0 - 28.5 in (66.0 - 72.4 cm)', elite: '30.0"+ in (76.2+ cm) World Class 👑' },
   ];
 
   // Delete Individual Measurement
