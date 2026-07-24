@@ -87,14 +87,19 @@ export default function PlayerProfile({
 
   // Sayers Peak Power (61.9 * H_cm + 36.0 * BW_kg - 1822)
   const sayersPeak = heightCm > 0 ? (61.9 * heightCm + 36.0 * mass - 1822) : 0;
-  // Harman Peak Power (60.7 * H_cm + 45.3 * BW_kg - 2055)
-  const harmanPeak = heightCm > 0 ? (60.7 * heightCm + 45.3 * mass - 2055) : 0;
 
   // Relative Power Density (W/kg)
   const relativePower = mass > 0 && sayersPeak > 0 ? (sayersPeak / mass) : 0;
 
   // Elastic Utilization Ratio (EUR = CMJ_no_arms / SJ_no_arms)
   const eur = maxSjNoArms > 0 && maxCmjNoArms > 0 ? (maxCmjNoArms / maxSjNoArms) : 0;
+
+  // Concise Diagnostic Tag for PDF Print Report
+  const pdfDiagnosticTag = eur > 1.15
+    ? 'الاعتماد مطاطي ارتدادي'
+    : eur < 1.05 && eur > 0
+      ? 'الاعتماد عضلي انقباضي'
+      : 'توازن مثالي بين العضلات والأوتار';
 
   // Arm Swing Contribution (%) = ((CMJ_arms - CMJ_no_arms) / CMJ_no_arms) * 100
   const armSwing = maxCmjNoArms > 0 && maxCmj > 0 ? (((maxCmj - maxCmjNoArms) / maxCmjNoArms) * 100) : 0;
@@ -213,7 +218,7 @@ export default function PlayerProfile({
 
       <div className="printable-profile-sheet font-sans" style={{ direction: printLang === 'en' ? 'ltr' : 'rtl' }}>
         
-        {/* Infographic Header with Sporty Orange Accent */}
+        {/* Infographic Header */}
         <div className="print-orange-header flex justify-between items-center">
           <div className="flex items-center gap-4">
             <AppLogo size={50} showGlow={false} />
@@ -278,14 +283,11 @@ export default function PlayerProfile({
           </div>
         </div>
 
-
         {/* 4 Major Sporty Orange Infographic Cards */}
         <div className="grid grid-cols-4 gap-4 mb-6">
-          
-          {/* Card 1: Max Vertical Jump */}
           <div className="print-infographic-card text-center">
             <span className="text-[10px] text-orange-800 font-black uppercase block mb-1">
-              🚀 {printLang === 'en' ? 'Max Vertical Jump' : 'أقصى ارتقاء رأسي'}
+              🚀 {printLang === 'en' ? 'Max Vertical Jump (CMJ)' : 'Max Vertical Jump (CMJ)'}
             </span>
             <span className="text-3xl font-black text-orange-600 font-mono block">
               {heightCm > 0 ? `${heightCm.toFixed(1)}` : '—'} <span className="text-xs text-slate-700">cm</span>
@@ -295,10 +297,9 @@ export default function PlayerProfile({
             </span>
           </div>
 
-          {/* Card 2: Hang Flight Time */}
           <div className="print-infographic-card print-infographic-card-slate text-center">
             <span className="text-[10px] text-slate-700 font-black uppercase block mb-1">
-              ⏱️ {printLang === 'en' ? 'Hang Flight Time' : 'زمن الطيران المعلق'}
+              ⏱️ {printLang === 'en' ? 'Flight Time' : 'Flight Time'}
             </span>
             <span className="text-3xl font-black text-slate-900 font-mono block">
               {flightTime > 0 ? `${flightTime.toFixed(3)}` : '—'} <span className="text-xs text-slate-600">sec</span>
@@ -308,10 +309,9 @@ export default function PlayerProfile({
             </span>
           </div>
 
-          {/* Card 3: Relative Power Density */}
           <div className="print-infographic-card print-infographic-card-teal text-center">
             <span className="text-[10px] text-teal-800 font-black uppercase block mb-1">
-              ⚡ {printLang === 'en' ? 'Relative Power' : 'الكثافة النسبية'}
+              ⚡ {printLang === 'en' ? 'Relative Power' : 'Relative Power'}
             </span>
             <span className="text-3xl font-black text-teal-700 font-mono block">
               {relativePower > 0 ? `${relativePower.toFixed(1)}` : '—'} <span className="text-xs text-slate-600">W/kg</span>
@@ -321,10 +321,9 @@ export default function PlayerProfile({
             </span>
           </div>
 
-          {/* Card 4: RSI Stiffness */}
           <div className="print-infographic-card text-center" style={{ backgroundColor: '#fffbebf0', borderColor: '#fde68a' }}>
             <span className="text-[10px] text-amber-800 font-black uppercase block mb-1">
-              🎯 {printLang === 'en' ? 'RSI Stiffness Index' : 'مؤشر RSI الارتدادي'}
+              🎯 {printLang === 'en' ? 'RSI Index' : 'RSI Index'}
             </span>
             <span className="text-3xl font-black text-amber-600 font-mono block">
               {rsiScore > 0 ? `${rsiScore.toFixed(2)}` : '—'}
@@ -333,14 +332,10 @@ export default function PlayerProfile({
               {rsiScore >= 2.2 ? 'Tendon Stiffness 👑' : 'Normal SSC ⚡'}
             </span>
           </div>
-
         </div>
 
-
-        {/* Sport Specific Clearance Infographic Showcase */}
+        {/* Sport Specific Clearance Showcase */}
         <div className="grid grid-cols-2 gap-4 mb-6">
-          
-          {/* Volleyball Clearance Box */}
           <div className="border-2 border-orange-500 bg-orange-50/50 p-4 rounded-2xl flex items-center justify-between">
             <div>
               <span className="text-xs font-black text-orange-900 block mb-1">
@@ -349,43 +344,32 @@ export default function PlayerProfile({
               <span className="text-2xl font-black text-orange-600 font-mono">
                 {vballClearanceCm > 0 ? `+${vballClearanceCm.toFixed(1)} cm` : '—'}
               </span>
-              <span className="text-[10px] text-slate-700 font-bold block mt-0.5">
-                ({(vballClearanceCm * 0.393701).toFixed(1)}" above {vballNetHeightCm} cm net)
-              </span>
             </div>
-            <div className="text-right">
-              <span className="text-[10px] font-black px-2.5 py-1 bg-orange-600 text-white rounded-lg inline-block">
-                {vballClearanceCm >= 30 ? 'Spike Clearance 👑' : 'Standard Clearance'}
-              </span>
-            </div>
+            <span className="text-[10px] font-black px-2.5 py-1 bg-orange-600 text-white rounded-lg inline-block">
+              {vballClearanceCm >= 30 ? 'Spike Clearance 👑' : 'Standard Clearance'}
+            </span>
           </div>
 
-          {/* Basketball Dunk Box */}
           <div className="border-2 border-slate-800 bg-slate-900 text-white p-4 rounded-2xl flex items-center justify-between">
             <div>
               <span className="text-xs font-black text-orange-400 block mb-1">
-                🏀 {printLang === 'en' ? 'Basketball Dunk Predictor:' : 'قدرة وهيئة عمل الدانك (Dunk Status):'}
+                🏀 {printLang === 'en' ? 'Basketball Dunk Predictor:' : 'قدرة عمل الدانك (Dunk Status):'}
               </span>
               <span className="text-xl font-black text-white font-mono">
                 {dunkMarginCm >= 0
-                  ? (printLang === 'en' ? 'CAN DUNK EASILY 🏀🔥' : 'يستطيع عمل Dunk بسهولة! 🏀🔥')
+                  ? 'CAN DUNK EASILY 🏀🔥'
                   : rimMarginCm >= 0
-                    ? (printLang === 'en' ? 'CAN TOUCH RIM 🏀' : 'يستطيع لمس الحلقة! 🏀')
-                    : (printLang === 'en' ? `Needs ${Math.abs(dunkMarginCm).toFixed(1)} cm` : `يحتاج ${Math.abs(dunkMarginCm).toFixed(1)} سم إضافية`)}
-              </span>
-              <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
-                Reach {totalTouchReachCm} cm vs 305 cm rim
+                    ? 'CAN TOUCH RIM 🏀'
+                    : `Needs ${Math.abs(dunkMarginCm).toFixed(1)} cm`}
               </span>
             </div>
           </div>
-
         </div>
 
-
-        {/* All Tests Comparison Table (Infographic Orange Style) */}
+        {/* All Tests Comparison Table */}
         <div className="mb-6">
           <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-2">
-            📊 {printLang === 'en' ? 'Complete Biomechanical Tests Matrix' : 'مصفوفة جميع اختبارات الوثب والقدرة الميكانيكية المسجلة'}
+            📊 {printLang === 'en' ? 'Complete Biomechanical Tests Matrix' : 'مصفوفة جميع اختبارات الوثب والقدرة المسجلة'}
           </h3>
           <table className="print-table-orange">
             <thead>
@@ -400,9 +384,7 @@ export default function PlayerProfile({
             </thead>
             <tbody>
               <tr>
-                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>
-                  {printLang === 'en' ? 'CMJ (With Arms)' : 'قفزة الارتداد بأرجحة اليدين (CMJ)'}
-                </td>
+                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>CMJ (Arms)</td>
                 <td className="font-mono font-black text-orange-600">{maxCmj > 0 ? `${maxCmj.toFixed(1)} cm` : '—'}</td>
                 <td className="font-mono">{maxCmj > 0 ? `${(maxCmj * 0.393701).toFixed(1)}"` : '—'}</td>
                 <td className="font-mono">{maxCmj > 0 ? `${Math.sqrt((8 * (maxCmj/100))/9.81).toFixed(3)} s` : '—'}</td>
@@ -410,9 +392,7 @@ export default function PlayerProfile({
                 <td className="font-mono font-bold text-emerald-700">{maxCmj > 0 && mass > 0 ? `${((61.9 * maxCmj + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
               </tr>
               <tr>
-                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>
-                  {printLang === 'en' ? 'CMJ (No Arms)' : 'قفزة الارتداد بدون يدين (CMJ No Arms)'}
-                </td>
+                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>CMJ (No Arms)</td>
                 <td className="font-mono font-black text-orange-600">{maxCmjNoArms > 0 ? `${maxCmjNoArms.toFixed(1)} cm` : '—'}</td>
                 <td className="font-mono">{maxCmjNoArms > 0 ? `${(maxCmjNoArms * 0.393701).toFixed(1)}"` : '—'}</td>
                 <td className="font-mono">{maxCmjNoArms > 0 ? `${Math.sqrt((8 * (maxCmjNoArms/100))/9.81).toFixed(3)} s` : '—'}</td>
@@ -420,9 +400,7 @@ export default function PlayerProfile({
                 <td className="font-mono font-bold text-emerald-700">{maxCmjNoArms > 0 && mass > 0 ? `${((61.9 * maxCmjNoArms + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
               </tr>
               <tr>
-                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>
-                  {printLang === 'en' ? 'Squat Jump (No Arms)' : 'قفزة الثبات بدون يدين (Squat Jump)'}
-                </td>
+                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>Squat Jump (SJ)</td>
                 <td className="font-mono font-black text-orange-600">{maxSjNoArms > 0 ? `${maxSjNoArms.toFixed(1)} cm` : '—'}</td>
                 <td className="font-mono">{maxSjNoArms > 0 ? `${(maxSjNoArms * 0.393701).toFixed(1)}"` : '—'}</td>
                 <td className="font-mono">{maxSjNoArms > 0 ? `${Math.sqrt((8 * (maxSjNoArms/100))/9.81).toFixed(3)} s` : '—'}</td>
@@ -430,9 +408,7 @@ export default function PlayerProfile({
                 <td className="font-mono font-bold text-emerald-700">{maxSjNoArms > 0 && mass > 0 ? `${((61.9 * maxSjNoArms + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
               </tr>
               <tr>
-                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>
-                  {printLang === 'en' ? 'Approach Jump' : 'قفزة الاقتراب والركض (Approach Jump)'}
-                </td>
+                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>Approach Jump</td>
                 <td className="font-mono font-black text-orange-600">{maxApproach > 0 ? `${maxApproach.toFixed(1)} cm` : '—'}</td>
                 <td className="font-mono">{maxApproach > 0 ? `${(maxApproach * 0.393701).toFixed(1)}"` : '—'}</td>
                 <td className="font-mono">{maxApproach > 0 ? `${Math.sqrt((8 * (maxApproach/100))/9.81).toFixed(3)} s` : '—'}</td>
@@ -443,21 +419,17 @@ export default function PlayerProfile({
           </table>
         </div>
 
-
-        {/* Biomechanical Diagnostic Callout Box with Sporty Orange Left Border */}
+        {/* CONCISE DIAGNOSTIC CALLOUT IN PDF AS REQUESTED */}
         <div className="border-r-8 border-[#ea580c] bg-[#fffaf0] p-4 rounded-xl mb-6 text-xs leading-relaxed font-mono">
           <p className="font-black text-slate-900 mb-1">
-            🔬 {printLang === 'en' ? 'Biomechanical Diagnostic Critique & Recommendations:' : 'التشخيص البيوميكانيكي والتوصيات الحركية:'}
+            🔬 {printLang === 'en' ? 'Biomechanical Diagnostic:' : 'التشخيص الحركي:'}
           </p>
-          <p className="text-slate-800 font-medium">
-            • {printLang === 'en'
-                ? `Elastic Utilization Ratio (EUR): ${eur > 0 ? eur.toFixed(2) : 'N/A'}. Arm Swing Contribution: ${armSwing > 0 ? `+${armSwing.toFixed(1)}%` : 'N/A'}. Sayers Peak Power: ${sayersPeak > 0 ? sayersPeak.toFixed(0) : 'N/A'} Watts (${relativePower > 0 ? relativePower.toFixed(1) : 'N/A'} W/kg).`
-                : `مؤشر الاستغلال المطاطي للأوتار (EUR): ${eur > 0 ? eur.toFixed(2) : 'غير متوفر'}. مساهمة أرجحة الذراعين: ${armSwing > 0 ? `+${armSwing.toFixed(1)}%` : 'غير متوفر'}. ذروة قدرة Sayers: ${sayersPeak > 0 ? sayersPeak.toFixed(0) : 'غير متوفر'} وات (${relativePower > 0 ? relativePower.toFixed(1) : 'غير متوفر'} W/kg).`}
+          <p className="text-slate-900 font-black text-sm">
+            • {printLang === 'en' ? `Classification: ${eur > 1.15 ? 'Tendon Elasticity Dominant' : eur < 1.05 ? 'Muscular Concentric Force Dominant' : 'Optimal Muscle-Tendon Balance'}` : `نمط الاعتماد الحركي: ${pdfDiagnosticTag}`}
           </p>
         </div>
 
-
-        {/* Official Specialist Validation Signatures */}
+        {/* Validation Signatures */}
         <div className="mt-8 flex justify-between items-center text-xs pt-6 border-t-2 border-slate-300">
           <div className="text-center w-52">
             <p className="font-black text-slate-900">{printLang === 'en' ? 'Biokinetic Specialist' : 'أخصائي القياس الحركي'}</p>
@@ -484,7 +456,6 @@ export default function PlayerProfile({
       <div className="glass-panel p-6 border-l-4 border-l-blue-500 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-6 hud-card">
         
         <div className="flex flex-col sm:flex-row items-center gap-5">
-          {/* App Logo & Athlete Initial Badge */}
           <div className="relative">
             <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-blue-600 via-cyan-500 to-[#00c9a7] flex items-center justify-center text-white text-3xl font-black shadow-lg shadow-blue-500/20 border border-blue-400/30 font-mono">
               {activePlayer.full_name ? activePlayer.full_name.split(' ').map(n => n[0]).slice(0, 2).join('') : 'P'}
@@ -540,7 +511,7 @@ export default function PlayerProfile({
       <div className="flex items-center gap-3 border-b border-gray-800 pb-3">
         {[
           { id: 'overview', nameAr: 'نظرة عامة والقياسات الرئيسية', nameEn: 'Core Metrics Overview', icon: Trophy },
-          { id: 'diagnostics', nameAr: 'التشخيص الحركي ومنحنى FVP', nameEn: 'Biomechanical Diagnostics', icon: Activity },
+          { id: 'diagnostics', nameAr: 'التشخيص الحركي ومنحنى FVP', nameEn: 'Biomechanical Diagnostics & FVP', icon: Activity },
           { id: 'history', nameAr: 'سجل القياسات الكامل والتطور', nameEn: 'Full Measurement History', icon: FileText }
         ].map(tab => {
           const Icon = tab.icon;
@@ -566,15 +537,15 @@ export default function PlayerProfile({
       {activeTab === 'overview' && (
         <div className="space-y-6">
           
-          {/* Executive 4 Core KPI Cards */}
+          {/* Executive 4 Core KPI Cards matching Image 1 exact titles */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
-            {/* KPI 1: Max Jump Height */}
+            {/* KPI 1: Max Vertical Jump (CMJ) */}
             <div
               onClick={() => setSelectedMetric({
-                title: isEn ? 'Maximum CMJ Vertical Jump' : 'الارتقاء العمودي الأقصى (CMJ)',
+                title: 'Max Vertical Jump (CMJ)',
                 value: `${heightCm.toFixed(1)} cm (${heightInches}")`,
-                desc: isEn ? 'Primary measurement of vertical explosive leg power.' : 'يقيس الارتفاع العمودي الأقصى لمركز ثقل الجسم خلال الوثبة العمودية مع أرجحة ذراعين.',
+                desc: 'Primary measurement of vertical explosive leg power.',
                 benchmarks: [
                   { label: 'Elite 👑', value: '+34.0" (+86 cm)' },
                   { label: 'Excellent 🏆', value: '30.0" - 33.9" (76-85 cm)' },
@@ -584,7 +555,7 @@ export default function PlayerProfile({
               className="glass-panel p-5 hud-card space-y-3 hover:border-cyan-500/40 transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-gray-400 uppercase">{isEn ? 'Max Jump Height' : 'أقصى ارتقاء عمودي'}</span>
+                <span className="text-[11px] font-bold text-gray-300 font-mono uppercase">Max Vertical Jump (CMJ)</span>
                 <span className="p-2 bg-blue-500/10 text-cyan-400 rounded-xl group-hover:scale-110 transition-transform">
                   <ArrowUpCircle size={18} />
                 </span>
@@ -596,12 +567,12 @@ export default function PlayerProfile({
               </div>
             </div>
 
-            {/* KPI 2: Hang Flight Time */}
+            {/* KPI 2: Flight Time */}
             <div
               onClick={() => setSelectedMetric({
-                title: isEn ? 'Hang Flight Time' : 'زمن الطيران المعلق (Flight Time)',
+                title: 'Flight Time',
                 value: `${flightTime.toFixed(3)} s`,
-                desc: isEn ? 'Airborne duration in seconds from takeoff to landing.' : 'الوقت المستغرق بالثواني منذ لحظة مغادرة القدمين للأرض حتى الهبوط.',
+                desc: 'Airborne duration in seconds from takeoff to landing.',
                 benchmarks: [
                   { label: 'Elite 👑', value: '+0.75 s' },
                   { label: 'Excellent 🏆', value: '0.68 s - 0.74 s' },
@@ -611,7 +582,7 @@ export default function PlayerProfile({
               className="glass-panel p-5 hud-card space-y-3 hover:border-blue-500/40 transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-gray-400 uppercase">{isEn ? 'Hang Flight Time' : 'زمن الطيران المعلق'}</span>
+                <span className="text-[11px] font-bold text-gray-300 font-mono uppercase">Flight Time</span>
                 <span className="p-2 bg-blue-500/10 text-blue-400 rounded-xl group-hover:scale-110 transition-transform">
                   <Clock size={18} />
                 </span>
@@ -622,12 +593,12 @@ export default function PlayerProfile({
               </div>
             </div>
 
-            {/* KPI 3: Power Density */}
+            {/* KPI 3: Relative Power Density (W/kg) */}
             <div
               onClick={() => setSelectedMetric({
-                title: isEn ? 'Relative Mechanical Power Density' : 'كثافة القدرة الميكانيكية النسبية',
+                title: 'Relative Power Density (W/kg)',
                 value: `${relativePower.toFixed(1)} W/kg`,
-                desc: isEn ? 'Power output per kilogram of athlete body mass.' : 'القدرة الميكانيكية المتولدة مقسومة على وزن اللاعب الفعلي.',
+                desc: 'Power output per kilogram of athlete body mass.',
                 benchmarks: [
                   { label: 'Elite 👑', value: '+65.0 W/kg' },
                   { label: 'Excellent 🏆', value: '55.0 - 64.9 W/kg' },
@@ -637,7 +608,7 @@ export default function PlayerProfile({
               className="glass-panel p-5 hud-card space-y-3 hover:border-emerald-500/40 transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-gray-400 uppercase">{isEn ? 'Power Density' : 'الكثافة النسبية'}</span>
+                <span className="text-[11px] font-bold text-gray-300 font-mono uppercase">Relative Power Density</span>
                 <span className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl group-hover:scale-110 transition-transform">
                   <Zap size={18} />
                 </span>
@@ -648,12 +619,12 @@ export default function PlayerProfile({
               </div>
             </div>
 
-            {/* KPI 4: RSI Stiffness Score */}
+            {/* KPI 4: RSI Index */}
             <div
               onClick={() => setSelectedMetric({
-                title: isEn ? 'Reactive Strength Index (RSI)' : 'مؤشر القوة التفاعلية (RSI)',
+                title: 'RSI Index',
                 value: `${rsiScore > 0 ? rsiScore.toFixed(2) : '—'}`,
-                desc: isEn ? 'Ratio of flight time to ground contact time during drop jumps.' : 'يقيس صلابة الأوتار وكفاءة دورة التمدد والتقلص (SSC).',
+                desc: 'Ratio of flight time to ground contact time during drop jumps.',
                 benchmarks: [
                   { label: 'Elite 👑', value: '+2.50' },
                   { label: 'Excellent 🏆', value: '2.00 - 2.49' },
@@ -663,7 +634,7 @@ export default function PlayerProfile({
               className="glass-panel p-5 hud-card space-y-3 hover:border-yellow-500/40 transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-gray-400 uppercase">{isEn ? 'RSI Stiffness Index' : 'مؤشر RSI الارتدادي'}</span>
+                <span className="text-[11px] font-bold text-gray-300 font-mono uppercase">RSI Index</span>
                 <span className="p-2 bg-yellow-500/10 text-yellow-400 rounded-xl group-hover:scale-110 transition-transform">
                   <Target size={18} />
                 </span>
@@ -677,7 +648,7 @@ export default function PlayerProfile({
           </div>
 
 
-          {/* VOLLEYBALL NET & BASKETBALL DUNK SPECIFIC KPIS */}
+          {/* VOLLEYBALL NET & BASKETBALL DUNK KPIS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* Volleyball Net Clearance Card */}
@@ -761,7 +732,7 @@ export default function PlayerProfile({
           </div>
 
 
-          {/* COMPLETE ALL TESTS PERFORMANCE COMPARISON MATRIX TABLE */}
+          {/* COMPLETE ALL TESTS PERFORMANCE MATRIX TABLE */}
           <div className="glass-panel p-6 hud-card space-y-4">
             <div className="flex items-center justify-between border-b border-gray-800 pb-3">
               <div className="flex items-center gap-3">
@@ -787,22 +758,20 @@ export default function PlayerProfile({
               <table className="w-full text-xs text-center border-collapse">
                 <thead>
                   <tr className="bg-blue-950/40 text-blue-300 font-bold border-b border-gray-800">
-                    <th className="p-3 text-right">{isEn ? 'Test Category' : 'نوع الاختبار'}</th>
-                    <th className="p-3">{isEn ? 'Peak Height (cm)' : 'الارتفاع (سم)'}</th>
-                    <th className="p-3">{isEn ? 'Height (in)' : 'الارتفاع (إنش)'}</th>
-                    <th className="p-3">{isEn ? 'Flight Time (s)' : 'زمن الطيران'}</th>
-                    <th className="p-3">{isEn ? 'Peak Power (W)' : 'ذروة القدرة'}</th>
-                    <th className="p-3">{isEn ? 'Relative Power' : 'القدرة النسبية'}</th>
-                    <th className="p-3">{isEn ? 'RSI / Clean' : 'الإنتاجية'}</th>
+                    <th className="p-3 text-right">{isEn ? 'Test Category' : 'نوع الاختبار (Category)'}</th>
+                    <th className="p-3">{isEn ? 'Peak Height (cm)' : 'الارتفاع (Jump Height)'}</th>
+                    <th className="p-3">{isEn ? 'Height (in)' : 'الارتفاع (in)'}</th>
+                    <th className="p-3">{isEn ? 'Flight Time (s)' : 'زمن الطيران (Flight Time)'}</th>
+                    <th className="p-3">{isEn ? 'Peak Power (W)' : 'ذروة القدرة (Peak Power)'}</th>
+                    <th className="p-3">{isEn ? 'Relative Power' : 'القدرة النسبية (W/kg)'}</th>
+                    <th className="p-3">{isEn ? 'RSI / Status' : 'مؤشر الإنتاجية'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800/60 font-mono text-gray-300">
-                  
-                  {/* CMJ Arms Row */}
                   <tr className="hover:bg-blue-600/10 transition-colors">
                     <td className="p-3 text-right font-sans font-bold text-white flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                      {isEn ? 'Countermovement Jump (Arms)' : 'قفزة الارتداد بأرجحة اليدين (CMJ)'}
+                      CMJ (Arms)
                     </td>
                     <td className="p-3 text-cyan-400 font-black">{maxCmj > 0 ? `${maxCmj.toFixed(1)} cm` : '—'}</td>
                     <td className="p-3 text-gray-300">{maxCmj > 0 ? `${(maxCmj * 0.393701).toFixed(1)}"` : '—'}</td>
@@ -812,11 +781,10 @@ export default function PlayerProfile({
                     <td className="p-3 text-gray-400 font-sans">{maxCmj > 0 ? 'Max Jump 👑' : '—'}</td>
                   </tr>
 
-                  {/* CMJ No Arms Row */}
                   <tr className="hover:bg-blue-600/10 transition-colors">
                     <td className="p-3 text-right font-sans font-bold text-white flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-blue-400" />
-                      {isEn ? 'Countermovement Jump (No Arms)' : 'قفزة الارتداد بدون يدين (CMJ No Arms)'}
+                      CMJ (No Arms)
                     </td>
                     <td className="p-3 text-cyan-400 font-black">{maxCmjNoArms > 0 ? `${maxCmjNoArms.toFixed(1)} cm` : '—'}</td>
                     <td className="p-3 text-gray-300">{maxCmjNoArms > 0 ? `${(maxCmjNoArms * 0.393701).toFixed(1)}"` : '—'}</td>
@@ -826,11 +794,10 @@ export default function PlayerProfile({
                     <td className="p-3 text-gray-400 font-sans">{maxCmjNoArms > 0 ? 'SSC Test ⚡' : '—'}</td>
                   </tr>
 
-                  {/* SJ No Arms Row */}
                   <tr className="hover:bg-blue-600/10 transition-colors">
                     <td className="p-3 text-right font-sans font-bold text-white flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                      {isEn ? 'Squat Jump (No Arms)' : 'قفزة الثبات بدون يدين (Squat Jump)'}
+                      Squat Jump (SJ)
                     </td>
                     <td className="p-3 text-cyan-400 font-black">{maxSjNoArms > 0 ? `${maxSjNoArms.toFixed(1)} cm` : '—'}</td>
                     <td className="p-3 text-gray-300">{maxSjNoArms > 0 ? `${(maxSjNoArms * 0.393701).toFixed(1)}"` : '—'}</td>
@@ -840,11 +807,10 @@ export default function PlayerProfile({
                     <td className="p-3 text-gray-400 font-sans">{maxSjNoArms > 0 ? 'Concentric ⚡' : '—'}</td>
                   </tr>
 
-                  {/* Drop Jump RSI Row */}
                   <tr className="hover:bg-blue-600/10 transition-colors">
                     <td className="p-3 text-right font-sans font-bold text-white flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-yellow-400" />
-                      {isEn ? 'Drop Jump (RSI Index)' : 'اختبار السقوط الارتدادي (Drop Jump RSI)'}
+                      Drop Jump (RSI)
                     </td>
                     <td className="p-3 text-cyan-400 font-black">{latestRsiRecord ? `${parseFloat(latestRsiRecord.jump_height_cm).toFixed(1)} cm` : '—'}</td>
                     <td className="p-3 text-gray-300">{latestRsiRecord ? `${(parseFloat(latestRsiRecord.jump_height_cm) * 0.393701).toFixed(1)}"` : '—'}</td>
@@ -854,11 +820,10 @@ export default function PlayerProfile({
                     <td className="p-3 text-yellow-400 font-bold">{rsiScore > 0 ? `RSI ${rsiScore.toFixed(2)}` : '—'}</td>
                   </tr>
 
-                  {/* Approach Jump Row */}
                   <tr className="hover:bg-blue-600/10 transition-colors">
                     <td className="p-3 text-right font-sans font-bold text-white flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-purple-400" />
-                      {isEn ? 'Approach Jump (Volleyball/Basketball)' : 'قفزة الاقتراب والركض (Approach Jump)'}
+                      Approach Jump
                     </td>
                     <td className="p-3 text-cyan-400 font-black">{maxApproach > 0 ? `${maxApproach.toFixed(1)} cm` : '—'}</td>
                     <td className="p-3 text-gray-300">{maxApproach > 0 ? `${(maxApproach * 0.393701).toFixed(1)}"` : '—'}</td>
@@ -867,27 +832,13 @@ export default function PlayerProfile({
                     <td className="p-3 text-emerald-400 font-bold">{maxApproach > 0 && mass > 0 ? `${((61.9 * maxApproach + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
                     <td className="p-3 text-purple-400 font-bold">{maxApproach > 0 ? 'Max Velocity 🚀' : '—'}</td>
                   </tr>
-
-                  {/* Clean 1RM Row */}
-                  {maxClean > 0 && (
-                    <tr className="hover:bg-blue-600/10 transition-colors">
-                      <td className="p-3 text-right font-sans font-bold text-white flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                        {isEn ? 'Power Clean 1RM' : 'رفعة الكلين القصوى (Power Clean 1RM)'}
-                      </td>
-                      <td className="p-3 text-emerald-400 font-black" colSpan={4}>{maxClean} kg</td>
-                      <td className="p-3 text-emerald-400 font-bold">{mass > 0 ? `${(maxClean/mass).toFixed(2)}x BW` : '—'}</td>
-                      <td className="p-3 text-emerald-400 font-bold">1RM Strength 🏋️</td>
-                    </tr>
-                  )}
-
                 </tbody>
               </table>
             </div>
           </div>
 
 
-          {/* Historical Trend Chart (Jump Height Progress) */}
+          {/* Historical Trend Chart */}
           <div className="glass-panel p-6 hud-card space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-black text-white flex items-center gap-2">
@@ -932,66 +883,139 @@ export default function PlayerProfile({
       )}
 
 
-      {/* TAB 2: BIOMECHANICAL DIAGNOSTICS */}
+      {/* TAB 2: BIOMECHANICAL DIAGNOSTICS & DETAILED FVP SPECTRUM EXPLANATION IN APP */}
       {activeTab === 'diagnostics' && (
         <div className="space-y-6">
           
+          {/* Detailed Scientific FVP & Tendon Elasticity Explanation Card */}
+          <div className="glass-panel p-6 hud-card space-y-4 border-l-4 border-l-orange-500">
+            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+              <div>
+                <h3 className="text-base font-black text-white flex items-center gap-2">
+                  <Activity size={18} className="text-orange-500" />
+                  {isEn ? 'Detailed Biomechanical Diagnostic & FVP Spectrum' : 'التشخيص الحركي وشرح نمط الاعتماد (مطاطي أم عضلي)'}
+                </h3>
+                <p className="text-xs text-gray-400 font-medium mt-0.5">
+                  {isEn ? 'Scientific breakdown of Elastic Utilization Ratio (EUR) & Force-Velocity Profile' : 'الشرح العلمي التفصيلي لمعامل EUR ونسبة مطاطية الأوتار إلى القوة العضلية'}
+                </p>
+              </div>
+              <span className={`text-xs px-3 py-1 rounded-xl border font-black ${
+                eur > 1.15
+                  ? 'bg-cyan-950/40 text-cyan-400 border-cyan-500/30'
+                  : eur < 1.05 && eur > 0
+                    ? 'bg-orange-950/40 text-orange-400 border-orange-500/30'
+                    : 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30'
+              }`}>
+                {eur > 1.15
+                  ? 'الاعتماد مطاطي ارتدادي (Tendon SSC Elasticity)'
+                  : eur < 1.05 && eur > 0
+                    ? 'الاعتماد عضلي انقباضي (Muscular Concentric Force)'
+                    : 'توازن مثالي بين العضلات والأوتار (Optimal Balance)'}
+              </span>
+            </div>
+
+            {/* Interactive Diagnostic Explanation Panels */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              
+              {/* Box 1: Tendon Elasticity Dominant */}
+              <div className={`p-4 rounded-2xl border space-y-2 transition-all ${
+                eur > 1.15 ? 'bg-cyan-950/30 border-cyan-500/50 shadow-lg shadow-cyan-500/10' : 'bg-black/30 border-gray-850 opacity-70'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">⚡</span>
+                  <h4 className="text-xs font-black text-cyan-400">
+                    الاعتماد مطاطي ارتدادي (EUR &gt; 1.15)
+                  </h4>
+                </div>
+                <p className="text-[11px] text-gray-300 leading-relaxed font-sans">
+                  <strong>متى يحدث؟</strong> عندما تكون قفزة CMJ أعلى بفارق ملحوظ من Squat Jump (أوتار الأرجل والأكيلس تمتلك صلابة ومطاطية فائقة).
+                </p>
+                <div className="p-2 bg-black/40 rounded-xl text-[10px] text-cyan-200 border border-cyan-500/20 font-mono">
+                  <strong>🎯 التوصية التدريبية:</strong> اللاعب يفتقر للقوة العضلية الانقباضية الصافية. يجب التركيز على التمارين الثقيلة (Heavy Squats & Deadlifts &gt;80% 1RM).
+                </div>
+              </div>
+
+              {/* Box 2: Muscular Force Dominant */}
+              <div className={`p-4 rounded-2xl border space-y-2 transition-all ${
+                eur < 1.05 && eur > 0 ? 'bg-orange-950/30 border-orange-500/50 shadow-lg shadow-orange-500/10' : 'bg-black/30 border-gray-850 opacity-70'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🏋️</span>
+                  <h4 className="text-xs font-black text-orange-400">
+                    الاعتماد عضلي انقباضي (EUR &lt; 1.05)
+                  </h4>
+                </div>
+                <p className="text-[11px] text-gray-300 leading-relaxed font-sans">
+                  <strong>متى يحدث؟</strong> عندما تكون قفزة CMJ متساوية تقريباً مع Squat Jump (اللاعب يعتمد بالكامل على قوة العضلات ولا يستغل مطاطية الأوتار ودورة SSC).
+                </p>
+                <div className="p-2 bg-black/40 rounded-xl text-[10px] text-orange-200 border border-orange-500/20 font-mono">
+                  <strong>🎯 التوصية التدريبية:</strong> اللاعب يعاني من عجز في الارتداد السريع. يجب التركيز فوراً على تمارين البلايومتركس السريع (Fast Pogo Jumps & Depth Jumps).
+                </div>
+              </div>
+
+              {/* Box 3: Optimal Balance */}
+              <div className={`p-4 rounded-2xl border space-y-2 transition-all ${
+                eur >= 1.05 && eur <= 1.15 ? 'bg-emerald-950/30 border-emerald-500/50 shadow-lg shadow-emerald-500/10' : 'bg-black/30 border-gray-850 opacity-70'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">✨</span>
+                  <h4 className="text-xs font-black text-emerald-400">
+                    توازن مثالي (1.05 - 1.15)
+                  </h4>
+                </div>
+                <p className="text-[11px] text-gray-300 leading-relaxed font-sans">
+                  <strong>التوصيف العلمي:</strong> توافق وتنسيق حركي ممتاز بين توليد القوة من العضلات وتخزينها في الأوتار وإعادة إطلاقها في أسرع زمن.
+                </p>
+                <div className="p-2 bg-black/40 rounded-xl text-[10px] text-emerald-200 border border-emerald-500/20 font-mono">
+                  <strong>🎯 التوصية التدريبية:</strong> الاستمرار في برنامج التدريب التكاملي المركب (Contrast Training).
+                </div>
+              </div>
+
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Elastic Utilization Ratio (EUR) Card */}
             <div className="glass-panel p-6 hud-card space-y-4">
               <h3 className="text-sm font-black text-white border-b border-gray-800 pb-2">
-                {isEn ? 'Elastic Utilization Ratio (EUR)' : 'مؤشر الاستغلال المطاطي للأوتار (EUR)'}
+                {isEn ? 'Elastic Utilization Ratio (EUR)' : 'مؤشر الاستغلال المطاطي للأوتار (EUR Index)'}
               </h3>
               <div className="space-y-3 font-mono">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400 font-sans">{isEn ? 'Countermovement Jump (No Arms):' : 'قفزة الارتداد (CMJ No Arms):'}</span>
+                  <span className="text-gray-400 font-sans">CMJ (No Arms):</span>
                   <span className="text-white font-bold">{maxCmjNoArms > 0 ? `${maxCmjNoArms.toFixed(1)} cm` : '—'}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400 font-sans">{isEn ? 'Squat Jump (No Arms):' : 'قفزة الثبات (Squat Jump):'}</span>
+                  <span className="text-gray-400 font-sans">Squat Jump (SJ):</span>
                   <span className="text-white font-bold">{maxSjNoArms > 0 ? `${maxSjNoArms.toFixed(1)} cm` : '—'}</span>
                 </div>
                 <div className="p-3 bg-blue-950/30 border border-blue-500/30 rounded-xl flex items-center justify-between pt-2">
-                  <span className="text-xs text-blue-300 font-sans font-bold">{isEn ? 'EUR Score:' : 'معامل EUR:'}</span>
+                  <span className="text-xs text-blue-300 font-sans font-bold">EUR Score:</span>
                   <span className="text-lg font-black text-cyan-400">{eur > 0 ? eur.toFixed(2) : '—'}</span>
                 </div>
               </div>
-              <p className="text-[11px] text-gray-400 font-sans leading-relaxed">
-                💡 {eur >= 1.05 && eur <= 1.15
-                    ? (isEn ? 'Balanced tendon elasticity and muscular power drive.' : 'توازن مثالي ومثمر بين القوة العضلية ومطاطية الأوتار.')
-                    : eur < 1.05
-                      ? (isEn ? 'Tendon SSC Deficit: Athlete relies heavily on raw muscle concentric force.' : 'عجز في مطاطية الأوتار: اللاعب يعتمد تماماً على القوة العضلية الصافية.')
-                      : (isEn ? 'Force Deficit: Highly reactive tendons but lacks raw concentric muscle force.' : 'عجز في القوة العضلية: اللاعب مطاطي ولكن يفتقر للقوة الانقباضية الصافية.')}
-              </p>
             </div>
 
             {/* Arm Swing Contribution Card */}
             <div className="glass-panel p-6 hud-card space-y-4">
               <h3 className="text-sm font-black text-white border-b border-gray-800 pb-2">
-                {isEn ? 'Arm Swing Contribution Ratio' : 'نسبة مساهمة الذراعين الحركية (Arm Swing)'}
+                {isEn ? 'Arm Swing Contribution Ratio' : 'نسبة مساهمة الذراعين الحركية (Arm Swing %)'}
               </h3>
               <div className="space-y-3 font-mono">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400 font-sans">{isEn ? 'CMJ With Arm Swing:' : 'قفزة الارتداد بأرجحة اليدين:'}</span>
+                  <span className="text-gray-400 font-sans">CMJ (Arms):</span>
                   <span className="text-white font-bold">{maxCmj > 0 ? `${maxCmj.toFixed(1)} cm` : '—'}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400 font-sans">{isEn ? 'CMJ Without Arm Swing:' : 'قفزة الارتداد بدون يدين:'}</span>
+                  <span className="text-gray-400 font-sans">CMJ (No Arms):</span>
                   <span className="text-white font-bold">{maxCmjNoArms > 0 ? `${maxCmjNoArms.toFixed(1)} cm` : '—'}</span>
                 </div>
                 <div className="p-3 bg-emerald-950/30 border border-emerald-500/30 rounded-xl flex items-center justify-between pt-2">
-                  <span className="text-xs text-emerald-300 font-sans font-bold">{isEn ? 'Arm Swing Contribution:' : 'نسبة المساهمة:'}</span>
+                  <span className="text-xs text-emerald-300 font-sans font-bold">Arm Swing Contribution:</span>
                   <span className="text-lg font-black text-emerald-400">{armSwing > 0 ? `+${armSwing.toFixed(1)}%` : '—'}</span>
                 </div>
               </div>
-              <p className="text-[11px] text-gray-400 font-sans leading-relaxed">
-                💡 {armSwing >= 10 && armSwing <= 15
-                    ? (isEn ? 'Optimal motor coordination between lower and upper body.' : 'تنسيق حركي مثالي ونقل ممتاز للزخم بين الذراعين والساقين.')
-                    : armSwing > 15
-                      ? (isEn ? 'High Arm Swing Dependence: Compensating for leg strength deficit.' : 'اعتماد مفرط على أرجحة اليدين للتعويض عن ضعف عضلات الأرجل.')
-                      : (isEn ? 'Low Arm Swing Usage: Sub-optimal momentum transfer.' : 'مساهمة منخفضة لليدين: ضع تماسك الزخم الحركي.')}
-              </p>
             </div>
 
           </div>
@@ -1020,11 +1044,11 @@ export default function PlayerProfile({
                 <thead>
                   <tr className="bg-blue-950/40 text-blue-300 font-bold border-b border-gray-800">
                     <th className="p-3">{isEn ? 'Date' : 'التاريخ'}</th>
-                    <th className="p-3">{isEn ? 'Category' : 'نوع الاختبار'}</th>
-                    <th className="p-3">{isEn ? 'Height' : 'الارتفاع'}</th>
-                    <th className="p-3">{isEn ? 'Flight Time' : 'زمن الطيران'}</th>
-                    <th className="p-3">{isEn ? 'Peak Power' : 'ذروة القدرة'}</th>
-                    <th className="p-3">{isEn ? 'RSI' : 'RSI'}</th>
+                    <th className="p-3">{isEn ? 'Category' : 'نوع الاختبار (Category)'}</th>
+                    <th className="p-3">{isEn ? 'Height' : 'الارتفاع (Jump Height)'}</th>
+                    <th className="p-3">{isEn ? 'Flight Time' : 'زمن الطيران (Flight Time)'}</th>
+                    <th className="p-3">{isEn ? 'Peak Power' : 'ذروة القدرة (Peak Power)'}</th>
+                    <th className="p-3">{isEn ? 'RSI' : 'RSI Index'}</th>
                     <th className="p-3">{isEn ? 'Actions' : 'إجراءات'}</th>
                   </tr>
                 </thead>

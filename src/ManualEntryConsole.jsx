@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit3, Save, Printer, User, Trash2, ShieldCheck, Sparkles, Check, ChevronDown, Activity, Zap, Scale, Calendar, FileText, ArrowRight, Award, Plus } from 'lucide-react';
+import { Edit3, Save, Printer, User, Trash2, ShieldCheck, Sparkles, Check, ChevronDown, Activity, Zap, Scale, Calendar, FileText, ArrowRight, Award, Plus, Target } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import AppLogo from './AppLogo';
 
@@ -29,6 +29,7 @@ export default function ManualEntryConsole({
     jumpHeightCm: '',
     flightTimeSec: '',
     contactTimeSec: '',
+    rsiScoreDirect: '',
     addedLoadKg: '',
     cleanWeightKg: '',
     cleanBwRatio: ''
@@ -61,8 +62,10 @@ export default function ManualEntryConsole({
   const peakPower = jumpHeight > 0 ? (61.9 * jumpHeight + 36.0 * weight - 1822) : 0;
   const relativePower = weight > 0 && peakPower > 0 ? peakPower / weight : 0;
 
-  // RSI Score (Flight Time / Contact Time)
-  const rsiScore = flightTime > 0 && contactTime > 0 ? flightTime / contactTime : 0;
+  // RSI Score (Calculated from flight/contact time OR Direct Input from OVR JUMP)
+  const calculatedRsi = flightTime > 0 && contactTime > 0 ? flightTime / contactTime : 0;
+  const directRsi = parseFloat(form.rsiScoreDirect) || 0;
+  const rsiScore = directRsi > 0 ? directRsi : calculatedRsi;
 
   // Takeoff Ground Reaction Force (GRF)
   const pushDistanceM = legLengthM * 0.45;
@@ -79,7 +82,6 @@ export default function ManualEntryConsole({
     if (field === 'jumpHeightCm') {
       const h = parseFloat(value);
       if (h > 0) {
-        // Auto calculate flight time: t_f = sqrt(8 * h / 9.81)
         const ft = Math.sqrt((8 * (h / 100)) / 9.81);
         updated.flightTimeSec = ft.toFixed(3);
       } else {
@@ -88,7 +90,6 @@ export default function ManualEntryConsole({
     } else if (field === 'flightTimeSec') {
       const ft = parseFloat(value);
       if (ft > 0) {
-        // Auto calculate height: h = 1.22625 * t_f^2 * 100
         const h = 1.22625 * Math.pow(ft, 2) * 100;
         updated.jumpHeightCm = h.toFixed(1);
       }
@@ -121,8 +122,8 @@ export default function ManualEntryConsole({
       return;
     }
 
-    if (jumpHeight === 0 && cleanWeight === 0) {
-      alert(isEn ? 'Please enter valid jump height or clean weight!' : 'يرجى إدخال ارتفاع القفز أو وزن الكلين أولاً!');
+    if (jumpHeight === 0 && cleanWeight === 0 && rsiScore === 0) {
+      alert(isEn ? 'Please enter valid test metrics!' : 'يرجى إدخال أرقام القياس أولاً!');
       return;
     }
 
@@ -299,15 +300,15 @@ export default function ManualEntryConsole({
           </div>
         </div>
 
-        {/* Diagnostic Callout Box with Sporty Orange Left Border */}
+        {/* Diagnostic Callout Box - Concise for PDF as requested */}
         <div className="border-r-8 border-[#ea580c] bg-[#fffaf0] p-4 rounded-xl mb-6 text-xs leading-relaxed font-mono">
           <p className="font-black text-slate-900 mb-1">
-            🔬 {printLang === 'en' ? 'Takeoff Kinematics & Force Diagnostics:' : 'التشخيص الحركي وقوة الدفع:'}
+            🔬 {printLang === 'en' ? 'Takeoff Kinematics & Force Diagnostics:' : 'التشخيص الحركي:'}
           </p>
-          <p className="text-slate-800 font-medium">
+          <p className="text-slate-800 font-bold">
             • {printLang === 'en'
-                ? `Takeoff Ground Reaction Force (GRF): ${takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} N (${takeoffForceBW.toFixed(2)} BW)` : 'N/A'}. RSI Index: ${rsiScore > 0 ? rsiScore.toFixed(2) : 'N/A'}.`
-                : `قوة الدفع لحظة الإقلاع (GRF): ${takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} نيوتن (${takeoffForceBW.toFixed(2)} ضعفي الوزن)` : 'غير متوفر'}. مؤشر القوة التفاعلية RSI: ${rsiScore > 0 ? rsiScore.toFixed(2) : 'غير متوفر'}.`}
+                ? `RSI Index: ${rsiScore > 0 ? rsiScore.toFixed(2) : 'N/A'}. Takeoff Force: ${takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} N` : 'N/A'}.`
+                : `مؤشر القوة التفاعلية RSI: ${rsiScore > 0 ? rsiScore.toFixed(2) : 'غير متوفر'}. قوة الدفع: ${takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} نيوتن` : 'غير متوفر'}.`}
           </p>
         </div>
 
@@ -392,7 +393,7 @@ export default function ManualEntryConsole({
                 }`}
               >
                 <Activity size={16} />
-                {isEn ? 'Vertical Jump Engine' : 'اختبارات الوثب العمودي'}
+                {isEn ? 'Vertical Jump Engine' : 'Vertical Jump Tests'}
               </button>
 
               <button
@@ -404,7 +405,7 @@ export default function ManualEntryConsole({
                 }`}
               >
                 <Zap size={16} />
-                {isEn ? 'Strength & 1RM Engine' : 'أحمال الكلين والقوة (1RM)'}
+                {isEn ? 'Strength & 1RM Engine' : 'Strength & Power Clean 1RM'}
               </button>
             </div>
 
@@ -418,17 +419,17 @@ export default function ManualEntryConsole({
           {entryMode === 'jump' ? (
             <div className="space-y-4">
               
-              {/* Test Type Select */}
+              {/* Test Type Select - Always English Test Names as requested */}
               <div>
                 <label className="text-xs font-bold text-gray-300 block mb-1.5">
-                  {isEn ? 'Jump Test Category' : 'نوع اختبار الوثب العمودي'}
+                  {isEn ? 'Jump Test Category' : 'نوع اختبار الوثب (Test Category)'}
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
-                    { id: 'cmj', nameAr: 'ارتداد باليدين (CMJ)', nameEn: 'CMJ (Arms)' },
-                    { id: 'cmj_no_arms', nameAr: 'ارتداد بدون يدين', nameEn: 'CMJ (No Arms)' },
-                    { id: 'sj_no_arms', nameAr: 'ثبات بدون يدين (SJ)', nameEn: 'Squat Jump (SJ)' },
-                    { id: 'rsi', nameAr: 'ساقط ارتدادي (Drop Jump)', nameEn: 'Drop Jump (RSI)' },
+                    { id: 'cmj', label: 'CMJ (Arms)' },
+                    { id: 'cmj_no_arms', label: 'CMJ (No Arms)' },
+                    { id: 'sj_no_arms', label: 'Squat Jump (SJ)' },
+                    { id: 'rsi', label: 'Drop Jump (RSI)' },
                   ].map(item => (
                     <button
                       key={item.id}
@@ -440,7 +441,7 @@ export default function ManualEntryConsole({
                           : 'bg-black/30 border-gray-800 text-gray-400 hover:border-gray-700'
                       }`}
                     >
-                      <span className="text-xs block">{isEn ? item.nameEn : item.nameAr}</span>
+                      <span className="text-xs block font-bold font-mono">{item.label}</span>
                     </button>
                   ))}
                 </div>
@@ -450,7 +451,7 @@ export default function ManualEntryConsole({
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-bold text-gray-300">
-                    {isEn ? 'Jump Height (cm)' : 'ارتفاع القفزة العمودية (سم)'}
+                    {isEn ? 'Jump Height (cm)' : 'ارتفاع القفزة العمودية (Jump Height cm)'}
                   </label>
                   <span className="text-[10px] text-cyan-400 font-mono">Auto-calculates flight time</span>
                 </div>
@@ -483,7 +484,7 @@ export default function ManualEntryConsole({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-gray-400">
-                    {isEn ? 'Flight Time (sec)' : 'زمن الطيران (ثانية)'}
+                    {isEn ? 'Flight Time (sec)' : 'زمن الطيران (Flight Time s)'}
                   </label>
                   <input
                     type="number"
@@ -498,7 +499,7 @@ export default function ManualEntryConsole({
                 {form.testType === 'rsi' && (
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-yellow-400">
-                      {isEn ? 'Ground Contact Time (sec)' : 'زمن التلامس الأرضي (ثانية)'}
+                      {isEn ? 'Ground Contact Time (sec)' : 'زمن التلامس الأرضي (Contact Time s)'}
                     </label>
                     <input
                       type="number"
@@ -511,6 +512,30 @@ export default function ManualEntryConsole({
                   </div>
                 )}
               </div>
+
+              {/* DIRECT RSI INPUT FOR OVR JUMP DEVICE */}
+              {form.testType === 'rsi' && (
+                <div className="space-y-2 pt-2 bg-yellow-950/20 p-4 border border-yellow-500/30 rounded-2xl">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-black text-yellow-400 flex items-center gap-1.5">
+                      <Target size={14} />
+                      {isEn ? 'Direct RSI Score Input (OVR JUMP Device)' : 'إدخال مؤشر RSI المباشر (جهاز OVR JUMP)'}
+                    </label>
+                    <span className="text-[9px] text-yellow-300 font-mono bg-yellow-950/60 px-2 py-0.5 rounded border border-yellow-500/30">OVR JUMP</span>
+                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="مثال: 2.15"
+                    value={form.rsiScoreDirect}
+                    onChange={(e) => setForm(prev => ({ ...prev, rsiScoreDirect: e.target.value }))}
+                    className="w-full bg-black/60 border border-yellow-500/60 rounded-xl p-3 text-yellow-300 font-mono font-black text-lg focus:border-yellow-400 outline-none"
+                  />
+                  <p className="text-[10px] text-yellow-200/80 font-sans">
+                    💡 {isEn ? 'If measuring with OVR JUMP device, enter the direct RSI output score here.' : 'إذا كنت تقيس بجهاز OVR JUMP، أدخل قيمة الـ RSI الظاهرة على الجهاز مباشرة هنا.'}
+                  </p>
+                </div>
+              )}
 
             </div>
           ) : (
@@ -600,7 +625,7 @@ export default function ManualEntryConsole({
             {/* Peak Power Card */}
             <div className="p-3.5 bg-black/40 border border-gray-800 rounded-xl flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-gray-400 font-bold font-sans block">{isEn ? 'Sayers Peak Power:' : 'ذروة القدرة الميكانيكية:'}</span>
+                <span className="text-[10px] text-gray-400 font-bold font-sans block">Sayers Peak Power:</span>
                 <span className="text-lg font-black text-cyan-400">{peakPower > 0 ? `${peakPower.toFixed(0)} W` : '—'}</span>
               </div>
               <span className="text-xs font-bold text-emerald-400 bg-emerald-950/30 px-2.5 py-1 rounded-lg border border-emerald-500/20">
@@ -611,7 +636,7 @@ export default function ManualEntryConsole({
             {/* Takeoff Force Card */}
             <div className="p-3.5 bg-black/40 border border-gray-800 rounded-xl flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-gray-400 font-bold font-sans block">{isEn ? 'Takeoff Ground Force (GRF):' : 'قوة الدفع لحظة الإقلاع:'}</span>
+                <span className="text-[10px] text-gray-400 font-bold font-sans block">Takeoff Force (GRF):</span>
                 <span className="text-base font-black text-white">{takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} N` : '—'}</span>
               </div>
               <span className="text-xs font-bold text-blue-400 bg-blue-950/30 px-2.5 py-1 rounded-lg border border-blue-500/20">
@@ -623,7 +648,7 @@ export default function ManualEntryConsole({
             {form.testType === 'rsi' && (
               <div className="p-3.5 bg-yellow-950/20 border border-yellow-500/30 rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-yellow-400 font-bold font-sans block">{isEn ? 'Reactive Strength Index (RSI):' : 'مؤشر القوة التفاعلية (RSI):'}</span>
+                  <span className="text-[10px] text-yellow-400 font-bold font-sans block">RSI Stiffness Index:</span>
                   <span className="text-lg font-black text-yellow-400">{rsiScore > 0 ? rsiScore.toFixed(2) : '—'}</span>
                 </div>
                 <span className="text-[10px] font-bold text-yellow-300 bg-yellow-950/50 px-2 py-0.5 rounded">
@@ -636,7 +661,7 @@ export default function ManualEntryConsole({
             {cleanWeight > 0 && (
               <div className="p-3.5 bg-emerald-950/20 border border-emerald-500/30 rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-emerald-400 font-bold font-sans block">{isEn ? 'Clean Bodyweight Ratio:' : 'نسبة رفع الكلين للوزن:'}</span>
+                  <span className="text-[10px] text-emerald-400 font-bold font-sans block">Clean 1RM / BW Ratio:</span>
                   <span className="text-lg font-black text-emerald-400">{cleanBwRatio > 0 ? `${cleanBwRatio.toFixed(2)}x BW` : '—'}</span>
                 </div>
                 <span className="text-[10px] font-bold text-emerald-300 bg-emerald-950/50 px-2 py-0.5 rounded">
@@ -691,11 +716,11 @@ export default function ManualEntryConsole({
                 <tr className="bg-blue-950/40 text-blue-300 font-bold border-b border-gray-800">
                   <th className="p-3">{isEn ? 'Date' : 'التاريخ'}</th>
                   <th className="p-3">{isEn ? 'Category' : 'نوع الاختبار'}</th>
-                  <th className="p-3">{isEn ? 'Jump Height' : 'ارتفاع القفز'}</th>
-                  <th className="p-3">{isEn ? 'Flight Time' : 'زمن الطيران'}</th>
-                  <th className="p-3">{isEn ? 'Peak Power' : 'ذروة القدرة'}</th>
-                  <th className="p-3">{isEn ? 'Relative Power' : 'القدرة النسبية'}</th>
-                  <th className="p-3">{isEn ? 'Clean 1RM' : 'الكلين'}</th>
+                  <th className="p-3">{isEn ? 'Jump Height' : 'ارتفاع القفز (Jump Height)'}</th>
+                  <th className="p-3">{isEn ? 'Flight Time' : 'زمن الطيران (Flight Time)'}</th>
+                  <th className="p-3">{isEn ? 'Peak Power' : 'ذروة القدرة (Peak Power)'}</th>
+                  <th className="p-3">{isEn ? 'Relative Power' : 'القدرة النسبية (W/kg)'}</th>
+                  <th className="p-3">{isEn ? 'Clean 1RM' : 'الكلين (Clean 1RM)'}</th>
                   <th className="p-3">{isEn ? 'Actions' : 'إجراءات'}</th>
                 </tr>
               </thead>
