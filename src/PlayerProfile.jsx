@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, TrendingUp, Clock, Zap, ArrowUpCircle, AlertCircle, BookOpen, X, Award, User, Scale, Calendar, Trophy, FileText, ChevronLeft, Target, Plus, Trash2, Edit3, ShieldCheck, Sparkles, Printer, Activity } from 'lucide-react';
+import { Download, TrendingUp, Clock, Zap, ArrowUpCircle, AlertCircle, BookOpen, X, Award, User, Scale, Calendar, Trophy, FileText, ChevronLeft, Target, Plus, Trash2, Edit3, ShieldCheck, Sparkles, Printer, Activity, Table } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from './supabaseClient';
 import AppLogo from './AppLogo';
@@ -17,8 +17,11 @@ export default function PlayerProfile({
   // Active Tab View: 'overview' | 'diagnostics' | 'history'
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Benchmark Modal State
+  // Benchmark Modal States
   const [selectedMetric, setSelectedMetric] = useState(null);
+  const [isBenchmarkModalOpen, setIsBenchmarkModalOpen] = useState(false);
+  const [benchmarkGender, setBenchmarkGender] = useState(activePlayer?.gender || 'male');
+  const [benchmarkCategory, setBenchmarkCategory] = useState('cmj'); // 'cmj' | 'rsi'
 
   // Print Language & Modal State
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
@@ -46,6 +49,7 @@ export default function PlayerProfile({
   const birthYear = parseInt(activePlayer.birth_year) || 2005;
   const currentYear = new Date().getFullYear();
   const age = Math.max(12, currentYear - birthYear);
+  const isFemale = activePlayer.gender === 'female';
 
   // Filter History Data by Jump Types
   const cmjJumps = playerHistory.filter(h => h.test_type === 'cmj' || h.test_type === 'cmj_arms');
@@ -72,7 +76,7 @@ export default function PlayerProfile({
   const totalTouchReachCm = standingReach + bestJumpOverall;
 
   // Volleyball Net Clearance KPI (Men Net: 243cm, Women Net: 224cm)
-  const vballNetHeightCm = activePlayer.gender === 'female' ? 224 : 243;
+  const vballNetHeightCm = isFemale ? 224 : 243;
   const vballClearanceCm = totalTouchReachCm - vballNetHeightCm;
 
   // Basketball Dunk Predictor KPI (Rim Height: 305cm, Need ~315cm for comfortable dunk)
@@ -123,6 +127,35 @@ export default function PlayerProfile({
   };
 
   const activeRating = getRatingBadge(overallRating);
+
+  // NORMATIVE BENCHMARK TABLES DATA (Exact Image 1, 2, 3 values + Gender Norms)
+  const maleRsiTable = [
+    { tier: 'Tier 1 (Novice)', avg: '0.7 – 1.0', good: '1.0 – 1.4', adv: '1.4 – 1.8', elite: '1.8+' },
+    { tier: 'Tier 2 (Intermediate)', avg: '1.2 – 1.6', good: '1.6 – 2.0', adv: '2.0 – 2.6', elite: '2.6+' },
+    { tier: 'Tier 3 (Athletic)', avg: '1.8 – 2.2', good: '2.2 – 2.8', adv: '2.8 – 3.4', elite: '3.4+' },
+    { tier: 'Tier 4 (Pro / Elite)', avg: '2.4 – 3.0', good: '3.0 – 3.6', adv: '3.6 – 4.0', elite: '4.0+' },
+  ];
+
+  const femaleRsiTable = [
+    { tier: 'Tier 1 (Novice)', avg: '0.5 – 0.8', good: '0.8 – 1.1', adv: '1.1 – 1.4', elite: '1.4+' },
+    { tier: 'Tier 2 (Intermediate)', avg: '1.0 – 1.3', good: '1.3 – 1.6', adv: '1.6 – 2.1', elite: '2.1+' },
+    { tier: 'Tier 3 (Athletic)', avg: '1.4 – 1.8', good: '1.8 – 2.3', adv: '2.3 – 2.8', elite: '2.8+' },
+    { tier: 'Tier 4 (Pro / Elite)', avg: '1.9 – 2.4', good: '2.4 – 2.9', adv: '2.9 – 3.3', elite: '3.3+' },
+  ];
+
+  const femaleCmjTable = [
+    { tier: 'Tier 1 (Youth / Novice)', avg: '9.6 - 11.7 in (24.4 - 29.7 cm)', good: '11.7 - 13.8 in (29.7 - 35.1 cm)', adv: '13.8 - 16.0 in (35.1 - 40.6 cm)', elite: '16.0+ in (40.6+ cm)' },
+    { tier: 'Tier 2 (Intermediate)', avg: '12.8 - 14.9 in (32.5 - 37.8 cm)', good: '14.9 - 17.0 in (37.8 - 43.2 cm)', adv: '17.0 - 18.1 in (43.2 - 46.0 cm)', elite: '18.1+ in (46.0+ cm)' },
+    { tier: 'Tier 3 (Athletic)', avg: '13.8 - 16.0 in (35.1 - 40.6 cm)', good: '16.0 - 18.1 in (40.6 - 46.0 cm)', adv: '18.1 - 19.2 in (46.0 - 48.8 cm)', elite: '19.2+ in (48.8+ cm)' },
+    { tier: 'Tier 4 (Collegiate / Elite)', avg: '14.9 - 17.0 in (37.8 - 43.2 cm)', good: '17.0 - 19.2 in (43.2 - 48.8 cm)', adv: '19.2 - 20.2 in (48.8 - 51.3 cm)', elite: '20.2+ in (51.3+ cm)' },
+  ];
+
+  const maleCmjTable = [
+    { tier: 'Tier 1 (Youth / Novice)', avg: '12.0 - 15.0 in (30.5 - 38.1 cm)', good: '15.0 - 18.0 in (38.1 - 45.7 cm)', adv: '18.0 - 21.0 in (45.7 - 53.3 cm)', elite: '21.0+ in (53.3+ cm)' },
+    { tier: 'Tier 2 (Intermediate)', avg: '16.0 - 19.0 in (40.6 - 48.3 cm)', good: '19.0 - 22.0 in (48.3 - 55.9 cm)', adv: '22.0 - 24.5 in (55.9 - 62.2 cm)', elite: '24.5+ in (62.2+ cm)' },
+    { tier: 'Tier 3 (Athletic)', avg: '18.0 - 21.0 in (45.7 - 53.3 cm)', good: '21.0 - 24.0 in (53.3 - 61.0 cm)', adv: '24.0 - 26.5 in (61.0 - 67.3 cm)', elite: '26.5+ in (67.3+ cm)' },
+    { tier: 'Tier 4 (Collegiate / Elite)', avg: '20.0 - 23.0 in (50.8 - 58.4 cm)', good: '23.0 - 26.0 in (58.4 - 66.0 cm)', adv: '26.0 - 28.5 in (66.0 - 72.4 cm)', elite: '28.5 - 30.0+ in (72.4 - 76.2+ cm)' },
+  ];
 
   // Delete Individual Measurement
   const handleDeleteTest = async (testId) => {
@@ -245,7 +278,7 @@ export default function PlayerProfile({
           </div>
         </div>
 
-        {/* Athlete Personal Specs Dossier - REQUIRED BY USER */}
+        {/* Athlete Personal Specs Dossier */}
         <div className="bg-slate-900 text-white p-5 rounded-2xl mb-6 shadow-md">
           <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
             <div className="flex items-center gap-3">
@@ -530,7 +563,15 @@ export default function PlayerProfile({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <button
+            onClick={() => setIsBenchmarkModalOpen(true)}
+            className="px-4 py-2.5 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-500/40 text-cyan-400 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-500/10"
+          >
+            <Table size={16} />
+            {isEn ? 'Normative Benchmarks Table' : 'المستويات المعيارية (Norms)'}
+          </button>
+
           <button
             onClick={() => onEditPlayer(activePlayer)}
             className="px-4 py-2.5 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer"
@@ -586,16 +627,11 @@ export default function PlayerProfile({
             
             {/* KPI 1: Max Vertical Jump (CMJ) */}
             <div
-              onClick={() => setSelectedMetric({
-                title: 'Max Vertical Jump (CMJ)',
-                value: `${heightCm.toFixed(1)} cm (${heightInches}")`,
-                desc: 'Primary measurement of vertical explosive leg power.',
-                benchmarks: [
-                  { label: 'Elite 👑', value: '+34.0" (+86 cm)' },
-                  { label: 'Excellent 🏆', value: '30.0" - 33.9" (76-85 cm)' },
-                  { label: 'Good ⭐', value: '26.0" - 29.9" (66-75 cm)' }
-                ]
-              })}
+              onClick={() => {
+                setBenchmarkCategory('cmj');
+                setBenchmarkGender(activePlayer?.gender || 'male');
+                setIsBenchmarkModalOpen(true);
+              }}
               className="glass-panel p-5 hud-card space-y-3 hover:border-cyan-500/40 transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between">
@@ -665,16 +701,11 @@ export default function PlayerProfile({
 
             {/* KPI 4: RSI Index */}
             <div
-              onClick={() => setSelectedMetric({
-                title: 'RSI Index',
-                value: `${rsiScore > 0 ? rsiScore.toFixed(2) : '—'}`,
-                desc: 'Ratio of flight time to ground contact time during drop jumps.',
-                benchmarks: [
-                  { label: 'Elite 👑', value: '+2.50' },
-                  { label: 'Excellent 🏆', value: '2.00 - 2.49' },
-                  { label: 'Good ⭐', value: '1.50 - 1.99' }
-                ]
-              })}
+              onClick={() => {
+                setBenchmarkCategory('rsi');
+                setBenchmarkGender(activePlayer?.gender || 'male');
+                setIsBenchmarkModalOpen(true);
+              }}
               className="glass-panel p-5 hud-card space-y-3 hover:border-yellow-500/40 transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between">
@@ -705,7 +736,7 @@ export default function PlayerProfile({
                   </h4>
                 </div>
                 <span className="text-[9px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/30">
-                  {activePlayer.gender === 'female' ? 'Women Net (224cm)' : 'Men Net (243cm)'}
+                  {isFemale ? 'Women Net (224cm)' : 'Men Net (243cm)'}
                 </span>
               </div>
 
@@ -1144,6 +1175,133 @@ export default function PlayerProfile({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+
+      {/* NORMATIVE BENCHMARKS FULL MATRIX MODAL (Exact Image 1, 2, 3 values) */}
+      {isBenchmarkModalOpen && (
+        <div className="fixed inset-0 z-[200] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-panel max-w-3xl w-full p-6 space-y-6 hud-card border-cyan-500/40 relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setIsBenchmarkModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white p-1 rounded-lg bg-gray-900 border border-gray-800"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-gray-800 pb-4">
+              <div className="p-2.5 bg-cyan-500/10 text-cyan-400 rounded-2xl border border-cyan-500/30">
+                <Table size={22} />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white">
+                  {isEn ? 'Official Athletic Normative Benchmarks Matrix' : 'المستويات المعيارية المعتمدة (Normative Benchmarks Matrix)'}
+                </h3>
+                <p className="text-xs text-gray-400 font-medium">
+                  {isEn ? 'Exact calibrated tiers for CMJ and RSI performance' : 'مصفوفة التقييم المعياري للاختبارات بالإنش والسنتيمتر للرجال والنساء'}
+                </p>
+              </div>
+            </div>
+
+            {/* Selector Controls: Gender & Category */}
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-black/40 p-3 rounded-2xl border border-gray-850">
+              
+              {/* Category Selector */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setBenchmarkCategory('cmj')}
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                    benchmarkCategory === 'cmj'
+                      ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/20'
+                      : 'bg-gray-900 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  🚀 CMJ Jump Height
+                </button>
+                <button
+                  onClick={() => setBenchmarkCategory('rsi')}
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                    benchmarkCategory === 'rsi'
+                      ? 'bg-yellow-600 text-white shadow-lg shadow-yellow-500/20'
+                      : 'bg-gray-900 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  🎯 RSI Index (Drop Jump)
+                </button>
+              </div>
+
+              {/* Gender Selector */}
+              <div className="flex items-center gap-2 bg-gray-900 p-1 rounded-xl border border-gray-800">
+                <button
+                  onClick={() => setBenchmarkGender('male')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                    benchmarkGender === 'male' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  👨 {isEn ? 'Male' : 'شباب / ذكور'}
+                </button>
+                <button
+                  onClick={() => setBenchmarkGender('female')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                    benchmarkGender === 'female' ? 'bg-pink-600 text-white' : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  👩 {isEn ? 'Female' : 'بنات / إناث'}
+                </button>
+              </div>
+
+            </div>
+
+            {/* BENCHMARK TABLE DISPLAY */}
+            <div className="overflow-x-auto border border-gray-800 rounded-2xl">
+              <table className="w-full text-xs text-center border-collapse">
+                <thead>
+                  <tr className="bg-slate-900 text-white font-bold border-b border-gray-800">
+                    <th className="p-3 text-right">{isEn ? 'Athletic Tier' : 'المستوى التدريبي'}</th>
+                    <th className="p-3 bg-red-950/40 text-red-400 border-x border-gray-800">Average (متوسط)</th>
+                    <th className="p-3 bg-amber-950/40 text-amber-400 border-r border-gray-800">Good (جيد)</th>
+                    <th className="p-3 bg-yellow-950/40 text-yellow-300 border-r border-gray-800">Advanced (متقدم)</th>
+                    <th className="p-3 bg-emerald-950/40 text-emerald-400">Elite (نخبة)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800/80 font-mono text-gray-200">
+                  {benchmarkCategory === 'rsi' ? (
+                    (benchmarkGender === 'female' ? femaleRsiTable : maleRsiTable).map((row, idx) => (
+                      <tr key={idx} className="hover:bg-cyan-950/20 transition-colors">
+                        <td className="p-3 text-right font-sans font-bold text-white bg-slate-950/40">{row.tier}</td>
+                        <td className="p-3 font-bold text-red-400 bg-red-950/10">{row.avg}</td>
+                        <td className="p-3 font-bold text-amber-400 bg-amber-950/10">{row.good}</td>
+                        <td className="p-3 font-bold text-yellow-300 bg-yellow-950/10">{row.adv}</td>
+                        <td className="p-3 font-black text-emerald-400 bg-emerald-950/10">{row.elite}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    (benchmarkGender === 'female' ? femaleCmjTable : maleCmjTable).map((row, idx) => (
+                      <tr key={idx} className="hover:bg-cyan-950/20 transition-colors">
+                        <td className="p-3 text-right font-sans font-bold text-white bg-slate-950/40">{row.tier}</td>
+                        <td className="p-3 font-bold text-red-400 bg-red-950/10">{row.avg}</td>
+                        <td className="p-3 font-bold text-amber-400 bg-amber-950/10">{row.good}</td>
+                        <td className="p-3 font-bold text-yellow-300 bg-yellow-950/10">{row.adv}</td>
+                        <td className="p-3 font-black text-emerald-400 bg-emerald-950/10">{row.elite}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="text-[10px] text-gray-400 font-mono leading-relaxed bg-black/40 p-3 rounded-xl border border-gray-850">
+              💡 {benchmarkCategory === 'cmj'
+                  ? (benchmarkGender === 'male'
+                      ? 'تم معايرة جدول قفز الذراعين للرجال مع مراعاة السقف الأقصى (30.0 إنش / 76.2 سم).'
+                      : 'جدول CMJ المعاير للإناث موضح بالإنش والسنتيمتر (1 إنش = 2.54 سم).')
+                  : (benchmarkGender === 'female'
+                      ? 'مؤشر RSI للإناث معاير علمياً بأقل بنسبة ~15-20% عن الذكور بسبب الاختلافات البيولوجية في صلابة الأوتار.'
+                      : 'جدول مؤشر RSI المعاير للذكور مقسم على 4 مستويات أداء.')}
+            </p>
+
           </div>
         </div>
       )}
