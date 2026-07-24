@@ -41,6 +41,7 @@ export default function PlayerProfile({
   // Anthropometrics
   const mass = parseFloat(activePlayer.weight_kg) || 72;
   const playerHeight = parseFloat(activePlayer.height_cm) || 178;
+  const standingReach = parseFloat(activePlayer.standing_reach_cm) || Math.round(playerHeight * 1.32);
   const legLengthM = parseFloat(activePlayer.leg_length_m) || 1.0;
   const birthYear = parseInt(activePlayer.birth_year) || 2005;
   const currentYear = new Date().getFullYear();
@@ -52,16 +53,33 @@ export default function PlayerProfile({
   const sjNoArmsJumps = playerHistory.filter(h => h.test_type === 'sj_no_arms');
   const rsiJumps = playerHistory.filter(h => h.test_type === 'rsi');
   const approachJumps = playerHistory.filter(h => h.test_type === 'approach' || h.test_type === 'approach_jump');
+  const cleanJumps = playerHistory.filter(h => parseFloat(h.clean_weight_kg) > 0);
 
   // Peak Height Records
   const maxCmj = cmjJumps.length > 0 ? Math.max(...cmjJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
   const maxCmjNoArms = cmjNoArmsJumps.length > 0 ? Math.max(...cmjNoArmsJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
   const maxSjNoArms = sjNoArmsJumps.length > 0 ? Math.max(...sjNoArmsJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
   const maxApproach = approachJumps.length > 0 ? Math.max(...approachJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
+  const maxClean = cleanJumps.length > 0 ? Math.max(...cleanJumps.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
 
   // Active Peak Jump Height for Main Stats
   const heightCm = maxCmj > 0 ? maxCmj : (maxCmjNoArms > 0 ? maxCmjNoArms : (maxSjNoArms > 0 ? maxSjNoArms : 0));
   const heightInches = (heightCm * 0.393701).toFixed(1);
+
+  // Best Jump Height overall (including approach)
+  const bestJumpOverall = Math.max(heightCm, maxApproach);
+
+  // Total Touch Reach = Standing Reach + Best Jump Height
+  const totalTouchReachCm = standingReach + bestJumpOverall;
+
+  // Volleyball Net Clearance KPI (Men Net: 243cm, Women Net: 224cm)
+  const vballNetHeightCm = activePlayer.gender === 'female' ? 224 : 243;
+  const vballClearanceCm = totalTouchReachCm - vballNetHeightCm;
+
+  // Basketball Dunk Predictor KPI (Rim Height: 305cm, Need ~315cm for comfortable dunk)
+  const basketballRimCm = 305;
+  const dunkMarginCm = totalTouchReachCm - 315;
+  const rimMarginCm = totalTouchReachCm - 305;
 
   // Latest Test Record
   const latestTest = playerHistory.length > 0 ? playerHistory[playerHistory.length - 1] : null;
@@ -171,6 +189,8 @@ export default function PlayerProfile({
             <p><strong>{printLang === 'en' ? 'Age:' : 'العمر:'}</strong> {age} {printLang === 'en' ? 'yrs' : 'سنة'}</p>
             <p><strong>{printLang === 'en' ? 'Weight:' : 'الوزن:'}</strong> {mass} kg</p>
             <p><strong>{printLang === 'en' ? 'Height:' : 'الطول:'}</strong> {playerHeight} cm</p>
+            <p><strong>{printLang === 'en' ? 'Standing Reach:' : 'المدى العمودي:'}</strong> {standingReach} cm</p>
+            <p><strong>{printLang === 'en' ? 'Total Touch Reach:' : 'الوصول الأقصى:'}</strong> {totalTouchReachCm} cm</p>
           </div>
         </div>
 
@@ -182,8 +202,8 @@ export default function PlayerProfile({
           </div>
 
           <div className="border-2 border-slate-300 p-4 rounded-xl text-center bg-white">
-            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Hang Time' : 'زمن الطيران'}</span>
-            <span className="text-2xl font-black text-slate-900 font-mono">{flightTime > 0 ? `${flightTime.toFixed(3)} s` : '—'}</span>
+            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Volleyball Clearance' : 'فوق شبكة الفولي'}</span>
+            <span className="text-2xl font-black text-slate-900 font-mono">{vballClearanceCm > 0 ? `+${vballClearanceCm.toFixed(1)} cm` : '—'}</span>
           </div>
 
           <div className="border-2 border-emerald-600 p-4 rounded-xl text-center bg-emerald-50/30">
@@ -192,20 +212,20 @@ export default function PlayerProfile({
           </div>
 
           <div className="border-2 border-yellow-600 p-4 rounded-xl text-center bg-yellow-50/30">
-            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'RSI Index' : 'مؤشر RSI'}</span>
-            <span className="text-2xl font-black text-yellow-900 font-mono">{rsiScore > 0 ? rsiScore.toFixed(2) : '—'}</span>
+            <span className="text-[10px] text-gray-600 font-bold block">{printLang === 'en' ? 'Dunk Ability Margin' : 'هامش الـ Dunk'}</span>
+            <span className="text-2xl font-black text-yellow-900 font-mono">{dunkMarginCm >= 0 ? `+${dunkMarginCm.toFixed(1)} cm` : `${dunkMarginCm.toFixed(1)} cm`}</span>
           </div>
         </div>
 
         {/* Diagnostic Notes */}
         <div className="bg-slate-50 p-4 rounded-xl border border-slate-300 mb-6 text-xs leading-relaxed font-mono">
           <p className="font-bold text-blue-900 mb-1">
-            🔬 {printLang === 'en' ? 'Biomechanical Critique & SSC Ratio:' : 'التشخيص الحركي ومستويات أوتار القدم:'}
+            🔬 {printLang === 'en' ? 'Biomechanical Critique & Sport Specific Metrics:' : 'التشخيص الحركي ومستويات الألعاب الرياضية:'}
           </p>
           <p className="text-slate-800">
             • {printLang === 'en'
-                ? `Elastic Utilization Ratio (EUR): ${eur > 0 ? eur.toFixed(2) : 'N/A'}. Sayers Peak Power: ${sayersPeak > 0 ? sayersPeak.toFixed(0) : 'N/A'} W.`
-                : `معامل استغلال الأوتار (EUR): ${eur > 0 ? eur.toFixed(2) : 'غير متوفر'}. ذروة قدرة Sayers: ${sayersPeak > 0 ? sayersPeak.toFixed(0) : 'غير متوفر'} وات.`}
+                ? `Total Reach: ${totalTouchReachCm} cm. Basketball Dunk: ${dunkMarginCm >= 0 ? 'CAN DUNK EASILY 🏀🔥' : `Needs ${Math.abs(dunkMarginCm).toFixed(1)} cm more for Dunk`}. Volleyball Net Clearance: +${vballClearanceCm.toFixed(1)} cm.`
+                : `الوصول الأقصى باليد: ${totalTouchReachCm} سم. قدرة السلة Dunk: ${dunkMarginCm >= 0 ? 'يستطيع عمل Dunk بسهولة 🏀🔥' : `يحتاج إلى ${Math.abs(dunkMarginCm).toFixed(1)} سم إضافية للـ Dunk`}. الارتفاع فوق شبكة الكرة الطائرة: +${vballClearanceCm.toFixed(1)} سم.`}
           </p>
         </div>
 
@@ -253,12 +273,14 @@ export default function PlayerProfile({
               </span>
             </div>
 
-            <div className="flex items-center justify-center sm:justify-start gap-4 text-xs text-gray-400 font-mono pt-1">
+            <div className="flex items-center justify-center sm:justify-start gap-4 text-xs text-gray-400 font-mono pt-1 flex-wrap">
               <span>{isEn ? 'Age:' : 'العمر:'} <strong className="text-white">{age}</strong></span>
               <span>•</span>
               <span>{isEn ? 'Weight:' : 'الوزن:'} <strong className="text-white">{mass} kg</strong></span>
               <span>•</span>
               <span>{isEn ? 'Height:' : 'الطول:'} <strong className="text-white">{playerHeight} cm</strong></span>
+              <span>•</span>
+              <span>{isEn ? 'Standing Reach:' : 'المدى العمودي:'} <strong className="text-cyan-400">{standingReach} cm</strong></span>
             </div>
           </div>
         </div>
@@ -424,6 +446,217 @@ export default function PlayerProfile({
             </div>
 
           </div>
+
+
+          {/* NEW: VOLLEYBALL NET & BASKETBALL DUNK SPECIFIC KPIS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            {/* Volleyball Net Clearance Card */}
+            <div className="glass-panel p-5 hud-card space-y-3 border-l-4 border-l-cyan-400">
+              <div className="flex items-center justify-between border-b border-gray-800 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🏐</span>
+                  <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                    {isEn ? 'Volleyball Net Clearance' : 'ارتفاع الوصول فوق شبكة الكرة الطائرة'}
+                  </h4>
+                </div>
+                <span className="text-[9px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/30">
+                  {activePlayer.gender === 'female' ? 'Women Net (224cm)' : 'Men Net (243cm)'}
+                </span>
+              </div>
+
+              <div className="flex items-baseline justify-between pt-1">
+                <div>
+                  <span className="text-2xl font-black text-cyan-400 font-mono">
+                    {vballClearanceCm > 0 ? `+${vballClearanceCm.toFixed(1)} cm` : '—'}
+                  </span>
+                  <span className="text-xs text-gray-400 font-bold ml-1.5">
+                    ({(vballClearanceCm * 0.393701).toFixed(1)}")
+                  </span>
+                </div>
+                <div className="text-right text-[10px] font-mono text-gray-400">
+                  <p>{isEn ? 'Total Reach:' : 'الوصول الأقصى:'} <strong className="text-white">{totalTouchReachCm} cm</strong></p>
+                  <p>{isEn ? 'Net Height:' : 'ارتفاع الشبكة:'} <strong className="text-gray-300">{vballNetHeightCm} cm</strong></p>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-gray-300 font-medium leading-relaxed bg-black/30 p-2.5 rounded-xl border border-gray-850">
+                {vballClearanceCm >= 40
+                  ? (isEn ? 'Elite Volleyball Spike Reach! Exceptional clearance above block.' : 'ارتفاع استثنائي للكبس فوق الشبكة! يتجاوز حائط الصد بسهولة. 👑🏐')
+                  : vballClearanceCm >= 20
+                    ? (isEn ? 'Excellent Spike Clearance above net.' : 'ارتقاء ممتاز ومؤهل للضرب الساحلي بحرية فوق الشبكة. 🏆')
+                    : (isEn ? 'Moderate Clearance above net.' : 'ارتقاء متوسط فوق الشبكة، ينصح بزيادة ارتقاء الاقتراب. ⚡')}
+              </p>
+            </div>
+
+
+            {/* Basketball Dunk Predictor Card */}
+            <div className="glass-panel p-5 hud-card space-y-3 border-l-4 border-l-yellow-500">
+              <div className="flex items-center justify-between border-b border-gray-800 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🏀</span>
+                  <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                    {isEn ? 'Basketball Dunk Ability Predictor' : 'قدرة وهيئة عمل الدانك (Basketball Dunk Status)'}
+                  </h4>
+                </div>
+                <span className="text-[9px] font-mono text-yellow-400 bg-yellow-950/40 px-2 py-0.5 rounded border border-yellow-500/30">
+                  Official Rim (305cm)
+                </span>
+              </div>
+
+              <div className="flex items-baseline justify-between pt-1">
+                <div>
+                  <span className={`text-xl font-black font-mono ${dunkMarginCm >= 0 ? 'text-[#00c9a7]' : 'text-yellow-400'}`}>
+                    {dunkMarginCm >= 0
+                      ? (isEn ? 'Can Dunk Easily! 🏀🔥' : 'يستطيع عمل Dunk بسهولة! 🏀🔥')
+                      : rimMarginCm >= 0
+                        ? (isEn ? 'Can Touch Rim! 🏀' : 'يستطيع لمس الحلقة! 🏀')
+                        : (isEn ? `Needs ${Math.abs(dunkMarginCm).toFixed(1)} cm more` : `يحتاج ${Math.abs(dunkMarginCm).toFixed(1)} سم إضافية`)}
+                  </span>
+                </div>
+                <div className="text-right text-[10px] font-mono text-gray-400">
+                  <p>{isEn ? 'Total Touch:' : 'الوصول الأقصى:'} <strong className="text-white">{totalTouchReachCm} cm</strong></p>
+                  <p>{isEn ? 'Rim Height:' : 'ارتفاع الحلقة:'} <strong className="text-gray-300">305 cm</strong></p>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-gray-300 font-medium leading-relaxed bg-black/30 p-2.5 rounded-xl border border-gray-850">
+                {dunkMarginCm >= 0
+                  ? (isEn ? `Cleared 315 cm dunk threshold by +${dunkMarginCm.toFixed(1)} cm (${(dunkMarginCm*0.393701).toFixed(1)}").` : `يتجاوز المعيار المطلوب للدانك المريح بـ +${dunkMarginCm.toFixed(1)} سم (${(dunkMarginCm*0.393701).toFixed(1)} إنش).`)
+                  : rimMarginCm >= 0
+                    ? (isEn ? `Touches 305 cm rim! Needs +${Math.abs(dunkMarginCm).toFixed(1)} cm more jump height for clean dunking.` : `يستطيع ملامسة الحلقة (305 سم) بحرية! يتطلب +${Math.abs(dunkMarginCm).toFixed(1)} سم إضافية للدانك المريح.`)
+                    : (isEn ? `Standing reach ${standingReach}cm. Needs +${Math.abs(rimMarginCm).toFixed(1)} cm jump gain to reach rim.` : `المدى العمودي ${standingReach} سم. يحتاج زياده +${Math.abs(rimMarginCm).toFixed(1)} سم في القفز للوصول للحلقة.`)}
+              </p>
+            </div>
+
+          </div>
+
+
+          {/* NEW: COMPLETE ALL TESTS PERFORMANCE COMPARISON MATRIX TABLE */}
+          <div className="glass-panel p-6 hud-card space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500/10 text-cyan-400 rounded-xl">
+                  <Trophy size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white">
+                    {isEn ? 'All Recorded Biomechanical Tests Breakdown' : 'مصفوفة جميع اختبارات الوثب والقوة المسجلة للاعب'}
+                  </h3>
+                  <p className="text-[10px] text-gray-400 font-medium">
+                    {isEn ? 'Comprehensive breakdown of CMJ, Squat Jump, RSI, Approach Jump & Power Clean' : 'عرض شامل ومباشر لجميع اختبارات CMJ، والقفز بدون يدين، واختبار RSI والاقتراب'}
+                  </p>
+                </div>
+              </div>
+
+              <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/40 px-3 py-1 rounded-xl border border-cyan-500/30">
+                {playerHistory.length} Total Tests
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-center border-collapse">
+                <thead>
+                  <tr className="bg-blue-950/40 text-blue-300 font-bold border-b border-gray-800">
+                    <th className="p-3 text-right">{isEn ? 'Test Category' : 'نوع الاختبار'}</th>
+                    <th className="p-3">{isEn ? 'Peak Height (cm)' : 'الارتفاع (سم)'}</th>
+                    <th className="p-3">{isEn ? 'Height (in)' : 'الارتفاع (إنش)'}</th>
+                    <th className="p-3">{isEn ? 'Flight Time (s)' : 'زمن الطيران'}</th>
+                    <th className="p-3">{isEn ? 'Peak Power (W)' : 'ذروة القدرة'}</th>
+                    <th className="p-3">{isEn ? 'Relative Power' : 'القدرة النسبية'}</th>
+                    <th className="p-3">{isEn ? 'RSI / Clean' : 'الإنتاجية'}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800/60 font-mono text-gray-300">
+                  
+                  {/* CMJ Arms Row */}
+                  <tr className="hover:bg-blue-600/10 transition-colors">
+                    <td className="p-3 text-right font-sans font-bold text-white flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                      {isEn ? 'Countermovement Jump (Arms)' : 'قفزة الارتداد بأرجحة اليدين (CMJ)'}
+                    </td>
+                    <td className="p-3 text-cyan-400 font-black">{maxCmj > 0 ? `${maxCmj.toFixed(1)} cm` : '—'}</td>
+                    <td className="p-3 text-gray-300">{maxCmj > 0 ? `${(maxCmj * 0.393701).toFixed(1)}"` : '—'}</td>
+                    <td className="p-3 text-gray-300">{maxCmj > 0 ? `${Math.sqrt((8 * (maxCmj/100))/9.81).toFixed(3)} s` : '—'}</td>
+                    <td className="p-3 text-blue-400 font-bold">{maxCmj > 0 ? `${(61.9 * maxCmj + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
+                    <td className="p-3 text-emerald-400 font-bold">{maxCmj > 0 && mass > 0 ? `${((61.9 * maxCmj + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
+                    <td className="p-3 text-gray-400 font-sans">{maxCmj > 0 ? 'Max Jump 👑' : '—'}</td>
+                  </tr>
+
+                  {/* CMJ No Arms Row */}
+                  <tr className="hover:bg-blue-600/10 transition-colors">
+                    <td className="p-3 text-right font-sans font-bold text-white flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-blue-400" />
+                      {isEn ? 'Countermovement Jump (No Arms)' : 'قفزة الارتداد بدون يدين (CMJ No Arms)'}
+                    </td>
+                    <td className="p-3 text-cyan-400 font-black">{maxCmjNoArms > 0 ? `${maxCmjNoArms.toFixed(1)} cm` : '—'}</td>
+                    <td className="p-3 text-gray-300">{maxCmjNoArms > 0 ? `${(maxCmjNoArms * 0.393701).toFixed(1)}"` : '—'}</td>
+                    <td className="p-3 text-gray-300">{maxCmjNoArms > 0 ? `${Math.sqrt((8 * (maxCmjNoArms/100))/9.81).toFixed(3)} s` : '—'}</td>
+                    <td className="p-3 text-blue-400 font-bold">{maxCmjNoArms > 0 ? `${(61.9 * maxCmjNoArms + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
+                    <td className="p-3 text-emerald-400 font-bold">{maxCmjNoArms > 0 && mass > 0 ? `${((61.9 * maxCmjNoArms + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
+                    <td className="p-3 text-gray-400 font-sans">{maxCmjNoArms > 0 ? 'SSC Test ⚡' : '—'}</td>
+                  </tr>
+
+                  {/* SJ No Arms Row */}
+                  <tr className="hover:bg-blue-600/10 transition-colors">
+                    <td className="p-3 text-right font-sans font-bold text-white flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                      {isEn ? 'Squat Jump (No Arms)' : 'قفزة الثبات بدون يدين (Squat Jump)'}
+                    </td>
+                    <td className="p-3 text-cyan-400 font-black">{maxSjNoArms > 0 ? `${maxSjNoArms.toFixed(1)} cm` : '—'}</td>
+                    <td className="p-3 text-gray-300">{maxSjNoArms > 0 ? `${(maxSjNoArms * 0.393701).toFixed(1)}"` : '—'}</td>
+                    <td className="p-3 text-gray-300">{maxSjNoArms > 0 ? `${Math.sqrt((8 * (maxSjNoArms/100))/9.81).toFixed(3)} s` : '—'}</td>
+                    <td className="p-3 text-blue-400 font-bold">{maxSjNoArms > 0 ? `${(61.9 * maxSjNoArms + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
+                    <td className="p-3 text-emerald-400 font-bold">{maxSjNoArms > 0 && mass > 0 ? `${((61.9 * maxSjNoArms + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
+                    <td className="p-3 text-gray-400 font-sans">{maxSjNoArms > 0 ? 'Concentric ⚡' : '—'}</td>
+                  </tr>
+
+                  {/* Drop Jump RSI Row */}
+                  <tr className="hover:bg-blue-600/10 transition-colors">
+                    <td className="p-3 text-right font-sans font-bold text-white flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-yellow-400" />
+                      {isEn ? 'Drop Jump (RSI Index)' : 'اختبار السقوط الارتدادي (Drop Jump RSI)'}
+                    </td>
+                    <td className="p-3 text-cyan-400 font-black">{latestRsiRecord ? `${parseFloat(latestRsiRecord.jump_height_cm).toFixed(1)} cm` : '—'}</td>
+                    <td className="p-3 text-gray-300">{latestRsiRecord ? `${(parseFloat(latestRsiRecord.jump_height_cm) * 0.393701).toFixed(1)}"` : '—'}</td>
+                    <td className="p-3 text-gray-300">{latestRsiRecord ? `${parseFloat(latestRsiRecord.flight_time_sec).toFixed(3)} s` : '—'}</td>
+                    <td className="p-3 text-blue-400 font-bold">—</td>
+                    <td className="p-3 text-emerald-400 font-bold">—</td>
+                    <td className="p-3 text-yellow-400 font-bold">{rsiScore > 0 ? `RSI ${rsiScore.toFixed(2)}` : '—'}</td>
+                  </tr>
+
+                  {/* Approach Jump Row */}
+                  <tr className="hover:bg-blue-600/10 transition-colors">
+                    <td className="p-3 text-right font-sans font-bold text-white flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-purple-400" />
+                      {isEn ? 'Approach Jump (Volleyball/Basketball)' : 'قفزة الاقتراب والركض (Approach Jump)'}
+                    </td>
+                    <td className="p-3 text-cyan-400 font-black">{maxApproach > 0 ? `${maxApproach.toFixed(1)} cm` : '—'}</td>
+                    <td className="p-3 text-gray-300">{maxApproach > 0 ? `${(maxApproach * 0.393701).toFixed(1)}"` : '—'}</td>
+                    <td className="p-3 text-gray-300">{maxApproach > 0 ? `${Math.sqrt((8 * (maxApproach/100))/9.81).toFixed(3)} s` : '—'}</td>
+                    <td className="p-3 text-blue-400 font-bold">{maxApproach > 0 ? `${(61.9 * maxApproach + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
+                    <td className="p-3 text-emerald-400 font-bold">{maxApproach > 0 && mass > 0 ? `${((61.9 * maxApproach + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
+                    <td className="p-3 text-purple-400 font-bold">{maxApproach > 0 ? 'Max Velocity 🚀' : '—'}</td>
+                  </tr>
+
+                  {/* Clean 1RM Row */}
+                  {maxClean > 0 && (
+                    <tr className="hover:bg-blue-600/10 transition-colors">
+                      <td className="p-3 text-right font-sans font-bold text-white flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                        {isEn ? 'Power Clean 1RM' : 'رفعة الكلين القصوى (Power Clean 1RM)'}
+                      </td>
+                      <td className="p-3 text-emerald-400 font-black" colSpan={4}>{maxClean} kg</td>
+                      <td className="p-3 text-emerald-400 font-bold">{mass > 0 ? `${(maxClean/mass).toFixed(2)}x BW` : '—'}</td>
+                      <td className="p-3 text-emerald-400 font-bold">1RM Strength 🏋️</td>
+                    </tr>
+                  )}
+
+                </tbody>
+              </table>
+            </div>
+          </div>
+
 
           {/* Historical Trend Chart (Jump Height Progress) */}
           <div className="glass-panel p-6 hud-card space-y-4">
