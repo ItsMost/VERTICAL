@@ -60,7 +60,6 @@ export default function PlayerProfile({
   const maxCmjNoArms = cmjNoArmsJumps.length > 0 ? Math.max(...cmjNoArmsJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
   const maxSjNoArms = sjNoArmsJumps.length > 0 ? Math.max(...sjNoArmsJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
   const maxApproach = approachJumps.length > 0 ? Math.max(...approachJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
-  const maxClean = cleanJumps.length > 0 ? Math.max(...cleanJumps.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
 
   // Active Peak Jump Height for Main Stats
   const heightCm = maxCmj > 0 ? maxCmj : (maxCmjNoArms > 0 ? maxCmjNoArms : (maxSjNoArms > 0 ? maxSjNoArms : 0));
@@ -77,7 +76,6 @@ export default function PlayerProfile({
   const vballClearanceCm = totalTouchReachCm - vballNetHeightCm;
 
   // Basketball Dunk Predictor KPI (Rim Height: 305cm, Need ~315cm for comfortable dunk)
-  const basketballRimCm = 305;
   const dunkMarginCm = totalTouchReachCm - 315;
   const rimMarginCm = totalTouchReachCm - 305;
 
@@ -85,10 +83,8 @@ export default function PlayerProfile({
   const latestTest = playerHistory.length > 0 ? playerHistory[playerHistory.length - 1] : null;
   const flightTime = latestTest ? (parseFloat(latestTest.flight_time_sec) || 0) : (heightCm > 0 ? Math.sqrt((8 * (heightCm / 100)) / 9.81) : 0);
 
-  // Sayers Peak Power (61.9 * H_cm + 36.0 * BW_kg - 1822)
+  // Sayers Peak Power
   const sayersPeak = heightCm > 0 ? (61.9 * heightCm + 36.0 * mass - 1822) : 0;
-
-  // Relative Power Density (W/kg)
   const relativePower = mass > 0 && sayersPeak > 0 ? (sayersPeak / mass) : 0;
 
   // Elastic Utilization Ratio (EUR = CMJ_no_arms / SJ_no_arms)
@@ -101,7 +97,7 @@ export default function PlayerProfile({
       ? 'الاعتماد عضلي انقباضي'
       : 'توازن مثالي بين العضلات والأوتار';
 
-  // Arm Swing Contribution (%) = ((CMJ_arms - CMJ_no_arms) / CMJ_no_arms) * 100
+  // Arm Swing Contribution (%)
   const armSwing = maxCmjNoArms > 0 && maxCmj > 0 ? (((maxCmj - maxCmjNoArms) / maxCmjNoArms) * 100) : 0;
 
   // Latest RSI Score
@@ -117,6 +113,13 @@ export default function PlayerProfile({
     if (score >= 70) return { text: isEn ? 'Excellent 🏆' : 'ممتاز 🏆', color: 'text-cyan-400 bg-cyan-950/40 border-cyan-500/30' };
     if (score >= 55) return { text: isEn ? 'Good ⭐' : 'جيد ⭐', color: 'text-blue-400 bg-blue-950/40 border-blue-500/30' };
     return { text: isEn ? 'Normal ⚡' : 'عادي ⚡', color: 'text-gray-400 bg-gray-900 border-gray-800' };
+  };
+
+  // Helper function to evaluate test ratings for the PDF report (ممتاز / جيد جداً / جيد)
+  const getTestRatingTag = (hCm, relW) => {
+    if (hCm >= 70 || relW >= 60) return { ar: 'ممتاز 🏆', en: 'Elite 🏆', bg: '#dcfce7', text: '#15803d' };
+    if (hCm >= 55 || relW >= 48) return { ar: 'جيد جداً ⭐', en: 'Very Good ⭐', bg: '#dbeafe', text: '#1d4ed8' };
+    return { ar: 'جيد ⚡', en: 'Good ⚡', bg: '#fef3c7', text: '#b45309' };
   };
 
   const activeRating = getRatingBadge(overallRating);
@@ -242,7 +245,7 @@ export default function PlayerProfile({
           </div>
         </div>
 
-        {/* Athlete Personal Specs Dossier */}
+        {/* Athlete Personal Specs Dossier - REQUIRED BY USER */}
         <div className="bg-slate-900 text-white p-5 rounded-2xl mb-6 shadow-md">
           <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
             <div className="flex items-center gap-3">
@@ -251,7 +254,7 @@ export default function PlayerProfile({
               </div>
               <div>
                 <h2 className="text-lg font-black text-white">{activePlayer.full_name}</h2>
-                <span className="text-[10px] text-orange-400 font-bold">{isEn ? 'Biomechanical Athlete Profile' : 'الملف البدني والحركي المعاير'}</span>
+                <span className="text-[10px] text-orange-400 font-bold">{isEn ? 'Biomechanical Athlete Profile' : 'بيانات الملف البدني والشخصي للاعب'}</span>
               </div>
             </div>
             <span className="text-xs font-black px-3 py-1 bg-[#ea580c] text-white rounded-xl">
@@ -287,7 +290,7 @@ export default function PlayerProfile({
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="print-infographic-card text-center">
             <span className="text-[10px] text-orange-800 font-black uppercase block mb-1">
-              🚀 {printLang === 'en' ? 'Max Vertical Jump (CMJ)' : 'Max Vertical Jump (CMJ)'}
+              🚀 Max Vertical Jump (CMJ)
             </span>
             <span className="text-3xl font-black text-orange-600 font-mono block">
               {heightCm > 0 ? `${heightCm.toFixed(1)}` : '—'} <span className="text-xs text-slate-700">cm</span>
@@ -299,7 +302,7 @@ export default function PlayerProfile({
 
           <div className="print-infographic-card print-infographic-card-slate text-center">
             <span className="text-[10px] text-slate-700 font-black uppercase block mb-1">
-              ⏱️ {printLang === 'en' ? 'Flight Time' : 'Flight Time'}
+              ⏱️ Flight Time
             </span>
             <span className="text-3xl font-black text-slate-900 font-mono block">
               {flightTime > 0 ? `${flightTime.toFixed(3)}` : '—'} <span className="text-xs text-slate-600">sec</span>
@@ -311,7 +314,7 @@ export default function PlayerProfile({
 
           <div className="print-infographic-card print-infographic-card-teal text-center">
             <span className="text-[10px] text-teal-800 font-black uppercase block mb-1">
-              ⚡ {printLang === 'en' ? 'Relative Power' : 'Relative Power'}
+              ⚡ Relative Power
             </span>
             <span className="text-3xl font-black text-teal-700 font-mono block">
               {relativePower > 0 ? `${relativePower.toFixed(1)}` : '—'} <span className="text-xs text-slate-600">W/kg</span>
@@ -323,7 +326,7 @@ export default function PlayerProfile({
 
           <div className="print-infographic-card text-center" style={{ backgroundColor: '#fffbebf0', borderColor: '#fde68a' }}>
             <span className="text-[10px] text-amber-800 font-black uppercase block mb-1">
-              🎯 {printLang === 'en' ? 'RSI Index' : 'RSI Index'}
+              🎯 RSI Index
             </span>
             <span className="text-3xl font-black text-amber-600 font-mono block">
               {rsiScore > 0 ? `${rsiScore.toFixed(2)}` : '—'}
@@ -334,92 +337,133 @@ export default function PlayerProfile({
           </div>
         </div>
 
-        {/* Sport Specific Clearance Showcase */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="border-2 border-orange-500 bg-orange-50/50 p-4 rounded-2xl flex items-center justify-between">
-            <div>
-              <span className="text-xs font-black text-orange-900 block mb-1">
-                🏐 {printLang === 'en' ? 'Volleyball Net Clearance:' : 'الارتفاع فوق شبكة الكرة الطائرة:'}
-              </span>
-              <span className="text-2xl font-black text-orange-600 font-mono">
-                {vballClearanceCm > 0 ? `+${vballClearanceCm.toFixed(1)} cm` : '—'}
-              </span>
-            </div>
-            <span className="text-[10px] font-black px-2.5 py-1 bg-orange-600 text-white rounded-lg inline-block">
-              {vballClearanceCm >= 30 ? 'Spike Clearance 👑' : 'Standard Clearance'}
-            </span>
-          </div>
-
-          <div className="border-2 border-slate-800 bg-slate-900 text-white p-4 rounded-2xl flex items-center justify-between">
-            <div>
-              <span className="text-xs font-black text-orange-400 block mb-1">
-                🏀 {printLang === 'en' ? 'Basketball Dunk Predictor:' : 'قدرة عمل الدانك (Dunk Status):'}
-              </span>
-              <span className="text-xl font-black text-white font-mono">
-                {dunkMarginCm >= 0
-                  ? 'CAN DUNK EASILY 🏀🔥'
-                  : rimMarginCm >= 0
-                    ? 'CAN TOUCH RIM 🏀'
-                    : `Needs ${Math.abs(dunkMarginCm).toFixed(1)} cm`}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* All Tests Comparison Table */}
+        {/* All Tests Comparison Table WITH RATING CLASSIFICATION BADGES (ممتاز / جيد جداً / جيد) */}
         <div className="mb-6">
           <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-2">
-            📊 {printLang === 'en' ? 'Complete Biomechanical Tests Matrix' : 'مصفوفة جميع اختبارات الوثب والقدرة المسجلة'}
+            📊 {printLang === 'en' ? 'Complete Biomechanical Tests Matrix' : 'مصفوفة وتقييم جميع اختبارات الوثب والقدرة المسجلة'}
           </h3>
           <table className="print-table-orange">
             <thead>
               <tr>
-                <th style={{ textAlign: printLang === 'en' ? 'left' : 'right' }}>{printLang === 'en' ? 'Test Category' : 'نوع الاختبار'}</th>
+                <th style={{ textAlign: printLang === 'en' ? 'left' : 'right' }}>{printLang === 'en' ? 'Test Category' : 'نوع الاختبار (Category)'}</th>
                 <th>{printLang === 'en' ? 'Height (cm)' : 'الارتفاع (سم)'}</th>
                 <th>{printLang === 'en' ? 'Height (in)' : 'الارتفاع (إنش)'}</th>
                 <th>{printLang === 'en' ? 'Flight Time (s)' : 'زمن الطيران'}</th>
                 <th>{printLang === 'en' ? 'Peak Power (W)' : 'ذروة القدرة'}</th>
                 <th>{printLang === 'en' ? 'Relative Power' : 'القدرة النسبية'}</th>
+                <th>{printLang === 'en' ? 'Rating' : 'التقييم المعياري'}</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>CMJ (Arms)</td>
-                <td className="font-mono font-black text-orange-600">{maxCmj > 0 ? `${maxCmj.toFixed(1)} cm` : '—'}</td>
-                <td className="font-mono">{maxCmj > 0 ? `${(maxCmj * 0.393701).toFixed(1)}"` : '—'}</td>
-                <td className="font-mono">{maxCmj > 0 ? `${Math.sqrt((8 * (maxCmj/100))/9.81).toFixed(3)} s` : '—'}</td>
-                <td className="font-mono font-bold text-slate-900">{maxCmj > 0 ? `${(61.9 * maxCmj + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
-                <td className="font-mono font-bold text-emerald-700">{maxCmj > 0 && mass > 0 ? `${((61.9 * maxCmj + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
-              </tr>
-              <tr>
-                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>CMJ (No Arms)</td>
-                <td className="font-mono font-black text-orange-600">{maxCmjNoArms > 0 ? `${maxCmjNoArms.toFixed(1)} cm` : '—'}</td>
-                <td className="font-mono">{maxCmjNoArms > 0 ? `${(maxCmjNoArms * 0.393701).toFixed(1)}"` : '—'}</td>
-                <td className="font-mono">{maxCmjNoArms > 0 ? `${Math.sqrt((8 * (maxCmjNoArms/100))/9.81).toFixed(3)} s` : '—'}</td>
-                <td className="font-mono font-bold text-slate-900">{maxCmjNoArms > 0 ? `${(61.9 * maxCmjNoArms + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
-                <td className="font-mono font-bold text-emerald-700">{maxCmjNoArms > 0 && mass > 0 ? `${((61.9 * maxCmjNoArms + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
-              </tr>
-              <tr>
-                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>Squat Jump (SJ)</td>
-                <td className="font-mono font-black text-orange-600">{maxSjNoArms > 0 ? `${maxSjNoArms.toFixed(1)} cm` : '—'}</td>
-                <td className="font-mono">{maxSjNoArms > 0 ? `${(maxSjNoArms * 0.393701).toFixed(1)}"` : '—'}</td>
-                <td className="font-mono">{maxSjNoArms > 0 ? `${Math.sqrt((8 * (maxSjNoArms/100))/9.81).toFixed(3)} s` : '—'}</td>
-                <td className="font-mono font-bold text-slate-900">{maxSjNoArms > 0 ? `${(61.9 * maxSjNoArms + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
-                <td className="font-mono font-bold text-emerald-700">{maxSjNoArms > 0 && mass > 0 ? `${((61.9 * maxSjNoArms + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
-              </tr>
-              <tr>
-                <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>Approach Jump</td>
-                <td className="font-mono font-black text-orange-600">{maxApproach > 0 ? `${maxApproach.toFixed(1)} cm` : '—'}</td>
-                <td className="font-mono">{maxApproach > 0 ? `${(maxApproach * 0.393701).toFixed(1)}"` : '—'}</td>
-                <td className="font-mono">{maxApproach > 0 ? `${Math.sqrt((8 * (maxApproach/100))/9.81).toFixed(3)} s` : '—'}</td>
-                <td className="font-mono font-bold text-slate-900">{maxApproach > 0 ? `${(61.9 * maxApproach + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
-                <td className="font-mono font-bold text-emerald-700">{maxApproach > 0 && mass > 0 ? `${((61.9 * maxApproach + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
-              </tr>
+              {/* CMJ Arms */}
+              {(() => {
+                const r = getTestRatingTag(maxCmj, mass > 0 ? (61.9 * maxCmj + 36.0 * mass - 1822)/mass : 0);
+                return (
+                  <tr>
+                    <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>CMJ (Arms)</td>
+                    <td className="font-mono font-black text-orange-600">{maxCmj > 0 ? `${maxCmj.toFixed(1)} cm` : '—'}</td>
+                    <td className="font-mono">{maxCmj > 0 ? `${(maxCmj * 0.393701).toFixed(1)}"` : '—'}</td>
+                    <td className="font-mono">{maxCmj > 0 ? `${Math.sqrt((8 * (maxCmj/100))/9.81).toFixed(3)} s` : '—'}</td>
+                    <td className="font-mono font-bold text-slate-900">{maxCmj > 0 ? `${(61.9 * maxCmj + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
+                    <td className="font-mono font-bold text-emerald-700">{maxCmj > 0 && mass > 0 ? `${((61.9 * maxCmj + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
+                    <td className="font-bold">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black" style={{ backgroundColor: r.bg, color: r.text }}>
+                        {printLang === 'en' ? r.en : r.ar}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })()}
+
+              {/* CMJ No Arms */}
+              {(() => {
+                const r = getTestRatingTag(maxCmjNoArms, mass > 0 ? (61.9 * maxCmjNoArms + 36.0 * mass - 1822)/mass : 0);
+                return (
+                  <tr>
+                    <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>CMJ (No Arms)</td>
+                    <td className="font-mono font-black text-orange-600">{maxCmjNoArms > 0 ? `${maxCmjNoArms.toFixed(1)} cm` : '—'}</td>
+                    <td className="font-mono">{maxCmjNoArms > 0 ? `${(maxCmjNoArms * 0.393701).toFixed(1)}"` : '—'}</td>
+                    <td className="font-mono">{maxCmjNoArms > 0 ? `${Math.sqrt((8 * (maxCmjNoArms/100))/9.81).toFixed(3)} s` : '—'}</td>
+                    <td className="font-mono font-bold text-slate-900">{maxCmjNoArms > 0 ? `${(61.9 * maxCmjNoArms + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
+                    <td className="font-mono font-bold text-emerald-700">{maxCmjNoArms > 0 && mass > 0 ? `${((61.9 * maxCmjNoArms + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
+                    <td className="font-bold">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black" style={{ backgroundColor: r.bg, color: r.text }}>
+                        {printLang === 'en' ? r.en : r.ar}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })()}
+
+              {/* Squat Jump */}
+              {(() => {
+                const r = getTestRatingTag(maxSjNoArms, mass > 0 ? (61.9 * maxSjNoArms + 36.0 * mass - 1822)/mass : 0);
+                return (
+                  <tr>
+                    <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>Squat Jump (SJ)</td>
+                    <td className="font-mono font-black text-orange-600">{maxSjNoArms > 0 ? `${maxSjNoArms.toFixed(1)} cm` : '—'}</td>
+                    <td className="font-mono">{maxSjNoArms > 0 ? `${(maxSjNoArms * 0.393701).toFixed(1)}"` : '—'}</td>
+                    <td className="font-mono">{maxSjNoArms > 0 ? `${Math.sqrt((8 * (maxSjNoArms/100))/9.81).toFixed(3)} s` : '—'}</td>
+                    <td className="font-mono font-bold text-slate-900">{maxSjNoArms > 0 ? `${(61.9 * maxSjNoArms + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
+                    <td className="font-mono font-bold text-emerald-700">{maxSjNoArms > 0 && mass > 0 ? `${((61.9 * maxSjNoArms + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
+                    <td className="font-bold">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black" style={{ backgroundColor: r.bg, color: r.text }}>
+                        {printLang === 'en' ? r.en : r.ar}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })()}
+
+              {/* Drop Jump RSI */}
+              {(() => {
+                const rsiVal = rsiScore;
+                const r = rsiVal >= 2.2
+                  ? { ar: 'ممتاز 🏆', en: 'Elite 🏆', bg: '#dcfce7', text: '#15803d' }
+                  : rsiVal >= 1.6
+                    ? { ar: 'جيد جداً ⭐', en: 'Very Good ⭐', bg: '#dbeafe', text: '#1d4ed8' }
+                    : { ar: 'جيد ⚡', en: 'Good ⚡', bg: '#fef3c7', text: '#b45309' };
+                return (
+                  <tr>
+                    <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>Drop Jump (RSI)</td>
+                    <td className="font-mono font-black text-orange-600">{latestRsiRecord ? `${parseFloat(latestRsiRecord.jump_height_cm).toFixed(1)} cm` : '—'}</td>
+                    <td className="font-mono">{latestRsiRecord ? `${(parseFloat(latestRsiRecord.jump_height_cm) * 0.393701).toFixed(1)}"` : '—'}</td>
+                    <td className="font-mono">{latestRsiRecord ? `${parseFloat(latestRsiRecord.flight_time_sec).toFixed(3)} s` : '—'}</td>
+                    <td className="font-mono font-bold text-slate-900">—</td>
+                    <td className="font-mono font-bold text-emerald-700">—</td>
+                    <td className="font-bold">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black" style={{ backgroundColor: r.bg, color: r.text }}>
+                        {printLang === 'en' ? r.en : r.ar}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })()}
+
+              {/* Approach Jump */}
+              {(() => {
+                const r = getTestRatingTag(maxApproach, mass > 0 ? (61.9 * maxApproach + 36.0 * mass - 1822)/mass : 0);
+                return (
+                  <tr>
+                    <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>Approach Jump</td>
+                    <td className="font-mono font-black text-orange-600">{maxApproach > 0 ? `${maxApproach.toFixed(1)} cm` : '—'}</td>
+                    <td className="font-mono">{maxApproach > 0 ? `${(maxApproach * 0.393701).toFixed(1)}"` : '—'}</td>
+                    <td className="font-mono">{maxApproach > 0 ? `${Math.sqrt((8 * (maxApproach/100))/9.81).toFixed(3)} s` : '—'}</td>
+                    <td className="font-mono font-bold text-slate-900">{maxApproach > 0 ? `${(61.9 * maxApproach + 36.0 * mass - 1822).toFixed(0)} W` : '—'}</td>
+                    <td className="font-mono font-bold text-emerald-700">{maxApproach > 0 && mass > 0 ? `${((61.9 * maxApproach + 36.0 * mass - 1822)/mass).toFixed(1)} W/kg` : '—'}</td>
+                    <td className="font-bold">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black" style={{ backgroundColor: r.bg, color: r.text }}>
+                        {printLang === 'en' ? r.en : r.ar}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })()}
             </tbody>
           </table>
         </div>
 
-        {/* CONCISE DIAGNOSTIC CALLOUT IN PDF AS REQUESTED */}
+        {/* CONCISE DIAGNOSTIC CALLOUT IN PDF */}
         <div className="border-r-8 border-[#ea580c] bg-[#fffaf0] p-4 rounded-xl mb-6 text-xs leading-relaxed font-mono">
           <p className="font-black text-slate-900 mb-1">
             🔬 {printLang === 'en' ? 'Biomechanical Diagnostic:' : 'التشخيص الحركي:'}
@@ -648,7 +692,7 @@ export default function PlayerProfile({
           </div>
 
 
-          {/* VOLLEYBALL NET & BASKETBALL DUNK KPIS */}
+          {/* VOLLEYBALL NET & BASKETBALL DUNK KPIS IN APP SCREEN */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* Volleyball Net Clearance Card */}
@@ -916,8 +960,6 @@ export default function PlayerProfile({
 
             {/* Interactive Diagnostic Explanation Panels */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-              
-              {/* Box 1: Tendon Elasticity Dominant */}
               <div className={`p-4 rounded-2xl border space-y-2 transition-all ${
                 eur > 1.15 ? 'bg-cyan-950/30 border-cyan-500/50 shadow-lg shadow-cyan-500/10' : 'bg-black/30 border-gray-850 opacity-70'
               }`}>
@@ -928,14 +970,13 @@ export default function PlayerProfile({
                   </h4>
                 </div>
                 <p className="text-[11px] text-gray-300 leading-relaxed font-sans">
-                  <strong>متى يحدث؟</strong> عندما تكون قفزة CMJ أعلى بفارق ملحوظ من Squat Jump (أوتار الأرجل والأكيلس تمتلك صلابة ومطاطية فائقة).
+                  <strong>متى يحدث؟</strong> عندما تكون قفزة CMJ أعلى بفارق ملحوظ من Squat Jump (أوتار الأرجل والأكيلس تمتلك مطاطية فائقة).
                 </p>
                 <div className="p-2 bg-black/40 rounded-xl text-[10px] text-cyan-200 border border-cyan-500/20 font-mono">
                   <strong>🎯 التوصية التدريبية:</strong> اللاعب يفتقر للقوة العضلية الانقباضية الصافية. يجب التركيز على التمارين الثقيلة (Heavy Squats & Deadlifts &gt;80% 1RM).
                 </div>
               </div>
 
-              {/* Box 2: Muscular Force Dominant */}
               <div className={`p-4 rounded-2xl border space-y-2 transition-all ${
                 eur < 1.05 && eur > 0 ? 'bg-orange-950/30 border-orange-500/50 shadow-lg shadow-orange-500/10' : 'bg-black/30 border-gray-850 opacity-70'
               }`}>
@@ -946,14 +987,13 @@ export default function PlayerProfile({
                   </h4>
                 </div>
                 <p className="text-[11px] text-gray-300 leading-relaxed font-sans">
-                  <strong>متى يحدث؟</strong> عندما تكون قفزة CMJ متساوية تقريباً مع Squat Jump (اللاعب يعتمد بالكامل على قوة العضلات ولا يستغل مطاطية الأوتار ودورة SSC).
+                  <strong>متى يحدث؟</strong> عندما تكون قفزة CMJ متساوية تقريباً مع Squat Jump (اللاعب يعتمد بالكامل على قوة العضلات ولا يستغل مطاطية الأوتار).
                 </p>
                 <div className="p-2 bg-black/40 rounded-xl text-[10px] text-orange-200 border border-orange-500/20 font-mono">
-                  <strong>🎯 التوصية التدريبية:</strong> اللاعب يعاني من عجز في الارتداد السريع. يجب التركيز فوراً على تمارين البلايومتركس السريع (Fast Pogo Jumps & Depth Jumps).
+                  <strong>🎯 التوصية التدريبية:</strong> التركيز فوراً على تمارين البلايومتركس السريع (Fast Pogo Jumps & Depth Jumps).
                 </div>
               </div>
 
-              {/* Box 3: Optimal Balance */}
               <div className={`p-4 rounded-2xl border space-y-2 transition-all ${
                 eur >= 1.05 && eur <= 1.15 ? 'bg-emerald-950/30 border-emerald-500/50 shadow-lg shadow-emerald-500/10' : 'bg-black/30 border-gray-850 opacity-70'
               }`}>
@@ -964,19 +1004,16 @@ export default function PlayerProfile({
                   </h4>
                 </div>
                 <p className="text-[11px] text-gray-300 leading-relaxed font-sans">
-                  <strong>التوصيف العلمي:</strong> توافق وتنسيق حركي ممتاز بين توليد القوة من العضلات وتخزينها في الأوتار وإعادة إطلاقها في أسرع زمن.
+                  <strong>التوصيف العلمي:</strong> توافق وتنسيق حركي ممتاز بين توليد القوة من العضلات وتخزينها في الأوتار وإعادة إطلاقها.
                 </p>
                 <div className="p-2 bg-black/40 rounded-xl text-[10px] text-emerald-200 border border-emerald-500/20 font-mono">
                   <strong>🎯 التوصية التدريبية:</strong> الاستمرار في برنامج التدريب التكاملي المركب (Contrast Training).
                 </div>
               </div>
-
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* Elastic Utilization Ratio (EUR) Card */}
             <div className="glass-panel p-6 hud-card space-y-4">
               <h3 className="text-sm font-black text-white border-b border-gray-800 pb-2">
                 {isEn ? 'Elastic Utilization Ratio (EUR)' : 'مؤشر الاستغلال المطاطي للأوتار (EUR Index)'}
@@ -997,7 +1034,6 @@ export default function PlayerProfile({
               </div>
             </div>
 
-            {/* Arm Swing Contribution Card */}
             <div className="glass-panel p-6 hud-card space-y-4">
               <h3 className="text-sm font-black text-white border-b border-gray-800 pb-2">
                 {isEn ? 'Arm Swing Contribution Ratio' : 'نسبة مساهمة الذراعين الحركية (Arm Swing %)'}
@@ -1017,7 +1053,6 @@ export default function PlayerProfile({
                 </div>
               </div>
             </div>
-
           </div>
 
         </div>
