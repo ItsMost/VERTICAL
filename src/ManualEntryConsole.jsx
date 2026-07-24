@@ -547,80 +547,127 @@ export default function ManualEntryConsole({
 
       </div>
 
-      {/* ================= PRINTABLE A4 SHEET (STRICTLY HIDDEN ON SCREEN) ================= */}
-      <div className="printable-manual-sheet text-black space-y-6">
+      
+      {/* ======================================================== */}
+      {/* HIGH-TECH INFOGRAPHICS PDF PRINT REPORT SHEET            */}
+      {/* ======================================================== */}
+      <div className="print-report-sheet print-infographics text-gray-900 space-y-6">
         
-        {/* Printable Header */}
-        <div className="flex justify-between items-center border-b-2 border-black pb-4 mb-4" style={{ direction: isEn ? 'ltr' : 'rtl' }}>
-          <div>
-            <h1 className="text-xl font-black text-black">
-              {isEn ? 'Sports Performance & Biomechanics Lab' : 'مختبر الأداء الرياضي والميكانيكا الحيوية'}
-            </h1>
-            <p className="text-xs text-gray-700 font-bold">
-              {isEn ? 'Official Manual Measurement & Clean Assessment Report' : 'تقرير القياسات اليدوية ورفعات الكلين الرسمية'}
-            </p>
+        {/* Infographics Header Banner */}
+        <div className="flex justify-between items-center border-b-2 border-blue-600 pb-4 mb-4" style={{ direction: printLang === 'en' ? 'ltr' : 'rtl' }}>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-xl shadow-md">
+              ⚡
+            </div>
+            <div>
+              <h1 className="text-xl font-black text-blue-600 tracking-tight">
+                {printLang === 'en' ? 'Sports Performance & Biomechanics Lab' : 'مختبر الأداء الرياضي والميكانيكا الحيوية'}
+              </h1>
+              <p className="text-xs text-gray-700 font-bold">
+                {printLang === 'en' ? 'Official Manual Measurement & Clean Assessment Report' : 'تقرير القياسات اليدوية المعيارية ورفعات الكلين الرسمية'}
+              </p>
+            </div>
           </div>
-          <div className="text-right text-[10px] font-mono text-gray-800">
-            <p>{isEn ? 'Date:' : 'التاريخ:'} {form.created_at}</p>
-            <p>{isEn ? 'Method:' : 'طريقة القياس:'} Manual Input Console</p>
+          
+          <div className="text-right text-[11px] font-mono text-gray-800 bg-blue-50 p-2.5 rounded-xl border border-blue-200">
+            <p><strong>{printLang === 'en' ? 'Date:' : 'التاريخ:'}</strong> {form.created_at}</p>
+            <p><strong>{printLang === 'en' ? 'Method:' : 'طريقة القياس:'}</strong> Manual Input Console</p>
+            <p className="text-blue-600 font-black">Official Verification ✅</p>
           </div>
         </div>
 
-        {/* Athlete Specs Block */}
-        <div className="border border-gray-400 p-4 rounded-xl space-y-2 bg-gray-50 text-xs">
-          <h3 className="font-bold text-black border-b border-gray-300 pb-1">
-            👤 {isEn ? 'Athlete Physical Profile' : 'بيانات اللاعب والأنثروبوميتري'}
+        {/* Athlete Specs Slate Card */}
+        <div className="slate-card space-y-2">
+          <h3 className="font-black text-sm text-blue-600 border-b border-blue-200 pb-1 flex items-center gap-2">
+            👤 {printLang === 'en' ? 'Athlete Physical & Anthropometric Profile' : 'بيانات اللاعب والأنثروبوميتري المعتمدة'}
           </h3>
-          <div className="grid grid-cols-4 gap-4 font-mono text-xs">
-            <p><strong>{isEn ? 'Name:' : 'الاسم:'}</strong> {activePlayer?.full_name || 'Athlete'}</p>
-            <p><strong>{isEn ? 'Weight:' : 'الوزن:'}</strong> {weight} kg</p>
-            <p><strong>{isEn ? 'Height:' : 'القامة:'}</strong> {playerHeight} cm</p>
-            <p><strong>{isEn ? 'Leg Length:' : 'طول الرجل:'}</strong> {legLength.toFixed(2)} m</p>
+          <div className="dashboard-grid-4 text-xs font-mono pt-1">
+            <div>
+              <span className="text-gray-500 block text-[10px]">{printLang === 'en' ? 'Athlete Name:' : 'اسم اللاعب:'}</span>
+              <strong className="text-gray-900 text-sm">{activePlayer?.full_name || 'Athlete'}</strong>
+            </div>
+            <div>
+              <span className="text-gray-500 block text-[10px]">{printLang === 'en' ? 'Body Weight:' : 'الوزن الصافي:'}</span>
+              <strong className="text-blue-600">{weight} kg</strong>
+            </div>
+            <div>
+              <span className="text-gray-500 block text-[10px]">{printLang === 'en' ? 'Standing Height:' : 'قامة اللاعب:'}</span>
+              <strong className="text-gray-900">{playerHeight} cm</strong>
+            </div>
+            <div>
+              <span className="text-gray-500 block text-[10px]">{printLang === 'en' ? 'Leg Length:' : 'طول الرجل:'}</span>
+              <strong className="text-gray-900">{legLength.toFixed(2)} m</strong>
+            </div>
           </div>
         </div>
 
-        {/* Measurements Matrix Table */}
+        {/* Measurements Matrix Infographic Table */}
         <div className="space-y-2">
-          <h3 className="font-bold text-xs text-black border-b border-black pb-1">
-            📊 {isEn ? 'Manual Biomechanical & Strength Metrics' : 'مصفوفة النتائج اليدوية والقدرة الميكانيكية'}
+          <h3 className="font-black text-xs text-blue-600 border-b border-blue-300 pb-1">
+            📊 {printLang === 'en' ? 'Manual Biomechanical & Strength Metrics Matrix' : 'مصفوفة النتائج اليدوية والقدرة الميكانيكية الحيوية'}
           </h3>
 
-          <table className="w-full border-collapse border border-black text-xs text-center">
+          <table className="info-table text-xs text-center">
             <thead>
-              <tr className="bg-gray-200 font-bold">
-                <th className="border border-black p-2">{isEn ? 'Test Category' : 'نوع الاختبـار'}</th>
-                <th className="border border-black p-2">{isEn ? 'Jump Height' : 'ارتفاع القفز'}</th>
-                <th className="border border-black p-2">{isEn ? 'Flight Time' : 'زمن الطيران'}</th>
-                <th className="border border-black p-2">{isEn ? 'Peak Power' : 'ذروة القدرة'}</th>
-                <th className="border border-black p-2">{isEn ? 'Relative Power' : 'القدرة النسبية'}</th>
-                <th className="border border-black p-2">{isEn ? 'Clean Weight' : 'وزن الكلين'}</th>
-                <th className="border border-black p-2">{isEn ? 'Clean/BW Ratio' : 'نسبة الكلين'}</th>
+              <tr>
+                <th>{printLang === 'en' ? 'Test Category' : 'نوع الاختبـار'}</th>
+                <th>{printLang === 'en' ? 'Jump Height' : 'ارتفاع القفز'}</th>
+                <th>{printLang === 'en' ? 'Flight Time' : 'زمن الطيران'}</th>
+                <th>{printLang === 'en' ? 'Peak Power' : 'ذروة القدرة'}</th>
+                <th>{printLang === 'en' ? 'Relative Power' : 'القدرة النسبية'}</th>
+                <th>{printLang === 'en' ? 'Clean Weight' : 'وزن الكلين'}</th>
+                <th>{printLang === 'en' ? 'Clean/BW Ratio' : 'نسبة الكلين'}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="font-mono">
               <tr>
-                <td className="border border-black p-2 font-bold">{form.testType.toUpperCase()}</td>
-                <td className="border border-black p-2 font-mono">{jumpHeight > 0 ? `${jumpHeight} cm` : '—'}</td>
-                <td className="border border-black p-2 font-mono">{flightTime > 0 ? `${flightTime} s` : '—'}</td>
-                <td className="border border-black p-2 font-mono">{peakPower > 0 ? `${peakPower.toFixed(0)} W` : '—'}</td>
-                <td className="border border-black p-2 font-mono">{relativePower > 0 ? `${relativePower.toFixed(1)} W/kg` : '—'}</td>
-                <td className="border border-black p-2 font-mono font-bold">{cleanWeight > 0 ? `${cleanWeight} kg` : '—'}</td>
-                <td className="border border-black p-2 font-mono font-bold">{cleanBwRatio > 0 ? `${cleanBwRatio.toFixed(2)}x BW` : '—'}</td>
+                <td className="font-sans font-black text-blue-600">{form.testType.toUpperCase()}</td>
+                <td className="font-black text-gray-900">{jumpHeight > 0 ? `${jumpHeight} cm` : '—'}</td>
+                <td className="text-gray-700">{flightTime > 0 ? `${flightTime} s` : '—'}</td>
+                <td className="font-bold text-blue-600">{peakPower > 0 ? `${peakPower.toFixed(0)} W` : '—'}</td>
+                <td className="font-bold text-emerald-600">{relativePower > 0 ? `${relativePower.toFixed(1)} W/kg` : '—'}</td>
+                <td className="font-black text-blue-600">{cleanWeight > 0 ? `${cleanWeight} kg` : '—'}</td>
+                <td className="font-black text-emerald-600">{cleanBwRatio > 0 ? `${cleanBwRatio.toFixed(2)}x BW` : '—'}</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        {/* Detailed Physics Summary */}
-        <div className="border border-gray-400 p-4 rounded-xl space-y-2 text-xs bg-gray-50">
-          <h3 className="font-bold text-black border-b border-gray-300 pb-1">
-            🔬 {isEn ? 'Biomechanical Physics & Force Diagnostic' : 'التشخيص الميكانيكي الحيوي والدفع الأرضي'}
+        {/* Detailed Physics Crimson Callout Summary */}
+        <div className="crimson-callout text-xs space-y-2">
+          <h3 className="font-black text-blue-600 border-b border-blue-200 pb-1 flex items-center gap-1.5">
+            🔬 {printLang === 'en' ? 'Biomechanical Force & Takeoff Impulse Diagnostic' : 'التشخيص الميكانيكي الحيوي والدفع الأرضي'}
           </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <p>• {isEn ? 'Takeoff Force (GRF):' : 'قوة الدفع لحظة الإقلاع:'} <strong>{takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} N (${takeoffForceBW.toFixed(2)} BW)` : 'N/A'}</strong></p>
-            <p>• {isEn ? 'Reactive Index (RSI):' : 'مؤشر القوة التفاعلية:'} <strong>{rsiScore > 0 ? rsiScore.toFixed(2) : 'N/A'}</strong></p>
-            <p>• {isEn ? 'Power Model:' : 'نموذج المعادلة:'} Harman & Sayers Equations</p>
-            <p>• {isEn ? 'Added Load:' : 'الأوزان الإضافية:'} {addedLoad > 0 ? `${addedLoad} kg` : '0 kg'}</p>
+          <div className="grid grid-cols-2 gap-4 font-mono text-xs">
+            <p>• {printLang === 'en' ? 'Takeoff Ground Reaction Force (GRF):' : 'قوة الدفع لحظة الإقلاع:'} <strong className="text-blue-700">{takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} N (${takeoffForceBW.toFixed(2)} BW)` : 'N/A'}</strong></p>
+            <p>• {printLang === 'en' ? 'Reactive Strength Index (RSI):' : 'مؤشر القوة التفاعلية (RSI):'} <strong className="text-emerald-700">{rsiScore > 0 ? rsiScore.toFixed(2) : 'N/A'}</strong></p>
+            <p>• {printLang === 'en' ? 'Equation Models:' : 'نموذج المعادلة:'} Harman & Sayers Biomechanical Equations</p>
+            <p>• {printLang === 'en' ? 'Added Barbell Load:' : 'الأوزان الإضافية:'} <strong className="text-blue-700">{addedLoad > 0 ? `${addedLoad} kg` : '0 kg'}</strong></p>
+          </div>
+        </div>
+
+        {/* Validation signatures with Mahmoud Ali & Mostafa Ali */}
+        <div className="mt-10 flex justify-between items-center text-xs pt-6 border-t border-dashed border-gray-400">
+          <div className="text-center w-52">
+            <p className="font-black text-gray-900">
+              {printLang === 'en' ? 'Biokinetic Specialist' : 'أخصائي القياس الحركي'}
+            </p>
+            <p className="text-xs text-gray-800 mt-1 font-bold">
+              {printLang === 'en' ? 'Mahmoud Ali' : 'محمود علي'}
+            </p>
+            <div className="h-8"></div>
+            <p className="text-gray-400">....................................</p>
+          </div>
+          
+          <div className="text-center w-52">
+            <p className="font-black text-gray-900">
+              {printLang === 'en' ? 'Assistant Biokinetic Specialist' : 'مساعد أخصائي القياس الحركي'}
+            </p>
+            <p className="text-xs text-gray-800 mt-1 font-bold">
+              {printLang === 'en' ? 'Mostafa Ali' : 'مصطفى علي'}
+            </p>
+            <div className="h-8"></div>
+            <p className="text-gray-400">....................................</p>
           </div>
         </div>
 
