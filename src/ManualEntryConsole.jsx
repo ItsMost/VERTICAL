@@ -601,36 +601,56 @@ export default function ManualEntryConsole({
           </div>
         </div>
 
-        {/* Measurements Matrix Infographic Table */}
-        <div className="space-y-2">
-          <h3 className="font-black text-xs text-blue-600 border-b border-blue-300 pb-1">
-            📊 {printLang === 'en' ? 'Manual Biomechanical & Strength Metrics Matrix' : 'مصفوفة النتائج اليدوية والقدرة الميكانيكية الحيوية'}
+        {/* Modern Dashboard Metrics Grid */}
+        <div className="space-y-4 pt-4">
+          <h3 className="font-black text-sm text-blue-600 border-b-2 border-blue-100 pb-2 flex items-center gap-2">
+            🚀 {printLang === 'en' ? 'Biomechanical Performance Dashboard' : 'لوحة القياسات الحيوية والقدرة الانفجارية'}
           </h3>
 
-          <table className="info-table text-xs text-center">
-            <thead>
-              <tr>
-                <th>{printLang === 'en' ? 'Test Category' : 'نوع الاختبـار'}</th>
-                <th>{printLang === 'en' ? 'Jump Height' : 'ارتفاع القفز'}</th>
-                <th>{printLang === 'en' ? 'Flight Time' : 'زمن الطيران'}</th>
-                <th>{printLang === 'en' ? 'Peak Power' : 'ذروة القدرة'}</th>
-                <th>{printLang === 'en' ? 'Relative Power' : 'القدرة النسبية'}</th>
-                <th>{printLang === 'en' ? 'Clean Weight' : 'وزن الكلين'}</th>
-                <th>{printLang === 'en' ? 'Clean/BW Ratio' : 'نسبة الكلين'}</th>
-              </tr>
-            </thead>
-            <tbody className="font-mono">
-              <tr>
-                <td className="font-sans font-black text-blue-600">{form.testType.toUpperCase()}</td>
-                <td className="font-black text-gray-900">{jumpHeight > 0 ? `${jumpHeight} cm` : '—'}</td>
-                <td className="text-gray-700">{flightTime > 0 ? `${flightTime} s` : '—'}</td>
-                <td className="font-bold text-blue-600">{peakPower > 0 ? `${peakPower.toFixed(0)} W` : '—'}</td>
-                <td className="font-bold text-emerald-600">{relativePower > 0 ? `${relativePower.toFixed(1)} W/kg` : '—'}</td>
-                <td className="font-black text-blue-600">{cleanWeight > 0 ? `${cleanWeight} kg` : '—'}</td>
-                <td className="font-black text-emerald-600">{cleanBwRatio > 0 ? `${cleanBwRatio.toFixed(2)}x BW` : '—'}</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="dashboard-metrics-grid">
+            <div className="metric-box">
+              <span className="metric-box-title">{printLang === 'en' ? 'Test Category' : 'نوع الاختبار'}</span>
+              <span className="metric-box-value" style={{ fontSize: '18px', color: '#2563eb' }}>{form.testType.toUpperCase()}</span>
+            </div>
+            
+            <div className="metric-box metric-box-accent">
+              <span className="metric-box-title">{printLang === 'en' ? 'Jump Height' : 'ارتفاع القفز'}</span>
+              <span className="metric-box-value">{jumpHeight > 0 ? `${jumpHeight} cm` : '—'}</span>
+            </div>
+
+            <div className="metric-box">
+              <span className="metric-box-title">{printLang === 'en' ? 'Flight Time' : 'زمن الطيران'}</span>
+              <span className="metric-box-value">{flightTime > 0 ? `${flightTime} s` : '—'}</span>
+            </div>
+
+            <div className="metric-box">
+              <span className="metric-box-title">{printLang === 'en' ? 'Peak Power' : 'ذروة القدرة'}</span>
+              <span className="metric-box-value">{peakPower > 0 ? `${peakPower.toFixed(0)} W` : '—'}</span>
+            </div>
+
+            <div className="metric-box metric-box-accent">
+              <span className="metric-box-title">{printLang === 'en' ? 'Relative Power' : 'القدرة النسبية'}</span>
+              <span className="metric-box-value" style={{ color: '#059669' }}>{relativePower > 0 ? `${relativePower.toFixed(1)} W/kg` : '—'}</span>
+            </div>
+
+            <div className="metric-box">
+              <span className="metric-box-title">{printLang === 'en' ? 'RSI Index' : 'مؤشر التفاعل RSI'}</span>
+              <span className="metric-box-value">{rsiScore > 0 ? rsiScore.toFixed(2) : '—'}</span>
+            </div>
+
+            {form.testType === 'clean' && (
+              <>
+                <div className="metric-box metric-box-accent">
+                  <span className="metric-box-title">{printLang === 'en' ? 'Power Clean 1RM' : 'رفعة الكلين'}</span>
+                  <span className="metric-box-value">{cleanWeight > 0 ? `${cleanWeight} kg` : '—'}</span>
+                </div>
+                <div className="metric-box">
+                  <span className="metric-box-title">{printLang === 'en' ? 'Clean/BW Ratio' : 'نسبة الكلين/الوزن'}</span>
+                  <span className="metric-box-value" style={{ color: '#059669' }}>{cleanBwRatio > 0 ? `${cleanBwRatio.toFixed(2)}x` : '—'}</span>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Detailed Physics Crimson Callout Summary */}
@@ -638,11 +658,11 @@ export default function ManualEntryConsole({
           <h3 className="font-black text-blue-600 border-b border-blue-200 pb-1 flex items-center gap-1.5">
             🔬 {printLang === 'en' ? 'Biomechanical Force & Takeoff Impulse Diagnostic' : 'التشخيص الميكانيكي الحيوي والدفع الأرضي'}
           </h3>
-          <div className="grid grid-cols-2 gap-4 font-mono text-xs">
-            <p>• {printLang === 'en' ? 'Takeoff Ground Reaction Force (GRF):' : 'قوة الدفع لحظة الإقلاع:'} <strong className="text-blue-700">{takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} N (${takeoffForceBW.toFixed(2)} BW)` : 'N/A'}</strong></p>
-            <p>• {printLang === 'en' ? 'Reactive Strength Index (RSI):' : 'مؤشر القوة التفاعلية (RSI):'} <strong className="text-emerald-700">{rsiScore > 0 ? rsiScore.toFixed(2) : 'N/A'}</strong></p>
+          <div className="grid grid-cols-2 gap-4 font-sans text-sm text-gray-800">
+            <p>• {printLang === 'en' ? 'Takeoff Ground Reaction Force (GRF):' : 'قوة الدفع لحظة الإقلاع:'} <strong className="text-gray-900" style={{ fontSize: "14px" }}>{takeoffForceN > 0 ? `${takeoffForceN.toFixed(0)} N (${takeoffForceBW.toFixed(2)} BW)` : 'N/A'}</strong></p>
+            <p>• {printLang === 'en' ? 'Reactive Strength Index (RSI):' : 'مؤشر القوة التفاعلية (RSI):'} <strong className="text-gray-900" style={{ fontSize: "14px" }}>{rsiScore > 0 ? rsiScore.toFixed(2) : 'N/A'}</strong></p>
             <p>• {printLang === 'en' ? 'Equation Models:' : 'نموذج المعادلة:'} Harman & Sayers Biomechanical Equations</p>
-            <p>• {printLang === 'en' ? 'Added Barbell Load:' : 'الأوزان الإضافية:'} <strong className="text-blue-700">{addedLoad > 0 ? `${addedLoad} kg` : '0 kg'}</strong></p>
+            <p>• {printLang === 'en' ? 'Added Barbell Load:' : 'الأوزان الإضافية:'} <strong className="text-gray-900" style={{ fontSize: "14px" }}>{addedLoad > 0 ? `${addedLoad} kg` : '0 kg'}</strong></p>
           </div>
         </div>
 

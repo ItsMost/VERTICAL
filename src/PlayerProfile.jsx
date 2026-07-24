@@ -1289,7 +1289,7 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
             gap: 20px !important;
           }
 
-          /* ============================================== */
+                    /* ============================================== */
           /* PRINT INFOGRAPHICS STYLES                       */
           /* ============================================== */
           .print-infographics {
@@ -1297,67 +1297,52 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
             padding: 10px !important;
           }
 
-          /* Sporty Orange Accent Theme */
-          .print-infographics .text-orange-primary {
+          .print-infographics .dashboard-metrics-grid {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 16px !important;
+            margin-bottom: 24px !important;
+          }
+
+          .print-infographics .metric-box {
+            background-color: #ffffff !important;
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 16px !important;
+            padding: 16px !important;
+            text-align: center !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+          }
+
+          .print-infographics .metric-box-title {
+            color: #64748b !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            margin-bottom: 4px !important;
+            letter-spacing: 0.5px !important;
+          }
+
+          .print-infographics .metric-box-value {
+            color: #000000 !important;
+            font-size: 20px !important;
+            font-weight: 900 !important;
+            font-family: monospace !important;
+          }
+
+          .print-infographics .metric-box-accent {
+            border-color: #2563eb !important;
+            background-color: #f8fafc !important;
+          }
+
+          .print-infographics .metric-box-accent .metric-box-value {
             color: #2563eb !important;
           }
 
-          .print-infographics .bg-orange-primary {
-            background-color: #2563eb !important;
-          }
-
-          .print-infographics .border-orange-primary {
-            border-color: #2563eb !important;
-          }
-
-          /* Slate structures */
-          .print-infographics .slate-card {
-            border: 1.5px solid #4b5563 !important;
-            border-radius: 16px !important;
-            background-color: #fcfdfe !important;
-            padding: 16px !important;
-            margin-bottom: 16px !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
-          }
-
-          /* Grid dashboard items */
-          .print-infographics .dashboard-grid-2 {
-            display: grid !important;
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 16px !important;
-          }
-
-          .print-infographics .dashboard-grid-3 {
-            display: grid !important;
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 12px !important;
-          }
-
-          /* Dynamic Table in Infographics */
-          .print-infographics .info-table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            border: 1px solid #d1d5db !important;
-            border-radius: 8px !important;
-            overflow: hidden !important;
-          }
-
-          .print-infographics .info-table th {
-            background-color: #2563eb !important;
-            color: #ffffff !important;
-            font-weight: 900 !important;
-            padding: 10px !important;
-            border: 1px solid #2563eb !important;
-          }
-
-          .print-infographics .info-table td {
-            padding: 10px !important;
-            border: 1px solid #e5e7eb !important;
-            text-align: center !important;
-          }
-
-          .print-infographics .info-table tr:nth-child(even) {
-            background-color: #f9fafb !important;
+          .print-infographics .metric-box-secondary .metric-box-value {
+            color: #059669 !important;
           }
 
           /* Diagnostic Callout Crimson Box */
@@ -3312,54 +3297,44 @@ export default function PlayerProfile({ activePlayer, playerHistory, onHistoryCh
               )}
             </div>
 
-            {/* Jumps Comparison Table */}
+            {/* Jumps Comparison Dashboard Grid */}
             <div className="slate-card">
-              <h3 className="text-xs font-black text-orange-primary mb-3 uppercase tracking-wider">
-                📋 {printLang === 'ar' ? 'مصفوفة مقارنة اختبارات الوثب والقدرة الميكانيكية' : 'Performance Metrics Comparison Table'}
+              <h3 className="text-xs font-black text-orange-primary mb-4 uppercase tracking-wider border-b-2 border-blue-100 pb-2 inline-block">
+                📋 {printLang === 'ar' ? 'لوحة القياسات الحيوية (الأرقام المطلقة)' : 'Absolute Performance Dashboard'}
               </h3>
               
-              <table className="info-table text-xs">
-                <thead>
-                  {printLang === 'ar' ? (
-                    <tr>
-                      <th>نوع الاختبار</th>
-                      <th>الارتفاع (سم)</th>
-                      <th>الارتفاع (إنش)</th>
-                      <th>زمن الطيران (ثانية)</th>
-                      <th>كثافة القدرة (W/kg)</th>
-                      <th>القدرة القصوى (وات)</th>
-                    </tr>
-                  ) : (
-                    <tr>
-                      <th>Test Type</th>
-                      <th>Height (cm)</th>
-                      <th>Height (in)</th>
-                      <th>Flight Time (s)</th>
-                      <th>Relative Power (W/kg)</th>
-                      <th>Peak Power (Watts)</th>
-                    </tr>
-                  )}
-                </thead>
-                <tbody>
-                  {getTranslatedConfig(printLang).map((test) => {
-                    const rec = test.record;
-                    const inHeight = rec ? parseFloat((parseFloat(rec.jump_height_cm) * 0.393701).toFixed(1)) : 0;
-                    const recPower = rec ? (rec.peak_power_watts && parseFloat(rec.peak_power_watts) > 0 ? parseFloat(rec.peak_power_watts) : (60.7 * parseFloat(rec.jump_height_cm) + 45.3 * mass - 2055)) : 0;
-                    const recRelPower = rec && mass > 0 ? parseFloat((recPower / mass).toFixed(1)) : 0;
-                    
-                    return (
-                      <tr key={test.type}>
-                        <td className="font-bold">{printLang === 'ar' ? test.nameAr.split('(')[0] : test.nameEn}</td>
-                        <td className="font-mono font-bold">{rec ? parseFloat(rec.jump_height_cm).toFixed(1) : '—'}</td>
-                        <td className="font-mono">{rec ? inHeight.toFixed(1) : '—'}</td>
-                        <td className="font-mono">{rec ? parseFloat(rec.flight_time_sec).toFixed(3) : '—'}</td>
-                        <td className="font-mono">{rec ? recRelPower.toFixed(1) : '—'}</td>
-                        <td className="font-mono">{rec ? recPower.toFixed(0) : '—'}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div className="space-y-6">
+                {getTranslatedConfig(printLang).map((test) => {
+                  const rec = test.record;
+                  if (!rec) return null; // Only show tests with data in the print dashboard
+                  
+                  const inHeight = parseFloat((parseFloat(rec.jump_height_cm) * 0.393701).toFixed(1));
+                  const recPower = (rec.peak_power_watts && parseFloat(rec.peak_power_watts) > 0) ? parseFloat(rec.peak_power_watts) : (60.7 * parseFloat(rec.jump_height_cm) + 45.3 * mass - 2055);
+                  const recRelPower = mass > 0 ? parseFloat((recPower / mass).toFixed(1)) : 0;
+                  
+                  return (
+                    <div key={test.type} className="mb-4">
+                      <h4 className="text-sm font-black text-gray-900 mb-2">{printLang === 'ar' ? test.nameAr.split('(')[0] : test.nameEn}</h4>
+                      <div className="dashboard-metrics-grid" style={{ marginBottom: 0 }}>
+                        <div className="metric-box metric-box-accent">
+                          <span className="metric-box-title">{printLang === 'ar' ? 'ارتفاع القفز' : 'Jump Height'}</span>
+                          <span className="metric-box-value">{parseFloat(rec.jump_height_cm).toFixed(1)} cm</span>
+                        </div>
+                        
+                        <div className="metric-box">
+                          <span className="metric-box-title">{printLang === 'ar' ? 'زمن الطيران' : 'Flight Time'}</span>
+                          <span className="metric-box-value">{parseFloat(rec.flight_time_sec).toFixed(3)} s</span>
+                        </div>
+
+                        <div className="metric-box metric-box-secondary">
+                          <span className="metric-box-title">{printLang === 'ar' ? 'ذروة القدرة' : 'Peak Power'}</span>
+                          <span className="metric-box-value">{recPower.toFixed(0)} W</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* 2-Column Section for Power Models & Drop Jump (RSI) */}
