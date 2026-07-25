@@ -131,21 +131,28 @@ export default function ManualEntryConsole({
     setSaveSuccess(false);
 
     try {
+      let createdAtIso;
+      try {
+        createdAtIso = form.created_at ? new Date(form.created_at).toISOString() : new Date().toISOString();
+      } catch (e) {
+        createdAtIso = new Date().toISOString();
+      }
+
       const payload = {
         player_id: selectedPlayerId,
         test_type: form.testType,
-        created_at: new Date(form.created_at).toISOString(),
-        jump_height_cm: jumpHeight > 0 ? jumpHeight.toFixed(1) : 0,
-        flight_time_sec: flightTime > 0 ? flightTime.toFixed(3) : 0,
-        takeoff_velocity_ms: flightTime > 0 ? ((9.81 * flightTime) / 2).toFixed(2) : 0,
-        mean_power_watts: peakPower > 0 ? (peakPower / 2.1).toFixed(0) : 0,
-        peak_power_watts: peakPower > 0 ? peakPower.toFixed(0) : 0,
-        mean_force_newtons: takeoffForceN > 0 ? takeoffForceN.toFixed(0) : 0,
-        contact_time_sec: contactTime > 0 ? contactTime.toFixed(3) : null,
-        rsi_score: rsiScore > 0 ? rsiScore.toFixed(2) : null,
+        created_at: createdAtIso,
+        jump_height_cm: jumpHeight > 0 ? parseFloat(jumpHeight.toFixed(1)) : 0,
+        flight_time_sec: flightTime > 0 ? parseFloat(flightTime.toFixed(3)) : 0,
+        takeoff_velocity_ms: flightTime > 0 ? parseFloat(((9.81 * flightTime) / 2).toFixed(2)) : 0,
+        mean_power_watts: peakPower > 0 ? parseFloat((peakPower / 2.1).toFixed(0)) : 0,
+        peak_power_watts: peakPower > 0 ? parseFloat(peakPower.toFixed(0)) : 0,
+        mean_force_newtons: takeoffForceN > 0 ? parseFloat(takeoffForceN.toFixed(0)) : 0,
+        contact_time_sec: contactTime > 0 ? parseFloat(contactTime.toFixed(3)) : null,
+        rsi_score: rsiScore > 0 ? parseFloat(rsiScore.toFixed(2)) : null,
         added_load_kg: addedLoad > 0 ? addedLoad : 0,
         clean_weight_kg: cleanWeight > 0 ? cleanWeight : 0,
-        clean_bw_ratio: cleanBwRatio > 0 ? cleanBwRatio.toFixed(2) : 0
+        clean_bw_ratio: cleanBwRatio > 0 ? parseFloat(cleanBwRatio.toFixed(2)) : 0
       };
 
       const { data, error } = await supabase.from('lab_jump_measurements').insert([payload]).select();
@@ -159,7 +166,7 @@ export default function ManualEntryConsole({
       }
     } catch (err) {
       console.error('Error saving measurement:', err);
-      alert(isEn ? 'Failed to save measurement. Check connection.' : 'تعذر حفظ القياس اليدوي. يرجى التحقق من الاتصال.');
+      alert(isEn ? `Failed to save measurement: ${err.message || 'Check connection.'}` : `تعذر حفظ القياس اليدوي: ${err.message || 'يرجى التحقق من الاتصال.'}`);
     } finally {
       setIsSaving(false);
     }
