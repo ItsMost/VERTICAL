@@ -535,10 +535,10 @@ export default function FVPCalculator({ activePlayer }) {
   // STATE & LOGIC FOR FORCE-VELOCITY PROFILE (FVP)
   // ==========================================
   const [jumps, setJumps] = useState([
-    { weight: 0, flightTime: '' },
-    { weight: 10, flightTime: '' },
-    { weight: 20, flightTime: '' },
-    { weight: 30, flightTime: '' }
+    { weight: 0, flightTime: '0.585', heightCm: '42.0' },
+    { weight: 10, flightTime: '0.530', heightCm: '34.5' },
+    { weight: 20, flightTime: '0.470', heightCm: '27.1' },
+    { weight: 30, flightTime: '0.410', heightCm: '20.6' }
   ]);
   const [seasonPeriod, setSeasonPeriod] = useState('off_season');
   const [trainingAge, setTrainingAge] = useState('intermediate');
@@ -548,6 +548,25 @@ export default function FVPCalculator({ activePlayer }) {
   const handleJumpChange = (index, field, value) => {
     const newJumps = [...jumps];
     newJumps[index][field] = value;
+
+    if (field === 'flightTime') {
+      const ft = parseFloat(value);
+      if (ft > 0) {
+        const hCm = (9.81 * ft * ft / 8) * 100;
+        newJumps[index].heightCm = hCm.toFixed(1);
+      } else {
+        newJumps[index].heightCm = '';
+      }
+    } else if (field === 'heightCm') {
+      const h = parseFloat(value);
+      if (h > 0) {
+        const ft = Math.sqrt((8 * (h / 100)) / 9.81);
+        newJumps[index].flightTime = ft.toFixed(3);
+      } else {
+        newJumps[index].flightTime = '';
+      }
+    }
+
     setJumps(newJumps);
   };
 
@@ -1385,78 +1404,89 @@ export default function FVPCalculator({ activePlayer }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8 text-right">
+          {/* OVR JUMP Precision Input Cards for 4 Loaded Jumps */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8 text-right">
             {jumps.map((jump, index) => (
-              <div key={index} className="glass-card p-5 text-center transition-all hover:border-blue-500/50">
-                <h4 className="font-bold text-white mb-4 bg-[#101c36]/40 py-2 rounded-xl border border-blue-500/30">
-                  قفزة {index + 1}
-                </h4>
+              <div key={index} className="glass-card p-5 text-center transition-all hover:border-cyan-500/50 border border-blue-500/20 relative space-y-4">
+                <div className="flex items-center justify-between bg-[#101c36]/60 px-3 py-2 rounded-xl border border-blue-500/30">
+                  <span className="text-xs font-black text-cyan-400 font-mono">OVR JUMP #{index + 1}</span>
+                  <span className="text-[10px] font-bold text-gray-400">قفزة {index + 1}</span>
+                </div>
                 
-                {/* Weight Telemetry Input */}
-                <div className="mb-4 space-y-2 text-right">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-gray-400">الوزن الإضافي:</span>
-                    <span className="text-blue-400 font-mono font-bold bg-blue-950/30 px-2 py-0.5 rounded border border-blue-500/20">{jump.weight} kg</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => handleJumpChange(index, 'weight', Math.max(0, parseInt(jump.weight || 0) - 5))} className="w-8 h-8 rounded-lg bg-slate-900/60 hover:bg-slate-800 border border-gray-850 text-white font-bold flex items-center justify-center cursor-pointer">-</button>
-                    <input 
-                      type="range" 
-                      min="0" 
-                      max="100" 
-                      step="5" 
-                      value={jump.weight || 0} 
-                      onChange={(e) => handleJumpChange(index, 'weight', Number(e.target.value))} 
-                      className="flex-1 h-1.5 bg-[#080b12] rounded-lg appearance-none cursor-pointer accent-blue-500" 
+                {/* 1. Added Weight Input (kg) */}
+                <div className="space-y-1.5 text-right">
+                  <label className="block text-[11px] font-bold text-gray-300">
+                    الوزن الإضافي (Added Load - kg):
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="120"
+                      value={jump.weight}
+                      onChange={(e) => handleJumpChange(index, 'weight', e.target.value)}
+                      placeholder="0"
+                      className="w-full bg-slate-950/80 border border-cyan-500/40 rounded-xl px-3 py-2 text-center text-sm font-mono font-black text-cyan-300 focus:outline-none focus:border-cyan-400"
                     />
-                    <button type="button" onClick={() => handleJumpChange(index, 'weight', Math.min(100, parseInt(jump.weight || 0) + 5))} className="w-8 h-8 rounded-lg bg-gray-800 hover:bg-gray-750 border border-gray-700 text-white font-bold flex items-center justify-center">+</button>
-                  </div>
-                  <div className="flex gap-1.5 justify-center">
-                    {[0, 10, 20, 30, 40].map(w => (
-                      <button
-                        key={w}
-                        type="button"
-                        onClick={() => handleJumpChange(index, 'weight', w)}
-                        className={`px-2 py-0.5 rounded-lg text-[9px] font-black border transition-all cursor-pointer ${parseInt(jump.weight || 0) === w ? 'bg-blue-500/20 text-blue-400 border-blue-500/25' : 'bg-slate-900/60 text-gray-400 border-gray-850 hover:text-white'}`}
-                      >
-                        {w}kg
-                      </button>
-                    ))}
+                    <span className="absolute left-3 top-2.5 text-xs text-gray-500 font-mono">kg</span>
                   </div>
                 </div>
 
-                {/* Flight Time Telemetry Input */}
-                <div className="space-y-2 text-right">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-gray-400">زمن الطيران:</span>
-                    <span className="text-blue-400 font-mono font-bold bg-blue-950/40 px-2 py-0.5 rounded border border-blue-500/30">{(parseFloat(jump.flightTime) || 0).toFixed(3)} s</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => handleJumpChange(index, 'flightTime', Math.max(0.2, (parseFloat(jump.flightTime) || 0.5) - 0.01).toFixed(3))} className="w-8 h-8 rounded-lg bg-gray-800 hover:bg-gray-750 border border-gray-700 text-white font-bold flex items-center justify-center">-</button>
-                    <input 
-                      type="range" 
-                      min="0.200" 
-                      max="1.000" 
-                      step="0.005" 
-                      value={parseFloat(jump.flightTime) || 0.500} 
-                      onChange={(e) => handleJumpChange(index, 'flightTime', parseFloat(e.target.value).toFixed(3))} 
-                      className="flex-1 h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500" 
+                {/* 2. Flight Time Input (s) - Precision 3 Decimals for OVR JUMP */}
+                <div className="space-y-1.5 text-right">
+                  <label className="block text-[11px] font-bold text-gray-300">
+                    زمن الطيران (Flight Time - s):
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.001"
+                      min="0.100"
+                      max="1.500"
+                      value={jump.flightTime || ''}
+                      onChange={(e) => handleJumpChange(index, 'flightTime', e.target.value)}
+                      placeholder="0.585"
+                      className="w-full bg-slate-950/80 border border-blue-500/40 rounded-xl px-3 py-2 text-center text-sm font-mono font-black text-blue-300 focus:outline-none focus:border-blue-400"
                     />
-                    <button type="button" onClick={() => handleJumpChange(index, 'flightTime', Math.min(1.0, (parseFloat(jump.flightTime) || 0.5) + 0.01).toFixed(3))} className="w-8 h-8 rounded-lg bg-gray-800 hover:bg-gray-750 border border-gray-700 text-white font-bold flex items-center justify-center">+</button>
-                  </div>
-                  <div className="flex gap-1.5 justify-center">
-                    {[0.4, 0.5, 0.6, 0.7].map(f => (
-                      <button
-                        key={f}
-                        type="button"
-                        onClick={() => handleJumpChange(index, 'flightTime', f.toFixed(3))}
-                        className={`px-2 py-0.5 rounded-lg text-[9px] font-black border transition-all cursor-pointer ${(parseFloat(jump.flightTime) || 0).toFixed(3) === f.toFixed(3) ? 'bg-blue-500/20 text-blue-400 border-blue-500/25' : 'bg-slate-900/60 text-gray-400 border-gray-850 hover:text-white'}`}
-                      >
-                        {f.toFixed(2)}s
-                      </button>
-                    ))}
+                    <span className="absolute left-3 top-2.5 text-xs text-gray-500 font-mono">sec</span>
                   </div>
                 </div>
+
+                {/* 3. Jump Height Auto-Calculated Input (cm) */}
+                <div className="space-y-1.5 text-right">
+                  <label className="block text-[11px] font-bold text-gray-300">
+                    ارتفاع القفزة (Jump Height - cm):
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="5"
+                      max="120"
+                      value={jump.heightCm || ''}
+                      onChange={(e) => handleJumpChange(index, 'heightCm', e.target.value)}
+                      placeholder="42.0"
+                      className="w-full bg-slate-950/80 border border-emerald-500/40 rounded-xl px-3 py-2 text-center text-sm font-mono font-black text-emerald-300 focus:outline-none focus:border-emerald-400"
+                    />
+                    <span className="absolute left-3 top-2.5 text-xs text-gray-500 font-mono">cm</span>
+                  </div>
+                </div>
+
+                {/* Quick Weight Preset Chips */}
+                <div className="flex gap-1 justify-center pt-1 flex-wrap">
+                  {[0, 10, 20, 30, 40].map(w => (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() => handleJumpChange(index, 'weight', w)}
+                      className={`px-2 py-0.5 rounded-lg text-[9px] font-black border transition-all cursor-pointer ${parseInt(jump.weight || 0) === w ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' : 'bg-slate-900/60 text-gray-400 border-gray-850 hover:text-white'}`}
+                    >
+                      {w}kg
+                    </button>
+                  ))}
+                </div>
+
               </div>
             ))}
           </div>

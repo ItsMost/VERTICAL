@@ -27,6 +27,11 @@ export default function PlayerProfile({
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [printLang, setPrintLang] = useState('ar');
 
+  // History Filter & Edit Record State
+  const [filterTestType, setFilterTestType] = useState('all');
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [isEditingSaving, setIsEditingSaving] = useState(false);
+
   if (!activePlayer) {
     return (
       <div className="glass-panel p-12 text-center text-gray-400 space-y-4 hud-card">
@@ -145,10 +150,10 @@ export default function PlayerProfile({
   ];
 
   const femaleCmjTable = [
-    { tier: 'Tier 1 (Youth / Novice)', avg: '9.6 - 11.7 in (24.4 - 29.7 cm)', good: '11.7 - 13.8 in (29.7 - 35.1 cm)', adv: '13.8 - 16.0 in (35.1 - 40.6 cm)', elite: '16.0+ in (40.6+ cm)' },
-    { tier: 'Tier 2 (Intermediate)', avg: '12.8 - 14.9 in (32.5 - 37.8 cm)', good: '14.9 - 17.0 in (37.8 - 43.2 cm)', adv: '17.0 - 18.1 in (43.2 - 46.0 cm)', elite: '18.1+ in (46.0+ cm)' },
-    { tier: 'Tier 3 (Athletic)', avg: '13.8 - 16.0 in (35.1 - 40.6 cm)', good: '16.0 - 18.1 in (40.6 - 46.0 cm)', adv: '18.1 - 19.2 in (46.0 - 48.8 cm)', elite: '19.2+ in (48.8+ cm)' },
-    { tier: 'Tier 4 (Collegiate / Elite)', avg: '14.9 - 17.0 in (37.8 - 43.2 cm)', good: '17.0 - 19.2 in (43.2 - 48.8 cm)', adv: '19.2 - 20.2 in (48.8 - 51.3 cm)', elite: '20.2+ in (51.3+ cm)' },
+    { tier: 'Tier 1 (Youth / Novice)', avg: '12.0 - 14.5 in (30.5 - 36.8 cm)', good: '14.5 - 16.5 in (36.8 - 41.9 cm)', adv: '16.5 - 18.5 in (41.9 - 47.0 cm)', elite: '18.5+ in (47.0+ cm)' },
+    { tier: 'Tier 2 (Intermediate)', avg: '15.0 - 17.5 in (38.1 - 44.5 cm)', good: '17.5 - 19.5 in (44.5 - 49.5 cm)', adv: '19.5 - 21.5 in (49.5 - 54.6 cm)', elite: '21.5+ in (54.6+ cm)' },
+    { tier: 'Tier 3 (Athletic)', avg: '17.5 - 20.0 in (44.5 - 50.8 cm)', good: '20.0 - 22.0 in (50.8 - 55.9 cm)', adv: '22.0 - 24.0 in (55.9 - 61.0 cm)', elite: '24.0+ in (61.0+ cm)' },
+    { tier: 'Tier 4 (Collegiate / Elite)', avg: '20.0 - 22.0 in (50.8 - 55.9 cm)', good: '22.0 - 24.0 in (55.9 - 61.0 cm)', adv: '24.0 - 26.0 in (61.0 - 66.0 cm)', elite: '26.0"+ in (66.0+ cm) Elite 🏆' },
   ];
 
   const maleCmjTable = [
@@ -170,6 +175,54 @@ export default function PlayerProfile({
     } catch (err) {
       console.error('Error deleting test:', err);
       alert(isEn ? 'Failed to delete test.' : 'حدث خطأ أثناء حذف القياس.');
+    }
+  };
+
+  // Update Individual Measurement Record in Supabase
+  const handleUpdateTest = async (e) => {
+    e.preventDefault();
+    if (!editingRecord) return;
+
+    setIsEditingSaving(true);
+    try {
+      const hCm = parseFloat(editingRecord.jump_height_cm) || 0;
+      const ft = parseFloat(editingRecord.flight_time_sec) || 0;
+      const ct = parseFloat(editingRecord.contact_time_sec) || 0;
+      const rsi = parseFloat(editingRecord.rsi_score) || (ft > 0 && ct > 0 ? ft / ct : 0);
+      const cleanW = parseFloat(editingRecord.clean_weight_kg) || 0;
+
+      const pPower = hCm > 0 ? (61.9 * hCm + 36.0 * mass - 1822) : 0;
+      const vTakeoff = ft > 0 ? (9.81 * ft) / 2 : 0;
+
+      const payload = {
+        test_type: editingRecord.test_type,
+        jump_height_cm: hCm,
+        flight_time_sec: ft,
+        contact_time_sec: ct > 0 ? ct : null,
+        rsi_score: rsi > 0 ? rsi : null,
+        clean_weight_kg: cleanW,
+        peak_power_watts: pPower > 0 ? Math.round(pPower) : 0,
+        takeoff_velocity_ms: vTakeoff > 0 ? parseFloat(vTakeoff.toFixed(2)) : 0
+      };
+
+      const { data, error } = await supabase
+        .from('lab_jump_measurements')
+        .update(payload)
+        .eq('id', editingRecord.id)
+        .select();
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const updatedList = playerHistory.map(item => item.id === editingRecord.id ? data[0] : item);
+        onHistoryChange(updatedList);
+        setEditingRecord(null);
+      }
+    } catch (err) {
+      console.error('Error updating test record:', err);
+      alert(isEn ? `Failed to update test: ${err.message}` : `حدث خطأ أثناء تعديل القياس: ${err.message}`);
+    } finally {
+      setIsEditingSaving(false);
     }
   };
 
@@ -1094,11 +1147,39 @@ export default function PlayerProfile({
       {/* TAB 3: FULL HISTORY MATRIX */}
       {activeTab === 'history' && (
         <div className="glass-panel p-6 hud-card space-y-4">
-          <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-            <h3 className="text-sm font-black text-white">
-              {isEn ? 'Athlete Measurement & Testing History Log' : 'سجل القياسات الكامل للاعب'}
-            </h3>
-            <span className="text-xs font-mono font-bold text-cyan-400">{playerHistory.length} Tests</span>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-gray-800 pb-3">
+            <div>
+              <h3 className="text-sm font-black text-white">
+                {isEn ? 'Athlete Measurement & Testing History Log' : 'سجل القياسات الكامل للاعب'}
+              </h3>
+              <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+                {isEn ? 'Filter records by test type or edit specific entries' : 'تصفية السجل حسب نوع القياس أو تعديل أي قيمة مسجلة'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto">
+              {/* Category Filter Selector */}
+              <div className="flex items-center gap-2 bg-black/50 border border-gray-800 px-3 py-1.5 rounded-xl">
+                <span className="text-[10px] text-gray-400 font-bold">{isEn ? 'Filter:' : 'نوع القياس:'}</span>
+                <select
+                  value={filterTestType}
+                  onChange={(e) => setFilterTestType(e.target.value)}
+                  className="bg-transparent text-xs font-bold text-cyan-400 outline-none cursor-pointer"
+                >
+                  <option value="all" className="bg-gray-900 text-white">{isEn ? 'All Measurements (الكل)' : 'جميع القياسات (الكل)'}</option>
+                  <option value="cmj" className="bg-gray-900 text-white">CMJ (Arms)</option>
+                  <option value="cmj_no_arms" className="bg-gray-900 text-white">CMJ (No Arms)</option>
+                  <option value="sj_no_arms" className="bg-gray-900 text-white">Squat Jump (SJ)</option>
+                  <option value="rsi" className="bg-gray-900 text-white">Drop Jump (RSI)</option>
+                  <option value="approach" className="bg-gray-900 text-white">Approach Jump</option>
+                  <option value="clean" className="bg-gray-900 text-white">Power Clean</option>
+                </select>
+              </div>
+
+              <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/40 px-3 py-1.5 rounded-xl border border-cyan-500/30">
+                {playerHistory.filter(h => filterTestType === 'all' ? true : (filterTestType === 'cmj' ? (h.test_type === 'cmj' || h.test_type === 'cmj_arms') : h.test_type === filterTestType)).length} Records
+              </span>
+            </div>
           </div>
 
           {playerHistory.length === 0 ? (
@@ -1120,24 +1201,34 @@ export default function PlayerProfile({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800/60 font-mono text-gray-300">
-                  {playerHistory.map((jump, idx) => (
-                    <tr key={jump.id || idx} className="hover:bg-blue-600/10 transition-colors">
-                      <td className="p-3 text-gray-400">{new Date(jump.created_at).toLocaleDateString('ar-EG')}</td>
-                      <td className="p-3 font-sans font-bold text-white uppercase">{jump.test_type}</td>
-                      <td className="p-3 text-cyan-400 font-black">{parseFloat(jump.jump_height_cm) > 0 ? `${parseFloat(jump.jump_height_cm).toFixed(1)} cm` : '—'}</td>
-                      <td className="p-3 text-gray-300">{parseFloat(jump.flight_time_sec) > 0 ? `${parseFloat(jump.flight_time_sec).toFixed(3)} s` : '—'}</td>
-                      <td className="p-3 text-blue-400 font-bold">{parseFloat(jump.peak_power_watts) > 0 ? `${parseFloat(jump.peak_power_watts).toFixed(0)} W` : '—'}</td>
-                      <td className="p-3 text-yellow-400 font-bold">{parseFloat(jump.rsi_score) > 0 ? parseFloat(jump.rsi_score).toFixed(2) : '—'}</td>
-                      <td className="p-3">
-                        <button
-                          onClick={() => handleDeleteTest(jump.id)}
-                          className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {playerHistory
+                    .filter(h => filterTestType === 'all' ? true : (filterTestType === 'cmj' ? (h.test_type === 'cmj' || h.test_type === 'cmj_arms') : h.test_type === filterTestType))
+                    .map((jump, idx) => (
+                      <tr key={jump.id || idx} className="hover:bg-blue-600/10 transition-colors">
+                        <td className="p-3 text-gray-400">{new Date(jump.created_at).toLocaleDateString('ar-EG')}</td>
+                        <td className="p-3 font-sans font-bold text-white uppercase">{jump.test_type}</td>
+                        <td className="p-3 text-cyan-400 font-black">{parseFloat(jump.jump_height_cm) > 0 ? `${parseFloat(jump.jump_height_cm).toFixed(1)} cm` : '—'}</td>
+                        <td className="p-3 text-gray-300">{parseFloat(jump.flight_time_sec) > 0 ? `${parseFloat(jump.flight_time_sec).toFixed(3)} s` : '—'}</td>
+                        <td className="p-3 text-blue-400 font-bold">{parseFloat(jump.peak_power_watts) > 0 ? `${parseFloat(jump.peak_power_watts).toFixed(0)} W` : '—'}</td>
+                        <td className="p-3 text-yellow-400 font-bold">{parseFloat(jump.rsi_score) > 0 ? parseFloat(jump.rsi_score).toFixed(2) : '—'}</td>
+                        <td className="p-3 flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => setEditingRecord({ ...jump })}
+                            title={isEn ? 'Edit Record' : 'تعديل القياس'}
+                            className="p-1.5 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 rounded-lg transition-all"
+                          >
+                            <Edit3 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTest(jump.id)}
+                            title={isEn ? 'Delete Record' : 'حذف القياس'}
+                            className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -1357,6 +1448,134 @@ export default function PlayerProfile({
               {isEn ? 'Cancel' : 'إلغاء'}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Edit Measurement Record Modal */}
+      {editingRecord && (
+        <div className="fixed inset-0 z-[220] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <form onSubmit={handleUpdateTest} className="glass-panel max-w-md w-full p-6 space-y-4 hud-card border-cyan-500/40 relative">
+            <button
+              type="button"
+              onClick={() => setEditingRecord(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-gray-800 pb-3">
+              <div className="p-2 bg-cyan-500/10 text-cyan-400 rounded-xl">
+                <Edit3 size={20} />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">
+                  {isEn ? 'Edit Test Record' : 'تعديل بيانات القياس المسجل'}
+                </h3>
+                <p className="text-xs text-gray-400 font-mono">
+                  ID: {editingRecord.id?.substring(0, 8)} • {new Date(editingRecord.created_at).toLocaleDateString('ar-EG')}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-right">
+              <div>
+                <label className="block text-xs text-gray-400 font-bold mb-1">نوع الاختبار (Test Category):</label>
+                <select
+                  value={editingRecord.test_type}
+                  onChange={(e) => setEditingRecord({ ...editingRecord, test_type: e.target.value })}
+                  className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs text-white font-bold"
+                >
+                  <option value="cmj">CMJ (Arms)</option>
+                  <option value="cmj_no_arms">CMJ (No Arms)</option>
+                  <option value="sj_no_arms">Squat Jump (SJ)</option>
+                  <option value="rsi">Drop Jump (RSI)</option>
+                  <option value="approach">Approach Jump</option>
+                  <option value="clean">Power Clean</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 font-bold mb-1">ارتفاع الوثبة (Jump Height - cm):</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={editingRecord.jump_height_cm || ''}
+                  onChange={(e) => {
+                    const hCm = parseFloat(e.target.value) || 0;
+                    const ft = hCm > 0 ? Math.sqrt((8 * (hCm / 100)) / 9.81) : 0;
+                    setEditingRecord({
+                      ...editingRecord,
+                      jump_height_cm: e.target.value,
+                      flight_time_sec: ft > 0 ? ft.toFixed(3) : editingRecord.flight_time_sec
+                    });
+                  }}
+                  className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs font-mono font-bold text-cyan-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 font-bold mb-1">زمن الطيران (Flight Time - sec):</label>
+                <input
+                  type="number"
+                  step="0.001"
+                  value={editingRecord.flight_time_sec || ''}
+                  onChange={(e) => {
+                    const ft = parseFloat(e.target.value) || 0;
+                    const hCm = ft > 0 ? (9.81 * ft * ft / 8) * 100 : 0;
+                    setEditingRecord({
+                      ...editingRecord,
+                      flight_time_sec: e.target.value,
+                      jump_height_cm: hCm > 0 ? hCm.toFixed(1) : editingRecord.jump_height_cm
+                    });
+                  }}
+                  className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs font-mono font-bold text-blue-400"
+                />
+              </div>
+
+              {editingRecord.test_type === 'rsi' && (
+                <div>
+                  <label className="block text-xs text-gray-400 font-bold mb-1">مؤشر RSI Index:</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editingRecord.rsi_score || ''}
+                    onChange={(e) => setEditingRecord({ ...editingRecord, rsi_score: e.target.value })}
+                    className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs font-mono font-bold text-yellow-400"
+                  />
+                </div>
+              )}
+
+              {editingRecord.test_type === 'clean' && (
+                <div>
+                  <label className="block text-xs text-gray-400 font-bold mb-1">وزن البار (Clean Weight - kg):</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={editingRecord.clean_weight_kg || ''}
+                    onChange={(e) => setEditingRecord({ ...editingRecord, clean_weight_kg: e.target.value })}
+                    className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs font-mono font-bold text-purple-400"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={isEditingSaving}
+                className="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl transition-all"
+              >
+                {isEditingSaving ? (isEn ? 'Saving...' : 'جاري الحفظ...') : (isEn ? 'Save Changes' : 'حفظ التعديلات')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingRecord(null)}
+                className="px-4 py-2.5 bg-gray-900 text-gray-400 hover:text-white font-bold text-xs rounded-xl"
+              >
+                {isEn ? 'Cancel' : 'إلغاء'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

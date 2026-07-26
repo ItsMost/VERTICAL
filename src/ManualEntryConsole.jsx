@@ -360,23 +360,16 @@ export default function ManualEntryConsole({
           </div>
         </div>
 
-        {/* Athlete Quick Selector */}
-        <div className="flex items-center gap-3 bg-black/40 border border-gray-800 p-2.5 rounded-2xl">
-          <User className="text-cyan-400 shrink-0" size={18} />
+        {/* Active Athlete Badge (Synced with Top Header) */}
+        <div className="flex items-center gap-3 bg-cyan-950/40 border border-cyan-500/30 px-4 py-2.5 rounded-2xl shadow-lg shadow-cyan-500/10">
+          <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 font-black flex items-center justify-center text-xs font-mono border border-cyan-500/40">
+            {activePlayer?.full_name ? activePlayer.full_name[0] : <User size={16} />}
+          </div>
           <div className="flex flex-col">
             <span className="text-[9px] text-gray-400 font-bold uppercase">{isEn ? 'Active Athlete:' : 'اللاعب الحالي:'}</span>
-            <select
-              value={selectedPlayerId}
-              onChange={(e) => onSelectPlayer(e.target.value)}
-              className="bg-transparent text-xs font-bold text-white outline-none cursor-pointer pr-4"
-            >
-              <option value="" className="bg-gray-900 text-gray-400">{isEn ? '-- Select Athlete --' : '-- اختر لاعباً --'}</option>
-              {players.map(p => (
-                <option key={p.id} value={p.id} className="bg-gray-900 text-white">
-                  {p.full_name} ({p.weight_kg}kg)
-                </option>
-              ))}
-            </select>
+            <span className="text-sm font-black text-white">
+              {activePlayer?.full_name || (isEn ? 'No Athlete Selected' : 'لم يتم اختيار لاعب')}
+            </span>
           </div>
         </div>
       </div>
