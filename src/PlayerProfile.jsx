@@ -116,6 +116,11 @@ export default function PlayerProfile({
   const sayersPeak = heightCm > 0 ? (61.9 * heightCm + 36.0 * mass - 1822) : 0;
   const relativePower = mass > 0 && sayersPeak > 0 ? (sayersPeak / mass) : 0;
 
+  // Max Power overall from history
+  const maxPower = playerHistory.length > 0
+    ? Math.max(...playerHistory.map(j => parseFloat(j.peak_power_watts) || (parseFloat(j.jump_height_cm) > 0 ? (61.9 * parseFloat(j.jump_height_cm) + 36.0 * mass - 1822) : 0)))
+    : sayersPeak;
+
   // Elastic Utilization Ratio (EUR = CMJ_no_arms / SJ_no_arms)
   const eur = maxSjNoArms > 0 && maxCmjNoArms > 0 ? (maxCmjNoArms / maxSjNoArms) : 0;
 
@@ -132,6 +137,11 @@ export default function PlayerProfile({
   // Latest RSI Score
   const latestRsiRecord = rsiJumps.length > 0 ? rsiJumps[rsiJumps.length - 1] : null;
   const rsiScore = latestRsiRecord ? (parseFloat(latestRsiRecord.rsi_score) || 0) : 0;
+
+  // Max RSI overall from history
+  const maxRsi = rsiJumps.length > 0
+    ? Math.max(...rsiJumps.map(j => parseFloat(j.rsi_score) || 0))
+    : rsiScore;
 
   // Overall Biomechanical Rating Score (0 - 100%)
   const overallRating = Math.min(100, Math.max(40, Math.round((heightCm / 70) * 50 + (relativePower / 65) * 35 + (rsiScore > 0 ? (rsiScore / 2.5) * 15 : 10))));
