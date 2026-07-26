@@ -31,6 +31,7 @@ export default function PlayerProfile({
   const [filterTestType, setFilterTestType] = useState('all');
   const [editingRecord, setEditingRecord] = useState(null);
   const [isEditingSaving, setIsEditingSaving] = useState(false);
+  const [historyViewMode, setHistoryViewMode] = useState('table'); // 'table' | 'social_card'
 
   if (!activePlayer) {
     return (
@@ -51,9 +52,28 @@ export default function PlayerProfile({
   const playerHeight = parseFloat(activePlayer.height_cm) || 178;
   const standingReach = parseFloat(activePlayer.standing_reach_cm) || Math.round(playerHeight * 1.32);
   const legLengthM = parseFloat(activePlayer.leg_length_m) || 1.0;
-  const birthYear = parseInt(activePlayer.birth_year) || 2005;
-  const currentYear = new Date().getFullYear();
-  const age = Math.max(12, currentYear - birthYear);
+  
+  // Calculate dynamic accurate age
+  const calculatePlayerAge = (player) => {
+    if (!player) return 17;
+    if (player.age && !isNaN(parseInt(player.age))) return parseInt(player.age);
+    let year = null;
+    if (player.birth_year && !isNaN(parseInt(player.birth_year))) {
+      year = parseInt(player.birth_year);
+    } else if (player.birth_date) {
+      year = new Date(player.birth_date).getFullYear();
+    } else {
+      const str = String(player.birth_year || player.birth_date || '');
+      const match = str.match(/\b(19\d\d|20\d\d)\b/);
+      if (match) year = parseInt(match[1]);
+    }
+    if (year && !isNaN(year)) {
+      return Math.max(10, new Date().getFullYear() - year);
+    }
+    return 17;
+  };
+
+  const age = calculatePlayerAge(activePlayer);
   const isFemale = activePlayer.gender === 'female';
 
   // Filter History Data by Jump Types
@@ -349,26 +369,22 @@ export default function PlayerProfile({
             </span>
           </div>
 
-          <div className="grid grid-cols-6 gap-3 text-xs text-center font-mono">
-            <div className="bg-slate-800/80 p-2 rounded-xl">
-              <span className="text-[9px] text-gray-400 font-sans block">{printLang === 'en' ? 'Age' : 'العمر'}</span>
-              <strong className="text-white text-sm">{age} yrs</strong>
+          <div className="grid grid-cols-4 gap-3 text-xs text-center font-mono">
+            <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+              <span className="text-[9px] text-gray-400 font-sans block font-bold uppercase">{printLang === 'en' ? 'Age' : 'العمر'}</span>
+              <strong className="text-white text-base font-black">{age} {printLang === 'en' ? 'yrs' : 'سنة'}</strong>
             </div>
-            <div className="bg-slate-800/80 p-2 rounded-xl">
-              <span className="text-[9px] text-gray-400 font-sans block">{printLang === 'en' ? 'Weight' : 'الوزن'}</span>
-              <strong className="text-white text-sm">{mass} kg</strong>
+            <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+              <span className="text-[9px] text-gray-400 font-sans block font-bold uppercase">{printLang === 'en' ? 'Weight' : 'الوزن'}</span>
+              <strong className="text-white text-base font-black">{mass} kg</strong>
             </div>
-            <div className="bg-slate-800/80 p-2 rounded-xl">
-              <span className="text-[9px] text-gray-400 font-sans block">{printLang === 'en' ? 'Height' : 'الطول'}</span>
-              <strong className="text-white text-sm">{playerHeight} cm</strong>
+            <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+              <span className="text-[9px] text-gray-400 font-sans block font-bold uppercase">{printLang === 'en' ? 'Height' : 'الطول'}</span>
+              <strong className="text-white text-base font-black">{playerHeight} cm</strong>
             </div>
-            <div className="bg-slate-800/80 p-2 rounded-xl">
-              <span className="text-[9px] text-gray-400 font-sans block">{printLang === 'en' ? 'Standing Reach' : 'المدى العمودي'}</span>
-              <strong className="text-orange-400 text-sm">{standingReach} cm</strong>
-            </div>
-            <div className="bg-slate-800/80 p-2 rounded-xl col-span-2">
-              <span className="text-[9px] text-gray-400 font-sans block">{printLang === 'en' ? 'Total Touch Reach' : 'الوصول الأقصى باليد'}</span>
-              <strong className="text-emerald-400 text-sm">{totalTouchReachCm} cm ({(totalTouchReachCm*0.393701).toFixed(1)}")</strong>
+            <div className="bg-slate-800/80 p-2.5 rounded-xl border border-orange-500/40 bg-orange-950/20">
+              <span className="text-[9px] text-orange-400 font-sans block font-bold uppercase">{printLang === 'en' ? 'Bio Grade' : 'درجة التقييم'}</span>
+              <strong className="text-orange-400 text-base font-black">{overallRating}%</strong>
             </div>
           </div>
         </div>
@@ -1144,20 +1160,41 @@ export default function PlayerProfile({
       )}
 
 
-      {/* TAB 3: FULL HISTORY MATRIX */}
+      {/* TAB 3: FULL HISTORY MATRIX & SOCIAL MEDIA HUD */}
       {activeTab === 'history' && (
-        <div className="glass-panel p-6 hud-card space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-gray-800 pb-3">
+        <div className="glass-panel p-6 hud-card space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-800 pb-4">
             <div>
-              <h3 className="text-sm font-black text-white">
-                {isEn ? 'Athlete Measurement & Testing History Log' : 'سجل القياسات الكامل للاعب'}
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
+                <span>{isEn ? 'Athlete Measurement & Testing History Log' : 'سجل القياسات بيوميكانيكي عالي الدقة'}</span>
+                <span className="text-[10px] font-mono font-black text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30">
+                  HUD v3.0
+                </span>
               </h3>
               <p className="text-[10px] text-gray-400 font-medium mt-0.5">
-                {isEn ? 'Filter records by test type or edit specific entries' : 'تصفية السجل حسب نوع القياس أو تعديل أي قيمة مسجلة'}
+                {isEn ? 'Filter records by test type, edit entries, or switch to Social Media Story mode for quick screenshots' : 'تصفية وحفظ القياسات، مع إمكانية تحويل الواجهة لبطاقة تكنولوجية مجهزة للتصوير والنشر على السوشيال ميديا'}
               </p>
             </div>
 
             <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto">
+              {/* View Switcher: Table vs Social Media Story Card */}
+              <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setHistoryViewMode('table')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${historyViewMode === 'table' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm' : 'text-gray-400 hover:text-white'}`}
+                >
+                  📋 {isEn ? 'Table View' : 'جدول القياسات'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHistoryViewMode('social_card')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${historyViewMode === 'social_card' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/40 shadow-sm' : 'text-gray-400 hover:text-white'}`}
+                >
+                  📸 {isEn ? 'Social Media Card' : 'بطاقة السوشيال ميديا'}
+                </button>
+              </div>
+
               {/* Category Filter Selector */}
               <div className="flex items-center gap-2 bg-black/50 border border-gray-800 px-3 py-1.5 rounded-xl">
                 <span className="text-[10px] text-gray-400 font-bold">{isEn ? 'Filter:' : 'نوع القياس:'}</span>
@@ -1175,18 +1212,15 @@ export default function PlayerProfile({
                   <option value="clean" className="bg-gray-900 text-white">Power Clean</option>
                 </select>
               </div>
-
-              <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/40 px-3 py-1.5 rounded-xl border border-cyan-500/30">
-                {playerHistory.filter(h => filterTestType === 'all' ? true : (filterTestType === 'cmj' ? (h.test_type === 'cmj' || h.test_type === 'cmj_arms') : h.test_type === filterTestType)).length} Records
-              </span>
             </div>
           </div>
 
           {playerHistory.length === 0 ? (
-            <div className="text-center py-10 text-gray-500 font-bold text-xs">
-              {isEn ? 'No measurements logged yet.' : 'لا توجد قياسات مسجلة لهذا اللاعب حتى الآن.'}
+            <div className="text-center py-12 text-gray-500 font-bold text-xs space-y-2">
+              <Activity size={32} className="mx-auto text-gray-600 animate-pulse" />
+              <p>{isEn ? 'No measurements logged yet.' : 'لا توجد قياسات مسجلة لهذا اللاعب حتى الآن.'}</p>
             </div>
-          ) : (
+          ) : historyViewMode === 'table' ? (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-center border-collapse">
                 <thead>
@@ -1231,6 +1265,114 @@ export default function PlayerProfile({
                     ))}
                 </tbody>
               </table>
+            </div>
+          ) : (
+            /* SOCIAL MEDIA STORY SNAPSHOT HUD CARD */
+            <div className="max-w-xl mx-auto bg-gradient-to-b from-[#090e18] via-[#05070e] to-[#020306] border-2 border-cyan-500/40 rounded-3xl p-6 shadow-2xl shadow-cyan-500/20 relative space-y-6 overflow-hidden">
+              {/* Corner Sci-Fi Accents */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 blur-2xl rounded-full pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-orange-500/10 blur-2xl rounded-full pointer-events-none" />
+
+              {/* Story Header */}
+              <div className="flex justify-between items-center border-b border-cyan-500/20 pb-4">
+                <div className="flex items-center gap-3">
+                  <AppLogo size={36} />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black tracking-wider text-white">VERTICAL LAB</span>
+                      <span className="text-[9px] font-mono font-bold px-2 py-0.5 bg-cyan-500/20 text-cyan-400 rounded-md border border-cyan-500/30">
+                        OFFICIAL BIOMEX
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-cyan-400 font-bold">Biomechanical Performance Record</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono text-gray-400 font-bold bg-slate-900 px-3 py-1 rounded-xl border border-gray-800">
+                  {new Date().toLocaleDateString('ar-EG')}
+                </span>
+              </div>
+
+              {/* Athlete Profile Card */}
+              <div className="bg-slate-900/80 border border-cyan-500/30 p-4 rounded-2xl flex items-center justify-between shadow-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-white font-black text-xl flex items-center justify-center shadow-md font-mono">
+                    {activePlayer.full_name ? activePlayer.full_name[0] : 'P'}
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-white">{activePlayer.full_name}</h3>
+                    <p className="text-xs text-cyan-400 font-bold font-mono">
+                      {age} {isEn ? 'yrs' : 'سنة'} • {mass} kg • {playerHeight} cm
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-[9px] text-gray-400 block font-bold uppercase">Bio Grade</span>
+                  <span className="text-lg font-black text-orange-400 font-mono">{overallRating}%</span>
+                </div>
+              </div>
+
+              {/* Top 3 Best Performances Grid */}
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="bg-slate-950/90 border border-cyan-500/30 p-3 rounded-2xl">
+                  <span className="text-[9px] text-gray-400 font-bold block uppercase mb-1">Max CMJ Height</span>
+                  <span className="text-lg font-black text-cyan-300 font-mono block">
+                    {maxCmj > 0 ? `${maxCmj.toFixed(1)} cm` : '—'}
+                  </span>
+                  <span className="text-[9px] font-bold text-cyan-400 font-mono">
+                    ({maxCmj > 0 ? (maxCmj * 0.393701).toFixed(1) : 0}")
+                  </span>
+                </div>
+
+                <div className="bg-slate-950/90 border border-blue-500/30 p-3 rounded-2xl">
+                  <span className="text-[9px] text-gray-400 font-bold block uppercase mb-1">Peak Power</span>
+                  <span className="text-lg font-black text-blue-400 font-mono block">
+                    {maxPower > 0 ? `${maxPower.toFixed(0)} W` : '—'}
+                  </span>
+                  <span className="text-[9px] font-bold text-blue-300 font-mono">
+                    ({maxPower > 0 ? (maxPower / mass).toFixed(1) : 0} W/kg)
+                  </span>
+                </div>
+
+                <div className="bg-slate-950/90 border border-yellow-500/30 p-3 rounded-2xl">
+                  <span className="text-[9px] text-gray-400 font-bold block uppercase mb-1">Max RSI Index</span>
+                  <span className="text-lg font-black text-yellow-400 font-mono block">
+                    {maxRsi > 0 ? maxRsi.toFixed(2) : '—'}
+                  </span>
+                  <span className="text-[9px] font-bold text-yellow-300 font-mono">Elasticity</span>
+                </div>
+              </div>
+
+              {/* Recent Measurements Timeline */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-2">
+                  📊 {isEn ? 'Recent Telemetry Logs:' : 'آخر القياسات المسجلة:'}
+                </span>
+
+                {playerHistory
+                  .filter(h => filterTestType === 'all' ? true : (filterTestType === 'cmj' ? (h.test_type === 'cmj' || h.test_type === 'cmj_arms') : h.test_type === filterTestType))
+                  .slice(0, 5)
+                  .map((jump, idx) => (
+                    <div key={idx} className="bg-slate-900/60 border border-gray-800 p-3 rounded-xl flex items-center justify-between text-xs font-mono">
+                      <div className="flex items-center gap-3">
+                        <span className="px-2 py-0.5 bg-cyan-950/50 text-cyan-400 rounded-md text-[10px] font-bold uppercase border border-cyan-500/30">
+                          {jump.test_type}
+                        </span>
+                        <span className="text-white font-bold">
+                          {parseFloat(jump.jump_height_cm) > 0 ? `${parseFloat(jump.jump_height_cm).toFixed(1)} cm` : '—'}
+                        </span>
+                      </div>
+                      <span className="text-gray-400 text-[10px]">
+                        {new Date(jump.created_at).toLocaleDateString('ar-EG')}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+
+              {/* Watermark Footer */}
+              <div className="border-t border-cyan-500/20 pt-3 text-center text-[9px] font-mono text-gray-500 flex justify-between items-center">
+                <span>VERIFIED BIOMECHANICAL REPORT</span>
+                <span className="text-cyan-400 font-bold">READY FOR STORY SHARE 📸</span>
+              </div>
             </div>
           )}
         </div>

@@ -116,6 +116,7 @@ export default function JumpCalculator() {
   const currentFrameDesktopRef = useRef(null);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [isMobileSelectorOpen, setIsMobileSelectorOpen] = useState(false);
+  const [headerSearchQuery, setHeaderSearchQuery] = useState('');
   const [expandedCoaches, setExpandedCoaches] = useState({ unassigned: true });
 
   const toggleCoachSelector = (coachId) => {
@@ -1501,78 +1502,126 @@ export default function JumpCalculator() {
                 {isSelectorOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsSelectorOpen(false)} />
-                    <div className={`absolute ${language === 'en' ? 'left-0' : 'right-0'} z-50 mt-1.5 w-full bg-[#0d121c]/95 border border-[var(--border-color)] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md max-h-72 overflow-y-auto`}>
-                      {coaches.map(coach => {
-                        const coachPlayers = players.filter(p => p.coach_id === coach.id);
-                        const isExpanded = !!expandedCoaches[coach.id];
-                        return (
-                          <div key={coach.id} className="border-b border-[var(--border-light)] last:border-b-0">
-                            <button
-                              type="button"
-                              onClick={() => toggleCoachSelector(coach.id)}
-                              className={`w-full px-3 py-2 bg-black/30 hover:bg-black/50 flex items-center justify-between text-xs font-bold text-blue-400 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
-                            >
-                              <span>👤 {coach.full_name} ({coachPlayers.length})</span>
-                              <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                            </button>
-                            
-                            {isExpanded && (
-                              <div className="bg-black/10 py-1">
-                                {coachPlayers.map(p => (
-                                  <button
-                                    key={p.id}
-                                    type="button"
-                                    onClick={() => {
-                                      handlePlayerSelect({ target: { value: p.id } });
-                                      setIsSelectorOpen(false);
-                                    }}
-                                    className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-blue-500/15 transition-colors block ${selectedPlayerId === p.id ? 'bg-blue-500/25 text-white font-extrabold' : 'text-gray-300'}`}
-                                  >
-                                    {p.full_name}
-                                  </button>
-                                ))}
-                                {coachPlayers.length === 0 && (
-                                  <span className={`block px-5 py-2 text-[10px] text-gray-500 ${language === 'en' ? 'text-left' : 'text-right'}`}>{language === 'en' ? 'No registered athletes for coach' : 'لا يوجد لاعبين مسجلين للمدرب'}</span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                    <div className={`absolute ${language === 'en' ? 'left-0' : 'right-0'} z-50 mt-1.5 w-full bg-[#0d121c]/95 border border-cyan-500/40 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md max-h-80 flex flex-col`}>
+                      {/* Search Bar Input */}
+                      <div className="p-2 border-b border-cyan-500/30 bg-slate-950/80 sticky top-0 z-10">
+                        <input
+                          type="text"
+                          placeholder={language === 'en' ? 'Search athlete by name...' : 'اكتب اسم اللاعب للبحث المباشر...'}
+                          value={headerSearchQuery}
+                          onChange={(e) => setHeaderSearchQuery(e.target.value)}
+                          autoFocus
+                          className="w-full bg-slate-900 border border-cyan-500/40 rounded-xl px-3 py-2 text-xs font-bold text-cyan-300 outline-none focus:border-cyan-400 placeholder:text-gray-500"
+                        />
+                      </div>
 
-                      {players.filter(p => !p.coach_id || !coaches.some(c => c.id === p.coach_id)).length > 0 && (() => {
-                        const unassignedPlayers = players.filter(p => !p.coach_id || !coaches.some(c => c.id === p.coach_id));
-                        const isExpanded = !!expandedCoaches['unassigned'];
-                        return (
-                          <div className="border-b border-[var(--border-light)] last:border-b-0">
-                            <button
-                              type="button"
-                              onClick={() => toggleCoachSelector('unassigned')}
-                              className={`w-full px-3 py-2 bg-black/30 hover:bg-black/50 flex items-center justify-between text-xs font-bold text-gray-400 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
-                            >
-                              <span>👤 {language === 'en' ? 'Unassigned athletes' : 'لاعبون بدون مدرب'} ({unassignedPlayers.length})</span>
-                              <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                            </button>
-                            {isExpanded && (
-                              <div className="bg-black/10 py-1">
-                                {unassignedPlayers.map(p => (
-                                  <button
-                                    key={p.id}
-                                    type="button"
-                                    onClick={() => {
-                                      handlePlayerSelect({ target: { value: p.id } });
-                                      setIsSelectorOpen(false);
-                                    }}
-                                    className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-blue-500/15 transition-colors block ${selectedPlayerId === p.id ? 'bg-blue-500/25 text-white font-extrabold' : 'text-gray-300'}`}
-                                  >
-                                    {p.full_name}
-                                  </button>
-                                ))}
+                      <div className="overflow-y-auto max-h-64 divide-y divide-gray-800/40">
+                        {headerSearchQuery.trim() ? (
+                          <div className="py-1">
+                            {players
+                              .filter(p => p.full_name?.toLowerCase().includes(headerSearchQuery.toLowerCase().trim()))
+                              .map(p => (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  onClick={() => {
+                                    handlePlayerSelect({ target: { value: p.id } });
+                                    setIsSelectorOpen(false);
+                                    setHeaderSearchQuery('');
+                                  }}
+                                  className={`w-full px-4 py-2.5 flex items-center justify-between text-xs hover:bg-cyan-500/20 transition-colors ${selectedPlayerId === p.id ? 'bg-cyan-500/30 text-cyan-300 font-black' : 'text-white'}`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 font-black flex items-center justify-center text-[10px] border border-cyan-500/30">
+                                      {p.full_name ? p.full_name[0] : 'P'}
+                                    </div>
+                                    <span className="font-bold">{p.full_name}</span>
+                                  </div>
+                                  <span className="text-[10px] font-mono text-cyan-400 font-bold">{p.weight_kg}kg</span>
+                                </button>
+                              ))}
+                            {players.filter(p => p.full_name?.toLowerCase().includes(headerSearchQuery.toLowerCase().trim())).length === 0 && (
+                              <div className="p-4 text-center text-xs text-gray-500 font-bold">
+                                {language === 'en' ? 'No matching athletes found' : 'لم يتم العثور على لاعب بهذا الاسم'}
                               </div>
                             )}
                           </div>
-                        );
-                      })()}
+                        ) : (
+                          <>
+                            {coaches.map(coach => {
+                              const coachPlayers = players.filter(p => p.coach_id === coach.id);
+                              const isExpanded = !!expandedCoaches[coach.id];
+                              return (
+                                <div key={coach.id} className="border-b border-[var(--border-light)] last:border-b-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleCoachSelector(coach.id)}
+                                    className={`w-full px-3 py-2 bg-black/30 hover:bg-black/50 flex items-center justify-between text-xs font-bold text-blue-400 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
+                                  >
+                                    <span>👤 {coach.full_name} ({coachPlayers.length})</span>
+                                    <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                  </button>
+                                  
+                                  {isExpanded && (
+                                    <div className="bg-black/10 py-1">
+                                      {coachPlayers.map(p => (
+                                        <button
+                                          key={p.id}
+                                          type="button"
+                                          onClick={() => {
+                                            handlePlayerSelect({ target: { value: p.id } });
+                                            setIsSelectorOpen(false);
+                                          }}
+                                          className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-blue-500/15 transition-colors block ${selectedPlayerId === p.id ? 'bg-blue-500/25 text-white font-extrabold' : 'text-gray-300'}`}
+                                        >
+                                          {p.full_name}
+                                        </button>
+                                      ))}
+                                      {coachPlayers.length === 0 && (
+                                        <span className={`block px-5 py-2 text-[10px] text-gray-500 ${language === 'en' ? 'text-left' : 'text-right'}`}>{language === 'en' ? 'No registered athletes for coach' : 'لا يوجد لاعبين مسجلين للمدرب'}</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+
+                            {players.filter(p => !p.coach_id || !coaches.some(c => c.id === p.coach_id)).length > 0 && (() => {
+                              const unassignedPlayers = players.filter(p => !p.coach_id || !coaches.some(c => c.id === p.coach_id));
+                              const isExpanded = !!expandedCoaches['unassigned'];
+                              return (
+                                <div className="border-b border-[var(--border-light)] last:border-b-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleCoachSelector('unassigned')}
+                                    className={`w-full px-3 py-2 bg-black/30 hover:bg-black/50 flex items-center justify-between text-xs font-bold text-gray-400 ${language === 'en' ? 'flex-row' : 'flex-row-reverse'}`}
+                                  >
+                                    <span>👤 {language === 'en' ? 'Unassigned athletes' : 'لاعبون بدون مدرب'} ({unassignedPlayers.length})</span>
+                                    <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                  </button>
+                                  {isExpanded && (
+                                    <div className="bg-black/10 py-1">
+                                      {unassignedPlayers.map(p => (
+                                        <button
+                                          key={p.id}
+                                          type="button"
+                                          onClick={() => {
+                                            handlePlayerSelect({ target: { value: p.id } });
+                                            setIsSelectorOpen(false);
+                                          }}
+                                          className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-blue-500/15 transition-colors block ${selectedPlayerId === p.id ? 'bg-blue-500/25 text-white font-extrabold' : 'text-gray-300'}`}
+                                        >
+                                          {p.full_name}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </>
                 )}
