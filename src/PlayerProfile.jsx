@@ -90,6 +90,10 @@ export default function PlayerProfile({
   const maxSjNoArms = sjNoArmsJumps.length > 0 ? Math.max(...sjNoArmsJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
   const maxApproach = approachJumps.length > 0 ? Math.max(...approachJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
 
+  // CMJ (Arms) Flight Time
+  const bestCmjRecord = cmjJumps.length > 0 ? cmjJumps.reduce((prev, curr) => (parseFloat(curr.jump_height_cm) || 0) > (parseFloat(prev.jump_height_cm) || 0) ? curr : prev, cmjJumps[0]) : null;
+  const cmjFlightTime = bestCmjRecord ? (parseFloat(bestCmjRecord.flight_time_sec) || 0) : (maxCmj > 0 ? Math.sqrt((8 * (maxCmj / 100)) / 9.81) : 0);
+
   // Active Peak Jump Height for Main Stats
   const heightCm = maxCmj > 0 ? maxCmj : (maxCmjNoArms > 0 ? maxCmjNoArms : (maxSjNoArms > 0 ? maxSjNoArms : 0));
   const heightInches = (heightCm * 0.393701).toFixed(1);
@@ -1315,9 +1319,9 @@ export default function PlayerProfile({
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-[9px] text-gray-400 block font-bold uppercase">Bio Grade</span>
-                  <span className="text-lg font-black text-orange-400 font-mono">{overallRating}%</span>
+                <div className="text-right font-mono">
+                  <span className="text-[10px] text-gray-400 font-bold uppercase block">{isEn ? 'Athlete Dossier' : 'ملف اللاعب'}</span>
+                  <span className="text-xs font-black text-cyan-400">ATH-{activePlayer.id?.substring(0, 6).toUpperCase()}</span>
                 </div>
               </div>
 
@@ -1334,12 +1338,12 @@ export default function PlayerProfile({
                 </div>
 
                 <div className="bg-slate-950/90 border border-blue-500/30 p-3 rounded-2xl">
-                  <span className="text-[9px] text-gray-400 font-bold block uppercase mb-1">Peak Power</span>
+                  <span className="text-[9px] text-gray-400 font-bold block uppercase mb-1">Flight Time (CMJ)</span>
                   <span className="text-lg font-black text-blue-400 font-mono block">
-                    {maxPower > 0 ? `${maxPower.toFixed(0)} W` : '—'}
+                    {cmjFlightTime > 0 ? `${cmjFlightTime.toFixed(3)} s` : '—'}
                   </span>
                   <span className="text-[9px] font-bold text-blue-300 font-mono">
-                    ({maxPower > 0 ? (maxPower / mass).toFixed(1) : 0} W/kg)
+                    (Air Time)
                   </span>
                 </div>
 
