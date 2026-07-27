@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, ChevronDown, ChevronUp, Moon, Sun, Award, Info, AlertTriangle, ShieldCheck, Sparkles, Users, Trophy, Globe } from 'lucide-react';
+import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, ChevronDown, ChevronUp, Moon, Sun, Award, Info, AlertTriangle, ShieldCheck, Sparkles, Users, Trophy, Globe, Star } from 'lucide-react';
 import { useJumpMechanics } from './useJumpMechanics';
 import { supabase } from './supabaseClient'; 
 import PlayerProfile from './PlayerProfile'; 
@@ -122,7 +122,25 @@ export default function JumpCalculator() {
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [isMobileSelectorOpen, setIsMobileSelectorOpen] = useState(false);
   const [headerSearchQuery, setHeaderSearchQuery] = useState('');
-  const [expandedCoaches, setExpandedCoaches] = useState({ unassigned: true });
+  const [favoritePlayerIds, setFavoritePlayerIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('favorite_player_ids');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const toggleFavoritePlayer = (playerId, e) => {
+    if (e) e.stopPropagation();
+    setFavoritePlayerIds(prev => {
+      const updated = prev.includes(playerId)
+        ? prev.filter(id => id !== playerId)
+        : [...prev, playerId];
+      localStorage.setItem('favorite_player_ids', JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   const toggleCoachSelector = (coachId) => {
     setExpandedCoaches(prev => ({
@@ -1460,7 +1478,7 @@ export default function JumpCalculator() {
                 <span className="font-mono text-[10px] bg-blue-900/60 px-1.5 py-0.5 rounded border border-blue-400/20">Ctrl+K</span>
               </button>
 
-              {/* 3-Way Theme Switcher Pill (Dark, Light, Haikyuu Anime) */}
+              {/* 2-Way Theme Switcher Pill (Dark, Light) */}
               <div className="flex items-center bg-[var(--bg-input)] p-1 rounded-xl border border-[var(--border-light)] shadow-sm">
                 <button
                   type="button"
@@ -1479,15 +1497,6 @@ export default function JumpCalculator() {
                 >
                   <Sun size={12} />
                   <span>{language === 'ar' ? 'مضيء' : 'Light'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setColorMode('haikyuu')}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer flex items-center gap-1 ${colorMode === 'haikyuu' ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm font-black' : 'text-gray-400 hover:text-white'}`}
-                  title={language === 'ar' ? 'نمط أنمي هايكيو!!' : 'Haikyuu!! Theme'}
-                >
-                  <span>🏐</span>
-                  <span>{language === 'ar' ? 'هايكيو' : 'Haikyuu'}</span>
                 </button>
               </div>
 
@@ -1558,26 +1567,39 @@ export default function JumpCalculator() {
                           <div className="py-1">
                             {players
                               .filter(p => p.full_name?.toLowerCase().includes(headerSearchQuery.toLowerCase().trim()))
-                              .map(p => (
-                                <button
-                                  key={p.id}
-                                  type="button"
-                                  onClick={() => {
-                                    handlePlayerSelect({ target: { value: p.id } });
-                                    setIsSelectorOpen(false);
-                                    setHeaderSearchQuery('');
-                                  }}
-                                  className={`w-full px-4 py-2.5 flex items-center justify-between text-xs hover:bg-[var(--brand-main)]/15 transition-colors ${selectedPlayerId === p.id ? 'bg-[var(--brand-main)]/25 text-[var(--brand-text)] font-black' : 'text-[var(--text-primary)]'}`}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-lg bg-[var(--brand-main)]/20 text-[var(--brand-text)] font-black flex items-center justify-center text-[10px] border border-[var(--border-color)]">
-                                      {p.full_name ? p.full_name[0] : 'P'}
+                              .map(p => {
+                                const isFav = favoritePlayerIds.includes(p.id);
+                                return (
+                                  <div
+                                    key={p.id}
+                                    onClick={() => {
+                                      handlePlayerSelect({ target: { value: p.id } });
+                                      setIsSelectorOpen(false);
+                                      setHeaderSearchQuery('');
+                                    }}
+                                    className={`w-full px-4 py-2.5 flex items-center justify-between text-xs hover:bg-[var(--brand-main)]/15 transition-colors cursor-pointer ${selectedPlayerId === p.id ? 'bg-[var(--brand-main)]/25 text-[var(--brand-text)] font-black' : 'text-[var(--text-primary)]'}`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-6 h-6 rounded-lg bg-[var(--brand-main)]/20 text-[var(--brand-text)] font-black flex items-center justify-center text-[10px] border border-[var(--border-color)]">
+                                        {p.full_name ? p.full_name[0] : 'P'}
+                                      </div>
+                                      <span className="font-bold text-[var(--text-primary)]">{p.full_name}</span>
                                     </div>
-                                    <span className="font-bold text-[var(--text-primary)]">{p.full_name}</span>
+
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-mono text-[var(--brand-text)] font-bold">{p.weight_kg}kg</span>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => toggleFavoritePlayer(p.id, e)}
+                                        className="p-1 hover:scale-125 transition-transform"
+                                        title={isFav ? (language === 'en' ? 'Remove from Favorites' : 'إزالة من المفضلة') : (language === 'en' ? 'Add to Favorites' : 'إضافة للمفضلة')}
+                                      >
+                                        <Star size={14} className={isFav ? "text-amber-400 fill-amber-400" : "text-gray-400 hover:text-amber-400"} />
+                                      </button>
+                                    </div>
                                   </div>
-                                  <span className="text-[10px] font-mono text-[var(--brand-text)] font-bold">{p.weight_kg}kg</span>
-                                </button>
-                              ))}
+                                );
+                              })}
                             {players.filter(p => p.full_name?.toLowerCase().includes(headerSearchQuery.toLowerCase().trim())).length === 0 && (
                               <div className="p-4 text-center text-xs text-gray-500 font-bold">
                                 {language === 'en' ? 'No matching athletes found' : 'لم يتم العثور على لاعب بهذا الاسم'}
@@ -1586,6 +1608,43 @@ export default function JumpCalculator() {
                           </div>
                         ) : (
                           <>
+                            {/* FAVORITE ATHLETES SECTION ⭐ */}
+                            {favoritePlayerIds.length > 0 && (
+                              <div className="border-b border-[var(--border-color)] bg-amber-500/10 py-1">
+                                <div className="px-3 py-1.5 text-[10px] font-black text-amber-500 uppercase tracking-wider flex items-center gap-1.5">
+                                  <Star size={12} className="fill-amber-400 text-amber-400" />
+                                  <span>{language === 'en' ? 'Favorite Athletes' : 'اللاعبون المفضّلون'} ({favoritePlayerIds.filter(id => players.some(p => p.id === id)).length})</span>
+                                </div>
+
+                                {players
+                                  .filter(p => favoritePlayerIds.includes(p.id))
+                                  .map(p => (
+                                    <div
+                                      key={p.id}
+                                      onClick={() => {
+                                        handlePlayerSelect({ target: { value: p.id } });
+                                        setIsSelectorOpen(false);
+                                      }}
+                                      className={`w-full px-4 py-2 flex items-center justify-between text-xs hover:bg-amber-500/20 transition-colors cursor-pointer ${selectedPlayerId === p.id ? 'bg-amber-500/30 text-amber-300 font-black' : 'text-[var(--text-primary)]'}`}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 font-black flex items-center justify-center text-[9px] border border-amber-500/40">
+                                          {p.full_name ? p.full_name[0] : 'P'}
+                                        </div>
+                                        <span className="font-bold">{p.full_name}</span>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => toggleFavoritePlayer(p.id, e)}
+                                        className="p-1 hover:scale-125 transition-transform"
+                                      >
+                                        <Star size={14} className="text-amber-400 fill-amber-400" />
+                                      </button>
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
+
                             {coaches.map(coach => {
                               const coachPlayers = players.filter(p => p.coach_id === coach.id);
                               const isExpanded = !!expandedCoaches[coach.id];
@@ -1602,19 +1661,28 @@ export default function JumpCalculator() {
                                   
                                   {isExpanded && (
                                     <div className="bg-black/10 py-1">
-                                      {coachPlayers.map(p => (
-                                        <button
-                                          key={p.id}
-                                          type="button"
-                                          onClick={() => {
-                                            handlePlayerSelect({ target: { value: p.id } });
-                                            setIsSelectorOpen(false);
-                                          }}
-                                          className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-blue-500/15 transition-colors block ${selectedPlayerId === p.id ? 'bg-blue-500/25 text-white font-extrabold' : 'text-gray-300'}`}
-                                        >
-                                          {p.full_name}
-                                        </button>
-                                      ))}
+                                      {coachPlayers.map(p => {
+                                        const isFav = favoritePlayerIds.includes(p.id);
+                                        return (
+                                          <div
+                                            key={p.id}
+                                            onClick={() => {
+                                              handlePlayerSelect({ target: { value: p.id } });
+                                              setIsSelectorOpen(false);
+                                            }}
+                                            className={`w-full px-5 py-2 flex items-center justify-between text-xs hover:bg-blue-500/15 transition-colors cursor-pointer ${selectedPlayerId === p.id ? 'bg-blue-500/25 text-white font-extrabold' : 'text-gray-300'}`}
+                                          >
+                                            <span>{p.full_name}</span>
+                                            <button
+                                              type="button"
+                                              onClick={(e) => toggleFavoritePlayer(p.id, e)}
+                                              className="p-1 hover:scale-125 transition-transform"
+                                            >
+                                              <Star size={13} className={isFav ? "text-amber-400 fill-amber-400" : "text-gray-500 hover:text-amber-400"} />
+                                            </button>
+                                          </div>
+                                        );
+                                      })}
                                       {coachPlayers.length === 0 && (
                                         <span className={`block px-5 py-2 text-[10px] text-gray-500 ${language === 'en' ? 'text-left' : 'text-right'}`}>{language === 'en' ? 'No registered athletes for coach' : 'لا يوجد لاعبين مسجلين للمدرب'}</span>
                                       )}
@@ -1639,19 +1707,28 @@ export default function JumpCalculator() {
                                   </button>
                                   {isExpanded && (
                                     <div className="bg-black/10 py-1">
-                                      {unassignedPlayers.map(p => (
-                                        <button
-                                          key={p.id}
-                                          type="button"
-                                          onClick={() => {
-                                            handlePlayerSelect({ target: { value: p.id } });
-                                            setIsSelectorOpen(false);
-                                          }}
-                                          className={`w-full px-5 py-2 ${language === 'en' ? 'text-left' : 'text-right'} text-xs hover:bg-blue-500/15 transition-colors block ${selectedPlayerId === p.id ? 'bg-blue-500/25 text-white font-extrabold' : 'text-gray-300'}`}
-                                        >
-                                          {p.full_name}
-                                        </button>
-                                      ))}
+                                      {unassignedPlayers.map(p => {
+                                        const isFav = favoritePlayerIds.includes(p.id);
+                                        return (
+                                          <div
+                                            key={p.id}
+                                            onClick={() => {
+                                              handlePlayerSelect({ target: { value: p.id } });
+                                              setIsSelectorOpen(false);
+                                            }}
+                                            className={`w-full px-5 py-2 flex items-center justify-between text-xs hover:bg-blue-500/15 transition-colors cursor-pointer ${selectedPlayerId === p.id ? 'bg-blue-500/25 text-white font-extrabold' : 'text-gray-300'}`}
+                                          >
+                                            <span>{p.full_name}</span>
+                                            <button
+                                              type="button"
+                                              onClick={(e) => toggleFavoritePlayer(p.id, e)}
+                                              className="p-1 hover:scale-125 transition-transform"
+                                            >
+                                              <Star size={13} className={isFav ? "text-amber-400 fill-amber-400" : "text-gray-500 hover:text-amber-400"} />
+                                            </button>
+                                          </div>
+                                        );
+                                      })}
                                     </div>
                                   )}
                                 </div>
