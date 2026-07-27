@@ -122,6 +122,7 @@ export default function JumpCalculator() {
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [isMobileSelectorOpen, setIsMobileSelectorOpen] = useState(false);
   const [headerSearchQuery, setHeaderSearchQuery] = useState('');
+  const [expandedCoaches, setExpandedCoaches] = useState({ unassigned: true });
   const [favoritePlayerIds, setFavoritePlayerIds] = useState(() => {
     try {
       const saved = localStorage.getItem('favorite_player_ids');
