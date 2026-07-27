@@ -335,11 +335,12 @@ export default function TeamDashboard({ onSelectPlayer, onChangeTab, coaches = [
   }, [selectedCoachId]);
 
   // Age calculation helper
-  const getPlayerAge = (dob) => {
-    if (!dob) return 20;
-    const currentYear = new Date().getFullYear();
-    const birthYear = parseInt(dob.substring(0, 4));
-    return currentYear - birthYear;
+  const getPlayerAge = (player) => {
+    if (!player) return 0;
+    const dob = typeof player === 'string' ? player : (player.date_of_birth || player.birth_date);
+    if (!dob) return 0;
+    const year = parseInt(String(dob).substring(0, 4));
+    return (year && !isNaN(year) && year > 1900) ? Math.max(1, new Date().getFullYear() - year) : 0;
   };
 
   const getComparisonBadge = (playerVal, avgVal) => {

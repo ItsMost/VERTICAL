@@ -693,7 +693,13 @@ export default function JumpCalculator() {
     return elements;
   };
 
-  const getPlayerAge = (dobString) => { return dobString ? new Date().getFullYear() - new Date(dobString).getFullYear() : 0; };
+  const getPlayerAge = (player) => {
+    if (!player) return 0;
+    const dob = typeof player === 'string' ? player : (player.date_of_birth || player.birth_date);
+    if (!dob) return 0;
+    const year = parseInt(String(dob).substring(0, 4));
+    return (year && !isNaN(year) && year > 1900) ? Math.max(1, new Date().getFullYear() - year) : 0;
+  };
 
   const handlePlayerSelect = async (e) => {
     const id = e.target.value;

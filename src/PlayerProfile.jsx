@@ -53,24 +53,24 @@ export default function PlayerProfile({
   const standingReach = parseFloat(activePlayer.standing_reach_cm) || Math.round(playerHeight * 1.32);
   const legLengthM = parseFloat(activePlayer.leg_length_m) || 1.0;
   
-  // Calculate dynamic accurate age
+  // Calculate dynamic accurate age from Supabase player fields (date_of_birth, birth_year, birth_date)
   const calculatePlayerAge = (player) => {
-    if (!player) return 17;
+    if (!player) return 0;
     if (player.age && !isNaN(parseInt(player.age))) return parseInt(player.age);
+    
     let year = null;
-    if (player.birth_year && !isNaN(parseInt(player.birth_year))) {
+    if (player.date_of_birth) {
+      year = parseInt(String(player.date_of_birth).substring(0, 4));
+    } else if (player.birth_year && !isNaN(parseInt(player.birth_year))) {
       year = parseInt(player.birth_year);
     } else if (player.birth_date) {
-      year = new Date(player.birth_date).getFullYear();
-    } else {
-      const str = String(player.birth_year || player.birth_date || '');
-      const match = str.match(/\b(19\d\d|20\d\d)\b/);
-      if (match) year = parseInt(match[1]);
+      year = parseInt(String(player.birth_date).substring(0, 4));
     }
-    if (year && !isNaN(year)) {
-      return Math.max(10, new Date().getFullYear() - year);
+
+    if (year && !isNaN(year) && year > 1900) {
+      return Math.max(1, new Date().getFullYear() - year);
     }
-    return 17;
+    return 0;
   };
 
   const age = calculatePlayerAge(activePlayer);
