@@ -35,7 +35,7 @@ const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
 export default function JumpCalculator() {
   const [activeTab, setActiveTab] = useState('team');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false); 
-  const [colorMode, setColorMode] = useState('dark'); 
+  const [colorMode, setColorMode] = useState(() => localStorage.getItem('app_theme') || 'dark'); // 'dark' | 'light' | 'haikyuu'
   const [language, setLanguage] = useState(() => localStorage.getItem('app_language') || 'ar');
 
   useEffect(() => {
@@ -43,6 +43,11 @@ export default function JumpCalculator() {
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
   }, [language]); 
+
+  useEffect(() => {
+    localStorage.setItem('app_theme', colorMode);
+    document.documentElement.setAttribute('data-theme', colorMode);
+  }, [colorMode]);
 
   const [players, setPlayers] = useState([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
@@ -1444,26 +1449,53 @@ export default function JumpCalculator() {
                 </p>
               </div>
             </div>
-            {/* Theme & Language Toggles on Mobile */}
-            <div className="lg:hidden flex items-center gap-2">
+            {/* Theme & Language Toggles */}
+            <div className="flex items-center gap-2">
               <button
-            onClick={() => setIsCommandPaletteOpen(true)}
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-blue-950/40 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
-            title="Command Palette (Ctrl + K)"
-          >
-            <span>🔍</span>
-            <span className="font-mono text-[10px] bg-blue-900/60 px-1.5 py-0.5 rounded border border-blue-400/20">Ctrl+K</span>
-          </button>
-          <button onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')} 
-                className="px-2 py-1 bg-[var(--bg-input)] text-blue-400 border border-[var(--border-light)] rounded-lg text-[10px] font-black shadow-sm"
+                onClick={() => setIsCommandPaletteOpen(true)}
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-blue-950/40 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
+                title="Command Palette (Ctrl + K)"
+              >
+                <span>🔍</span>
+                <span className="font-mono text-[10px] bg-blue-900/60 px-1.5 py-0.5 rounded border border-blue-400/20">Ctrl+K</span>
+              </button>
+
+              {/* 3-Way Theme Switcher Pill (Dark, Light, Haikyuu Anime) */}
+              <div className="flex items-center bg-[var(--bg-input)] p-1 rounded-xl border border-[var(--border-light)] shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setColorMode('dark')}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer flex items-center gap-1 ${colorMode === 'dark' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+                  title={language === 'ar' ? 'نمط داكن' : 'Dark Theme'}
+                >
+                  <Moon size={12} />
+                  <span>{language === 'ar' ? 'داكن' : 'Dark'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setColorMode('light')}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer flex items-center gap-1 ${colorMode === 'light' ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+                  title={language === 'ar' ? 'نمط مضيء مريح للعين' : 'Light Theme'}
+                >
+                  <Sun size={12} />
+                  <span>{language === 'ar' ? 'مضيء' : 'Light'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setColorMode('haikyuu')}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer flex items-center gap-1 ${colorMode === 'haikyuu' ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm font-black' : 'text-gray-400 hover:text-white'}`}
+                  title={language === 'ar' ? 'نمط أنمي هايكيو!!' : 'Haikyuu!! Theme'}
+                >
+                  <span>🏐</span>
+                  <span>{language === 'ar' ? 'هايكيو' : 'Haikyuu'}</span>
+                </button>
+              </div>
+
+              <button
+                onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')} 
+                className="px-2 py-1 bg-[var(--bg-input)] text-blue-400 border border-[var(--border-light)] rounded-lg text-[10px] font-black shadow-sm cursor-pointer"
               >
                 {language === 'ar' ? 'EN' : 'عربي'}
-              </button>
-              <button 
-                onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')} 
-                className="p-1.5 rounded-xl bg-[var(--bg-input)] text-[var(--text-secondary)] hover:text-white transition-all border border-[var(--border-light)] shadow-sm"
-              >
-                {colorMode === 'dark' ? <Sun size={14}/> : <Moon size={14}/>}
               </button>
             </div>
           </div>

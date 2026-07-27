@@ -1,63 +1,87 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
-:root {
-  /* PeakForce Lab Vertical v2.0 - Dark Obsidian Glass & Electric Royal Blue */
+:root, [data-theme="dark"] {
+  /* Dark Cyberpunk Theme */
+  --bg-base: #050811;
+  --bg-panel: rgba(13, 20, 36, 0.85);
+  --bg-surface: rgba(22, 33, 58, 0.7);
+  --bg-input: rgba(8, 13, 25, 0.9);
   
-  /* Deep Dark Glass Theme */
-  --bg-base: #050811;        /* Extra Dark Obsidian Base */
-  --bg-panel: rgba(13, 20, 36, 0.78);       /* Frosted Glass Panel */
-  --bg-surface: rgba(22, 33, 58, 0.65);     /* Frosted Glass Surface Card */
-  --bg-input: rgba(8, 13, 25, 0.85);       /* Dark Translucent Input */
+  --text-primary: #f8fafc;
+  --text-secondary: #3b82f6;
+  --text-muted: #94a3b8;
   
-  --text-primary: #f8fafc;   /* Pure White/Slate 50 */
-  --text-secondary: #3b82f6; /* Electric Blue */
-  --text-muted: #94a3b8;     /* Muted Slate */
+  --border-color: rgba(59, 130, 246, 0.35);
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-active: #2563eb;
   
-  --border-color: rgba(59, 130, 246, 0.28);   /* Electric Blue Glass Border */
-  --border-light: rgba(255, 255, 255, 0.08);   /* Subtle White Glass Border */
-  --border-active: #2563eb;                    /* Royal Blue Focus */
+  --brand-main: #2563eb;
+  --brand-hover: #1d4ed8;
+  --brand-text: #60a5fa;
   
-  --brand-main: #2563eb;     /* Royal Blue */
-  --brand-hover: #1d4ed8;    /* Deep Blue */
-  --brand-text: #60a5fa;     /* Light Electric Blue */
-  
-  --shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(37, 99, 235, 0.12);
-  --shadow-lg: 0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 30px rgba(37, 99, 235, 0.25);
+  --shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(37, 99, 235, 0.15);
+  --shadow-lg: 0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 30px rgba(37, 99, 235, 0.3);
   
   --accent-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
   --bg-gradient: radial-gradient(circle at 50% 0%, #0d172e 0%, #050811 100%);
-  
   --glass-blur: blur(20px);
   --sans: 'Cairo', system-ui, sans-serif;
   --heading: 'Cairo', system-ui, sans-serif;
   --mono: 'Outfit', 'Cairo', ui-monospace, Consolas, monospace;
 }
 
+/* Light Theme - Clean Eye-Friendly Sports Orange & Slate */
 [data-theme="light"] {
-  /* High Contrast Glass Light Theme */
   --bg-base: #f1f5f9;
-  --bg-panel: rgba(255, 255, 255, 0.92);
-  --bg-surface: rgba(248, 250, 252, 0.95);
+  --bg-panel: #ffffff;
+  --bg-surface: #ffffff;
   --bg-input: #ffffff;
   
-  --text-primary: #0f172a;   /* High Contrast Dark Gray */
-  --text-secondary: #1d4ed8;
-  --text-muted: #475569;
+  --text-primary: #0f172a;   /* High Contrast Slate 900 */
+  --text-secondary: #ea580c; /* Sports Orange */
+  --text-muted: #475569;     /* Slate 600 */
   
-  --border-color: rgba(37, 99, 235, 0.35);
-  --border-light: rgba(203, 213, 225, 0.9);
-  --border-active: #2563eb;
+  --border-color: rgba(234, 88, 12, 0.35); /* Orange Glass Border */
+  --border-light: #cbd5e1;
+  --border-active: #ea580c;
   
-  --brand-main: #2563eb;
-  --brand-hover: #1d4ed8;
-  --brand-text: #1d4ed8;
+  --brand-main: #ea580c;
+  --brand-hover: #c2410c;
+  --brand-text: #ea580c;
   
-  --shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.1);
-  --shadow-lg: 0 20px 40px -15px rgba(37, 99, 235, 0.15);
+  --shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 20px 40px -15px rgba(234, 88, 12, 0.15);
   
-  --accent-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  --accent-gradient: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
   --bg-gradient: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
   --glass-blur: blur(16px);
+}
+
+/* Haikyuu!! Anime Karasuno Theme - Fiery Orange & Crow Feather Obsidian */
+[data-theme="haikyuu"] {
+  --bg-base: #07090e;
+  --bg-panel: rgba(15, 18, 26, 0.92);
+  --bg-surface: rgba(24, 29, 42, 0.85);
+  --bg-input: rgba(10, 13, 20, 0.95);
+  
+  --text-primary: #ffffff;
+  --text-secondary: #ff6b00; /* Fiery Karasuno Orange */
+  --text-muted: #94a3b8;
+  
+  --border-color: rgba(255, 107, 0, 0.45); /* Karasuno Fiery Border */
+  --border-light: rgba(255, 255, 255, 0.12);
+  --border-active: #ff6b00;
+  
+  --brand-main: #ff6b00;
+  --brand-hover: #e65c00;
+  --brand-text: #ff9100;
+  
+  --shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 107, 0, 0.25);
+  --shadow-lg: 0 25px 60px -15px rgba(0, 0, 0, 0.95), 0 0 35px rgba(255, 107, 0, 0.4);
+  
+  --accent-gradient: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+  --bg-gradient: radial-gradient(circle at 50% 0%, #241203 0%, #07090e 100%);
+  --glass-blur: blur(20px);
 }
 
 body {
@@ -126,17 +150,17 @@ body {
 
 .glass-input:focus {
   border-color: var(--border-active);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
 }
 
-/* Light mode overrides for high contrast readability */
+/* LIGHT MODE CONTRAST OVERRIDES FOR MAXIMUM EYE COMFORT */
 [data-theme="light"] select,
 [data-theme="light"] input,
 [data-theme="light"] textarea {
   color: #0f172a !important;
   font-weight: 700 !important;
   background-color: #ffffff !important;
-  border: 1px solid #94a3b8 !important;
+  border: 1px solid #cbd5e1 !important;
 }
 
 [data-theme="light"] select option {
@@ -144,14 +168,69 @@ body {
   color: #0f172a;
 }
 
+[data-theme="light"] .text-white {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-gray-300,
 [data-theme="light"] .text-gray-400,
 [data-theme="light"] .text-gray-500 {
-  color: #475569 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .bg-slate-900,
+[data-theme="light"] .bg-slate-950,
+[data-theme="light"] .bg-black\/50,
+[data-theme="light"] .bg-black\/75,
+[data-theme="light"] .bg-black\/35,
+[data-theme="light"] .bg-gray-900 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
 }
 
 [data-theme="light"] .border-gray-800,
-[data-theme="light"] .border-gray-700 {
+[data-theme="light"] .border-gray-700,
+[data-theme="light"] .border-slate-800 {
   border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .btn-orange-gradient,
+[data-theme="light"] .bg-orange-500,
+[data-theme="light"] .bg-orange-600,
+[data-theme="light"] .bg-blue-600,
+[data-theme="light"] .bg-blue-500,
+[data-theme="light"] .text-white.btn-orange-gradient {
+  color: #ffffff !important;
+}
+
+/* HAIKYUU ANIME KARASUNO THEME ACCENTS & GLOWS */
+[data-theme="haikyuu"] .btn-orange-gradient,
+[data-theme="haikyuu"] .btn-blue-gradient {
+  background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(255, 107, 0, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+[data-theme="haikyuu"] .text-cyan-400,
+[data-theme="haikyuu"] .text-blue-400 {
+  color: #ff9100 !important;
+}
+
+[data-theme="haikyuu"] .border-cyan-500\/40,
+[data-theme="haikyuu"] .border-blue-500\/40 {
+  border-color: rgba(255, 107, 0, 0.5) !important;
+}
+
+[data-theme="haikyuu"] .hud-card::before {
+  border-top-color: #ff6b00 !important;
+  border-right-color: #ff6b00 !important;
+}
+
+[data-theme="haikyuu"] .hud-card::after {
+  border-bottom-color: #ff9100 !important;
+  border-left-color: #ff9100 !important;
 }
 
 .font-mono, .numbers, td, th, span[class*="font-mono"] {
