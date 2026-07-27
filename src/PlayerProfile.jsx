@@ -690,8 +690,8 @@ export default function PlayerProfile({
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
                 activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                  : 'bg-black/30 text-gray-400 hover:text-white'
+                  ? 'btn-orange-gradient text-white shadow-lg'
+                  : 'bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-color)]'
               }`}
             >
               <Icon size={16} />

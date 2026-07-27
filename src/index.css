@@ -30,19 +30,19 @@
   --mono: 'Outfit', 'Cairo', ui-monospace, Consolas, monospace;
 }
 
-/* Light Theme - Clean Eye-Friendly Sports Orange & Slate */
+/* Light Theme - High-Contrast Solar Orange & Crisp Slate Porcelain */
 [data-theme="light"] {
-  --bg-base: #f1f5f9;
+  --bg-base: #f8fafc;
   --bg-panel: #ffffff;
   --bg-surface: #ffffff;
   --bg-input: #ffffff;
   
-  --text-primary: #0f172a;   /* High Contrast Slate 900 */
-  --text-secondary: #ea580c; /* Sports Orange */
-  --text-muted: #475569;     /* Slate 600 */
+  --text-primary: #0f172a;   /* High Contrast Charcoal Slate */
+  --text-secondary: #ea580c; /* Solar Orange */
+  --text-muted: #475569;     /* Deep Slate 600 */
   
-  --border-color: rgba(234, 88, 12, 0.35); /* Orange Glass Border */
-  --border-light: #cbd5e1;
+  --border-color: #cbd5e1;   /* Crisp Slate 300 Border */
+  --border-light: #e2e8f0;
   --border-active: #ea580c;
   
   --brand-main: #ea580c;
@@ -53,7 +53,7 @@
   --shadow-lg: 0 20px 40px -15px rgba(234, 88, 12, 0.15);
   
   --accent-gradient: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-  --bg-gradient: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  --bg-gradient: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
   --glass-blur: blur(16px);
 }
 
@@ -153,7 +153,7 @@ body {
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
 }
 
-/* LIGHT MODE CONTRAST OVERRIDES FOR MAXIMUM EYE COMFORT */
+/* LIGHT MODE CONTRAST & ACCENT OVERRIDES (REPLACING BLUE WITH SOLAR ORANGE & DEEP SLATE) */
 [data-theme="light"] select,
 [data-theme="light"] input,
 [data-theme="light"] textarea {
@@ -178,6 +178,13 @@ body {
   color: #334155 !important;
 }
 
+[data-theme="light"] .text-blue-400,
+[data-theme="light"] .text-blue-300,
+[data-theme="light"] .text-cyan-400,
+[data-theme="light"] .text-cyan-300 {
+  color: #ea580c !important;
+}
+
 [data-theme="light"] .bg-slate-900,
 [data-theme="light"] .bg-slate-950,
 [data-theme="light"] .bg-black\/50,
@@ -189,10 +196,48 @@ body {
   border-color: #cbd5e1 !important;
 }
 
+[data-theme="light"] .bg-blue-950\/40,
+[data-theme="light"] .bg-blue-900\/60,
+[data-theme="light"] .bg-cyan-950\/40,
+[data-theme="light"] .bg-cyan-950\/60,
+[data-theme="light"] .bg-blue-950\/90 {
+  background-color: #fff7ed !important;
+  color: #ea580c !important;
+  border-color: #ffedd5 !important;
+}
+
 [data-theme="light"] .border-gray-800,
 [data-theme="light"] .border-gray-700,
-[data-theme="light"] .border-slate-800 {
+[data-theme="light"] .border-slate-800,
+[data-theme="light"] .border-cyan-500\/40,
+[data-theme="light"] .border-blue-500\/40,
+[data-theme="light"] .border-blue-500\/30,
+[data-theme="light"] .border-cyan-500\/30 {
   border-color: #cbd5e1 !important;
+}
+
+/* Light Mode Tables */
+[data-theme="light"] table thead tr {
+  background-color: #f1f5f9 !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] table thead th {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] table tbody tr {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] table tbody tr:hover {
+  background-color: #fff7ed !important;
+}
+
+[data-theme="light"] table tbody td {
+  color: #0f172a !important;
+  font-weight: 700 !important;
 }
 
 [data-theme="light"] .btn-orange-gradient,

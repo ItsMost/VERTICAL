@@ -1505,7 +1505,7 @@ export default function JumpCalculator() {
             {/* Quick Action: Register Coach */}
             <button
               onClick={() => setShowCoachModal(true)}
-              className="p-2.5 sm:px-4 sm:py-2.5 bg-black/35 hover:bg-blue-600/15 text-blue-400 border border-blue-800/40 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer shrink-0"
+              className="p-2.5 sm:px-4 sm:py-2.5 bg-[var(--bg-input)] hover:bg-[var(--brand-main)]/10 text-[var(--brand-text)] border border-[var(--border-color)] rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-sm cursor-pointer shrink-0"
               title={language === 'ar' ? 'إضافة مدرب' : 'Add Coach'}
             >
               <Users size={14} className="sm:w-3.5 sm:h-3.5" />
@@ -1515,7 +1515,7 @@ export default function JumpCalculator() {
             {/* Quick Action: Add Athlete */}
             <button
               onClick={() => setShowNewPlayerForm(true)}
-              className="p-2.5 sm:px-4 sm:py-2.5 bg-black/35 hover:bg-blue-600/15 text-blue-400 border border-blue-800/40 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-md cursor-pointer shrink-0"
+              className="p-2.5 sm:px-4 sm:py-2.5 bg-[var(--bg-input)] hover:bg-[var(--brand-main)]/10 text-[var(--brand-text)] border border-[var(--border-color)] rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 backdrop-blur-md transition-all shadow-sm cursor-pointer shrink-0"
               title={language === 'ar' ? 'تسجيل لاعب' : 'Add Athlete'}
             >
               <Plus size={14} className="sm:w-3.5 sm:h-3.5" />
@@ -1540,20 +1540,20 @@ export default function JumpCalculator() {
                 {isSelectorOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsSelectorOpen(false)} />
-                    <div className={`absolute ${language === 'en' ? 'left-0' : 'right-0'} z-50 mt-1.5 w-full bg-[#0d121c]/95 border border-cyan-500/40 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md max-h-80 flex flex-col`}>
+                    <div className={`absolute ${language === 'en' ? 'left-0' : 'right-0'} z-50 mt-1.5 w-full bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-md max-h-80 flex flex-col`}>
                       {/* Search Bar Input */}
-                      <div className="p-2 border-b border-cyan-500/30 bg-slate-950/80 sticky top-0 z-10">
+                      <div className="p-2 border-b border-[var(--border-color)] bg-[var(--bg-panel)] sticky top-0 z-10">
                         <input
                           type="text"
                           placeholder={language === 'en' ? 'Search athlete by name...' : 'اكتب اسم اللاعب للبحث المباشر...'}
                           value={headerSearchQuery}
                           onChange={(e) => setHeaderSearchQuery(e.target.value)}
                           autoFocus
-                          className="w-full bg-slate-900 border border-cyan-500/40 rounded-xl px-3 py-2 text-xs font-bold text-cyan-300 outline-none focus:border-cyan-400 placeholder:text-gray-500"
+                          className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-xs font-bold text-[var(--text-primary)] outline-none focus:border-[var(--brand-main)] placeholder:text-gray-400"
                         />
                       </div>
 
-                      <div className="overflow-y-auto max-h-64 divide-y divide-gray-800/40">
+                      <div className="overflow-y-auto max-h-64 divide-y divide-[var(--border-light)]">
                         {headerSearchQuery.trim() ? (
                           <div className="py-1">
                             {players
@@ -1567,15 +1567,15 @@ export default function JumpCalculator() {
                                     setIsSelectorOpen(false);
                                     setHeaderSearchQuery('');
                                   }}
-                                  className={`w-full px-4 py-2.5 flex items-center justify-between text-xs hover:bg-cyan-500/20 transition-colors ${selectedPlayerId === p.id ? 'bg-cyan-500/30 text-cyan-300 font-black' : 'text-white'}`}
+                                  className={`w-full px-4 py-2.5 flex items-center justify-between text-xs hover:bg-[var(--brand-main)]/15 transition-colors ${selectedPlayerId === p.id ? 'bg-[var(--brand-main)]/25 text-[var(--brand-text)] font-black' : 'text-[var(--text-primary)]'}`}
                                 >
                                   <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 font-black flex items-center justify-center text-[10px] border border-cyan-500/30">
+                                    <div className="w-6 h-6 rounded-lg bg-[var(--brand-main)]/20 text-[var(--brand-text)] font-black flex items-center justify-center text-[10px] border border-[var(--border-color)]">
                                       {p.full_name ? p.full_name[0] : 'P'}
                                     </div>
-                                    <span className="font-bold">{p.full_name}</span>
+                                    <span className="font-bold text-[var(--text-primary)]">{p.full_name}</span>
                                   </div>
-                                  <span className="text-[10px] font-mono text-cyan-400 font-bold">{p.weight_kg}kg</span>
+                                  <span className="text-[10px] font-mono text-[var(--brand-text)] font-bold">{p.weight_kg}kg</span>
                                 </button>
                               ))}
                             {players.filter(p => p.full_name?.toLowerCase().includes(headerSearchQuery.toLowerCase().trim())).length === 0 && (
@@ -1760,7 +1760,7 @@ export default function JumpCalculator() {
         </main>
 
         {/* ================= FLOATING GLASSMORPHIC DOCK NAVIGATION ================= */}
-        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-fit max-w-[98%] bg-[#0d121c]/90 backdrop-blur-xl border border-[var(--border-color)] rounded-full px-2.5 sm:px-6 py-1.5 sm:py-2.5 flex items-center gap-1.5 xs:gap-3 sm:gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.7)]">
+        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-fit max-w-[98%] bg-[var(--bg-panel)] backdrop-blur-xl border border-[var(--border-color)] rounded-full px-2.5 sm:px-6 py-1.5 sm:py-2.5 flex items-center gap-1.5 xs:gap-3 sm:gap-6 shadow-2xl">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -1772,10 +1772,10 @@ export default function JumpCalculator() {
               onClick={() => setActiveTab(tab.id)}
               className={`relative flex flex-col items-center justify-center px-1.5 xs:px-3 sm:px-4 py-1 rounded-2xl transition-all duration-300 select-none
                 ${isActive 
-                  ? 'text-blue-400 scale-110 font-black' 
+                  ? 'text-[var(--brand-main)] scale-110 font-black' 
                   : isDisabled 
-                    ? 'text-gray-600 cursor-not-allowed opacity-30' 
-                    : 'text-gray-400 hover:text-white hover:scale-105'}`}
+                    ? 'text-gray-400 cursor-not-allowed opacity-30' 
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:scale-105'}`}
             >
               <Icon className="w-4 h-4 sm:w-5 sm:h-5" size={undefined} />
               <span className="hidden sm:inline text-[10px] mt-1 font-bold">{getTabName(tab)}</span>
@@ -1783,7 +1783,7 @@ export default function JumpCalculator() {
               {isActive && (
                 <motion.div 
                   layoutId="active-dock-indicator"
-                  className="absolute -bottom-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_12px_#2563eb]"
+                  className="absolute -bottom-1.5 w-1.5 h-1.5 rounded-full bg-[var(--brand-main)] shadow-[0_0_12px_var(--brand-main)]"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}
