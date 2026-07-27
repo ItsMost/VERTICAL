@@ -132,15 +132,29 @@ export default function JumpCalculator() {
     }
   });
 
-  const toggleFavoritePlayer = (playerId, e) => {
+  const toggleFavoritePlayer = async (playerId, e) => {
     if (e) e.stopPropagation();
+    const isFav = favoritePlayerIds.includes(playerId);
+    const newFavState = !isFav;
+
     setFavoritePlayerIds(prev => {
-      const updated = prev.includes(playerId)
-        ? prev.filter(id => id !== playerId)
-        : [...prev, playerId];
+      const updated = newFavState
+        ? [...prev.filter(id => id !== playerId), playerId]
+        : prev.filter(id => id !== playerId);
       localStorage.setItem('favorite_player_ids', JSON.stringify(updated));
       return updated;
     });
+
+    setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, is_favorite: newFavState } : p));
+
+    try {
+      await supabase
+        .from('lab_players')
+        .update({ is_favorite: newFavState })
+        .eq('id', playerId);
+    } catch (err) {
+      console.error("Supabase sync favorite error:", err);
+    }
   };
 
   const toggleCoachSelector = (coachId) => {
@@ -613,7 +627,17 @@ export default function JumpCalculator() {
 
   const fetchPlayers = async () => {
     const { data, error } = await supabase.from('lab_players').select('*').order('created_at', { ascending: false });
-    if (!error && data) setPlayers(data);
+    if (!error && data) {
+      setPlayers(data);
+      const cloudFavs = data.filter(p => p.is_favorite).map(p => p.id);
+      let localFavs = [];
+      try {
+        const saved = localStorage.getItem('favorite_player_ids');
+        localFavs = saved ? JSON.parse(saved) : [];
+      } catch (e) {}
+      const combinedFavs = Array.from(new Set([...cloudFavs, ...localFavs]));
+      setFavoritePlayerIds(combinedFavs);
+    }
   };
 
   const fetchCoaches = async () => {
