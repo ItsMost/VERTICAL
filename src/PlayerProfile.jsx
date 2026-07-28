@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, TrendingUp, Clock, Zap, ArrowUpCircle, AlertCircle, BookOpen, X, Award, User, Scale, Calendar, Trophy, FileText, ChevronLeft, Target, Plus, Trash2, Edit3, ShieldCheck, Sparkles, Printer, Activity, Table } from 'lucide-react';
+import { Download, TrendingUp, Clock, Zap, ArrowUpCircle, AlertCircle, BookOpen, X, Award, User, Scale, Calendar, Trophy, FileText, ChevronLeft, Target, Plus, Trash2, Edit3, ShieldCheck, Sparkles, Printer, Activity, Table, Monitor } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from './supabaseClient';
 import AppLogo from './AppLogo';
+import MacbookScrollDemo from './components/macbook-scroll-demo';
 
 export default function PlayerProfile({
   activePlayer,
@@ -32,7 +33,7 @@ export default function PlayerProfile({
   const [chartMetric, setChartMetric] = useState('cmj'); // 'cmj' | 'approach' | 'rsi' | 'power' | 'full_squat' | 'bench_press' | 'power_clean'
   const [editingRecord, setEditingRecord] = useState(null);
   const [isEditingSaving, setIsEditingSaving] = useState(false);
-  const [historyViewMode, setHistoryViewMode] = useState('table'); // 'table' | 'social_card'
+  const [historyViewMode, setHistoryViewMode] = useState('table'); // 'table' | 'social_card' | '3d_macbook'
 
   if (!activePlayer) {
     return (
@@ -1366,7 +1367,7 @@ export default function PlayerProfile({
             </div>
 
             <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto">
-              {/* View Switcher: Table vs Social Media Story Card */}
+              {/* View Switcher: Table vs Social Media Story Card vs 3D Macbook Showcase */}
               <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-gray-800">
                 <button
                   type="button"
@@ -1380,7 +1381,14 @@ export default function PlayerProfile({
                   onClick={() => setHistoryViewMode('social_card')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${historyViewMode === 'social_card' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/40 shadow-sm' : 'text-gray-400 hover:text-white'}`}
                 >
-                  📸 {isEn ? 'Social Media Card' : 'بطاقة السوشيال ميديا'}
+                  📸 {isEn ? 'Social Card' : 'بطاقة السوشيال'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHistoryViewMode('3d_macbook')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${historyViewMode === '3d_macbook' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm' : 'text-gray-400 hover:text-white'}`}
+                >
+                  💻 {isEn ? '3D Macbook' : 'عرض لاب توب 3D'}
                 </button>
               </div>
 
@@ -1504,7 +1512,7 @@ export default function PlayerProfile({
                 </tbody>
               </table>
             </div>
-          ) : (
+          ) : historyViewMode === 'social_card' ? (
             /* SOCIAL MEDIA STORY SNAPSHOT HUD CARD */
             <div className="max-w-xl mx-auto bg-gradient-to-b from-[#090e18] via-[#05070e] to-[#020306] border-2 border-cyan-500/40 rounded-3xl p-6 shadow-2xl shadow-cyan-500/20 relative space-y-6 overflow-hidden">
               {/* Corner Sci-Fi Accents */}
@@ -1611,6 +1619,58 @@ export default function PlayerProfile({
                 <span>VERIFIED BIOMECHANICAL REPORT</span>
                 <span className="text-cyan-400 font-bold">READY FOR STORY SHARE 📸</span>
               </div>
+            </div>
+          ) : (
+            /* 3D ANIMATED MACBOOK SHOWCASE DISPLAY */
+            <div className="w-full flex justify-center py-4">
+              <MacbookScrollDemo
+                title={
+                  <div className="text-center space-y-1 font-mono">
+                    <span className="text-xl sm:text-2xl font-black text-white block">
+                      ⚡ VERTICAL LAB 3D ATHLETE SHOWCASE
+                    </span>
+                    <span className="text-xs text-cyan-400 font-sans font-bold block">
+                      {isEn ? 'Scroll down to open 3D Macbook lid and reveal active dossier' : 'قم بالتمرير للأسفل لفتح غطاء اللابتوب الـ 3D واستعراض الملف الحركي للاعب'}
+                    </span>
+                  </div>
+                }
+              >
+                {/* Embedded Social Story Card inside Macbook Screen */}
+                <div className="p-4 bg-gradient-to-b from-[#090e18] via-[#05070e] to-[#020306] rounded-2xl text-white font-sans space-y-4 text-xs">
+                  <div className="flex justify-between items-center border-b border-cyan-500/30 pb-3">
+                    <div className="flex items-center gap-2">
+                      <AppLogo size={28} />
+                      <span className="font-black text-cyan-300">VERTICAL LAB DOSSIER</span>
+                    </div>
+                    <span className="text-[10px] text-gray-400 font-mono">{new Date().toLocaleDateString('ar-EG')}</span>
+                  </div>
+
+                  <div className="bg-slate-900/90 border border-cyan-500/30 p-3 rounded-xl flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-500 text-white font-black text-lg flex items-center justify-center font-mono">
+                      {activePlayer.full_name ? activePlayer.full_name[0] : 'P'}
+                    </div>
+                    <div>
+                      <h4 className="font-black text-sm text-white">{activePlayer.full_name}</h4>
+                      <p className="text-[11px] text-cyan-400 font-mono">{mass} kg • {playerHeight} cm</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center font-mono">
+                    <div className="bg-black/60 p-2 rounded-lg border border-cyan-500/30">
+                      <span className="text-[9px] text-gray-400 block">MAX CMJ</span>
+                      <span className="font-black text-cyan-300 text-sm">{maxCmj > 0 ? `${maxCmj.toFixed(1)} cm` : '—'}</span>
+                    </div>
+                    <div className="bg-black/60 p-2 rounded-lg border border-blue-500/30">
+                      <span className="text-[9px] text-gray-400 block">AIR TIME</span>
+                      <span className="font-black text-blue-400 text-sm">{cmjFlightTime > 0 ? `${cmjFlightTime.toFixed(3)} s` : '—'}</span>
+                    </div>
+                    <div className="bg-black/60 p-2 rounded-lg border border-yellow-500/30">
+                      <span className="text-[9px] text-gray-400 block">MAX RSI</span>
+                      <span className="font-black text-yellow-400 text-sm">{maxRsi > 0 ? maxRsi.toFixed(2) : '—'}</span>
+                    </div>
+                  </div>
+                </div>
+              </MacbookScrollDemo>
             </div>
           )}
         </div>
