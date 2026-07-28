@@ -82,13 +82,19 @@ export default function PlayerProfile({
   const sjNoArmsJumps = playerHistory.filter(h => h.test_type === 'sj_no_arms');
   const rsiJumps = playerHistory.filter(h => h.test_type === 'rsi');
   const approachJumps = playerHistory.filter(h => h.test_type === 'approach' || h.test_type === 'approach_jump');
-  const cleanJumps = playerHistory.filter(h => parseFloat(h.clean_weight_kg) > 0);
+  const fullSquatRecords = playerHistory.filter(h => h.test_type === 'full_squat');
+  const benchPressRecords = playerHistory.filter(h => h.test_type === 'bench_press');
+  const powerCleanRecords = playerHistory.filter(h => h.test_type === 'power_clean' || (parseFloat(h.clean_weight_kg) > 0 && h.test_type !== 'full_squat' && h.test_type !== 'bench_press'));
 
-  // Peak Height Records
+  // Peak Height & Strength Records
   const maxCmj = cmjJumps.length > 0 ? Math.max(...cmjJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
   const maxCmjNoArms = cmjNoArmsJumps.length > 0 ? Math.max(...cmjNoArmsJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
   const maxSjNoArms = sjNoArmsJumps.length > 0 ? Math.max(...sjNoArmsJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
   const maxApproach = approachJumps.length > 0 ? Math.max(...approachJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
+  
+  const maxFullSquat = fullSquatRecords.length > 0 ? Math.max(...fullSquatRecords.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
+  const maxBenchPress = benchPressRecords.length > 0 ? Math.max(...benchPressRecords.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
+  const maxPowerClean = powerCleanRecords.length > 0 ? Math.max(...powerCleanRecords.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
 
   // CMJ (Arms) Flight Time
   const bestCmjRecord = cmjJumps.length > 0 ? cmjJumps.reduce((prev, curr) => (parseFloat(curr.jump_height_cm) || 0) > (parseFloat(prev.jump_height_cm) || 0) ? curr : prev, cmjJumps[0]) : null;
@@ -806,6 +812,74 @@ export default function PlayerProfile({
 
           </div>
 
+          {/* STRENGTH & APPROACH JUMP HIGHLIGHT CARDS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            {/* Approach Jump Card */}
+            <div className="glass-panel p-4 hud-card space-y-2 border-l-4 border-l-orange-500">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-orange-400 font-mono uppercase">{isEn ? 'Approach Jump 🚀' : 'الارتقاء الحركي 🚀'}</span>
+                <span className="text-[10px] text-gray-400 font-mono">Approach</span>
+              </div>
+              <div>
+                <span className="text-2xl font-black text-white font-mono">{maxApproach > 0 ? `${maxApproach.toFixed(1)} cm` : '—'}</span>
+                {maxApproach > 0 && (
+                  <span className="text-[10px] text-orange-300 font-mono block">
+                    {isEn ? `Touch: ${standingReach + maxApproach} cm` : `الوصول الكلي: ${standingReach + maxApproach} سم`}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Full Squat 1RM Card */}
+            <div className="glass-panel p-4 hud-card space-y-2 border-l-4 border-l-emerald-500">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-emerald-400 font-mono uppercase">{isEn ? 'Full Squat 1RM 🏋️‍♂️' : 'الأسكوات الكامل 🏋️‍♂️'}</span>
+                <span className="text-[10px] text-gray-400 font-mono">1RM</span>
+              </div>
+              <div>
+                <span className="text-2xl font-black text-white font-mono">{maxFullSquat > 0 ? `${maxFullSquat} kg` : '—'}</span>
+                {maxFullSquat > 0 && mass > 0 && (
+                  <span className="text-[10px] text-emerald-300 font-mono block">
+                    ({(maxFullSquat / mass).toFixed(2)} xBW)
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Bench Press 1RM Card */}
+            <div className="glass-panel p-4 hud-card space-y-2 border-l-4 border-l-rose-500">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-rose-400 font-mono uppercase">{isEn ? 'Bench Press 1RM 💪' : 'البنش بريس 💪'}</span>
+                <span className="text-[10px] text-gray-400 font-mono">1RM</span>
+              </div>
+              <div>
+                <span className="text-2xl font-black text-white font-mono">{maxBenchPress > 0 ? `${maxBenchPress} kg` : '—'}</span>
+                {maxBenchPress > 0 && mass > 0 && (
+                  <span className="text-[10px] text-rose-300 font-mono block">
+                    ({(maxBenchPress / mass).toFixed(2)} xBW)
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Power Clean 1RM Card */}
+            <div className="glass-panel p-4 hud-card space-y-2 border-l-4 border-l-amber-500">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-amber-400 font-mono uppercase">{isEn ? 'Power Clean 1RM ⚡' : 'رفعة الكلين ⚡'}</span>
+                <span className="text-[10px] text-gray-400 font-mono">1RM</span>
+              </div>
+              <div>
+                <span className="text-2xl font-black text-white font-mono">{maxPowerClean > 0 ? `${maxPowerClean} kg` : '—'}</span>
+                {maxPowerClean > 0 && mass > 0 && (
+                  <span className="text-[10px] text-amber-300 font-mono block">
+                    ({(maxPowerClean / mass).toFixed(2)} xBW)
+                  </span>
+                )}
+              </div>
+            </div>
+
+          </div>
 
           {/* VOLLEYBALL NET & BASKETBALL DUNK KPIS IN APP SCREEN */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1222,8 +1296,10 @@ export default function PlayerProfile({
                   <option value="cmj_no_arms" className="bg-gray-900 text-white">CMJ (No Arms)</option>
                   <option value="sj_no_arms" className="bg-gray-900 text-white">Squat Jump (SJ)</option>
                   <option value="rsi" className="bg-gray-900 text-white">Drop Jump (RSI)</option>
-                  <option value="approach" className="bg-gray-900 text-white">Approach Jump</option>
-                  <option value="clean" className="bg-gray-900 text-white">Power Clean</option>
+                  <option value="approach" className="bg-gray-900 text-white">Approach Jump (الارتقاء الحركي)</option>
+                  <option value="full_squat" className="bg-gray-900 text-white">Full Squat (أسكوات كامل)</option>
+                  <option value="bench_press" className="bg-gray-900 text-white">Bench Press (بنش بريس)</option>
+                  <option value="power_clean" className="bg-gray-900 text-white">Power Clean (كلين)</option>
                 </select>
               </div>
             </div>
@@ -1241,42 +1317,80 @@ export default function PlayerProfile({
                   <tr className="bg-blue-950/40 text-blue-300 font-bold border-b border-gray-800">
                     <th className="p-3">{isEn ? 'Date' : 'التاريخ'}</th>
                     <th className="p-3">{isEn ? 'Category' : 'نوع الاختبار (Category)'}</th>
-                    <th className="p-3">{isEn ? 'Height' : 'الارتفاع (Jump Height)'}</th>
+                    <th className="p-3">{isEn ? 'Result / Weight' : 'النتيجة / الوزن'}</th>
                     <th className="p-3">{isEn ? 'Flight Time' : 'زمن الطيران (Flight Time)'}</th>
                     <th className="p-3">{isEn ? 'Peak Power' : 'ذروة القدرة (Peak Power)'}</th>
-                    <th className="p-3">{isEn ? 'RSI' : 'RSI Index'}</th>
+                    <th className="p-3">{isEn ? 'RSI / Ratio' : 'RSI / النسب الحركية'}</th>
                     <th className="p-3">{isEn ? 'Actions' : 'إجراءات'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800/60 font-mono text-gray-300">
                   {playerHistory
                     .filter(h => filterTestType === 'all' ? true : (filterTestType === 'cmj' ? (h.test_type === 'cmj' || h.test_type === 'cmj_arms') : h.test_type === filterTestType))
-                    .map((jump, idx) => (
-                      <tr key={jump.id || idx} className="hover:bg-blue-600/10 transition-colors">
-                        <td className="p-3 text-gray-400">{new Date(jump.created_at).toLocaleDateString('ar-EG')}</td>
-                        <td className="p-3 font-sans font-bold text-white uppercase">{jump.test_type}</td>
-                        <td className="p-3 text-cyan-400 font-black">{parseFloat(jump.jump_height_cm) > 0 ? `${parseFloat(jump.jump_height_cm).toFixed(1)} cm` : '—'}</td>
-                        <td className="p-3 text-gray-300">{parseFloat(jump.flight_time_sec) > 0 ? `${parseFloat(jump.flight_time_sec).toFixed(3)} s` : '—'}</td>
-                        <td className="p-3 text-blue-400 font-bold">{parseFloat(jump.peak_power_watts) > 0 ? `${parseFloat(jump.peak_power_watts).toFixed(0)} W` : '—'}</td>
-                        <td className="p-3 text-yellow-400 font-bold">{parseFloat(jump.rsi_score) > 0 ? parseFloat(jump.rsi_score).toFixed(2) : '—'}</td>
-                        <td className="p-3 flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => setEditingRecord({ ...jump })}
-                            title={isEn ? 'Edit Record' : 'تعديل القياس'}
-                            className="p-1.5 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 rounded-lg transition-all"
-                          >
-                            <Edit3 size={14} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteTest(jump.id)}
-                            title={isEn ? 'Delete Record' : 'حذف القياس'}
-                            className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    .map((jump, idx) => {
+                      const isStrength = jump.test_type === 'full_squat' || jump.test_type === 'bench_press' || jump.test_type === 'power_clean' || parseFloat(jump.clean_weight_kg) > 0;
+                      const strengthWeight = parseFloat(jump.clean_weight_kg) || 0;
+                      const bwRatio = mass > 0 && strengthWeight > 0 ? (strengthWeight / mass).toFixed(2) : '—';
+                      
+                      let badgeLabel = jump.test_type ? jump.test_type.toUpperCase() : 'CMJ';
+                      let badgeColor = 'bg-blue-950/60 text-cyan-400 border-cyan-500/30';
+                      
+                      if (jump.test_type === 'approach' || jump.test_type === 'approach_jump') {
+                        badgeLabel = 'APPROACH 🚀';
+                        badgeColor = 'bg-orange-950/60 text-orange-400 border-orange-500/30';
+                      } else if (jump.test_type === 'full_squat') {
+                        badgeLabel = 'FULL SQUAT 🏋️‍♂️';
+                        badgeColor = 'bg-emerald-950/60 text-emerald-400 border-emerald-500/30';
+                      } else if (jump.test_type === 'bench_press') {
+                        badgeLabel = 'BENCH PRESS 💪';
+                        badgeColor = 'bg-rose-950/60 text-rose-400 border-rose-500/30';
+                      } else if (jump.test_type === 'power_clean') {
+                        badgeLabel = 'POWER CLEAN ⚡';
+                        badgeColor = 'bg-amber-950/60 text-amber-400 border-amber-500/30';
+                      } else if (jump.test_type === 'rsi') {
+                        badgeLabel = 'DROP JUMP 🎯';
+                        badgeColor = 'bg-yellow-950/60 text-yellow-400 border-yellow-500/30';
+                      }
+
+                      return (
+                        <tr key={jump.id || idx} className="hover:bg-blue-600/10 transition-colors">
+                          <td className="p-3 text-gray-400">{new Date(jump.created_at).toLocaleDateString('ar-EG')}</td>
+                          <td className="p-3 font-sans font-bold">
+                            <span className={`px-2 py-1 rounded-lg text-[10px] font-black border ${badgeColor}`}>
+                              {badgeLabel}
+                            </span>
+                          </td>
+                          <td className="p-3 text-cyan-400 font-black">
+                            {isStrength
+                              ? `${strengthWeight} kg`
+                              : parseFloat(jump.jump_height_cm) > 0 ? `${parseFloat(jump.jump_height_cm).toFixed(1)} cm` : '—'}
+                          </td>
+                          <td className="p-3 text-gray-300">{parseFloat(jump.flight_time_sec) > 0 ? `${parseFloat(jump.flight_time_sec).toFixed(3)} s` : '—'}</td>
+                          <td className="p-3 text-blue-400 font-bold">{parseFloat(jump.peak_power_watts) > 0 ? `${parseFloat(jump.peak_power_watts).toFixed(0)} W` : '—'}</td>
+                          <td className="p-3 text-yellow-400 font-bold">
+                            {isStrength
+                              ? `${bwRatio} xBW`
+                              : parseFloat(jump.rsi_score) > 0 ? parseFloat(jump.rsi_score).toFixed(2) : '—'}
+                          </td>
+                          <td className="p-3 flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => setEditingRecord({ ...jump })}
+                              title={isEn ? 'Edit Record' : 'تعديل القياس'}
+                              className="p-1.5 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 rounded-lg transition-all"
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTest(jump.id)}
+                              title={isEn ? 'Delete Record' : 'حذف القياس'}
+                              className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>

@@ -424,12 +424,13 @@ export default function ManualEntryConsole({
                 <label className="text-xs font-bold text-gray-300 block mb-1.5">
                   {isEn ? 'Jump Test Category' : 'نوع اختبار الوثب (Test Category)'}
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   {[
                     { id: 'cmj', label: 'CMJ (Arms)' },
                     { id: 'cmj_no_arms', label: 'CMJ (No Arms)' },
                     { id: 'sj_no_arms', label: 'Squat Jump (SJ)' },
                     { id: 'rsi', label: 'Drop Jump (RSI)' },
+                    { id: 'approach', label: 'Approach Jump 🚀' },
                   ].map(item => (
                     <button
                       key={item.id}
@@ -451,14 +452,16 @@ export default function ManualEntryConsole({
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-bold text-gray-300">
-                    {isEn ? 'Jump Height (cm)' : 'ارتفاع القفزة العمودية (Jump Height cm)'}
+                    {form.testType === 'approach'
+                      ? (isEn ? 'Approach Jump Height (cm)' : 'ارتفاع الارتقاء الحركي بالخطوتين (Approach Jump cm)')
+                      : (isEn ? 'Jump Height (cm)' : 'ارتفاع القفزة العمودية (Jump Height cm)')}
                   </label>
                   <span className="text-[10px] text-cyan-400 font-mono">Auto-calculates flight time</span>
                 </div>
                 <input
                   type="number"
                   step="0.1"
-                  placeholder="مثال: 55.5"
+                  placeholder="مثال: 68.5"
                   value={form.jumpHeightCm}
                   onChange={(e) => handleInputChange('jumpHeightCm', e.target.value)}
                   className="w-full bg-black/40 border border-gray-800 rounded-xl p-3 text-white font-mono font-bold text-lg focus:border-cyan-500 outline-none transition-all"
@@ -467,7 +470,7 @@ export default function ManualEntryConsole({
                 {/* Quick Presets */}
                 <div className="flex items-center gap-2 pt-1">
                   <span className="text-[10px] text-gray-500 font-bold">{isEn ? 'Presets:' : 'اختصارات سريعة:'}</span>
-                  {[40, 50, 60, 70, 80].map(cm => (
+                  {[45, 55, 65, 75, 85].map(cm => (
                     <button
                       key={cm}
                       type="button"
@@ -539,26 +542,57 @@ export default function ManualEntryConsole({
 
             </div>
           ) : (
-            /* STRENGTH & CLEAN MODE FORM */
+            /* STRENGTH & CLEAN / SQUAT / BENCH MODE FORM */
             <div className="space-y-4">
               
+              {/* Strength Exercise Selector */}
+              <div>
+                <label className="text-xs font-bold text-emerald-400 block mb-1.5">
+                  {isEn ? 'Strength Exercise Category (1RM)' : 'نوع تمرين القوة والتأهيل (1RM Category)'}
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'full_squat', label: 'Full Squat 🏋️‍♂️' },
+                    { id: 'bench_press', label: 'Bench Press 💪' },
+                    { id: 'power_clean', label: 'Power Clean ⚡' },
+                  ].map(item => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, testType: item.id }))}
+                      className={`p-2.5 rounded-xl border text-center transition-all ${
+                        form.testType === item.id || (item.id === 'power_clean' && (form.testType === 'cmj' || form.testType === 'rsi'))
+                          ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400 font-black'
+                          : 'bg-black/30 border-gray-800 text-gray-400 hover:border-gray-700'
+                      }`}
+                    >
+                      <span className="text-xs block font-bold font-mono">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-emerald-400">
-                  {isEn ? 'Power Clean 1RM (kg)' : 'وزن أقصى رفعة كلين (Power Clean 1RM)'}
+                  {form.testType === 'full_squat'
+                    ? (isEn ? 'Full Squat 1RM Weight (kg)' : 'وزن أقصى تكرار أسكوات كامل (Full Squat 1RM kg)')
+                    : form.testType === 'bench_press'
+                      ? (isEn ? 'Bench Press 1RM Weight (kg)' : 'وزن أقصى تكرار بنش بريس (Bench Press 1RM kg)')
+                      : (isEn ? 'Power Clean 1RM Weight (kg)' : 'وزن أقصى رفعة كلين (Power Clean 1RM kg)')}
                 </label>
                 <input
                   type="number"
                   step="0.5"
-                  placeholder="مثال: 95"
+                  placeholder="مثال: 120"
                   value={form.cleanWeightKg}
                   onChange={(e) => handleInputChange('cleanWeightKg', e.target.value)}
                   className="w-full bg-black/40 border border-emerald-500/40 rounded-xl p-3 text-white font-mono font-bold text-lg focus:border-emerald-500 outline-none"
                 />
 
-                {/* Clean Barbell Presets */}
+                {/* Clean / Squat Barbell Presets */}
                 <div className="flex items-center gap-2 pt-1">
                   <span className="text-[10px] text-gray-500 font-bold">{isEn ? 'Barbell Load:' : 'أوزان البار:'}</span>
-                  {[60, 80, 100, 120].map(kg => (
+                  {[60, 80, 100, 120, 140].map(kg => (
                     <button
                       key={kg}
                       type="button"
