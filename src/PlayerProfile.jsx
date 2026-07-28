@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, TrendingUp, Clock, Zap, ArrowUpCircle, AlertCircle, BookOpen, X, Award, User, Scale, Calendar, Trophy, FileText, ChevronLeft, Target, Plus, Trash2, Edit3, ShieldCheck, Sparkles, Printer, Activity, Table, Monitor } from 'lucide-react';
+import { Download, TrendingUp, Clock, Zap, ArrowUpCircle, AlertCircle, BookOpen, X, Award, User, Scale, Calendar, Trophy, FileText, ChevronLeft, Target, Plus, Trash2, Edit3, ShieldCheck, Sparkles, Printer, Activity, Table, Monitor, Film, Video } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from './supabaseClient';
 import AppLogo from './AppLogo';
 import MacbookScrollDemo from './components/macbook-scroll-demo';
+import VideoGeneratorModal from './components/VideoGeneratorModal';
 
 export default function PlayerProfile({
   activePlayer,
@@ -24,8 +25,9 @@ export default function PlayerProfile({
   const [benchmarkGender, setBenchmarkGender] = useState(activePlayer?.gender || 'male');
   const [benchmarkCategory, setBenchmarkCategory] = useState('cmj'); // 'cmj' | 'rsi'
 
-  // Print Language & Modal State
+  // Print & Video Generator Modal States
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [printLang, setPrintLang] = useState('ar');
 
   // History Filter, Chart Metric Selection & Edit Record State
@@ -1392,6 +1394,16 @@ export default function PlayerProfile({
                 </button>
               </div>
 
+              {/* Dedicated Video Generator Button */}
+              <button
+                type="button"
+                onClick={() => setIsVideoModalOpen(true)}
+                className="px-3.5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-lg shadow-purple-500/20 transition-all cursor-pointer border border-purple-400/30"
+              >
+                <Video size={15} />
+                <span>🎬 {isEn ? 'Generate Video' : 'توليد واستخراج فيديو'}</span>
+              </button>
+
               {/* Category Filter Selector */}
               <div className="flex items-center gap-2 bg-black/50 border border-gray-800 px-3 py-1.5 rounded-xl">
                 <span className="text-[10px] text-gray-400 font-bold">{isEn ? 'Filter:' : 'نوع القياس:'}</span>
@@ -2072,6 +2084,15 @@ export default function PlayerProfile({
           </form>
         </div>
       )}
+
+      {/* Video Generator Modal */}
+      <VideoGeneratorModal
+        activePlayer={activePlayer}
+        playerHistory={playerHistory}
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        language={language}
+      />
 
     </div>
   );
