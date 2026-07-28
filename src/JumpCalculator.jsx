@@ -1494,14 +1494,6 @@ export default function JumpCalculator() {
             </div>
             {/* Theme & Language Toggles */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsCommandPaletteOpen(true)}
-                className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-blue-950/40 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
-                title="Command Palette (Ctrl + K)"
-              >
-                <span>🔍</span>
-                <span className="font-mono text-[10px] bg-blue-900/60 px-1.5 py-0.5 rounded border border-blue-400/20">Ctrl+K</span>
-              </button>
 
               {/* 2-Way Theme Switcher Pill (Dark, Light) */}
               <div className="flex items-center bg-[var(--bg-input)] p-1 rounded-xl border border-[var(--border-light)] shadow-sm">

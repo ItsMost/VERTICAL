@@ -27,8 +27,9 @@ export default function PlayerProfile({
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [printLang, setPrintLang] = useState('ar');
 
-  // History Filter & Edit Record State
+  // History Filter, Chart Metric Selection & Edit Record State
   const [filterTestType, setFilterTestType] = useState('all');
+  const [chartMetric, setChartMetric] = useState('cmj'); // 'cmj' | 'approach' | 'rsi' | 'power' | 'full_squat' | 'bench_press' | 'power_clean'
   const [editingRecord, setEditingRecord] = useState(null);
   const [isEditingSaving, setIsEditingSaving] = useState(false);
   const [historyViewMode, setHistoryViewMode] = useState('table'); // 'table' | 'social_card'
@@ -1071,45 +1072,124 @@ export default function PlayerProfile({
           </div>
 
 
-          {/* Historical Trend Chart */}
+          {/* Historical Trend Chart (Weekly Peak Metrics) */}
           <div className="glass-panel p-6 hud-card space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black text-white flex items-center gap-2">
-                <TrendingUp size={16} className="text-cyan-400" />
-                {isEn ? 'Athlete Vertical Jump Performance Timeline' : 'منحنى تطور الأداء والارتقاء العمودي عبر الزمن'}
-              </h3>
-              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded border border-cyan-500/30">
-                {playerHistory.length} Recorded Tests
-              </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800 pb-3">
+              <div>
+                <h3 className="text-sm font-black text-white flex items-center gap-2">
+                  <TrendingUp size={16} className="text-cyan-400" />
+                  {isEn ? 'Weekly Peak Form & Performance Trajectory' : 'منحنى تطور الأداء والجاهزية (أفضل رقم أسبوعي)'}
+                </h3>
+                <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+                  {isEn ? 'Plots the single best (peak) result per week to measure true weekly peak form' : 'يعرض أوج العطاء وأفضل قياس حققه اللاعب في كل أسبوع لتحديد نسبة الجاهزية والنشاط'}
+                </p>
+              </div>
+
+              {/* Metric Dropdown Selector */}
+              <div className="flex items-center gap-2 bg-black/60 border border-gray-800 px-3 py-1.5 rounded-xl">
+                <span className="text-[10px] text-gray-400 font-bold">{isEn ? 'Chart Metric:' : 'القياس المعروض:'}</span>
+                <select
+                  value={chartMetric}
+                  onChange={(e) => setChartMetric(e.target.value)}
+                  className="bg-transparent text-xs font-bold text-cyan-400 outline-none cursor-pointer font-mono"
+                >
+                  <option value="cmj" className="bg-gray-900 text-white">CMJ Jump Height (cm)</option>
+                  <option value="approach" className="bg-gray-900 text-white">Approach Jump (الارتقاء الحركي cm)</option>
+                  <option value="rsi" className="bg-gray-900 text-white">RSI Score (مؤشر RSI)</option>
+                  <option value="power" className="bg-gray-900 text-white">Peak Power (ذروة القدرة W)</option>
+                  <option value="full_squat" className="bg-gray-900 text-white">Full Squat 1RM (أسكوات kg)</option>
+                  <option value="bench_press" className="bg-gray-900 text-white">Bench Press 1RM (بنش بريس kg)</option>
+                  <option value="power_clean" className="bg-gray-900 text-white">Power Clean 1RM (كلين kg)</option>
+                </select>
+              </div>
             </div>
 
-            {playerHistory.length > 0 ? (
-              <div className="w-full h-64 pt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={playerHistory.map((h, i) => ({
-                    date: new Date(h.created_at).toLocaleDateString('ar-EG'),
-                    height: parseFloat(h.jump_height_cm) || 0,
-                    power: parseFloat(h.peak_power_watts) || 0
-                  }))}>
-                    <defs>
-                      <linearGradient id="colorHeight" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="date" stroke="#64748b" tick={{ fill: '#64748b', fontSize: 10 }} />
-                    <YAxis stroke="#64748b" tick={{ fill: '#64748b', fontSize: 10 }} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }} />
-                    <Area type="monotone" dataKey="height" stroke="#06b6d4" strokeWidth={3} fillOpacity={1} fill="url(#colorHeight)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="text-center py-10 text-gray-500 font-bold text-xs border border-dashed border-gray-800 rounded-2xl">
-                {isEn ? 'No timeline history available for this athlete.' : 'لا توجد بيانات تاريخية متاحة لعرض منحنى التطور.'}
-              </div>
-            )}
+            {(() => {
+              // Group by week and get peak
+              const getWeeklyPeakData = () => {
+                let filtered = playerHistory;
+                if (chartMetric === 'cmj') {
+                  filtered = playerHistory.filter(r => r.test_type === 'cmj' || r.test_type === 'cmj_arms' || r.test_type === 'cmj_no_arms' || (!r.test_type && parseFloat(r.jump_height_cm) > 0));
+                } else if (chartMetric === 'approach') {
+                  filtered = playerHistory.filter(r => r.test_type === 'approach' || r.test_type === 'approach_jump');
+                } else if (chartMetric === 'rsi') {
+                  filtered = playerHistory.filter(r => r.test_type === 'rsi' || parseFloat(r.rsi_score) > 0);
+                } else if (chartMetric === 'power') {
+                  filtered = playerHistory.filter(r => parseFloat(r.peak_power_watts) > 0 || parseFloat(r.jump_height_cm) > 0);
+                } else if (chartMetric === 'full_squat') {
+                  filtered = playerHistory.filter(r => r.test_type === 'full_squat');
+                } else if (chartMetric === 'bench_press') {
+                  filtered = playerHistory.filter(r => r.test_type === 'bench_press');
+                } else if (chartMetric === 'power_clean') {
+                  filtered = playerHistory.filter(r => r.test_type === 'power_clean' || (parseFloat(r.clean_weight_kg) > 0 && r.test_type !== 'full_squat' && r.test_type !== 'bench_press'));
+                }
+
+                if (filtered.length === 0) return [];
+
+                const getValue = (r) => {
+                  if (chartMetric === 'rsi') return parseFloat(r.rsi_score) || 0;
+                  if (chartMetric === 'power') return parseFloat(r.peak_power_watts) || (parseFloat(r.jump_height_cm) > 0 ? (61.9 * parseFloat(r.jump_height_cm) + 36.0 * mass - 1822) : 0);
+                  if (chartMetric === 'full_squat' || chartMetric === 'bench_press' || chartMetric === 'power_clean') return parseFloat(r.clean_weight_kg) || 0;
+                  return parseFloat(r.jump_height_cm) || 0;
+                };
+
+                const grouped = {};
+                filtered.forEach(item => {
+                  const val = getValue(item);
+                  if (val <= 0) return;
+                  const d = new Date(item.created_at);
+                  if (isNaN(d.getTime())) return;
+                  const startOfYear = new Date(d.getFullYear(), 0, 1);
+                  const pastDays = (d - startOfYear) / 86400000;
+                  const weekNum = Math.ceil((pastDays + startOfYear.getDay() + 1) / 7);
+                  const wKey = `${d.getFullYear()}-W${weekNum < 10 ? '0' + weekNum : weekNum}`;
+                  
+                  if (!grouped[wKey] || val > grouped[wKey].val) {
+                    grouped[wKey] = {
+                      weekKey: wKey,
+                      displayWeek: isEn ? `W${weekNum} (${d.getDate()}/${d.getMonth()+1})` : `أسبوع ${weekNum} (${d.getDate()}/${d.getMonth()+1})`,
+                      val: parseFloat(val.toFixed(2)),
+                      unit: chartMetric === 'rsi' ? '' : (chartMetric === 'power' ? ' W' : (chartMetric.includes('squat') || chartMetric.includes('press') || chartMetric.includes('clean') ? ' kg' : ' cm'))
+                    };
+                  }
+                });
+
+                return Object.values(grouped).sort((a, b) => a.weekKey.localeCompare(b.weekKey));
+              };
+
+              const chartData = getWeeklyPeakData();
+
+              if (chartData.length === 0) {
+                return (
+                  <div className="text-center py-10 text-gray-500 font-bold text-xs border border-dashed border-gray-800 rounded-2xl">
+                    {isEn ? 'No test records available for the selected metric.' : 'لا توجد قياسات مسجلة لهذا النوع لعرض منحنى الأداء الأسبوعي.'}
+                  </div>
+                );
+              }
+
+              return (
+                <div className="w-full h-64 pt-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <XAxis dataKey="displayWeek" stroke="#64748b" tick={{ fill: '#64748b', fontSize: 10 }} />
+                      <YAxis stroke="#64748b" tick={{ fill: '#64748b', fontSize: 10 }} domain={['auto', 'auto']} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }}
+                        formatter={(val, name, item) => [`${val}${item.payload.unit} (أفضل رقم في الأسبوع 🔥)`, 'أوج الأداء']}
+                      />
+                      <Area type="monotone" dataKey="val" stroke="#06b6d4" strokeWidth={3} fillOpacity={1} fill="url(#colorMetric)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              );
+            })()}
           </div>
 
         </div>
@@ -1348,7 +1428,8 @@ export default function PlayerProfile({
                         badgeLabel = 'POWER CLEAN ⚡';
                         badgeColor = 'bg-amber-950/60 text-amber-400 border-amber-500/30';
                       } else if (jump.test_type === 'rsi') {
-                        badgeLabel = 'DROP JUMP 🎯';
+                        const boxStr = jump.box_height_cm ? ` (${jump.box_height_cm}cm)` : '';
+                        badgeLabel = `DROP JUMP 🎯${boxStr}`;
                         badgeColor = 'bg-yellow-950/60 text-yellow-400 border-yellow-500/30';
                       }
 
@@ -1370,7 +1451,9 @@ export default function PlayerProfile({
                           <td className="p-3 text-yellow-400 font-bold">
                             {isStrength
                               ? `${bwRatio} xBW`
-                              : parseFloat(jump.rsi_score) > 0 ? parseFloat(jump.rsi_score).toFixed(2) : '—'}
+                              : parseFloat(jump.rsi_score) > 0 
+                                ? `${parseFloat(jump.rsi_score).toFixed(2)}${jump.box_height_cm ? ` (📦 ${jump.box_height_cm}cm)` : ''}`
+                                : '—'}
                           </td>
                           <td className="p-3 flex items-center justify-center gap-1">
                             <button

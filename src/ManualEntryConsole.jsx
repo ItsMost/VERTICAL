@@ -30,6 +30,7 @@ export default function ManualEntryConsole({
     flightTimeSec: '',
     contactTimeSec: '',
     rsiScoreDirect: '',
+    boxHeightCm: '30',
     addedLoadKg: '',
     cleanWeightKg: '',
     cleanBwRatio: ''
@@ -55,6 +56,7 @@ export default function ManualEntryConsole({
   const jumpHeight = parseFloat(form.jumpHeightCm) || 0;
   const flightTime = parseFloat(form.flightTimeSec) || 0;
   const contactTime = parseFloat(form.contactTimeSec) || 0;
+  const boxHeight = parseFloat(form.boxHeightCm) || 0;
   const addedLoad = parseFloat(form.addedLoadKg) || 0;
   const cleanWeight = parseFloat(form.cleanWeightKg) || 0;
 
@@ -150,6 +152,7 @@ export default function ManualEntryConsole({
         mean_force_newtons: takeoffForceN > 0 ? parseFloat(takeoffForceN.toFixed(0)) : 0,
         contact_time_sec: contactTime > 0 ? parseFloat(contactTime.toFixed(3)) : null,
         rsi_score: rsiScore > 0 ? parseFloat(rsiScore.toFixed(2)) : null,
+        box_height_cm: form.testType === 'rsi' && boxHeight > 0 ? boxHeight : null,
         added_load_kg: addedLoad > 0 ? addedLoad : 0,
         clean_weight_kg: cleanWeight > 0 ? cleanWeight : 0,
         clean_bw_ratio: cleanBwRatio > 0 ? parseFloat(cleanBwRatio.toFixed(2)) : 0
@@ -516,27 +519,65 @@ export default function ManualEntryConsole({
                 )}
               </div>
 
-              {/* DIRECT RSI INPUT FOR OVR JUMP DEVICE */}
+              {/* BOX HEIGHT & DIRECT RSI INPUT FOR DROP JUMP / RSI */}
               {form.testType === 'rsi' && (
-                <div className="space-y-2 pt-2 bg-yellow-950/20 p-4 border border-yellow-500/30 rounded-2xl">
-                  <div className="flex justify-between items-center">
-                    <label className="text-xs font-black text-yellow-400 flex items-center gap-1.5">
-                      <Target size={14} />
-                      {isEn ? 'Direct RSI Score Input (OVR JUMP Device)' : 'إدخال مؤشر RSI المباشر (جهاز OVR JUMP)'}
-                    </label>
-                    <span className="text-[9px] text-yellow-300 font-mono bg-yellow-950/60 px-2 py-0.5 rounded border border-yellow-500/30">OVR JUMP</span>
+                <div className="space-y-3 pt-2 bg-yellow-950/20 p-4 border border-yellow-500/30 rounded-2xl">
+                  {/* Box Height Input */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-black text-yellow-400 flex items-center gap-1.5">
+                        📦 {isEn ? 'Drop Jump Box Height (cm)' : 'ارتفاع البوكس (Box Height cm)'}
+                      </label>
+                      <span className="text-[10px] text-yellow-300 font-mono">Plyometric Box</span>
+                    </div>
+                    <input
+                      type="number"
+                      placeholder="مثال: 30"
+                      value={form.boxHeightCm}
+                      onChange={(e) => setForm(prev => ({ ...prev, boxHeightCm: e.target.value }))}
+                      className="w-full bg-black/60 border border-yellow-500/40 rounded-xl p-2.5 text-yellow-300 font-mono font-bold text-sm focus:border-yellow-400 outline-none"
+                    />
+                    {/* Box Height Presets */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="text-[10px] text-gray-500 font-bold">{isEn ? 'Box Presets:' : 'ارتفاعات البوكس:'}</span>
+                      {[20, 30, 40, 50, 60].map(cm => (
+                        <button
+                          key={cm}
+                          type="button"
+                          onClick={() => setForm(prev => ({ ...prev, boxHeightCm: cm.toString() }))}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-mono border transition-all ${
+                            form.boxHeightCm === cm.toString()
+                              ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50 font-black'
+                              : 'bg-gray-900 border-gray-800 text-gray-400 hover:text-white'
+                          }`}
+                        >
+                          {cm} cm
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="مثال: 2.15"
-                    value={form.rsiScoreDirect}
-                    onChange={(e) => setForm(prev => ({ ...prev, rsiScoreDirect: e.target.value }))}
-                    className="w-full bg-black/60 border border-yellow-500/60 rounded-xl p-3 text-yellow-300 font-mono font-black text-lg focus:border-yellow-400 outline-none"
-                  />
-                  <p className="text-[10px] text-yellow-200/80 font-sans">
-                    💡 {isEn ? 'If measuring with OVR JUMP device, enter the direct RSI output score here.' : 'إذا كنت تقيس بجهاز OVR JUMP، أدخل قيمة الـ RSI الظاهرة على الجهاز مباشرة هنا.'}
-                  </p>
+
+                  {/* Direct RSI Input */}
+                  <div className="space-y-1.5 pt-2 border-t border-yellow-500/20">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-black text-yellow-400 flex items-center gap-1.5">
+                        <Target size={14} />
+                        {isEn ? 'Direct RSI Score Input (OVR JUMP Device)' : 'إدخال مؤشر RSI المباشر (جهاز OVR JUMP)'}
+                      </label>
+                      <span className="text-[9px] text-yellow-300 font-mono bg-yellow-950/60 px-2 py-0.5 rounded border border-yellow-500/30">OVR JUMP</span>
+                    </div>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="مثال: 2.15"
+                      value={form.rsiScoreDirect}
+                      onChange={(e) => setForm(prev => ({ ...prev, rsiScoreDirect: e.target.value }))}
+                      className="w-full bg-black/60 border border-yellow-500/60 rounded-xl p-2.5 text-yellow-300 font-mono font-black text-lg focus:border-yellow-400 outline-none"
+                    />
+                    <p className="text-[10px] text-yellow-200/80 font-sans">
+                      💡 {isEn ? 'If measuring with OVR JUMP device, enter the direct RSI output score here.' : 'إذا كنت تقيس بجهاز OVR JUMP، أدخل قيمة الـ RSI الظاهرة على الجهاز مباشرة هنا.'}
+                    </p>
+                  </div>
                 </div>
               )}
 
