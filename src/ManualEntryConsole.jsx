@@ -33,7 +33,8 @@ export default function ManualEntryConsole({
     boxHeightCm: '30',
     addedLoadKg: '',
     cleanWeightKg: '',
-    cleanBwRatio: ''
+    cleanBwRatio: '',
+    notes: ''
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -155,7 +156,8 @@ export default function ManualEntryConsole({
         box_height_cm: form.testType === 'rsi' && boxHeight > 0 ? boxHeight : null,
         added_load_kg: addedLoad > 0 ? addedLoad : 0,
         clean_weight_kg: cleanWeight > 0 ? cleanWeight : 0,
-        clean_bw_ratio: cleanBwRatio > 0 ? parseFloat(cleanBwRatio.toFixed(2)) : 0
+        clean_bw_ratio: cleanBwRatio > 0 ? parseFloat(cleanBwRatio.toFixed(2)) : 0,
+        notes: form.notes && form.notes.trim() ? form.notes.trim() : null
       };
 
       const { data, error } = await supabase.from('lab_jump_measurements').insert([payload]).select();
@@ -649,6 +651,20 @@ export default function ManualEntryConsole({
             </div>
           )}
 
+
+          {/* Optional Test Notes */}
+          <div className="pt-2 border-t border-gray-800/80">
+            <label className="text-xs font-bold text-gray-300 flex items-center gap-1.5 mb-1.5">
+              📝 {isEn ? 'Measurement Notes & Context (Optional)' : 'ملاحظات وتفاصيل القياس (اختياري)'}
+            </label>
+            <input
+              type="text"
+              placeholder={isEn ? 'e.g. After heavy leg day, excellent attempt, returning from injury...' : 'مثال: بعد تمرين أثقال شاق، أفضل محاولة، عائد من راحة سلبيّة...'}
+              value={form.notes}
+              onChange={(e) => setForm(prev => ({ ...prev, notes: e.target.value }))}
+              className="w-full bg-black/40 border border-gray-800 rounded-xl p-2.5 text-xs text-white placeholder-gray-600 focus:border-cyan-500 outline-none transition-all"
+            />
+          </div>
 
           {/* Save & Print Action Bar */}
           <div className="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-gray-800">

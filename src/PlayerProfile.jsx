@@ -1149,7 +1149,8 @@ export default function PlayerProfile({
                       weekKey: wKey,
                       displayWeek: isEn ? `W${weekNum} (${d.getDate()}/${d.getMonth()+1})` : `أسبوع ${weekNum} (${d.getDate()}/${d.getMonth()+1})`,
                       val: parseFloat(val.toFixed(2)),
-                      unit: chartMetric === 'rsi' ? '' : (chartMetric === 'power' ? ' W' : (chartMetric.includes('squat') || chartMetric.includes('press') || chartMetric.includes('clean') ? ' kg' : ' cm'))
+                      unit: chartMetric === 'rsi' ? '' : (chartMetric === 'power' ? ' W' : (chartMetric.includes('squat') || chartMetric.includes('press') || chartMetric.includes('clean') ? ' kg' : ' cm')),
+                      notes: item.notes || ''
                     };
                   }
                 });
@@ -1181,8 +1182,28 @@ export default function PlayerProfile({
                       <XAxis dataKey="displayWeek" stroke="#64748b" tick={{ fill: '#64748b', fontSize: 10 }} />
                       <YAxis stroke="#64748b" tick={{ fill: '#64748b', fontSize: 10 }} domain={['auto', 'auto']} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }}
-                        formatter={(val, name, item) => [`${val}${item.payload.unit} (أفضل رقم في الأسبوع 🔥)`, 'أوج الأداء']}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-[#0f172a] border border-[#334155] rounded-xl p-3 shadow-2xl text-xs space-y-1.5 font-mono">
+                                <p className="font-bold text-cyan-400">{data.displayWeek}</p>
+                                <p className="text-white font-black text-sm">
+                                  {data.val}{data.unit} <span className="text-[10px] text-orange-400 font-sans font-bold">(أفضل رقم بالمركز 🔥)</span>
+                                </p>
+                                {data.notes ? (
+                                  <div className="pt-1.5 border-t border-gray-800 text-[11px] text-amber-300 font-sans font-medium flex items-start gap-1">
+                                    <span>📝</span>
+                                    <span>{data.notes}</span>
+                                  </div>
+                                ) : (
+                                  <p className="text-[10px] text-gray-500 font-sans italic">{isEn ? 'No notes for this test' : 'لا توجد ملاحظات مضافة'}</p>
+                                )}
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
                       />
                       <Area type="monotone" dataKey="val" stroke="#06b6d4" strokeWidth={3} fillOpacity={1} fill="url(#colorMetric)" />
                     </AreaChart>
@@ -1440,6 +1461,12 @@ export default function PlayerProfile({
                             <span className={`px-2 py-1 rounded-lg text-[10px] font-black border ${badgeColor}`}>
                               {badgeLabel}
                             </span>
+                            {jump.notes && (
+                              <div className="text-[10px] text-amber-300 font-normal font-sans mt-1 flex items-center justify-center gap-1 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/30 max-w-[180px] mx-auto truncate" title={jump.notes}>
+                                <span>📝</span>
+                                <span className="truncate">{jump.notes}</span>
+                              </div>
+                            )}
                           </td>
                           <td className="p-3 text-cyan-400 font-black">
                             {isStrength
