@@ -30,30 +30,35 @@
   --mono: 'Outfit', 'Cairo', ui-monospace, Consolas, monospace;
 }
 
-/* Light Theme - High-Contrast Solar Orange & Crisp Slate Porcelain */
+/* Light Theme - Custom Color Palette Pattern (#565656, #B2FFA9, #FF4A1C, #81523F, #3F2A2B) */
 [data-theme="light"] {
-  --bg-base: #f8fafc;
-  --bg-panel: #ffffff;
+  --bg-base: #f7f5f2;          /* Warm soft cream porcelain base */
+  --bg-panel: #ffffff;         /* Crisp white panels */
   --bg-surface: #ffffff;
-  --bg-input: #ffffff;
+  --bg-input: #f2ece6;         /* Warm tinted input background */
   
-  --text-primary: #0f172a;   /* High Contrast Charcoal Slate */
-  --text-secondary: #ea580c; /* Solar Orange */
-  --text-muted: #475569;     /* Deep Slate 600 */
+  --text-primary: #3F2A2B;     /* Deep Dark Espresso (#3F2A2B) for high-contrast crisp text */
+  --text-secondary: #FF4A1C;   /* Solar Vermilion Orange (#FF4A1C) */
+  --text-muted: #81523F;       /* Warm Chestnut (#81523F) */
   
-  --border-color: #cbd5e1;   /* Crisp Slate 300 Border */
-  --border-light: #e2e8f0;
-  --border-active: #ea580c;
+  --border-color: #dcd0ca;     /* Warm chestnut slate border */
+  --border-light: #ece3de;
+  --border-active: #FF4A1C;    /* Solar Orange active border */
   
-  --brand-main: #ea580c;
-  --brand-hover: #c2410c;
-  --brand-text: #ea580c;
+  --brand-main: #FF4A1C;       /* Solar Orange (#FF4A1C) */
+  --brand-hover: #e03b10;
+  --brand-text: #FF4A1C;
   
-  --shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 20px 40px -15px rgba(234, 88, 12, 0.15);
+  --accent-mint: #B2FFA9;      /* Vibrant Mint Green (#B2FFA9) */
+  --accent-slate: #565656;     /* Charcoal Slate (#565656) */
+  --accent-chestnut: #81523F;  /* Warm Chestnut (#81523F) */
+  --accent-espresso: #3F2A2B;  /* Deep Dark Espresso (#3F2A2B) */
   
-  --accent-gradient: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-  --bg-gradient: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  --shadow: 0 10px 30px -10px rgba(63, 42, 43, 0.08);
+  --shadow-lg: 0 20px 40px -15px rgba(255, 74, 28, 0.2);
+  
+  --accent-gradient: linear-gradient(135deg, #FF4A1C 0%, #e03b10 100%);
+  --bg-gradient: linear-gradient(180deg, #f7f5f2 0%, #ede8e1 100%);
   --glass-blur: blur(16px);
 }
 
@@ -123,39 +128,41 @@ body {
 
 .glass-input:focus {
   border-color: var(--border-active);
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
+  box-shadow: 0 0 0 3px rgba(255, 74, 28, 0.25);
 }
 
-/* LIGHT MODE CONTRAST & ACCENT OVERRIDES (REPLACING BLUE WITH SOLAR ORANGE & DEEP SLATE) */
+/* LIGHT MODE CONTRAST & ACCENT OVERRIDES (#565656, #B2FFA9, #FF4A1C, #81523F, #3F2A2B) */
 [data-theme="light"] select,
 [data-theme="light"] input,
 [data-theme="light"] textarea {
-  color: #0f172a !important;
+  color: #3F2A2B !important;
   font-weight: 700 !important;
   background-color: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
+  border: 1px solid #dcd0ca !important;
 }
 
 [data-theme="light"] select option {
   background-color: #ffffff;
-  color: #0f172a;
+  color: #3F2A2B;
 }
 
 [data-theme="light"] .text-white {
-  color: #0f172a !important;
+  color: #3F2A2B !important;
 }
 
 [data-theme="light"] .text-gray-300,
 [data-theme="light"] .text-gray-400,
 [data-theme="light"] .text-gray-500 {
-  color: #334155 !important;
+  color: #81523F !important;
 }
 
 [data-theme="light"] .text-blue-400,
 [data-theme="light"] .text-blue-300,
 [data-theme="light"] .text-cyan-400,
-[data-theme="light"] .text-cyan-300 {
-  color: #ea580c !important;
+[data-theme="light"] .text-cyan-300,
+[data-theme="light"] .text-orange-400,
+[data-theme="light"] .text-orange-500 {
+  color: #FF4A1C !important;
 }
 
 [data-theme="light"] .bg-slate-900,
@@ -165,8 +172,8 @@ body {
 [data-theme="light"] .bg-black\/35,
 [data-theme="light"] .bg-gray-900 {
   background-color: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
+  color: #3F2A2B !important;
+  border-color: #dcd0ca !important;
 }
 
 [data-theme="light"] .bg-blue-950\/40,
@@ -174,9 +181,32 @@ body {
 [data-theme="light"] .bg-cyan-950\/40,
 [data-theme="light"] .bg-cyan-950\/60,
 [data-theme="light"] .bg-blue-950\/90 {
-  background-color: #fff7ed !important;
-  color: #ea580c !important;
-  border-color: #ffedd5 !important;
+  background-color: #fff3f0 !important;
+  color: #FF4A1C !important;
+  border-color: #ffd8d0 !important;
+}
+
+/* Mint Green Highlights (#B2FFA9) */
+[data-theme="light"] .bg-emerald-950\/40,
+[data-theme="light"] .bg-emerald-950\/30,
+[data-theme="light"] .bg-emerald-500\/10,
+[data-theme="light"] .bg-teal-500\/10 {
+  background-color: #B2FFA9 !important;
+  color: #1c4516 !important;
+  border-color: #86e879 !important;
+}
+
+[data-theme="light"] .text-emerald-400,
+[data-theme="light"] .text-emerald-300,
+[data-theme="light"] .text-teal-400 {
+  color: #24681c !important;
+}
+
+/* Slate Charcoal (#565656) Pill & Badges */
+[data-theme="light"] .bg-black\/20,
+[data-theme="light"] .bg-black\/30 {
+  background-color: #f2ece6 !important;
+  color: #3F2A2B !important;
 }
 
 [data-theme="light"] .border-gray-800,
@@ -186,30 +216,30 @@ body {
 [data-theme="light"] .border-blue-500\/40,
 [data-theme="light"] .border-blue-500\/30,
 [data-theme="light"] .border-cyan-500\/30 {
-  border-color: #cbd5e1 !important;
+  border-color: #dcd0ca !important;
 }
 
 /* Light Mode Tables */
 [data-theme="light"] table thead tr {
-  background-color: #f1f5f9 !important;
-  border-bottom: 2px solid #cbd5e1 !important;
+  background-color: #f2ece6 !important;
+  border-bottom: 2px solid #dcd0ca !important;
 }
 
 [data-theme="light"] table thead th {
-  color: #0f172a !important;
+  color: #3F2A2B !important;
   font-weight: 800 !important;
 }
 
 [data-theme="light"] table tbody tr {
-  border-bottom: 1px solid #e2e8f0 !important;
+  border-bottom: 1px solid #ece3de !important;
 }
 
 [data-theme="light"] table tbody tr:hover {
-  background-color: #fff7ed !important;
+  background-color: #fff3f0 !important;
 }
 
 [data-theme="light"] table tbody td {
-  color: #0f172a !important;
+  color: #3F2A2B !important;
   font-weight: 700 !important;
 }
 
@@ -219,6 +249,7 @@ body {
 [data-theme="light"] .bg-blue-600,
 [data-theme="light"] .bg-blue-500,
 [data-theme="light"] .text-white.btn-orange-gradient {
+  background: linear-gradient(135deg, #FF4A1C 0%, #e03b10 100%) !important;
   color: #ffffff !important;
 }
 
