@@ -1635,44 +1635,98 @@ export default function PlayerProfile({
                   </div>
                 }
               >
-                {/* Embedded Social Story Card inside Macbook Screen */}
-                <div className="p-4 bg-gradient-to-b from-[#090e18] via-[#05070e] to-[#020306] rounded-2xl text-white font-sans space-y-4 text-xs">
-                  <div className="flex justify-between items-center border-b border-cyan-500/30 pb-3">
-                    <div className="flex items-center gap-2">
-                      <AppLogo size={28} />
-                      <span className="font-black text-cyan-300">VERTICAL LAB DOSSIER</span>
-                    </div>
-                    <span className="text-[10px] text-gray-400 font-mono">{new Date().toLocaleDateString('ar-EG')}</span>
+              {/* Embedded Social Story Card inside Macbook Screen */}
+              <div className="p-5 bg-gradient-to-b from-[#090e18] via-[#05070e] to-[#020306] rounded-2xl text-white font-sans space-y-4 text-xs">
+                <div className="flex justify-between items-center border-b border-cyan-500/30 pb-3">
+                  <div className="flex items-center gap-2">
+                    <AppLogo size={28} />
+                    <span className="font-black text-cyan-300">VERTICAL LAB DOSSIER</span>
                   </div>
+                  <span className="text-[10px] text-gray-400 font-mono">{new Date().toLocaleDateString('ar-EG')}</span>
+                </div>
 
-                  <div className="bg-slate-900/90 border border-cyan-500/30 p-3 rounded-xl flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-cyan-500 text-white font-black text-lg flex items-center justify-center font-mono">
+                <div className="bg-slate-900/90 border border-cyan-500/30 p-3 rounded-xl flex items-center justify-between shadow-md">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-white font-black text-base flex items-center justify-center font-mono">
                       {activePlayer.full_name ? activePlayer.full_name[0] : 'P'}
                     </div>
                     <div>
                       <h4 className="font-black text-sm text-white">{activePlayer.full_name}</h4>
-                      <p className="text-[11px] text-cyan-400 font-mono">{mass} kg • {playerHeight} cm</p>
+                      <p className="text-[11px] text-cyan-400 font-mono font-bold">
+                        {age} {isEn ? 'yrs' : 'سنة'} • {mass} kg • {playerHeight} cm
+                      </p>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-3 gap-2 text-center font-mono">
-                    <div className="bg-black/60 p-2 rounded-lg border border-cyan-500/30">
-                      <span className="text-[9px] text-gray-400 block">MAX CMJ</span>
-                      <span className="font-black text-cyan-300 text-sm">{maxCmj > 0 ? `${maxCmj.toFixed(1)} cm` : '—'}</span>
-                    </div>
-                    <div className="bg-black/60 p-2 rounded-lg border border-blue-500/30">
-                      <span className="text-[9px] text-gray-400 block">AIR TIME</span>
-                      <span className="font-black text-blue-400 text-sm">{cmjFlightTime > 0 ? `${cmjFlightTime.toFixed(3)} s` : '—'}</span>
-                    </div>
-                    <div className="bg-black/60 p-2 rounded-lg border border-yellow-500/30">
-                      <span className="text-[9px] text-gray-400 block">MAX RSI</span>
-                      <span className="font-black text-yellow-400 text-sm">{maxRsi > 0 ? maxRsi.toFixed(2) : '—'}</span>
-                    </div>
+                  <div className="text-right font-mono">
+                    <span className="text-[9px] text-gray-400 block font-bold">{isEn ? 'ATHLETE ID' : 'معرف اللاعب'}</span>
+                    <span className="text-xs font-black text-cyan-400">ATH-{activePlayer.id?.substring(0, 6).toUpperCase()}</span>
                   </div>
                 </div>
-              </MacbookScrollDemo>
-            </div>
-          )}
+
+                {/* Full Key Biomechanical Metrics Grid */}
+                <div className="grid grid-cols-3 gap-2 text-center font-mono">
+                  <div className="bg-black/70 p-2.5 rounded-xl border border-cyan-500/30">
+                    <span className="text-[9px] text-gray-400 block uppercase font-bold mb-0.5">CMJ Height</span>
+                    <span className="font-black text-cyan-300 text-base block">{maxCmj > 0 ? `${maxCmj.toFixed(1)} cm` : '—'}</span>
+                    <span className="text-[8px] text-cyan-400 font-bold block">({maxCmj > 0 ? (maxCmj * 0.393701).toFixed(1) : 0}")</span>
+                  </div>
+                  <div className="bg-black/70 p-2.5 rounded-xl border border-blue-500/30">
+                    <span className="text-[9px] text-gray-400 block uppercase font-bold mb-0.5">Flight Air Time</span>
+                    <span className="font-black text-blue-400 text-base block">{cmjFlightTime > 0 ? `${cmjFlightTime.toFixed(3)} s` : '—'}</span>
+                    <span className="text-[8px] text-blue-300 font-bold block">(Air Time)</span>
+                  </div>
+                  <div className="bg-black/70 p-2.5 rounded-xl border border-yellow-500/30">
+                    <span className="text-[9px] text-gray-400 block uppercase font-bold mb-0.5">Max RSI Index</span>
+                    <span className="font-black text-yellow-400 text-base block">{maxRsi > 0 ? maxRsi.toFixed(2) : '—'}</span>
+                    <span className="text-[8px] text-yellow-300 font-bold block">Elasticity</span>
+                  </div>
+                </div>
+
+                {/* Additional Telemetry & Power Metrics */}
+                <div className="grid grid-cols-2 gap-2 text-center font-mono">
+                  <div className="bg-slate-900/80 p-2 rounded-xl border border-emerald-500/30 flex items-center justify-between px-3">
+                    <span className="text-[10px] text-gray-400 font-bold">🏋️ Full Squat (1RM):</span>
+                    <span className="text-xs font-black text-emerald-400">
+                      {playerHistory.find(r => r.test_type === 'full_squat')?.clean_weight_kg ? `${playerHistory.find(r => r.test_type === 'full_squat').clean_weight_kg} kg` : '—'}
+                    </span>
+                  </div>
+                  <div className="bg-slate-900/80 p-2 rounded-xl border border-indigo-500/30 flex items-center justify-between px-3">
+                    <span className="text-[10px] text-gray-400 font-bold">💪 Bench Press (1RM):</span>
+                    <span className="text-xs font-black text-indigo-400">
+                      {playerHistory.find(r => r.test_type === 'bench_press')?.clean_weight_kg ? `${playerHistory.find(r => r.test_type === 'bench_press').clean_weight_kg} kg` : '—'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Recent Measurement Logs Table */}
+                <div className="space-y-1.5 pt-1 border-t border-cyan-500/20">
+                  <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block">
+                    📊 {isEn ? 'Recent Telemetry Logs:' : 'آخر القياسات المسجلة:'}
+                  </span>
+                  {playerHistory.slice(0, 4).map((jump, idx) => (
+                    <div key={idx} className="bg-black/50 border border-gray-800 p-2 rounded-lg flex items-center justify-between text-[11px] font-mono">
+                      <span className="px-1.5 py-0.5 bg-cyan-950/60 text-cyan-400 rounded text-[9px] font-bold uppercase">
+                        {jump.test_type}
+                      </span>
+                      <span className="text-white font-bold">
+                        {parseFloat(jump.jump_height_cm) > 0 ? `${parseFloat(jump.jump_height_cm).toFixed(1)} cm` : (jump.clean_weight_kg ? `${jump.clean_weight_kg} kg` : '—')}
+                      </span>
+                      <span className="text-gray-500 text-[9px]">
+                        {new Date(jump.created_at).toLocaleDateString('ar-EG')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Watermark Footer */}
+                <div className="border-t border-cyan-500/20 pt-2 text-center text-[9px] font-mono text-gray-500 flex justify-between items-center">
+                  <span>VERIFIED BIOMECHANICAL REPORT</span>
+                  <span className="text-cyan-400 font-bold">VERTICAL LAB 🚀</span>
+                </div>
+              </div>
+            </MacbookScrollDemo>
+          </div>
+        )}
         </div>
       )}
 

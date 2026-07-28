@@ -16,6 +16,7 @@
     "@mediapipe/drawing_utils": "^0.3.1675466124",
     "@mediapipe/pose": "^0.5.1675469404",
     "@supabase/supabase-js": "^2.104.0",
+    "@tabler/icons-react": "^3.45.0",
     "framer-motion": "^12.38.0",
     "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",

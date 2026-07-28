@@ -1,289 +1,192 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { MotionValue, motion, useScroll, useTransform } from "framer-motion";
 import { cn } from "../../lib/utils";
 import {
-  Sun,
-  Moon,
-  Volume,
-  Volume1,
-  Volume2,
-  Mic,
-  Search,
-  Globe,
-  Command,
-  ChevronUp,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Table,
-  Play,
-  Pause,
-  RotateCcw,
-  Video,
-  Download,
-  Check,
-  Sparkles
-} from "lucide-react";
-import html2canvas from "html2canvas";
+  IconBrightnessDown,
+  IconBrightnessUp,
+  IconCaretRightFilled,
+  IconCaretUpFilled,
+  IconChevronUp,
+  IconMicrophone,
+  IconMoon,
+  IconPlayerSkipForward,
+  IconPlayerTrackNext,
+  IconPlayerTrackPrev,
+  IconTable,
+  IconVolume,
+  IconVolume2,
+  IconVolume3,
+  IconSearch,
+  IconWorld,
+  IconCommand,
+  IconCaretLeftFilled,
+  IconCaretDownFilled,
+} from "@tabler/icons-react";
 
 export const MacbookScroll = ({
   src,
-  children,
-  showGradient = false,
+  showGradient,
   title,
   badge,
+  children
 }: {
   src?: string;
-  children?: React.ReactNode;
   showGradient?: boolean;
   title?: string | React.ReactNode;
   badge?: React.ReactNode;
+  children?: React.ReactNode;
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const screenContentRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"],
+  });
 
-  // Video Animation & Player State
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [animProgress, setAnimProgress] = useState(0); // 0 (closed lid) to 1 (full open & scrolled)
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordProgress, setRecordProgress] = useState(0);
-  const [recordSuccess, setRecordSuccess] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Auto-play animation timer
   useEffect(() => {
-    let animFrame: number;
-    let startTime: number | null = null;
-    const duration = 4000; // 4 seconds total loop
-
-    if (isPlaying) {
-      const step = (timestamp: number) => {
-        if (!startTime) startTime = timestamp;
-        const elapsed = timestamp - startTime;
-        const p = Math.min(elapsed / duration, 1);
-        setAnimProgress(p);
-
-        if (p < 1) {
-          animFrame = requestAnimationFrame(step);
-        } else {
-          // Loop or pause at end
-          setTimeout(() => {
-            startTime = null;
-            if (isPlaying) animFrame = requestAnimationFrame(step);
-          }, 1000);
-        }
-      };
-      animFrame = requestAnimationFrame(step);
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setIsMobile(true);
     }
+  }, []);
 
-    return () => {
-      if (animFrame) cancelAnimationFrame(animFrame);
-    };
-  }, [isPlaying]);
-
-  // Derived 3D transform values from animProgress
-  // 0 to 0.4: Lid opens from -70deg to 0deg
-  // 0.4 to 1.0: Card scrolls down inside the laptop screen
-  const lidRotateX = Math.min(-70 + (animProgress / 0.4) * 70, 0);
-  const scrollOffset = animProgress > 0.3 ? (animProgress - 0.3) / 0.7 * 140 : 0;
-
-  // Video Export Recording Function (HTML2Canvas + MediaRecorder WebM stream)
-  const handleRecordVideo = async () => {
-    if (!containerRef.current || isRecording) return;
-    setIsRecording(true);
-    setRecordProgress(10);
-    setRecordSuccess(false);
-
-    try {
-      const canvas = await html2canvas(containerRef.current, {
-        scale: 1.5,
-        backgroundColor: '#05070e',
-        useCORS: true,
-        logging: false
-      });
-
-      setRecordProgress(50);
-
-      // Create stream from canvas
-      const stream = canvas.captureStream(30); // 30 FPS
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-          ? 'video/webm;codecs=vp9'
-          : 'video/webm'
-      });
-
-      const chunks: Blob[] = [];
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `vertical_lab_3d_dossier_${Date.now()}.webm`;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        setIsRecording(false);
-        setRecordProgress(100);
-        setRecordSuccess(true);
-        setTimeout(() => setRecordSuccess(false), 4000);
-      };
-
-      mediaRecorder.start();
-      setRecordProgress(80);
-
-      // Record 3.5 seconds of video
-      setTimeout(() => {
-        mediaRecorder.stop();
-      }, 3500);
-
-    } catch (err) {
-      console.error("Video Generation Error:", err);
-      setIsRecording(false);
-      alert("تعذر توليد الفيديو تلقائياً على هذا المتصفح. يمكنك حفظ الصورة بدلاً من ذلك.");
-    }
-  };
+  const scaleX = useTransform(
+    scrollYProgress,
+    [0, 0.3],
+    [1.2, isMobile ? 1 : 1.5]
+  );
+  const scaleY = useTransform(
+    scrollYProgress,
+    [0, 0.3],
+    [0.6, isMobile ? 1 : 1.5]
+  );
+  // Keep translate bounded to [0, 80] so lid stays perfectly mounted to the keyboard base
+  const translate = useTransform(scrollYProgress, [0, 1], [0, 80]);
+  const rotate = useTransform(scrollYProgress, [0.1, 0.12, 0.3], [-28, -28, 0]);
+  const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
   return (
-    <div className="flex flex-col items-center justify-center w-full py-4 space-y-6">
-      
-      {/* 🎬 VIDEO CONTROL TOOLBAR */}
-      <div className="flex flex-wrap items-center justify-center gap-3 bg-slate-950/90 border border-cyan-500/40 p-3 rounded-2xl shadow-xl shadow-cyan-500/10">
-        <button
-          onClick={() => setIsPlaying(!isPlaying)}
-          className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer ${
-            isPlaying ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/20' : 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/20'
-          }`}
-        >
-          {isPlaying ? <Pause size={15} /> : <Play size={15} />}
-          <span>{isPlaying ? 'إيقاف مؤقت (Pause 3D)' : 'تشغيل حركة الفيديو (Play 3D Video)'}</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setAnimProgress(0);
-            setIsPlaying(true);
-          }}
-          className="px-3 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-gray-800 transition-all cursor-pointer"
-        >
-          <RotateCcw size={14} />
-          <span>إعادة تشغيل (Replay)</span>
-        </button>
-
-        <button
-          onClick={handleRecordVideo}
-          disabled={isRecording}
-          className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-purple-500/20 transition-all cursor-pointer disabled:opacity-50"
-        >
-          {isRecording ? (
-            <>
-              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span>جاري تسجيل الفيديو ({recordProgress}%)...</span>
-            </>
-          ) : recordSuccess ? (
-            <>
-              <Check size={16} className="text-emerald-400" />
-              <span>تم تحميل الفيديو بنجاح! 🎬</span>
-            </>
-          ) : (
-            <>
-              <Video size={16} />
-              <span>🎬 توليد وتنزيل فيديو WebM</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* 💻 3D MACBOOK CONTAINER */}
-      <div
-        ref={containerRef}
-        className="flex flex-col items-center justify-center p-6 bg-[#050711] rounded-3xl border border-cyan-500/30 shadow-2xl relative max-w-full overflow-hidden"
+    <div
+      ref={ref}
+      className="flex min-h-[140vh] shrink-0 scale-[0.45] transform flex-col items-center justify-start py-0 [perspective:800px] sm:scale-65 md:scale-95 md:py-32"
+    >
+      <motion.h2
+        style={{
+          translateY: textTransform,
+          opacity: textOpacity,
+        }}
+        className="mb-12 text-center text-3xl font-bold text-neutral-800 dark:text-white font-mono"
       >
-        {/* Title */}
-        <div className="mb-6 text-center text-white">
-          {title || (
-            <span className="text-lg font-bold">
-              VERTICAL LAB — 3D Athlete Dossier
-            </span>
-          )}
+        {title || (
+          <span>
+            This Macbook is built with Tailwindcss. <br /> No kidding.
+          </span>
+        )}
+      </motion.h2>
+      {/* Lid */}
+      <Lid
+        src={src}
+        scaleX={scaleX}
+        scaleY={scaleY}
+        rotate={rotate}
+        translate={translate}
+      >
+        {children}
+      </Lid>
+      {/* Base area */}
+      <div className="relative -z-10 h-[22rem] w-[32rem] overflow-hidden rounded-2xl bg-gray-200 dark:bg-[#272729]">
+        {/* above keyboard bar */}
+        <div className="relative h-10 w-full">
+          <div className="absolute inset-x-0 mx-auto h-4 w-[80%] bg-[#050505]" />
         </div>
-
-        {/* Laptop Frame Wrapper */}
-        <div className="relative flex flex-col items-center [perspective:1000px] w-[34rem] max-w-full">
-          
-          {/* Laptop Screen Lid */}
-          <div
-            style={{
-              transform: `rotateX(${lidRotateX}deg)`,
-              transformOrigin: "bottom",
-              transformStyle: "preserve-3d",
-              transition: isPlaying ? "none" : "transform 0.5s ease-out"
-            }}
-            className="relative h-[20rem] w-[32rem] max-w-full rounded-2xl bg-[#010101] p-2.5 shadow-2xl border-2 border-cyan-500/40 z-20"
-          >
-            {/* Screen Bezel & Content */}
-            <div className="relative h-full w-full rounded-xl bg-[#05070e] overflow-hidden border border-cyan-500/30">
-              
-              {/* Screen Web Camera */}
-              <div className="absolute top-1.5 inset-x-0 mx-auto w-3 h-3 rounded-full bg-[#111] border border-gray-800 flex items-center justify-center z-30">
-                <div className="w-1 h-1 rounded-full bg-cyan-400 animate-pulse" />
-              </div>
-
-              {src ? (
-                <img
-                  src={src}
-                  alt="screen content"
-                  className="h-full w-full object-cover object-top"
-                />
-              ) : (
-                <div
-                  ref={screenContentRef}
-                  style={{
-                    transform: `translateY(-${scrollOffset}px)`,
-                    transition: isPlaying ? "none" : "transform 0.4s ease-out"
-                  }}
-                  className="h-full w-full overflow-y-auto bg-[#05070e] p-3 text-white"
-                >
-                  {children}
-                </div>
-              )}
-            </div>
+        <div className="relative flex">
+          <div className="mx-auto h-full w-[10%] overflow-hidden">
+            <SpeakerGrid />
           </div>
-
-          {/* Laptop Hinge & Base Chassis */}
-          <div className="relative h-[11rem] w-[34rem] max-w-full overflow-hidden rounded-b-2xl bg-gradient-to-b from-[#1e1e20] to-[#0a0a0c] border border-gray-800 p-2 shadow-2xl z-10 -mt-1">
-            
-            {/* Above Keyboard Bar & Hinge */}
-            <div className="relative h-4 w-full flex justify-center items-center mb-1">
-              <div className="h-2.5 w-[85%] bg-[#050505] rounded-full border border-gray-900 shadow-inner" />
-            </div>
-
-            {/* Keyboard & Speakers Row */}
-            <div className="relative flex items-center justify-between px-2">
-              <div className="w-[8%]">
-                <SpeakerGrid />
-              </div>
-              <div className="w-[82%]">
-                <Keypad />
-              </div>
-              <div className="w-[8%]">
-                <SpeakerGrid />
-              </div>
-            </div>
-
-            {/* Trackpad */}
-            <Trackpad />
-
-            {/* Laptop Base Opening Notch */}
-            <div className="absolute inset-x-0 bottom-0 mx-auto h-1.5 w-16 rounded-t-xl bg-gradient-to-t from-[#272729] to-[#050505]" />
-            {badge && <div className="absolute bottom-2 left-3">{badge}</div>}
+          <div className="mx-auto h-full w-[80%]">
+            <Keypad />
           </div>
+          <div className="mx-auto h-full w-[10%] overflow-hidden">
+            <SpeakerGrid />
+          </div>
+        </div>
+        <Trackpad />
+        <div className="absolute inset-x-0 bottom-0 mx-auto h-2 w-20 rounded-tl-3xl rounded-tr-3xl bg-gradient-to-t from-[#272729] to-[#050505]" />
+        {showGradient && (
+          <div className="absolute inset-x-0 bottom-0 z-50 h-40 w-full bg-gradient-to-t from-white via-white to-transparent dark:from-black dark:via-black"></div>
+        )}
+        {badge && <div className="absolute bottom-4 left-4">{badge}</div>}
+      </div>
+    </div>
+  );
+};
 
+export const Lid = ({
+  scaleX,
+  scaleY,
+  rotate,
+  translate,
+  src,
+  children
+}: {
+  scaleX: MotionValue<number>;
+  scaleY: MotionValue<number>;
+  rotate: MotionValue<number>;
+  translate: MotionValue<number>;
+  src?: string;
+  children?: React.ReactNode;
+}) => {
+  return (
+    <div className="relative [perspective:800px]">
+      <div
+        style={{
+          transform: "perspective(800px) rotateX(-25deg) translateZ(0px)",
+          transformOrigin: "bottom",
+          transformStyle: "preserve-3d",
+        }}
+        className="relative h-[12rem] w-[32rem] rounded-2xl bg-[#010101] p-2"
+      >
+        <div
+          style={{
+            boxShadow: "0px 2px 0px 2px #171717 inset",
+          }}
+          className="absolute inset-0 flex items-center justify-center rounded-lg bg-[#010101]"
+        >
+          <span className="text-white">
+            <AceternityLogo />
+          </span>
         </div>
       </div>
+      <motion.div
+        style={{
+          scaleX: scaleX,
+          scaleY: scaleY,
+          rotateX: rotate,
+          translateY: translate,
+          transformStyle: "preserve-3d",
+          transformOrigin: "top",
+        }}
+        className="absolute inset-0 h-96 w-[32rem] rounded-2xl bg-[#010101] p-2"
+      >
+        <div className="absolute inset-0 rounded-lg bg-[#272729]" />
+        {src ? (
+          <img
+            src={src}
+            alt="screen content"
+            className="absolute inset-0 h-full w-full rounded-lg object-cover object-left-top"
+          />
+        ) : children ? (
+          <div className="absolute inset-0 h-full w-full rounded-lg overflow-y-auto bg-[#070a14] p-3 text-white">
+            {children}
+          </div>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-cyan-400 font-mono font-bold">
+            VERTICAL LAB SCREEN
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 };
@@ -291,9 +194,9 @@ export const MacbookScroll = ({
 export const Trackpad = () => {
   return (
     <div
-      className="mx-auto my-1 h-12 w-[35%] rounded-lg border border-gray-800 bg-[#0d0d0f]"
+      className="mx-auto my-1 h-32 w-[40%] rounded-xl"
       style={{
-        boxShadow: "0px 0px 2px 1px #00000040 inset",
+        boxShadow: "0px 0px 1px 1px #00000020 inset",
       }}
     ></div>
   );
@@ -301,72 +204,280 @@ export const Trackpad = () => {
 
 export const Keypad = () => {
   return (
-    <div className="mx-1 h-full rounded-md bg-[#050505] p-1 border border-gray-900">
+    <div className="mx-1 h-full [transform:translateZ(0)] rounded-md bg-[#050505] p-1 [will-change:transform]">
       {/* First Row */}
       <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
-        <KBtn className="w-7 text-[4px]">esc</KBtn>
-        <KBtn><Sun className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn><Sun className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn><Table className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn><Search className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn><Mic className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn><Moon className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn><Volume className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn><Volume1 className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn><Volume2 className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn><Volume2 className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn><Volume1 className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn><Volume className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn className="w-6">
-          <div className="h-2 w-2 rounded-full bg-cyan-500/40" />
+        <KBtn
+          className="w-10 items-end justify-start pb-[2px] pl-[4px]"
+          childrenClassName="items-start"
+        >
+          esc
+        </KBtn>
+        <KBtn>
+          <IconBrightnessDown className="h-[6px] w-[6px]" />
+          <span className="mt-1 inline-block">F1</span>
+        </KBtn>
+        <KBtn>
+          <IconBrightnessUp className="h-[6px] w-[6px]" />
+          <span className="mt-1 inline-block">F2</span>
+        </KBtn>
+        <KBtn>
+          <IconTable className="h-[6px] w-[6px]" />
+          <span className="mt-1 inline-block">F3</span>
+        </KBtn>
+        <KBtn>
+          <IconSearch className="h-[6px] w-[6px]" />
+          <span className="mt-1 inline-block">F4</span>
+        </KBtn>
+        <KBtn>
+          <IconMicrophone className="h-[6px] w-[6px]" />
+          <span className="mt-1 inline-block">F5</span>
+        </KBtn>
+        <KBtn>
+          <IconMoon className="h-[6px] w-[6px]" />
+          <span className="mt-1 inline-block">F6</span>
+        </KBtn>
+        <KBtn>
+          <IconPlayerTrackPrev className="h-[6px] w-[6px]" />
+          <span className="mt-1 inline-block">F7</span>
+        </KBtn>
+        <KBtn>
+          <IconPlayerSkipForward className="h-[6px] w-[6px]" />
+          <span className="mt-1 inline-block">F8</span>
+        </KBtn>
+        <KBtn>
+          <IconPlayerTrackNext className="h-[6px] w-[6px]" />
+          <span className="mt-1 inline-block">F8</span>
+        </KBtn>
+        <KBtn>
+          <IconVolume3 className="h-[6px] w-[6px]" />
+          <span className="mt-1 inline-block">F10</span>
+        </KBtn>
+        <KBtn>
+          <IconVolume2 className="h-[6px] w-[6px]" />
+          <span className="mt-1 inline-block">F11</span>
+        </KBtn>
+        <KBtn>
+          <IconVolume className="h-[6px] w-[6px]" />
+          <span className="mt-1 inline-block">F12</span>
+        </KBtn>
+        <KBtn>
+          <div className="h-4 w-4 rounded-full bg-gradient-to-b from-neutral-900 from-20% via-black via-50% to-neutral-900 to-95% p-px">
+            <div className="h-full w-full rounded-full bg-black" />
+          </div>
         </KBtn>
       </div>
 
       {/* Second row */}
       <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
-        <KBtn>`</KBtn><KBtn>1</KBtn><KBtn>2</KBtn><KBtn>3</KBtn><KBtn>4</KBtn><KBtn>5</KBtn><KBtn>6</KBtn><KBtn>7</KBtn><KBtn>8</KBtn><KBtn>9</KBtn><KBtn>0</KBtn><KBtn>-</KBtn><KBtn>=</KBtn>
-        <KBtn className="w-8">del</KBtn>
+        <KBtn>
+          <span className="block">~</span>
+          <span className="mt-1 block">`</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">!</span>
+          <span className="block">1</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">@</span>
+          <span className="block">2</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">#</span>
+          <span className="block">3</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">$</span>
+          <span className="block">4</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">%</span>
+          <span className="block">5</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">^</span>
+          <span className="block">6</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">&amp;</span>
+          <span className="block">7</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">*</span>
+          <span className="block">8</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">(</span>
+          <span className="block">9</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">)</span>
+          <span className="block">0</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">&mdash;</span>
+          <span className="block">_</span>
+        </KBtn>
+        <KBtn>
+          <span className="block">+</span>
+          <span className="block"> = </span>
+        </KBtn>
+        <KBtn
+          className="w-10 items-end justify-end pr-[4px] pb-[2px]"
+          childrenClassName="items-end"
+        >
+          delete
+        </KBtn>
       </div>
 
       {/* Third row */}
       <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
-        <KBtn className="w-8">tab</KBtn>
-        <KBtn>Q</KBtn><KBtn>W</KBtn><KBtn>E</KBtn><KBtn>R</KBtn><KBtn>T</KBtn><KBtn>Y</KBtn><KBtn>U</KBtn><KBtn>I</KBtn><KBtn>O</KBtn><KBtn>P</KBtn>
-        <KBtn>[</KBtn><KBtn>]</KBtn><KBtn>\</KBtn>
+        <KBtn
+          className="w-10 items-end justify-start pb-[2px] pl-[4px]"
+          childrenClassName="items-start"
+        >
+          tab
+        </KBtn>
+        <KBtn><span className="block">Q</span></KBtn>
+        <KBtn><span className="block">W</span></KBtn>
+        <KBtn><span className="block">E</span></KBtn>
+        <KBtn><span className="block">R</span></KBtn>
+        <KBtn><span className="block">T</span></KBtn>
+        <KBtn><span className="block">Y</span></KBtn>
+        <KBtn><span className="block">U</span></KBtn>
+        <KBtn><span className="block">I</span></KBtn>
+        <KBtn><span className="block">O</span></KBtn>
+        <KBtn><span className="block">P</span></KBtn>
+        <KBtn><span className="block">&#123;</span><span className="block">&#91;</span></KBtn>
+        <KBtn><span className="block">&#125;</span><span className="block">&#93;</span></KBtn>
+        <KBtn><span className="block">|</span><span className="block">\</span></KBtn>
       </div>
 
       {/* Fourth Row */}
       <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
-        <KBtn className="w-9">caps</KBtn>
-        <KBtn>A</KBtn><KBtn>S</KBtn><KBtn>D</KBtn><KBtn>F</KBtn><KBtn>G</KBtn><KBtn>H</KBtn><KBtn>J</KBtn><KBtn>K</KBtn><KBtn>L</KBtn>
-        <KBtn>;</KBtn><KBtn>&apos;</KBtn>
-        <KBtn className="w-9">return</KBtn>
+        <KBtn
+          className="w-[2.8rem] items-end justify-start pb-[2px] pl-[4px]"
+          childrenClassName="items-start"
+        >
+          caps lock
+        </KBtn>
+        <KBtn><span className="block">A</span></KBtn>
+        <KBtn><span className="block">S</span></KBtn>
+        <KBtn><span className="block">D</span></KBtn>
+        <KBtn><span className="block">F</span></KBtn>
+        <KBtn><span className="block">G</span></KBtn>
+        <KBtn><span className="block">H</span></KBtn>
+        <KBtn><span className="block">J</span></KBtn>
+        <KBtn><span className="block">K</span></KBtn>
+        <KBtn><span className="block">L</span></KBtn>
+        <KBtn><span className="block">:</span><span className="block">;</span></KBtn>
+        <KBtn><span className="block">&quot;</span><span className="block">&apos;</span></KBtn>
+        <KBtn
+          className="w-[2.85rem] items-end justify-end pr-[4px] pb-[2px]"
+          childrenClassName="items-end"
+        >
+          return
+        </KBtn>
       </div>
 
       {/* Fifth Row */}
       <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
-        <KBtn className="w-10">shift</KBtn>
-        <KBtn>Z</KBtn><KBtn>X</KBtn><KBtn>C</KBtn><KBtn>V</KBtn><KBtn>B</KBtn><KBtn>N</KBtn><KBtn>M</KBtn>
-        <KBtn>,</KBtn><KBtn>.</KBtn><KBtn>/</KBtn>
-        <KBtn className="w-10">shift</KBtn>
+        <KBtn
+          className="w-[3.65rem] items-end justify-start pb-[2px] pl-[4px]"
+          childrenClassName="items-start"
+        >
+          shift
+        </KBtn>
+        <KBtn><span className="block">Z</span></KBtn>
+        <KBtn><span className="block">X</span></KBtn>
+        <KBtn><span className="block">C</span></KBtn>
+        <KBtn><span className="block">V</span></KBtn>
+        <KBtn><span className="block">B</span></KBtn>
+        <KBtn><span className="block">N</span></KBtn>
+        <KBtn><span className="block">M</span></KBtn>
+        <KBtn><span className="block">&lt;</span><span className="block">,</span></KBtn>
+        <KBtn><span className="block">&gt;</span><span className="block">.</span></KBtn>
+        <KBtn><span className="block">?</span><span className="block">/</span></KBtn>
+        <KBtn
+          className="w-[3.65rem] items-end justify-end pr-[4px] pb-[2px]"
+          childrenClassName="items-end"
+        >
+          shift
+        </KBtn>
       </div>
 
       {/* Sixth Row */}
-      <div className="flex w-full shrink-0 gap-[2px]">
-        <KBtn className="w-6"><Globe className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn className="w-6"><ChevronUp className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn className="w-6">opt</KBtn>
-        <KBtn className="w-7"><Command className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn className="w-[6.5rem] bg-gray-900/60"></KBtn>
-        <KBtn className="w-7"><Command className="h-[5px] w-[5px]" /></KBtn>
-        <KBtn className="w-6">opt</KBtn>
-        <div className="flex gap-[1px]">
-          <KBtn className="w-4"><ChevronLeft className="h-[5px] w-[5px]" /></KBtn>
-          <div className="flex flex-col gap-[1px]">
-            <KBtn className="h-2 w-4"><ChevronUp className="h-[4px] w-[4px]" /></KBtn>
-            <KBtn className="h-2 w-4"><ChevronDown className="h-[4px] w-[4px]" /></KBtn>
+      <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
+        <KBtn className="" childrenClassName="h-full justify-between py-[4px]">
+          <div className="flex w-full justify-end pr-1">
+            <span className="block">fn</span>
           </div>
-          <KBtn className="w-4"><ChevronRight className="h-[5px] w-[5px]" /></KBtn>
+          <div className="flex w-full justify-start pl-1">
+            <IconWorld className="h-[6px] w-[6px]" />
+          </div>
+        </KBtn>
+        <KBtn className="" childrenClassName="h-full justify-between py-[4px]">
+          <div className="flex w-full justify-end pr-1">
+            <IconChevronUp className="h-[6px] w-[6px]" />
+          </div>
+          <div className="flex w-full justify-start pl-1">
+            <span className="block">control</span>
+          </div>
+        </KBtn>
+        <KBtn className="" childrenClassName="h-full justify-between py-[4px]">
+          <div className="flex w-full justify-end pr-1">
+            <OptionKey className="h-[6px] w-[6px]" />
+          </div>
+          <div className="flex w-full justify-start pl-1">
+            <span className="block">option</span>
+          </div>
+        </KBtn>
+        <KBtn
+          className="w-8"
+          childrenClassName="h-full justify-between py-[4px]"
+        >
+          <div className="flex w-full justify-end pr-1">
+            <IconCommand className="h-[6px] w-[6px]" />
+          </div>
+          <div className="flex w-full justify-start pl-1">
+            <span className="block">command</span>
+          </div>
+        </KBtn>
+        <KBtn className="w-[8.2rem]"></KBtn>
+        <KBtn
+          className="w-8"
+          childrenClassName="h-full justify-between py-[4px]"
+        >
+          <div className="flex w-full justify-start pl-1">
+            <IconCommand className="h-[6px] w-[6px]" />
+          </div>
+          <div className="flex w-full justify-start pl-1">
+            <span className="block">command</span>
+          </div>
+        </KBtn>
+        <KBtn className="" childrenClassName="h-full justify-between py-[4px]">
+          <div className="flex w-full justify-start pl-1">
+            <OptionKey className="h-[6px] w-[6px]" />
+          </div>
+          <div className="flex w-full justify-start pl-1">
+            <span className="block">option</span>
+          </div>
+        </KBtn>
+        <div className="mt-[2px] flex h-6 w-[4.9rem] flex-col items-center justify-end rounded-[4px] p-[0.5px]">
+          <KBtn className="h-3 w-6">
+            <IconCaretUpFilled className="h-[6px] w-[6px]" />
+          </KBtn>
+          <div className="flex">
+            <KBtn className="h-3 w-6">
+              <IconCaretLeftFilled className="h-[6px] w-[6px]" />
+            </KBtn>
+            <KBtn className="h-3 w-6">
+              <IconCaretDownFilled className="h-[6px] w-[6px]" />
+            </KBtn>
+            <KBtn className="h-3 w-6">
+              <IconCaretRightFilled className="h-[6px] w-[6px]" />
+            </KBtn>
+          </div>
         </div>
       </div>
     </div>
@@ -376,18 +487,41 @@ export const Keypad = () => {
 export const KBtn = ({
   className,
   children,
+  childrenClassName,
+  backlit = true,
 }: {
   className?: string;
   children?: React.ReactNode;
+  childrenClassName?: string;
+  backlit?: boolean;
 }) => {
   return (
     <div
       className={cn(
-        "flex h-4 w-4 items-center justify-center rounded-[3px] bg-[#0c0c0f] border border-gray-900 text-[5px] text-gray-300 font-mono font-bold",
-        className
+        "[transform:translateZ(0)] rounded-[4px] p-[0.5px] [will-change:transform]",
+        backlit && "bg-white/[0.2] shadow-xl shadow-white"
       )}
     >
-      {children}
+      <div
+        className={cn(
+          "flex h-6 w-6 items-center justify-center rounded-[3.5px] bg-[#0A090D]",
+          className
+        )}
+        style={{
+          boxShadow:
+            "0px -0.5px 2px 0 #0D0D0F inset, -0.5px 0px 2px 0 #0D0D0F inset",
+        }}
+      >
+        <div
+          className={cn(
+            "flex w-full flex-col items-center justify-center text-[5px] text-neutral-200",
+            childrenClassName,
+            backlit && "text-white"
+          )}
+        >
+          {children}
+        </div>
+      </div>
     </div>
   );
 };
@@ -395,12 +529,67 @@ export const KBtn = ({
 export const SpeakerGrid = () => {
   return (
     <div
-      className="mt-1 flex h-16 gap-[1px] px-[0.5px]"
+      className="mt-2 flex h-40 gap-[2px] px-[0.5px]"
       style={{
         backgroundImage:
-          "radial-gradient(circle, #222 0.5px, transparent 0.5px)",
-        backgroundSize: "2px 2px",
+          "radial-gradient(circle, #08080A 0.5px, transparent 0.5px)",
+        backgroundSize: "3px 3px",
       }}
     ></div>
+  );
+};
+
+export const OptionKey = ({ className }: { className: string }) => {
+  return (
+    <svg
+      fill="none"
+      version="1.1"
+      id="icon"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 32 32"
+      className={className}
+    >
+      <rect
+        stroke="currentColor"
+        strokeWidth={2}
+        x="18"
+        y="5"
+        width="10"
+        height="2"
+      />
+      <polygon
+        stroke="currentColor"
+        strokeWidth={2}
+        points="10.6,5 4,5 4,7 9.4,7 18.4,27 28,27 28,25 19.6,25 "
+      />
+      <rect
+        id="_Transparent_Rectangle_"
+        className="st0"
+        width="32"
+        height="32"
+        stroke="none"
+      />
+    </svg>
+  );
+};
+
+const AceternityLogo = () => {
+  return (
+    <svg
+      width="66"
+      height="65"
+      viewBox="0 0 66 65"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-3 w-3 text-white"
+    >
+      <path
+        d="M8 8.05571C8 8.05571 54.9009 18.1782 57.8687 30.062C60.8365 41.9458 9.05432 57.4696 9.05432 57.4696"
+        stroke="currentColor"
+        strokeWidth="15"
+        strokeMiterlimit="3.86874"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 };
