@@ -298,12 +298,13 @@ export default function MotionGraphicVideoModal({
         ctx.fillText('FULL SQUAT (1RM)', 510, 300);
 
         ctx.fillStyle = '#34d399';
-        ctx.font = '900 48px monospace';
-        ctx.fillText(squatWeight > 0 ? `${squatWeight} kg` : '—', 510, 380);
+        ctx.font = '900 44px monospace';
+        ctx.fillText(squatWeight > 0 ? `${squatWeight} kg` : '—', 510, 375);
 
         ctx.fillStyle = '#10b981';
         ctx.font = 'bold 14px monospace';
-        ctx.fillText('🏋️ Max Strength', 510, 440);
+        const squatBwRatio = (squatWeight > 0 && mass > 0) ? (squatWeight / mass).toFixed(2) : 0;
+        ctx.fillText(squatBwRatio > 0 ? `🏋️ ${squatBwRatio}x Bodyweight` : '🏋️ Max Strength', 510, 440);
       }
 
       // FOOTER
@@ -560,7 +561,9 @@ export default function MotionGraphicVideoModal({
                         <span className="text-2xl font-black text-emerald-400 font-mono block">
                           {squatWeight > 0 ? `${squatWeight} kg` : '—'}
                         </span>
-                        <span className="text-[9px] text-emerald-300/80 font-mono block mt-1">🏋️ Max Strength</span>
+                        <span className="text-[9px] text-emerald-300 font-mono font-bold block mt-1">
+                          {squatWeight > 0 && mass > 0 ? `🏋️ ${(squatWeight / mass).toFixed(2)}x ضعف وزن الجسم` : '🏋️ Max Strength'}
+                        </span>
                       </div>
                     </div>
                   </motion.div>

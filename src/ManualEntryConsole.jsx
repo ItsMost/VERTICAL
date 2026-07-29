@@ -632,6 +632,21 @@ export default function ManualEntryConsole({
                   className="w-full bg-black/40 border border-emerald-500/40 rounded-xl p-3 text-white font-mono font-bold text-lg focus:border-emerald-500 outline-none"
                 />
 
+                {/* Bodyweight Ratio Live Multiplier Badge */}
+                {parseFloat(form.cleanWeightKg) > 0 && parseFloat(activePlayer?.weight_kg) > 0 && (
+                  <div className="p-2.5 bg-emerald-950/60 border border-emerald-500/40 rounded-xl flex items-center justify-between font-mono">
+                    <span className="text-xs text-emerald-300 font-bold">
+                      🏋️ {isEn ? 'Relative Bodyweight Ratio:' : 'نسبة الوزن مقارنة بوزن الجسم:'}
+                    </span>
+                    <span className="text-sm font-black text-emerald-400">
+                      {(parseFloat(form.cleanWeightKg) / parseFloat(activePlayer.weight_kg)).toFixed(2)}x BW
+                      <span className="text-[10px] text-emerald-200/80 mr-1.5">
+                        ({(parseFloat(form.cleanWeightKg) / parseFloat(activePlayer.weight_kg)).toFixed(2)} ضعف وزن الجسم)
+                      </span>
+                    </span>
+                  </div>
+                )}
+
                 {/* Clean / Squat Barbell Presets */}
                 <div className="flex items-center gap-2 pt-1">
                   <span className="text-[10px] text-gray-500 font-bold">{isEn ? 'Barbell Load:' : 'أوزان البار:'}</span>
