@@ -236,6 +236,8 @@ export default function PlayerProfile({
 
       const pPower = hCm > 0 ? (61.9 * hCm + 36.0 * mass - 1822) : 0;
       const vTakeoff = ft > 0 ? (9.81 * ft) / 2 : 0;
+      const weekNum = parseInt(editingRecord.week_number) || 1;
+      const repsNum = parseInt(editingRecord.reps_count) || 1;
 
       const payload = {
         test_type: editingRecord.test_type,
@@ -244,6 +246,8 @@ export default function PlayerProfile({
         contact_time_sec: ct > 0 ? ct : null,
         rsi_score: rsi > 0 ? rsi : null,
         clean_weight_kg: cleanW,
+        week_number: weekNum,
+        reps_count: repsNum,
         peak_power_watts: pPower > 0 ? Math.round(pPower) : 0,
         takeoff_velocity_ms: vTakeoff > 0 ? parseFloat(vTakeoff.toFixed(2)) : 0
       };
@@ -1481,9 +1485,14 @@ export default function PlayerProfile({
                             )}
                           </td>
                           <td className="p-3 text-cyan-400 font-black">
-                            {isStrength
-                              ? `${strengthWeight} kg`
-                              : parseFloat(jump.jump_height_cm) > 0 ? `${parseFloat(jump.jump_height_cm).toFixed(1)} cm` : '—'}
+                            {isStrength ? (
+                              <div className="flex flex-col items-center">
+                                <span className="text-emerald-400">{strengthWeight} kg</span>
+                                <span className="text-[9px] text-amber-300 font-sans font-bold bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/30 mt-0.5">
+                                  W{jump.week_number || 1} • {jump.reps_count || 1} {jump.reps_count > 1 ? 'reps' : 'rep'}
+                                </span>
+                              </div>
+                            ) : parseFloat(jump.jump_height_cm) > 0 ? `${parseFloat(jump.jump_height_cm).toFixed(1)} cm` : '—'}
                           </td>
                           <td className="p-3 text-gray-300">{parseFloat(jump.flight_time_sec) > 0 ? `${parseFloat(jump.flight_time_sec).toFixed(3)} s` : '—'}</td>
                           <td className="p-3 text-blue-400 font-bold">{parseFloat(jump.peak_power_watts) > 0 ? `${parseFloat(jump.peak_power_watts).toFixed(0)} W` : '—'}</td>
@@ -1937,16 +1946,43 @@ export default function PlayerProfile({
                 </div>
               )}
 
-              {editingRecord.test_type === 'clean' && (
-                <div>
-                  <label className="block text-xs text-gray-400 font-bold mb-1">وزن البار (Clean Weight - kg):</label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    value={editingRecord.clean_weight_kg || ''}
-                    onChange={(e) => setEditingRecord({ ...editingRecord, clean_weight_kg: e.target.value })}
-                    className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs font-mono font-bold text-purple-400"
-                  />
+              {(editingRecord.test_type === 'clean' || editingRecord.test_type === 'full_squat' || editingRecord.test_type === 'bench_press' || editingRecord.test_type === 'power_clean') && (
+                <div className="space-y-3 pt-1 border-t border-gray-800">
+                  <div>
+                    <label className="block text-xs text-gray-400 font-bold mb-1">الوزن المرفوع (Lift Weight - kg):</label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      value={editingRecord.clean_weight_kg || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, clean_weight_kg: e.target.value })}
+                      className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs font-mono font-bold text-emerald-400"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs text-gray-400 font-bold mb-1">رقم الأسبوع (Week #):</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="52"
+                        value={editingRecord.week_number || 1}
+                        onChange={(e) => setEditingRecord({ ...editingRecord, week_number: e.target.value })}
+                        className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs font-mono font-bold text-amber-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 font-bold mb-1">عدد التكرارات (Reps):</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="30"
+                        value={editingRecord.reps_count || 1}
+                        onChange={(e) => setEditingRecord({ ...editingRecord, reps_count: e.target.value })}
+                        className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs font-mono font-bold text-cyan-400"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

@@ -34,6 +34,8 @@ export default function ManualEntryConsole({
     addedLoadKg: '',
     cleanWeightKg: '',
     cleanBwRatio: '',
+    weekNumber: '1',
+    repsCount: '1',
     notes: ''
   });
 
@@ -141,6 +143,16 @@ export default function ManualEntryConsole({
         createdAtIso = new Date().toISOString();
       }
 
+      const weekNum = parseInt(form.weekNumber) || 1;
+      const repsNum = parseInt(form.repsCount) || 1;
+
+      // Auto strength details note if empty
+      let defaultNotes = form.notes && form.notes.trim() ? form.notes.trim() : null;
+      if (!defaultNotes && cleanWeight > 0) {
+        const est1RM = (cleanWeight * (1 + 0.0333 * repsNum)).toFixed(1);
+        defaultNotes = `📅 الأسبوع ${weekNum} • ${cleanWeight}kg × ${repsNum} تكرارات (1RM ≈ ${est1RM}kg)`;
+      }
+
       const payload = {
         player_id: selectedPlayerId,
         test_type: form.testType,
@@ -157,7 +169,9 @@ export default function ManualEntryConsole({
         added_load_kg: addedLoad > 0 ? addedLoad : 0,
         clean_weight_kg: cleanWeight > 0 ? cleanWeight : 0,
         clean_bw_ratio: cleanBwRatio > 0 ? parseFloat(cleanBwRatio.toFixed(2)) : 0,
-        notes: form.notes && form.notes.trim() ? form.notes.trim() : null
+        week_number: weekNum,
+        reps_count: repsNum,
+        notes: defaultNotes
       };
 
       const { data, error } = await supabase.from('lab_jump_measurements').insert([payload]).select();
@@ -615,52 +629,148 @@ export default function ManualEntryConsole({
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-emerald-400">
-                  {form.testType === 'full_squat'
-                    ? (isEn ? 'Full Squat 1RM Weight (kg)' : 'وزن أقصى تكرار أسكوات كامل (Full Squat 1RM kg)')
-                    : form.testType === 'bench_press'
-                      ? (isEn ? 'Bench Press 1RM Weight (kg)' : 'وزن أقصى تكرار بنش بريس (Bench Press 1RM kg)')
-                      : (isEn ? 'Power Clean 1RM Weight (kg)' : 'وزن أقصى رفعة كلين (Power Clean 1RM kg)')}
-                </label>
-                <input
-                  type="number"
-                  step="0.5"
-                  placeholder="مثال: 120"
-                  value={form.cleanWeightKg}
-                  onChange={(e) => handleInputChange('cleanWeightKg', e.target.value)}
-                  className="w-full bg-black/40 border border-emerald-500/40 rounded-xl p-3 text-white font-mono font-bold text-lg focus:border-emerald-500 outline-none"
-                />
+              <div className="space-y-3">
+                {/* Weight Input */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-emerald-400">
+                    {form.testType === 'full_squat'
+                      ? (isEn ? 'Lift Weight (kg)' : 'الوزن المرفوع (kg)')
+                      : form.testType === 'bench_press'
+                        ? (isEn ? 'Bench Press Weight (kg)' : 'وزن تمرين بنش بريس (kg)')
+                        : (isEn ? 'Power Clean Weight (kg)' : 'وزن رفعة كلين (kg)')}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    placeholder="مثال: 120"
+                    value={form.cleanWeightKg}
+                    onChange={(e) => handleInputChange('cleanWeightKg', e.target.value)}
+                    className="w-full bg-black/40 border border-emerald-500/40 rounded-xl p-3 text-white font-mono font-bold text-lg focus:border-emerald-500 outline-none"
+                  />
 
-                {/* Bodyweight Ratio Live Multiplier Badge */}
-                {parseFloat(form.cleanWeightKg) > 0 && parseFloat(activePlayer?.weight_kg) > 0 && (
-                  <div className="p-2.5 bg-emerald-950/60 border border-emerald-500/40 rounded-xl flex items-center justify-between font-mono">
-                    <span className="text-xs text-emerald-300 font-bold">
-                      🏋️ {isEn ? 'Relative Bodyweight Ratio:' : 'نسبة الوزن مقارنة بوزن الجسم:'}
-                    </span>
-                    <span className="text-sm font-black text-emerald-400">
-                      {(parseFloat(form.cleanWeightKg) / parseFloat(activePlayer.weight_kg)).toFixed(2)}x BW
-                      <span className="text-[10px] text-emerald-200/80 mr-1.5">
-                        ({(parseFloat(form.cleanWeightKg) / parseFloat(activePlayer.weight_kg)).toFixed(2)} ضعف وزن الجسم)
-                      </span>
+                  {/* Clean / Squat Barbell Presets */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <span className="text-[10px] text-gray-500 font-bold">{isEn ? 'Barbell Load:' : 'أوزان البار:'}</span>
+                    {[60, 80, 100, 120, 140].map(kg => (
+                      <button
+                        key={kg}
+                        type="button"
+                        onClick={() => applyCleanPreset(kg)}
+                        className="px-2.5 py-1 bg-gray-900 hover:bg-emerald-600/30 border border-gray-800 rounded-lg text-[10px] font-mono text-gray-300 transition-all"
+                      >
+                        {kg} kg
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Repetitions (Reps Count) Input */}
+                <div className="space-y-1.5 pt-2 border-t border-emerald-500/20">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                      <Target size={14} />
+                      {isEn ? 'Repetitions Performed (Reps)' : 'عدد العدات والتكرارات المنفذة بالوزن (Reps)'}
+                    </label>
+                    <span className="text-[10px] font-mono text-emerald-300 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
+                      {form.repsCount} {isEn ? 'reps' : 'عدات'}
                     </span>
                   </div>
-                )}
-
-                {/* Clean / Squat Barbell Presets */}
-                <div className="flex items-center gap-2 pt-1">
-                  <span className="text-[10px] text-gray-500 font-bold">{isEn ? 'Barbell Load:' : 'أوزان البار:'}</span>
-                  {[60, 80, 100, 120, 140].map(kg => (
-                    <button
-                      key={kg}
-                      type="button"
-                      onClick={() => applyCleanPreset(kg)}
-                      className="px-2.5 py-1 bg-gray-900 hover:bg-emerald-600/30 border border-gray-800 rounded-lg text-[10px] font-mono text-gray-300 transition-all"
-                    >
-                      {kg} kg
-                    </button>
-                  ))}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={form.repsCount}
+                      onChange={(e) => setForm(prev => ({ ...prev, repsCount: e.target.value }))}
+                      className="w-24 bg-black/40 border border-emerald-500/40 rounded-xl p-2.5 text-white font-mono font-bold text-base focus:border-emerald-500 outline-none text-center"
+                    />
+                    <div className="flex items-center gap-1.5 flex-wrap flex-1">
+                      {[1, 3, 5, 8, 10, 12].map(r => (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => setForm(prev => ({ ...prev, repsCount: r.toString() }))}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer ${
+                            form.repsCount === r.toString()
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 font-black shadow-sm'
+                              : 'bg-gray-900 border border-gray-800 text-gray-400 hover:text-white'
+                          }`}
+                        >
+                          {r} {isEn ? 'reps' : 'عدات'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
+
+                {/* Weekly Block / Microcycle Selector */}
+                <div className="space-y-1.5 pt-2 border-t border-emerald-500/20">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                      <Calendar size={14} />
+                      {isEn ? 'Weekly Block / Microcycle (Week #)' : 'رقم الأسبوع التدريبي (Weekly Block)'}
+                    </label>
+                    <span className="text-[10px] font-mono text-emerald-300 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
+                      {isEn ? `Week ${form.weekNumber}` : `الأسبوع ${form.weekNumber}`}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="52"
+                      value={form.weekNumber}
+                      onChange={(e) => setForm(prev => ({ ...prev, weekNumber: e.target.value }))}
+                      className="w-24 bg-black/40 border border-emerald-500/40 rounded-xl p-2.5 text-white font-mono font-bold text-base focus:border-emerald-500 outline-none text-center"
+                    />
+                    <div className="flex items-center gap-1.5 flex-wrap flex-1">
+                      {[1, 2, 3, 4, 5, 6, 8, 12].map(w => (
+                        <button
+                          key={w}
+                          type="button"
+                          onClick={() => setForm(prev => ({ ...prev, weekNumber: w.toString() }))}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-mono transition-all cursor-pointer ${
+                            form.weekNumber === w.toString()
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 font-black shadow-sm'
+                              : 'bg-gray-900 border border-gray-800 text-gray-400 hover:text-white'
+                          }`}
+                        >
+                          {isEn ? `W${w}` : `الأسبوع ${w}`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bodyweight Ratio & Estimated 1RM Live Calculation Card */}
+                {parseFloat(form.cleanWeightKg) > 0 && (
+                  <div className="p-3 bg-gradient-to-r from-emerald-950/80 via-black to-slate-950 border border-emerald-500/40 rounded-2xl font-mono space-y-2 shadow-lg">
+                    <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
+                      <span className="text-xs text-emerald-300 font-bold flex items-center gap-1.5">
+                        🏋️ {isEn ? 'Strength Telemetry Summary:' : 'ملخص حمل وأداة القوة:'}
+                      </span>
+                      <span className="text-[11px] font-black text-emerald-400">
+                        {isEn ? `Week ${form.weekNumber}` : `الأسبوع ${form.weekNumber}`}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-center text-xs">
+                      <div className="bg-black/60 p-2 rounded-xl border border-emerald-500/30">
+                        <span className="text-[9px] text-gray-400 block font-bold mb-0.5">{isEn ? 'RELATIVE LOAD' : 'نسبة وزن الجسم'}</span>
+                        <span className="font-black text-emerald-400 text-sm block">
+                          {activePlayer?.weight_kg > 0 ? (parseFloat(form.cleanWeightKg) / parseFloat(activePlayer.weight_kg)).toFixed(2) : 0}x BW
+                        </span>
+                      </div>
+
+                      <div className="bg-black/60 p-2 rounded-xl border border-emerald-500/30">
+                        <span className="text-[9px] text-gray-400 block font-bold mb-0.5">{isEn ? 'ESTIMATED 1RM' : 'تقدير الـ 1RM الأقصى'}</span>
+                        <span className="font-black text-amber-300 text-sm block">
+                          {(parseFloat(form.cleanWeightKg) * (1 + 0.0333 * (parseInt(form.repsCount) || 1))).toFixed(1)} kg
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
             </div>
@@ -822,11 +932,11 @@ export default function ManualEntryConsole({
                 <tr className="bg-blue-950/40 text-blue-300 font-bold border-b border-gray-800">
                   <th className="p-3">{isEn ? 'Date' : 'التاريخ'}</th>
                   <th className="p-3">{isEn ? 'Category' : 'نوع الاختبار'}</th>
-                  <th className="p-3">{isEn ? 'Jump Height' : 'ارتفاع القفز (Jump Height)'}</th>
-                  <th className="p-3">{isEn ? 'Flight Time' : 'زمن الطيران (Flight Time)'}</th>
-                  <th className="p-3">{isEn ? 'Peak Power' : 'ذروة القدرة (Peak Power)'}</th>
-                  <th className="p-3">{isEn ? 'Relative Power' : 'القدرة النسبية (W/kg)'}</th>
-                  <th className="p-3">{isEn ? 'Clean 1RM' : 'الكلين (Clean 1RM)'}</th>
+                  <th className="p-3">{isEn ? 'Jump Height' : 'ارتفاع القفز'}</th>
+                  <th className="p-3">{isEn ? 'Flight Time' : 'زمن الطيران'}</th>
+                  <th className="p-3">{isEn ? 'Peak Power' : 'ذروة القدرة'}</th>
+                  <th className="p-3">{isEn ? 'Relative Power' : 'القدرة النسبية'}</th>
+                  <th className="p-3">{isEn ? 'Strength & Load' : 'حمل القوة والأسبوع (Load & Reps)'}</th>
                   <th className="p-3">{isEn ? 'Actions' : 'إجراءات'}</th>
                 </tr>
               </thead>
@@ -837,6 +947,8 @@ export default function ManualEntryConsole({
                   const pWatts = parseFloat(jump.peak_power_watts) || 0;
                   const rWatts = weight > 0 && pWatts > 0 ? (pWatts / weight).toFixed(1) : '—';
                   const cleanKg = parseFloat(jump.clean_weight_kg) || 0;
+                  const reps = jump.reps_count || 1;
+                  const week = jump.week_number || 1;
 
                   return (
                     <tr key={jump.id || idx} className="hover:bg-blue-600/10 transition-colors">
@@ -846,7 +958,16 @@ export default function ManualEntryConsole({
                       <td className="p-3 text-gray-300">{fSec > 0 ? `${fSec} s` : '—'}</td>
                       <td className="p-3 text-blue-400 font-bold">{pWatts > 0 ? `${pWatts} W` : '—'}</td>
                       <td className="p-3 text-emerald-400 font-bold">{rWatts !== '—' ? `${rWatts} W/kg` : '—'}</td>
-                      <td className="p-3 text-yellow-400 font-bold">{cleanKg > 0 ? `${cleanKg} kg` : '—'}</td>
+                      <td className="p-3 text-yellow-400 font-bold">
+                        {cleanKg > 0 ? (
+                          <div className="flex flex-col items-center">
+                            <span>{cleanKg} kg</span>
+                            <span className="text-[10px] text-amber-300 font-sans bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/30 mt-0.5">
+                              الأسبوع {week} • {reps} {reps > 2 ? 'تكرارات' : 'تكرار'}
+                            </span>
+                          </div>
+                        ) : '—'}
+                      </td>
                       <td className="p-3">
                         <button
                           onClick={() => handleDeleteTest(jump.id)}
