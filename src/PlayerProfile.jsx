@@ -26,6 +26,7 @@ export default function PlayerProfile({
 
   // Print & Motion Graphic Video Modal States
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [includeStrengthInPrint, setIncludeStrengthInPrint] = useState(true);
   const [isMotionVideoOpen, setIsMotionVideoOpen] = useState(false);
   const [printLang, setPrintLang] = useState('ar');
 
@@ -592,6 +593,75 @@ export default function PlayerProfile({
             </tbody>
           </table>
         </div>
+
+        {/* Optional Strength & 1RM Performance Section in PDF */}
+        {includeStrengthInPrint && (
+          <div className="mb-6">
+            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-2">
+              🏋️ {printLang === 'en' ? 'Strength & Load Metrics (1RM & Weekly Reps Log)' : 'سجل أداء أقصى قوة وأوزان تمارين التأهيل (1RM & Reps)'}
+            </h3>
+            <table className="print-table-orange" style={{ borderColor: '#a7f3d0' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#059669' }}>
+                  <th style={{ textAlign: printLang === 'en' ? 'left' : 'right', backgroundColor: '#059669' }}>{printLang === 'en' ? 'Strength Exercise' : 'تمرين القوة (Exercise)'}</th>
+                  <th style={{ backgroundColor: '#059669' }}>{printLang === 'en' ? 'Weight Lifted' : 'الوزن المرفوع (كجم)'}</th>
+                  <th style={{ backgroundColor: '#059669' }}>{printLang === 'en' ? 'Relative BW Ratio' : 'نسبة وزن الجسم (xBW)'}</th>
+                  <th style={{ backgroundColor: '#059669' }}>{printLang === 'en' ? 'Weekly Microcycle' : 'الأسبوع التدريبي'}</th>
+                  <th style={{ backgroundColor: '#059669' }}>{printLang === 'en' ? 'Reps Count' : 'عدد التكرارات'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Full Squat */}
+                {(() => {
+                  const record = playerHistory.find(r => r.test_type === 'full_squat');
+                  const weight = record ? parseFloat(record.clean_weight_kg) || 0 : 0;
+                  const bwRatio = mass > 0 && weight > 0 ? (weight / mass).toFixed(2) : '—';
+                  return (
+                    <tr>
+                      <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>Full Squat 🏋️‍♂️</td>
+                      <td className="font-mono font-black text-emerald-700">{weight > 0 ? `${weight} kg` : '—'}</td>
+                      <td className="font-mono font-bold text-slate-900">{bwRatio !== '—' ? `${bwRatio}x BW` : '—'}</td>
+                      <td className="font-mono text-slate-700">{record?.week_number ? `${printLang === 'en' ? 'Week' : 'الأسبوع'} ${record.week_number}` : '—'}</td>
+                      <td className="font-mono text-slate-700">{record?.reps_count ? `${record.reps_count} ${printLang === 'en' ? 'reps' : 'عدات'}` : '—'}</td>
+                    </tr>
+                  );
+                })()}
+
+                {/* Bench Press */}
+                {(() => {
+                  const record = playerHistory.find(r => r.test_type === 'bench_press');
+                  const weight = record ? parseFloat(record.clean_weight_kg) || 0 : 0;
+                  const bwRatio = mass > 0 && weight > 0 ? (weight / mass).toFixed(2) : '—';
+                  return (
+                    <tr>
+                      <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>Bench Press 💪</td>
+                      <td className="font-mono font-black text-emerald-700">{weight > 0 ? `${weight} kg` : '—'}</td>
+                      <td className="font-mono font-bold text-slate-900">{bwRatio !== '—' ? `${bwRatio}x BW` : '—'}</td>
+                      <td className="font-mono text-slate-700">{record?.week_number ? `${printLang === 'en' ? 'Week' : 'الأسبوع'} ${record.week_number}` : '—'}</td>
+                      <td className="font-mono text-slate-700">{record?.reps_count ? `${record.reps_count} ${printLang === 'en' ? 'reps' : 'عدات'}` : '—'}</td>
+                    </tr>
+                  );
+                })()}
+
+                {/* Power Clean */}
+                {(() => {
+                  const record = playerHistory.find(r => r.test_type === 'power_clean' || r.test_type === 'clean');
+                  const weight = record ? parseFloat(record.clean_weight_kg) || 0 : 0;
+                  const bwRatio = mass > 0 && weight > 0 ? (weight / mass).toFixed(2) : '—';
+                  return (
+                    <tr>
+                      <td style={{ textAlign: printLang === 'en' ? 'left' : 'right', fontWeight: 'bold' }}>Power Clean ⚡</td>
+                      <td className="font-mono font-black text-emerald-700">{weight > 0 ? `${weight} kg` : '—'}</td>
+                      <td className="font-mono font-bold text-slate-900">{bwRatio !== '—' ? `${bwRatio}x BW` : '—'}</td>
+                      <td className="font-mono text-slate-700">{record?.week_number ? `${printLang === 'en' ? 'Week' : 'الأسبوع'} ${record.week_number}` : '—'}</td>
+                      <td className="font-mono text-slate-700">{record?.reps_count ? `${record.reps_count} ${printLang === 'en' ? 'reps' : 'عدات'}` : '—'}</td>
+                    </tr>
+                  );
+                })()}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* CONCISE DIAGNOSTIC CALLOUT IN PDF */}
         <div className="border-r-8 border-[#ea580c] bg-[#fffaf0] p-4 rounded-xl mb-6 text-xs leading-relaxed font-mono">
@@ -1813,6 +1883,40 @@ export default function PlayerProfile({
                 <p className="text-xs text-gray-400">
                   {isEn ? 'Select language for printable report' : 'اختر لغة طباعة التقرير المستخرج'}
                 </p>
+              </div>
+            </div>
+
+            {/* Strength Tests Toggle Option */}
+            <div className="space-y-2 bg-black/50 p-3.5 rounded-2xl border border-gray-800 text-right">
+              <span className="text-xs font-bold text-gray-300 block">
+                📋 {isEn ? 'PDF Content Options:' : 'محتوى وبنود التقرير المطلوب (PDF):'}
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIncludeStrengthInPrint(true)}
+                  className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                    includeStrengthInPrint
+                      ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-black shadow-md'
+                      : 'bg-slate-900 border-gray-800 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <span className="text-xs block font-bold">🏋️ {isEn ? 'Full Report (+Strength)' : 'تقرير شامل (+قياسات القوة)'}</span>
+                  <span className="text-[9px] text-emerald-400/80 block mt-0.5">يشمل الأسكوات، البنش، الكلين</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIncludeStrengthInPrint(false)}
+                  className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                    !includeStrengthInPrint
+                      ? 'bg-cyan-600/20 border-cyan-500 text-cyan-300 font-black shadow-md'
+                      : 'bg-slate-900 border-gray-800 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <span className="text-xs block font-bold">🚀 {isEn ? 'Jumps Only (-Strength)' : 'قياسات القفز والأداء فقط'}</span>
+                  <span className="text-[9px] text-cyan-400/80 block mt-0.5">بدون قياسات القوة البدنيه</span>
+                </button>
               </div>
             </div>
 
