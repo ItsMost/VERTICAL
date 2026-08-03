@@ -31,19 +31,25 @@ export default function MotionGraphicVideoModal({
   const playerHeight = parseFloat(activePlayer?.height_cm) || 178;
   const age = activePlayer?.age || 24;
 
-  const maxCmjRecord = playerHistory.find(r => r.test_type === 'cmj' || r.test_type === 'cmj_arms');
-  const maxCmj = maxCmjRecord ? parseFloat(maxCmjRecord.jump_height_cm) || 0 : 0;
-  const cmjFlightTime = maxCmjRecord ? parseFloat(maxCmjRecord.flight_time_sec) || 0 : 0;
+  // Calculate All-time Personal Bests (PBs) from full history
+  const cmjJumps = playerHistory.filter(r => r.test_type === 'cmj' || r.test_type === 'cmj_arms');
+  const maxCmj = cmjJumps.length > 0 ? Math.max(...cmjJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
+  const bestCmjRecord = cmjJumps.find(j => parseFloat(j.jump_height_cm) === maxCmj);
+  const cmjFlightTime = bestCmjRecord ? parseFloat(bestCmjRecord.flight_time_sec) || 0 : (maxCmj > 0 ? Math.sqrt((8 * (maxCmj / 100)) / 9.81) : 0);
 
-  const maxRsiRecord = playerHistory.find(r => r.test_type === 'rsi');
-  const maxRsi = maxRsiRecord ? parseFloat(maxRsiRecord.rsi_score) || 0 : 0;
-  const boxHeight = maxRsiRecord?.box_height_cm || 30;
+  const rsiJumps = playerHistory.filter(r => r.test_type === 'rsi');
+  const maxRsi = rsiJumps.length > 0 ? Math.max(...rsiJumps.map(j => parseFloat(j.rsi_score) || 0)) : 0;
+  const bestRsiRecord = rsiJumps.find(j => parseFloat(j.rsi_score) === maxRsi);
+  const boxHeight = bestRsiRecord?.box_height_cm || 30;
 
-  const squatRecord = playerHistory.find(r => r.test_type === 'full_squat');
-  const squatWeight = squatRecord ? parseFloat(squatRecord.clean_weight_kg) || 0 : 0;
+  const squatRecords = playerHistory.filter(r => r.test_type === 'full_squat');
+  const squatWeight = squatRecords.length > 0 ? Math.max(...squatRecords.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
 
-  const benchRecord = playerHistory.find(r => r.test_type === 'bench_press');
-  const benchWeight = benchRecord ? parseFloat(benchRecord.clean_weight_kg) || 0 : 0;
+  const benchRecords = playerHistory.filter(r => r.test_type === 'bench_press');
+  const benchWeight = benchRecords.length > 0 ? Math.max(...benchRecords.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
+
+  const cleanRecords = playerHistory.filter(r => r.test_type === 'power_clean' || (parseFloat(r.clean_weight_kg) > 0 && r.test_type !== 'full_squat' && r.test_type !== 'bench_press'));
+  const cleanWeight = cleanRecords.length > 0 ? Math.max(...cleanRecords.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
 
   // Auto-switch preview phases every 2.5 seconds
   useEffect(() => {

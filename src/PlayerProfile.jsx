@@ -150,12 +150,15 @@ export default function PlayerProfile({
 
   // Latest RSI Score
   const latestRsiRecord = rsiJumps.length > 0 ? rsiJumps[rsiJumps.length - 1] : null;
-  const rsiScore = latestRsiRecord ? (parseFloat(latestRsiRecord.rsi_score) || 0) : 0;
+  const latestRsiScore = latestRsiRecord ? (parseFloat(latestRsiRecord.rsi_score) || 0) : 0;
 
-  // Max RSI overall from history
+  // Max RSI overall from history (All-Time Personal Best)
   const maxRsi = rsiJumps.length > 0
     ? Math.max(...rsiJumps.map(j => parseFloat(j.rsi_score) || 0))
-    : rsiScore;
+    : latestRsiScore;
+
+  // Primary RSI for Rating & PB display
+  const rsiScore = maxRsi > 0 ? maxRsi : latestRsiScore;
 
   // Overall Biomechanical Rating Score (0 - 100%)
   const overallRating = Math.min(100, Math.max(40, Math.round((heightCm / 70) * 50 + (relativePower / 65) * 35 + (rsiScore > 0 ? (rsiScore / 2.5) * 15 : 10))));
@@ -876,14 +879,33 @@ export default function PlayerProfile({
               className="glass-panel p-5 hud-card space-y-3 hover:border-yellow-500/40 transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-gray-300 font-mono uppercase">RSI Index</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-gray-300 font-mono uppercase">RSI Index</span>
+                  <span className="text-[9px] font-black text-amber-400 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/30">PB 👑</span>
+                </div>
                 <span className="p-2 bg-yellow-500/10 text-yellow-400 rounded-xl group-hover:scale-110 transition-transform">
                   <Target size={18} />
                 </span>
               </div>
               <div>
-                <span className="text-3xl font-black text-white font-mono">{rsiScore > 0 ? rsiScore.toFixed(2) : '—'}</span>
-                <span className="text-xs text-gray-400 font-bold ml-1">Index</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-white font-mono">{maxRsi > 0 ? maxRsi.toFixed(2) : '—'}</span>
+                  <span className="text-xs text-gray-400 font-bold">PB Index</span>
+                </div>
+                
+                {latestRsiScore > 0 && (
+                  <div className="mt-1">
+                    {latestRsiScore < maxRsi ? (
+                      <span className="text-[10px] text-amber-300 font-sans font-bold bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/20 block truncate" title={`أحدث قياس اليوم: ${latestRsiScore.toFixed(2)} (فرق ${(latestRsiScore - maxRsi).toFixed(2)})`}>
+                        ⚡ أحدث قياس: <strong>{latestRsiScore.toFixed(2)}</strong> <span className="text-red-400 font-mono">({(latestRsiScore - maxRsi).toFixed(2)})</span>
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-emerald-400 font-sans font-bold bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/20 block">
+                        🔥 رقم قياسي جديد اليوم! ({latestRsiScore.toFixed(2)})
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -912,13 +934,18 @@ export default function PlayerProfile({
             <div className="glass-panel p-4 hud-card space-y-2 border-l-4 border-l-emerald-500">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-emerald-400 font-mono uppercase">{isEn ? 'Full Squat 1RM 🏋️‍♂️' : 'الأسكوات الكامل 🏋️‍♂️'}</span>
-                <span className="text-[10px] text-gray-400 font-mono">1RM</span>
+                <span className="text-[9px] font-black text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/30">PB 👑</span>
               </div>
               <div>
                 <span className="text-2xl font-black text-white font-mono">{maxFullSquat > 0 ? `${maxFullSquat} kg` : '—'}</span>
                 {maxFullSquat > 0 && mass > 0 && (
                   <span className="text-[10px] text-emerald-300 font-mono block">
                     ({(maxFullSquat / mass).toFixed(2)} xBW)
+                  </span>
+                )}
+                {fullSquatRecords.length > 0 && (
+                  <span className="text-[9px] text-gray-400 font-sans block mt-1">
+                    أحدث تمرين: {fullSquatRecords[fullSquatRecords.length - 1].clean_weight_kg}kg (W{fullSquatRecords[fullSquatRecords.length - 1].week_number || 1} • {fullSquatRecords[fullSquatRecords.length - 1].reps_count || 1}عدات)
                   </span>
                 )}
               </div>
@@ -928,13 +955,18 @@ export default function PlayerProfile({
             <div className="glass-panel p-4 hud-card space-y-2 border-l-4 border-l-rose-500">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-rose-400 font-mono uppercase">{isEn ? 'Bench Press 1RM 💪' : 'البنش بريس 💪'}</span>
-                <span className="text-[10px] text-gray-400 font-mono">1RM</span>
+                <span className="text-[9px] font-black text-rose-400 bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-500/30">PB 👑</span>
               </div>
               <div>
                 <span className="text-2xl font-black text-white font-mono">{maxBenchPress > 0 ? `${maxBenchPress} kg` : '—'}</span>
                 {maxBenchPress > 0 && mass > 0 && (
                   <span className="text-[10px] text-rose-300 font-mono block">
                     ({(maxBenchPress / mass).toFixed(2)} xBW)
+                  </span>
+                )}
+                {benchPressRecords.length > 0 && (
+                  <span className="text-[9px] text-gray-400 font-sans block mt-1">
+                    أحدث تمرين: {benchPressRecords[benchPressRecords.length - 1].clean_weight_kg}kg (W{benchPressRecords[benchPressRecords.length - 1].week_number || 1} • {benchPressRecords[benchPressRecords.length - 1].reps_count || 1}عدات)
                   </span>
                 )}
               </div>
@@ -944,13 +976,18 @@ export default function PlayerProfile({
             <div className="glass-panel p-4 hud-card space-y-2 border-l-4 border-l-amber-500">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-amber-400 font-mono uppercase">{isEn ? 'Power Clean 1RM ⚡' : 'رفعة الكلين ⚡'}</span>
-                <span className="text-[10px] text-gray-400 font-mono">1RM</span>
+                <span className="text-[9px] font-black text-amber-400 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/30">PB 👑</span>
               </div>
               <div>
                 <span className="text-2xl font-black text-white font-mono">{maxPowerClean > 0 ? `${maxPowerClean} kg` : '—'}</span>
                 {maxPowerClean > 0 && mass > 0 && (
                   <span className="text-[10px] text-amber-300 font-mono block">
                     ({(maxPowerClean / mass).toFixed(2)} xBW)
+                  </span>
+                )}
+                {powerCleanRecords.length > 0 && (
+                  <span className="text-[9px] text-gray-400 font-sans block mt-1">
+                    أحدث تمرين: {powerCleanRecords[powerCleanRecords.length - 1].clean_weight_kg}kg (W{powerCleanRecords[powerCleanRecords.length - 1].week_number || 1} • {powerCleanRecords[powerCleanRecords.length - 1].reps_count || 1}عدات)
                   </span>
                 )}
               </div>
