@@ -955,9 +955,27 @@ export default function ManualEntryConsole({
                       <td className="p-3 text-gray-400">{new Date(jump.created_at).toLocaleDateString('ar-EG')}</td>
                       <td className="p-3 font-sans font-bold text-white uppercase">{jump.test_type}</td>
                       <td className="p-3 text-cyan-400 font-black">{hCm > 0 ? `${hCm} cm` : '—'}</td>
-                      <td className="p-3 text-gray-300">{fSec > 0 ? `${fSec} s` : '—'}</td>
+                      <td className="p-3 text-gray-300">
+                        {fSec > 0 ? `${fSec} s` : '—'}
+                        {jump.test_type === 'rsi' && jump.contact_time_sec > 0 && (
+                          <div className="text-[9px] text-cyan-300 font-sans font-bold bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-500/30 mt-0.5">
+                            ⏱️ تلامس: {parseFloat(jump.contact_time_sec).toFixed(3)}s
+                          </div>
+                        )}
+                      </td>
                       <td className="p-3 text-blue-400 font-bold">{pWatts > 0 ? `${pWatts} W` : '—'}</td>
-                      <td className="p-3 text-emerald-400 font-bold">{rWatts !== '—' ? `${rWatts} W/kg` : '—'}</td>
+                      <td className="p-3 text-emerald-400 font-bold">
+                        {jump.test_type === 'rsi' && jump.rsi_score > 0 ? (
+                          <div className="flex flex-col items-center">
+                            <span className="text-yellow-400 font-black">{parseFloat(jump.rsi_score).toFixed(2)} Index</span>
+                            {jump.box_height_cm > 0 && (
+                              <span className="text-[9px] text-amber-300 font-sans bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/30 mt-0.5">
+                                📦 {jump.box_height_cm}cm
+                              </span>
+                            )}
+                          </div>
+                        ) : rWatts !== '—' ? `${rWatts} W/kg` : '—'}
+                      </td>
                       <td className="p-3 text-yellow-400 font-bold">
                         {cleanKg > 0 ? (
                           <div className="flex flex-col items-center">

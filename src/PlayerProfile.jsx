@@ -249,6 +249,7 @@ export default function PlayerProfile({
         flight_time_sec: ft,
         contact_time_sec: ct > 0 ? ct : null,
         rsi_score: rsi > 0 ? rsi : null,
+        box_height_cm: editingRecord.test_type === 'rsi' && parseFloat(editingRecord.box_height_cm) > 0 ? parseFloat(editingRecord.box_height_cm) : null,
         clean_weight_kg: cleanW,
         week_number: weekNum,
         reps_count: repsNum,
@@ -894,7 +895,7 @@ export default function PlayerProfile({
                 </div>
                 
                 {latestRsiScore > 0 && (
-                  <div className="mt-1">
+                  <div className="mt-1 space-y-1">
                     {latestRsiScore < maxRsi ? (
                       <span className="text-[10px] text-amber-300 font-sans font-bold bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/20 block truncate" title={`أحدث قياس اليوم: ${latestRsiScore.toFixed(2)} (فرق ${(latestRsiScore - maxRsi).toFixed(2)})`}>
                         ⚡ أحدث قياس: <strong>{latestRsiScore.toFixed(2)}</strong> <span className="text-red-400 font-mono">({(latestRsiScore - maxRsi).toFixed(2)})</span>
@@ -902,6 +903,13 @@ export default function PlayerProfile({
                     ) : (
                       <span className="text-[10px] text-emerald-400 font-sans font-bold bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/20 block">
                         🔥 رقم قياسي جديد اليوم! ({latestRsiScore.toFixed(2)})
+                      </span>
+                    )}
+
+                    {latestRsiRecord?.contact_time_sec > 0 && (
+                      <span className="text-[10px] text-cyan-300 font-mono font-bold bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30 flex items-center justify-between">
+                        <span>⏱️ زمن التلامس (Contact):</span>
+                        <strong className="text-white">{parseFloat(latestRsiRecord.contact_time_sec).toFixed(3)}s</strong>
                       </span>
                     )}
                   </div>
@@ -1604,11 +1612,25 @@ export default function PlayerProfile({
                           <td className="p-3 text-gray-300">{parseFloat(jump.flight_time_sec) > 0 ? `${parseFloat(jump.flight_time_sec).toFixed(3)} s` : '—'}</td>
                           <td className="p-3 text-blue-400 font-bold">{parseFloat(jump.peak_power_watts) > 0 ? `${parseFloat(jump.peak_power_watts).toFixed(0)} W` : '—'}</td>
                           <td className="p-3 text-yellow-400 font-bold">
-                            {isStrength
-                              ? `${bwRatio} xBW`
-                              : parseFloat(jump.rsi_score) > 0 
-                                ? `${parseFloat(jump.rsi_score).toFixed(2)}${jump.box_height_cm ? ` (📦 ${jump.box_height_cm}cm)` : ''}`
-                                : '—'}
+                            {isStrength ? (
+                              `${bwRatio} xBW`
+                            ) : parseFloat(jump.rsi_score) > 0 ? (
+                              <div className="flex flex-col items-center">
+                                <span className="text-yellow-400 font-black text-sm">{parseFloat(jump.rsi_score).toFixed(2)} Index</span>
+                                <div className="flex items-center gap-1 mt-0.5 text-[9px] font-sans font-bold flex-wrap justify-center">
+                                  {jump.contact_time_sec > 0 && (
+                                    <span className="bg-cyan-950/80 text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-500/30">
+                                      ⏱️ {parseFloat(jump.contact_time_sec).toFixed(3)}s
+                                    </span>
+                                  )}
+                                  {jump.box_height_cm > 0 && (
+                                    <span className="bg-amber-950/80 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30">
+                                      📦 {jump.box_height_cm}cm
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ) : '—'}
                           </td>
                           <td className="p-3 flex items-center justify-center gap-1">
                             <button
@@ -2075,15 +2097,40 @@ export default function PlayerProfile({
               </div>
 
               {editingRecord.test_type === 'rsi' && (
-                <div>
-                  <label className="block text-xs text-gray-400 font-bold mb-1">مؤشر RSI Index:</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editingRecord.rsi_score || ''}
-                    onChange={(e) => setEditingRecord({ ...editingRecord, rsi_score: e.target.value })}
-                    className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs font-mono font-bold text-yellow-400"
-                  />
+                <div className="space-y-3 pt-2 border-t border-gray-800">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs text-yellow-400 font-bold mb-1">مؤشر RSI Index:</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editingRecord.rsi_score || ''}
+                        onChange={(e) => setEditingRecord({ ...editingRecord, rsi_score: e.target.value })}
+                        className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs font-mono font-bold text-yellow-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-cyan-400 font-bold mb-1">زمن التلامس (Contact Time - sec):</label>
+                      <input
+                        type="number"
+                        step="0.001"
+                        value={editingRecord.contact_time_sec || ''}
+                        onChange={(e) => setEditingRecord({ ...editingRecord, contact_time_sec: e.target.value })}
+                        className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs font-mono font-bold text-cyan-400"
+                        placeholder="0.210"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-amber-400 font-bold mb-1">ارتفاع الصندوق (Box Height - cm):</label>
+                    <input
+                      type="number"
+                      value={editingRecord.box_height_cm || ''}
+                      onChange={(e) => setEditingRecord({ ...editingRecord, box_height_cm: e.target.value })}
+                      className="w-full bg-slate-900 border border-gray-800 rounded-xl p-2.5 text-xs font-mono font-bold text-amber-400"
+                      placeholder="30"
+                    />
+                  </div>
                 </div>
               )}
 
