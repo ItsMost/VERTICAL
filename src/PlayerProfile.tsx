@@ -5,6 +5,8 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { supabase } from './supabaseClient';
 import AppLogo from './AppLogo';
 import MotionGraphicVideoModal from './components/MotionGraphicVideoModal';
+import { classifyGCT, calculateElasticityQuadrant, calculateCNSReadiness } from './useJumpMechanics';
+import type { Player, JumpMeasurement } from './types/athletics';
 
 export default function PlayerProfile({
   activePlayer,
@@ -162,6 +164,18 @@ export default function PlayerProfile({
 
   // Overall Biomechanical Rating Score (0 - 100%)
   const overallRating = Math.min(100, Math.max(40, Math.round((heightCm / 70) * 50 + (relativePower / 65) * 35 + (rsiScore > 0 ? (rsiScore / 2.5) * 15 : 10))));
+
+  // 1. Elasticity vs Strength Quadrant (EUR = CMJ / SJ, DJ/CMJ Reactive Index)
+  const elasticityQuadrant = calculateElasticityQuadrant(maxCmj, maxSjNoArms, maxRsi > 0 ? maxRsi * 22 : 0);
+
+  // 2. CNS Readiness & Fatigue Tracking (14-day rolling baseline comparison)
+  const baselineCmjHistory = cmjJumps.map(j => parseFloat(j.jump_height_cm) || 0);
+  const latestCmjVal = cmjJumps.length > 0 ? parseFloat(cmjJumps[cmjJumps.length - 1].jump_height_cm) || 0 : maxCmj;
+  const cnsReadiness = calculateCNSReadiness(latestCmjVal, baselineCmjHistory);
+
+  // 3. Ground Contact Time (GCT) Classification for latest RSI record
+  const latestGctSec = latestRsiRecord?.contact_time_sec ? parseFloat(latestRsiRecord.contact_time_sec) : 0;
+  const gctAnalysis = classifyGCT(latestGctSec);
 
   // Ratings Evaluators
   const getRatingBadge = (score) => {
@@ -907,10 +921,15 @@ export default function PlayerProfile({
                     )}
 
                     {latestRsiRecord?.contact_time_sec > 0 && (
-                      <span className="text-[10px] text-cyan-300 font-mono font-bold bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30 flex items-center justify-between">
-                        <span>⏱️ زمن التلامس (Contact):</span>
-                        <strong className="text-white">{parseFloat(latestRsiRecord.contact_time_sec).toFixed(3)}s</strong>
-                      </span>
+                      <>
+                        <span className="text-[10px] text-cyan-300 font-mono font-bold bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30 flex items-center justify-between">
+                          <span>⏱️ زمن التلامس (Contact):</span>
+                          <strong className="text-white">{parseFloat(latestRsiRecord.contact_time_sec).toFixed(3)}s</strong>
+                        </span>
+                        <span className="text-[9px] font-sans font-bold px-2 py-0.5 rounded border block truncate text-center" style={{ color: gctAnalysis.zoneColor, borderColor: `${gctAnalysis.zoneColor}40`, backgroundColor: `${gctAnalysis.zoneColor}15` }}>
+                          {gctAnalysis.labelAr}
+                        </span>
+                      </>
                     )}
                   </div>
                 )}
@@ -1466,6 +1485,64 @@ export default function PlayerProfile({
             </div>
           </div>
 
+          {/* Elasticity vs Strength Quadrant & CNS Fatigue Monitoring */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Quadrant Card */}
+            <div className="glass-panel p-6 hud-card space-y-4 border-l-4" style={{ borderLeftColor: elasticityQuadrant.color }}>
+              <div className="flex items-center justify-between border-b border-gray-800 pb-2">
+                <h3 className="text-sm font-black text-white flex items-center gap-2">
+                  <TrendingUp size={16} style={{ color: elasticityQuadrant.color }} />
+                  {isEn ? 'Elasticity vs. Strength Quadrant' : 'مربع المرونة ضد القوة (EUR / DJ-CMJ Quadrant)'}
+                </h3>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border font-mono" style={{ color: elasticityQuadrant.color, borderColor: `${elasticityQuadrant.color}40`, backgroundColor: `${elasticityQuadrant.color}15` }}>
+                  {elasticityQuadrant.titleAr}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 font-mono text-center">
+                <div className="bg-[#0B0F19] p-3 rounded-xl border border-white/10">
+                  <span className="text-[9px] text-gray-400 font-sans block mb-0.5">معامل الاستغلال (EUR):</span>
+                  <span className="text-xl font-black text-[#00F0FF]">{elasticityQuadrant.eur}</span>
+                  <span className="text-[8px] text-gray-500 font-sans block mt-0.5">هدف: 1.05 - 1.15</span>
+                </div>
+                <div className="bg-[#0B0F19] p-3 rounded-xl border border-white/10">
+                  <span className="text-[9px] text-gray-400 font-sans block mb-0.5">مؤشر الارتداد (DJ/CMJ):</span>
+                  <span className="text-xl font-black text-emerald-400">{elasticityQuadrant.reactiveIndex}</span>
+                  <span className="text-[8px] text-gray-500 font-sans block mt-0.5">هدف: 0.95 - 1.05</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-300 leading-relaxed font-sans bg-black/40 p-3 rounded-xl border border-white/5">
+                💡 <b>التصنيف الوظيفي:</b> {elasticityQuadrant.descriptionAr}
+              </p>
+            </div>
+
+            {/* CNS Fatigue Monitor Card */}
+            <div className="glass-panel p-6 hud-card space-y-4 border-l-4" style={{ borderLeftColor: cnsReadiness.color }}>
+              <div className="flex items-center justify-between border-b border-gray-800 pb-2">
+                <h3 className="text-sm font-black text-white flex items-center gap-2">
+                  <Zap size={16} style={{ color: cnsReadiness.color }} />
+                  {isEn ? 'CNS Readiness & Fatigue Monitor' : 'مراقب إجهاد الجهاز العصبي (14-Day CNS Baseline)'}
+                </h3>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border font-mono" style={{ color: cnsReadiness.color, borderColor: `${cnsReadiness.color}40`, backgroundColor: `${cnsReadiness.color}15` }}>
+                  {cnsReadiness.statusLabelAr}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 font-mono text-center">
+                <div className="bg-[#0B0F19] p-3 rounded-xl border border-white/10">
+                  <span className="text-[9px] text-gray-400 font-sans block mb-0.5">المتوسط المرجعي (Baseline):</span>
+                  <span className="text-xl font-black text-white">{cnsReadiness.baselineCmj} <span className="text-xs font-normal text-gray-500">cm</span></span>
+                </div>
+                <div className="bg-[#0B0F19] p-3 rounded-xl border border-white/10">
+                  <span className="text-[9px] text-gray-400 font-sans block mb-0.5">هبوط القفز اليوم:</span>
+                  <span className="text-xl font-black" style={{ color: cnsReadiness.color }}>{cnsReadiness.percentDrop}%</span>
+                  <span className="text-[8px] text-gray-500 font-sans block mt-0.5">حالة: {cnsReadiness.status}</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-300 leading-relaxed font-sans bg-black/40 p-3 rounded-xl border border-white/5">
+                📌 <b>توصية الحمل التدريبي:</b> {cnsReadiness.recommendationAr}
+              </p>
+            </div>
+          </div>
+
         </div>
       )}
 
@@ -1619,8 +1696,11 @@ export default function PlayerProfile({
                                 <span className="text-yellow-400 font-black text-sm">{parseFloat(jump.rsi_score).toFixed(2)} Index</span>
                                 <div className="flex items-center gap-1 mt-0.5 text-[9px] font-sans font-bold flex-wrap justify-center">
                                   {jump.contact_time_sec > 0 && (
-                                    <span className="bg-cyan-950/80 text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-500/30">
+                                    <span className="bg-cyan-950/80 text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-500/30 flex items-center gap-1">
                                       ⏱️ {parseFloat(jump.contact_time_sec).toFixed(3)}s
+                                      <span className="text-[8px]" style={{ color: classifyGCT(parseFloat(jump.contact_time_sec)).zoneColor }}>
+                                        {classifyGCT(parseFloat(jump.contact_time_sec)).category === 'elite_fast' ? '⚡Fast' : classifyGCT(parseFloat(jump.contact_time_sec)).category === 'moderate' ? '⚖️Mod' : '🏋️Slow'}
+                                      </span>
                                     </span>
                                   )}
                                   {jump.box_height_cm > 0 && (

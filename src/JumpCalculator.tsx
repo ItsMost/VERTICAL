@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, ChevronDown, ChevronUp, Moon, Sun, Award, Info, AlertTriangle, ShieldCheck, Sparkles, Users, Trophy, Globe, Star } from 'lucide-react';
+import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Play, Pause, Focus, Save, ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft, ChevronDown, ChevronUp, Moon, Sun, Award, Info, AlertTriangle, ShieldCheck, Sparkles, Users, Trophy, Globe, Star, Camera, Timer } from 'lucide-react';
 import { useJumpMechanics } from './useJumpMechanics';
 import { supabase } from './supabaseClient'; 
 import PlayerProfile from './PlayerProfile'; 
@@ -10,7 +10,10 @@ import TeamDashboard from './TeamDashboard';
 import JumpTestingConsole from './JumpTestingConsole'; 
 import Leaderboard from './Leaderboard';
 import ManualEntryConsole from './ManualEntryConsole';
+import SprintAnalyzer from './SprintAnalyzer';
+import VBTCamera from './VBTCamera';
 import AppLogo from './AppLogo';
+import type { Player, Coach, JumpMeasurement, ActiveTabType } from './types/athletics';
 
 // Animated counter helper
 const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }) => {
@@ -1433,40 +1436,114 @@ export default function JumpCalculator() {
   };
 
   const tabs = [
-    { id: 'team', name: 'Roster Dashboard', shortName: 'Roster', icon: Users },
-    { id: 'calculator', name: 'Vertical Jump', shortName: 'Jump', icon: Activity },
-    { id: 'manual', name: 'Manual Entry', shortName: 'Manual', icon: Edit3 },
-    { id: 'rsi', name: 'RSI Calculator', shortName: 'RSI', icon: Zap },
-    { id: 'fvp', name: 'FVP Curve', shortName: 'FVP', icon: LineChart },
-    { id: 'profile', name: 'Athlete Profile', shortName: 'Profile', icon: UserCircle },
-    { id: 'leaderboard', name: 'Leaderboard', shortName: 'Leader', icon: Trophy }
+    { 
+      id: 'team' as ActiveTabType, 
+      name: 'Roster Dashboard', 
+      nameAr: 'لوحة اللاعبين', 
+      shortName: 'Roster', 
+      shortNameAr: 'اللاعبين', 
+      tag: 'Roster & Norms', 
+      tagAr: 'القوائم والمعايير', 
+      icon: Users, 
+      requiresPlayer: false 
+    },
+    { 
+      id: 'calculator' as ActiveTabType, 
+      name: 'Vertical Jump', 
+      nameAr: 'الوثب الرأسي', 
+      shortName: 'Jump', 
+      shortNameAr: 'الوثب', 
+      tag: 'CMJ / SJ / DJ', 
+      tagAr: 'تحليل الوثب بالفيديو', 
+      icon: Activity, 
+      requiresPlayer: true 
+    },
+    { 
+      id: 'manual' as ActiveTabType, 
+      name: 'Manual Entry', 
+      nameAr: 'إدخال يدوي', 
+      shortName: 'Manual', 
+      shortNameAr: 'يدوي', 
+      tag: 'Rapid Log & 1RM', 
+      tagAr: 'تسجيل سريع وأوزان', 
+      icon: Edit3, 
+      requiresPlayer: true 
+    },
+    { 
+      id: 'rsi' as ActiveTabType, 
+      name: 'RSI Calculator', 
+      nameAr: 'مؤشر RSI', 
+      shortName: 'RSI', 
+      shortNameAr: 'RSI', 
+      tag: 'Reactive Strength', 
+      tagAr: 'القوة التفاعلية والارتداد', 
+      icon: Zap, 
+      requiresPlayer: true 
+    },
+    { 
+      id: 'fvp' as ActiveTabType, 
+      name: 'FVP Curve', 
+      nameAr: 'منحنى FVP', 
+      shortName: 'FVP', 
+      shortNameAr: 'FVP', 
+      tag: 'Samozino Method', 
+      tagAr: 'القوة والسرعة المثالية', 
+      icon: LineChart, 
+      requiresPlayer: true 
+    },
+    { 
+      id: 'sprint' as ActiveTabType, 
+      name: 'Sprint Velocity', 
+      nameAr: 'تحليل السرعة', 
+      shortName: 'Sprint', 
+      shortNameAr: 'سبرينت', 
+      tag: '10m / 20m Splits', 
+      tagAr: 'تتبع السرعة والانطلاق', 
+      icon: Timer, 
+      requiresPlayer: false 
+    },
+    { 
+      id: 'vbt' as ActiveTabType, 
+      name: 'VBT Camera', 
+      nameAr: 'كاميرا VBT', 
+      shortName: 'VBT', 
+      shortNameAr: 'VBT', 
+      tag: 'MCV & % Loss', 
+      tagAr: 'سرعة البار ونسبة الإجهاد', 
+      icon: Camera, 
+      requiresPlayer: false 
+    },
+    { 
+      id: 'profile' as ActiveTabType, 
+      name: 'Athlete Profile', 
+      nameAr: 'ملف اللاعب', 
+      shortName: 'Profile', 
+      shortNameAr: 'الملف', 
+      tag: 'Biometrics & EUR', 
+      tagAr: 'الرادار والتقارير', 
+      icon: UserCircle, 
+      requiresPlayer: true 
+    },
+    { 
+      id: 'leaderboard' as ActiveTabType, 
+      name: 'Leaderboard', 
+      nameAr: 'المتصدرين', 
+      shortName: 'Leader', 
+      shortNameAr: 'المتصدرين', 
+      tag: 'PRs & Rankings', 
+      tagAr: 'الأرقام القياسية', 
+      icon: Trophy, 
+      requiresPlayer: false 
+    }
   ];
 
-    const getTabName = (tab) => {
-      if (language === 'ar') {
-        if (tab.id === 'team') return 'لوحة اللاعبين';
-        if (tab.id === 'calculator') return 'الوثب الرأسي';
-        if (tab.id === 'manual') return 'إدخال يدوي';
-        if (tab.id === 'rsi') return 'مؤشر RSI';
-        if (tab.id === 'fvp') return 'منحنى FVP';
-        if (tab.id === 'profile') return 'ملف اللاعب';
-        if (tab.id === 'leaderboard') return 'المتصدرين';
-      }
-      return tab.name;
-    };
+  const getTabName = (tab: typeof tabs[number]) => {
+    return language === 'ar' ? tab.nameAr : tab.name;
+  };
 
-    const getTabShortName = (tab) => {
-      if (language === 'ar') {
-        if (tab.id === 'team') return 'اللاعبين';
-        if (tab.id === 'calculator') return 'الوثب';
-        if (tab.id === 'manual') return 'يدوي';
-        if (tab.id === 'rsi') return 'RSI';
-        if (tab.id === 'fvp') return 'FVP';
-        if (tab.id === 'profile') return 'الملف';
-        if (tab.id === 'leaderboard') return 'المتصدرين';
-      }
-      return tab.shortName;
-    };
+  const getTabShortName = (tab: typeof tabs[number]) => {
+    return language === 'ar' ? tab.shortNameAr : tab.shortName;
+  };
 
   return (
     <div data-theme={colorMode} className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] transition-all duration-300 text-shadow-contrast pb-28 flex flex-col" style={{ direction: language === 'ar' ? 'rtl' : 'ltr' }}>
@@ -1779,112 +1856,243 @@ export default function JumpCalculator() {
           </div>
         </header>
 
-        {/* ================= MAIN CONTENT WORKSPACE ================= */}
-        <main className="flex-1 min-w-0 pr-1">
-          <AnimatePresence mode="wait">
-            {activeTab === 'team' ? (
-              <motion.div key="team" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                <TeamDashboard 
-                  onSelectPlayer={handleSelectPlayerFromDashboard} 
-                  onChangeTab={setActiveTab} 
-                  coaches={coaches}
-                  onEditPlayer={handleEditPlayer}
-                  language={language}
-                />
-              </motion.div>
-            ) : activeTab === 'leaderboard' ? (
-              <motion.div key="leaderboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                <Leaderboard 
-                  onSelectPlayer={handleSelectPlayerFromDashboard} 
-                  onChangeTab={setActiveTab} 
-                  language={language}
-                />
-              </motion.div>
-            ) : activePlayer ? (
-              <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                
-                {activeTab === 'calculator' && (
-                  <JumpTestingConsole
-                    activePlayer={activePlayer}
-                    selectedPlayerId={selectedPlayerId}
-                    onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])}
-                    displayUnit={displayUnit}
-                    setDisplayUnit={setDisplayUnit}
-                    language={language}
-                    playerHistory={playerHistory}
-                  />
-                )}
+        {/* ================= COMMAND WORKSPACE (SIDEBAR + MAIN WORKSPACE) ================= */}
+        <div className="flex-1 flex flex-col lg:flex-row gap-5 items-start min-h-0">
+          
+          {/* Desktop Persistent Command Sidebar */}
+          <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-[var(--bg-panel)] backdrop-blur-xl border border-[var(--border-color)] rounded-3xl p-3.5 shadow-2xl sticky top-6 justify-between gap-4">
+            <div className="space-y-1.5">
+              <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-cyan-400/90 flex items-center justify-between border-b border-[var(--border-light)] pb-2 mb-2">
+                <span className="flex items-center gap-1.5">
+                  <Activity size={13} className="text-cyan-400" />
+                  {language === 'ar' ? 'أقسام المختبر' : 'Telemetry Modules'}
+                </span>
+                <span className="flex items-center gap-1 text-[9px] text-emerald-400 font-mono">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#10b981]" />
+                  ONLINE
+                </span>
+              </div>
 
-                {activeTab === 'manual' && (
-                  <ManualEntryConsole
-                    activePlayer={activePlayer}
-                    selectedPlayerId={selectedPlayerId}
-                    onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])}
-                    language={language}
-                    playerHistory={playerHistory}
-                  />
-                )}
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                const isDisabled = tab.requiresPlayer && !activePlayer;
 
-                {activeTab === 'rsi' && <RSICalculator activePlayer={activePlayer} selectedPlayerId={selectedPlayerId} onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])} language={language} playerHistory={playerHistory} />}
-                {activeTab === 'fvp' && <FVPCalculator activePlayer={activePlayer} selectedPlayerId={selectedPlayerId} language={language} />}
-                {activeTab === 'profile' && (
-                  <PlayerProfile 
-                    activePlayer={activePlayer} 
-                    playerHistory={playerHistory} 
-                    onHistoryChange={(newHistory) => setPlayerHistory(newHistory)} 
-                    language={language}
-                    onEditPlayer={handleEditPlayer}
-                  />
-                )}
-              </motion.div>
-            ) : (
-              <motion.div key="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="glass-card p-16 text-center text-gray-400 shadow-2xl flex flex-col items-center justify-center transition-colors duration-500">
-                <ScanEye size={64} className="text-blue-500 mb-4 opacity-75 animate-pulse" />
-                <h2 className="text-2xl font-black text-[var(--text-primary)] mb-2">
-                  {language === 'en' ? 'Welcome to Vertical Lab v2.0 🧪' : 'مرحباً بك في مختبر الأداء Vertical Lab v2.0 🧪'}
-                </h2>
-                <p className="max-w-md mx-auto leading-relaxed">
-                  {language === 'en' 
-                    ? 'Please select an athlete from the dropdown list above or register a new one to begin biomechanics and physical capacity testing.' 
-                    : 'الرجاء اختيار لاعب من القائمة بالأعلى أو تسجيل لاعب جديد لبدء اختبارات الميكانيكا الحيوية والقدرة الحركية.'}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </main>
+                return (
+                  <button
+                    key={tab.id}
+                    disabled={isDisabled}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full text-left rtl:text-right px-3 py-2.5 rounded-2xl transition-all duration-200 flex items-center gap-3 relative group cursor-pointer
+                      ${isActive 
+                        ? 'bg-blue-600/20 border border-blue-500/40 text-blue-400 shadow-[0_0_15px_rgba(0,240,255,0.15)] font-black' 
+                        : isDisabled
+                          ? 'opacity-35 cursor-not-allowed text-gray-500'
+                          : 'text-gray-300 hover:text-white hover:bg-white/5 border border-transparent'
+                      }`}
+                  >
+                    <div className={`p-2 rounded-xl transition-all shrink-0 ${isActive ? 'bg-blue-500/30 text-cyan-300 shadow-[0_0_10px_rgba(0,240,255,0.3)]' : 'bg-black/30 text-gray-400 group-hover:text-white'}`}>
+                      <Icon size={16} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold truncate">
+                        {language === 'ar' ? tab.nameAr : tab.name}
+                      </div>
+                      <div className="text-[10px] text-gray-500 truncate font-mono">
+                        {language === 'ar' ? tab.tagAr : tab.tag}
+                      </div>
+                    </div>
+                    {isActive && (
+                      <motion.div
+                        layoutId="active-sidebar-indicator"
+                        className="w-1.5 h-6 rounded-full bg-cyan-400 shadow-[0_0_10px_#00f0ff]"
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
-        {/* ================= FLOATING GLASSMORPHIC DOCK NAVIGATION ================= */}
-        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-fit max-w-[98%] bg-[var(--bg-panel)] backdrop-blur-xl border border-[var(--border-color)] rounded-full px-2.5 sm:px-6 py-1.5 sm:py-2.5 flex items-center gap-1.5 xs:gap-3 sm:gap-6 shadow-2xl">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          const isDisabled = tab.id !== 'team' && tab.id !== 'leaderboard' && !activePlayer;
-          return (
-            <button
-              key={tab.id}
-              disabled={isDisabled}
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative flex flex-col items-center justify-center px-1.5 xs:px-3 sm:px-4 py-1 rounded-2xl transition-all duration-300 select-none
-                ${isActive 
-                  ? 'text-[var(--brand-main)] scale-110 font-black' 
-                  : isDisabled 
-                    ? 'text-gray-400 cursor-not-allowed opacity-30' 
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:scale-105'}`}
-            >
-              <Icon className="w-4 h-4 sm:w-5 sm:h-5" size={undefined} />
-              <span className="hidden sm:inline text-[10px] mt-1 font-bold">{getTabName(tab)}</span>
-              <span className="inline sm:hidden text-[8px] xs:text-[9px] mt-1 font-bold">{getTabShortName(tab)}</span>
-              {isActive && (
-                <motion.div 
-                  layoutId="active-dock-indicator"
-                  className="absolute -bottom-1.5 w-1.5 h-1.5 rounded-full bg-[var(--brand-main)] shadow-[0_0_12px_var(--brand-main)]"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                />
+            {/* Sidebar Active Athlete Status & Mini Telemetry Card */}
+            <div className="pt-3 border-t border-[var(--border-light)]">
+              {activePlayer ? (
+                <div 
+                  onClick={() => setActiveTab('profile')}
+                  className="p-2.5 rounded-2xl bg-black/40 border border-blue-500/25 hover:border-blue-500/50 cursor-pointer transition-all flex items-center gap-2.5"
+                  title={language === 'ar' ? 'عرض الملف الكامل' : 'View Full Profile'}
+                >
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-xs font-black text-white shrink-0 shadow-md">
+                    {activePlayer.full_name ? activePlayer.full_name.charAt(0) : 'P'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-white truncate">{activePlayer.full_name}</p>
+                    <p className="text-[10px] text-cyan-400 font-mono">
+                      {activePlayer.weight_kg} kg | {playerHistory.length} {language === 'ar' ? 'اختبار' : 'tests'}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-2.5 rounded-2xl bg-black/30 border border-[var(--border-light)] text-center">
+                  <p className="text-[10px] text-gray-400 font-bold">{language === 'ar' ? 'لم يتم تحديد لاعب' : 'No Active Athlete'}</p>
+                  <button
+                    onClick={() => setIsSelectorOpen(true)}
+                    className="mt-1 text-[10px] text-cyan-400 hover:text-cyan-300 font-bold underline cursor-pointer"
+                  >
+                    {language === 'ar' ? 'اختر لاعباً للبدء' : 'Select Athlete'}
+                  </button>
+                </div>
               )}
-            </button>
-          );
-        })}
-      </nav>
+            </div>
+          </aside>
+
+          {/* ================= MAIN CONTENT WORKSPACE ================= */}
+          <main className="flex-1 min-w-0 w-full">
+            <AnimatePresence mode="wait">
+              {activeTab === 'team' ? (
+                <motion.div key="team" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                  <TeamDashboard 
+                    onSelectPlayer={handleSelectPlayerFromDashboard} 
+                    onChangeTab={setActiveTab} 
+                    coaches={coaches}
+                    onEditPlayer={handleEditPlayer}
+                    language={language}
+                  />
+                </motion.div>
+              ) : activeTab === 'leaderboard' ? (
+                <motion.div key="leaderboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                  <Leaderboard 
+                    onSelectPlayer={handleSelectPlayerFromDashboard} 
+                    onChangeTab={setActiveTab} 
+                    language={language}
+                  />
+                </motion.div>
+              ) : activeTab === 'sprint' ? (
+                <motion.div key="sprint" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                  <SprintAnalyzer />
+                </motion.div>
+              ) : activeTab === 'vbt' ? (
+                <motion.div key="vbt" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                  <VBTCamera />
+                </motion.div>
+              ) : activePlayer ? (
+                <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                  {activeTab === 'calculator' && (
+                    <JumpTestingConsole
+                      activePlayer={activePlayer}
+                      selectedPlayerId={selectedPlayerId}
+                      onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])}
+                      displayUnit={displayUnit}
+                      setDisplayUnit={setDisplayUnit}
+                      language={language}
+                      playerHistory={playerHistory}
+                    />
+                  )}
+
+                  {activeTab === 'manual' && (
+                    <ManualEntryConsole
+                      activePlayer={activePlayer}
+                      selectedPlayerId={selectedPlayerId}
+                      onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])}
+                      language={language}
+                      playerHistory={playerHistory}
+                    />
+                  )}
+
+                  {activeTab === 'rsi' && (
+                    <RSICalculator 
+                      activePlayer={activePlayer} 
+                      selectedPlayerId={selectedPlayerId} 
+                      onSaveSuccess={(newJump) => setPlayerHistory([...playerHistory, newJump])} 
+                      language={language} 
+                      playerHistory={playerHistory} 
+                    />
+                  )}
+
+                  {activeTab === 'fvp' && (
+                    <FVPCalculator 
+                      activePlayer={activePlayer} 
+                      selectedPlayerId={selectedPlayerId} 
+                      language={language} 
+                    />
+                  )}
+
+                  {activeTab === 'profile' && (
+                    <PlayerProfile 
+                      activePlayer={activePlayer} 
+                      playerHistory={playerHistory} 
+                      onHistoryChange={(newHistory) => setPlayerHistory(newHistory)} 
+                      language={language}
+                      onEditPlayer={handleEditPlayer}
+                    />
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div key="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="glass-card p-12 text-center text-gray-400 shadow-2xl flex flex-col items-center justify-center transition-colors duration-500 max-w-xl mx-auto my-8">
+                  <div className="p-4 rounded-3xl bg-blue-500/10 border border-blue-500/20 text-cyan-400 mb-4 animate-pulse">
+                    <ScanEye size={48} />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] mb-2">
+                    {language === 'en' ? 'Select Athlete to Begin 🧪' : 'اختر رياضياً للبدء 🧪'}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-gray-400 leading-relaxed max-w-md mx-auto mb-6">
+                    {language === 'en' 
+                      ? 'Please select an athlete from the top header or roster dashboard to perform biomechanics calculations, RSI testing, or view performance history.' 
+                      : 'الرجاء اختيار لاعب من القائمة بالأعلى أو الانتقال للوحة اللاعبين لتسجيل اختبارات الوثب، القوة التفاعلية RSI، أو استعراض الملف الحركي.'}
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setActiveTab('team')}
+                      className="btn-electric-cyan px-5 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 cursor-pointer shadow-lg"
+                    >
+                      <Users size={16} />
+                      <span>{language === 'en' ? 'Go to Roster' : 'لوحة اللاعبين'}</span>
+                    </button>
+                    <button
+                      onClick={() => setShowNewPlayerForm(true)}
+                      className="px-5 py-2.5 bg-black/40 hover:bg-black/60 border border-[var(--border-color)] text-gray-300 hover:text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors"
+                    >
+                      <Plus size={16} />
+                      <span>{language === 'en' ? 'Add Athlete' : 'إضافة لاعب'}</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </main>
+        </div>
+
+        {/* ================= FLOATING GLASSMORPHIC DOCK NAVIGATION (MOBILE ONLY) ================= */}
+        <nav className="fixed bottom-3 inset-x-2 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-[100] max-w-[98%] bg-[var(--bg-panel)] backdrop-blur-xl border border-[var(--border-color)] rounded-3xl p-1.5 flex items-center justify-start sm:justify-center gap-1 shadow-2xl overflow-x-auto custom-scrollbar lg:hidden">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            const isDisabled = tab.requiresPlayer && !activePlayer;
+            return (
+              <button
+                key={tab.id}
+                disabled={isDisabled}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative shrink-0 flex flex-col items-center justify-center px-3 py-1.5 rounded-2xl transition-all duration-200 select-none min-w-[56px]
+                  ${isActive 
+                    ? 'bg-blue-600/25 text-cyan-300 font-black border border-blue-500/40 shadow-[0_0_12px_rgba(0,240,255,0.2)]' 
+                    : isDisabled 
+                      ? 'text-gray-500 opacity-30 cursor-not-allowed' 
+                      : 'text-gray-400 hover:text-white'}`}
+              >
+                <Icon size={16} />
+                <span className="text-[9px] mt-0.5 font-bold truncate">
+                  {getTabShortName(tab)}
+                </span>
+                {isActive && (
+                  <motion.div 
+                    layoutId="active-dock-indicator"
+                    className="w-1 h-1 rounded-full bg-cyan-400 mt-0.5 shadow-[0_0_8px_#00f0ff]"
+                  />
+                )}
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
       {/* New Athlete Modal Dialog */}
