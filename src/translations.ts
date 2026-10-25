@@ -150,6 +150,10 @@ export interface TranslationDictionary {
     legLengthM: string;
     reachCm: string;
     peakCmj: string;
+    cmjWithArms: string;
+    cmjNoArms: string;
+    squatJump: string;
+    armGain: string;
     peakApproach: string;
     peakRsi: string;
     fvpStatus: string;
@@ -463,6 +467,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       legLengthM: 'طول الطرف:',
       reachCm: 'الوصول من الثبات:',
       peakCmj: 'أعلى وثب CMJ',
+      cmjWithArms: 'أعلى وثب بالذراعين (CMJ)',
+      cmjNoArms: 'وثب بدون ذراعين (CMJ No Arms)',
+      squatJump: 'وثب من الثبات (Squat Jump SJ)',
+      armGain: 'مساهمة الذراعين',
       peakApproach: 'أعلى ارتقاء Approach',
       peakRsi: 'أعلى مؤشر RSI',
       fvpStatus: 'توازن القوة والسرعة F-V',
@@ -774,6 +782,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       legLengthM: 'Leg Length:',
       reachCm: 'Standing Reach:',
       peakCmj: 'Peak CMJ Height',
+      cmjWithArms: 'CMJ (with Arms)',
+      cmjNoArms: 'CMJ (No Arms)',
+      squatJump: 'Squat Jump (SJ Static)',
+      armGain: 'Arm Swing Gain',
       peakApproach: 'Peak Approach',
       peakRsi: 'Peak RSI Score',
       fvpStatus: 'F-V Profile Status',

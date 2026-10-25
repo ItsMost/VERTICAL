@@ -138,7 +138,7 @@ export default function ManualEntryConsole({
         payload.box_height_cm = boxHeight > 0 ? boxHeight : null;
         payload.added_load_kg = addedLoad > 0 ? addedLoad : null;
         payload.peak_power_watts = peakPower > 0 ? peakPower.toFixed(0) : null;
-        payload.relative_power_wkg = relativePower > 0 ? relativePower.toFixed(2) : null;
+        payload.mean_power_watts = peakPower > 0 ? (peakPower * 0.48).toFixed(0) : null;
         payload.rsi_score = rsiScore > 0 ? rsiScore.toFixed(3) : null;
       } else {
         // Strength mode
@@ -155,6 +155,7 @@ export default function ManualEntryConsole({
       if (res) {
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
+        alert(language === 'en' ? '✅ Measurement logged and saved to athlete profile!' : '✅ تم حفظ القياس بنجاح في ملف اللاعب!');
         // Reset numeric inputs
         setForm(prev => ({
           ...prev,
@@ -165,6 +166,8 @@ export default function ManualEntryConsole({
           cleanWeightKg: '',
           notes: ''
         }));
+      } else {
+        alert(language === 'en' ? 'Failed to save measurement. Please check athlete and values.' : 'تعذر حفظ القياس، يرجى التأكد من اختيار اللاعب وصحة الأرقام.');
       }
     } catch (err) {
       console.error('Error saving measurement in ManualEntryConsole:', err);

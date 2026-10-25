@@ -151,16 +151,34 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   }, [players, selectedPlayerId]);
 
+const VALID_MEASUREMENT_KEYS = new Set([
+  'id', 'player_id', 'coach_id', 'test_type', 'jump_height_cm',
+  'flight_time_sec', 'takeoff_velocity_ms', 'mean_power_watts',
+  'peak_power_watts', 'mean_force_newtons', 'leg_used', 'created_at',
+  'rsi_score', 'contact_time_sec', 'f0_value', 'v0_value', 'fvp_slope',
+  'added_load_kg', 'clean_weight_kg', 'clean_bw_ratio', 'box_height_cm',
+  'notes', 'week_number', 'reps_count'
+]);
+
   // ADD MEASUREMENT (Optimistic & Centralized)
   const addMeasurement = useCallback(async (payload: Partial<JumpMeasurement>): Promise<JumpMeasurement | null> => {
     try {
       setIsSyncing(true);
+      // Strip any extra non-existent schema columns to prevent Supabase PGRST204 errors
+      const sanitizedPayload = Object.fromEntries(
+        Object.entries(payload).filter(([k, v]) => VALID_MEASUREMENT_KEYS.has(k) && v !== undefined)
+      );
+
       const { data, error } = await supabase
         .from('lab_jump_measurements')
-        .insert([payload])
+        .insert([sanitizedPayload])
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase measurement insert error:', error);
+        alert(language === 'ar' ? `تعذر حفظ القياس: ${error.message}` : `Failed to save measurement: ${error.message}`);
+        throw error;
+      }
 
       if (data && data.length > 0) {
         const newRecord = data[0] as JumpMeasurement;
@@ -187,7 +205,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsSyncing(false);
     }
-  }, [selectedPlayerId, refreshData]);
+  }, [selectedPlayerId, refreshData, language]);
 
   // UPDATE MEASUREMENT
   const updateMeasurement = useCallback(async (id: string, updates: Partial<JumpMeasurement>): Promise<boolean> => {

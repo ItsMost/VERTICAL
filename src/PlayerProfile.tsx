@@ -84,10 +84,10 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
   const isFemale = activePlayer.gender === 'female';
 
   // Jump and Strength Segregations
-  const cmjJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'cmj' || h.test_type === 'cmj_arms'), [playerHistory]);
+  const cmjJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'cmj' || h.test_type === 'cmj_arms' || h.test_type === 'standard'), [playerHistory]);
   const cmjNoArmsJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'cmj_no_arms'), [playerHistory]);
-  const sjNoArmsJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'sj_no_arms'), [playerHistory]);
-  const rsiJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'rsi'), [playerHistory]);
+  const sjNoArmsJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'sj_no_arms' || h.test_type === 'sj' || h.test_type === 'sj_arms'), [playerHistory]);
+  const rsiJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'rsi' || (h.rsi_score && parseFloat(String(h.rsi_score)) > 0)), [playerHistory]);
   const approachJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'approach' || h.test_type === 'approach_jump'), [playerHistory]);
   
   const fullSquatRecords = useMemo(() => playerHistory.filter(h => h.test_type === 'full_squat'), [playerHistory]);
@@ -109,19 +109,28 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
   const peakHeightInches = (peakHeightCm * 0.393701).toFixed(1);
 
   // Peak RSI and Contact Time
+  const bestRsiRecord = useMemo(() => {
+    if (rsiJumps.length === 0) return null;
+    return [...rsiJumps].sort((a, b) => (parseFloat(String(b.rsi_score)) || 0) - (parseFloat(String(a.rsi_score)) || 0))[0];
+  }, [rsiJumps]);
   const latestRsiRecord = rsiJumps.length > 0 ? rsiJumps[rsiJumps.length - 1] : null;
   const maxRsi = useMemo(() => rsiJumps.length > 0 ? Math.max(...rsiJumps.map(j => parseFloat(String(j.rsi_score)) || 0)) : 0, [rsiJumps]);
-  const latestGctSec = latestRsiRecord?.contact_time_sec ? parseFloat(String(latestRsiRecord.contact_time_sec)) : 0;
-  const gctAnalysis = classifyGCT(latestGctSec);
+  const rawGct = latestRsiRecord?.contact_time_sec || bestRsiRecord?.contact_time_sec;
+  const gctNum = rawGct ? parseFloat(String(rawGct)) : 0;
+  const gctMs = gctNum > 0 ? (gctNum >= 1 ? Math.round(gctNum) : Math.round(gctNum * 1000)) : 0;
+  const gctSec = gctMs > 0 ? gctMs / 1000 : 0;
+  const gctAnalysis = classifyGCT(gctSec);
 
-  // Biomechanics Ratios (EUR & Quadrant)
-  const eur = maxSjNoArms > 0 && maxCmjNoArms > 0 ? (maxCmjNoArms / maxSjNoArms) : (maxSjNoArms > 0 && maxCmj > 0 ? (maxCmj / maxSjNoArms) : 0);
-  const elasticityQuadrant = calculateElasticityQuadrant(maxCmj, maxSjNoArms, maxRsi > 0 ? maxRsi * 20 : 0);
+  // Biomechanics Ratios (Arm Swing, EUR & Quadrant)
+  const armSwingGain = maxCmj > 0 && maxCmjNoArms > 0 ? (((maxCmj - maxCmjNoArms) / maxCmjNoArms) * 100) : 0;
+  const eur = maxSjNoArms > 0 && maxCmj > 0 ? (maxCmj / maxSjNoArms) : (maxSjNoArms > 0 && maxCmjNoArms > 0 ? (maxCmjNoArms / maxSjNoArms) : 0);
+  const elasticityQuadrant = calculateElasticityQuadrant(maxCmj > 0 ? maxCmj : maxCmjNoArms, maxSjNoArms, maxRsi > 0 ? maxRsi * 20 : 0);
 
   // CNS Readiness (14-day rolling baseline comparison)
   const baselineCmjHistory = cmjJumps.map(j => parseFloat(String(j.jump_height_cm)) || 0);
   const latestCmjVal = cmjJumps.length > 0 ? parseFloat(String(cmjJumps[cmjJumps.length - 1].jump_height_cm)) || 0 : maxCmj;
   const cnsReadiness = calculateCNSReadiness(latestCmjVal, baselineCmjHistory);
+  const cnsScore = Math.max(0, Math.min(100, Math.round(100 - (cnsReadiness.percentDrop || 0))));
 
   // Power Calculation (Sayers Peak)
   const sayersPeak = peakHeightCm > 0 ? (61.9 * peakHeightCm + 36.0 * mass - 1822) : 0;
@@ -291,43 +300,110 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
       </section>
 
       {/* =========================================================================
-          ROW 1: 4 HIGH-IMPACT BENTO KPI TILES (ACID VOLT MONOSPACE READOUTS)
+          ROW 1: 4 PRIMARY JUMP BENCHMARKS (SIDE-BY-SIDE HIGH-IMPACT BENTO CARDS)
       ========================================================================= */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* KPI 1: Peak CMJ Height */}
-        <div className="bento-card flex flex-col justify-between">
+        {/* KPI 1: CMJ with Arms */}
+        <div className="bento-card flex flex-col justify-between border-t-2 border-t-[#D4FF00]">
           <div className="flex items-center justify-between text-xs text-zinc-400 font-bold mb-2">
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5 text-white">
               <Activity size={14} className="text-[#D4FF00]" />
-              {t.profile.peakCmj}
+              {t.profile.cmjWithArms}
             </span>
             <span className="badge-volt text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">
-              {peakHeightInches} in
+              {maxCmj > 0 ? (maxCmj * 0.393701).toFixed(1) : '0.0'} in
             </span>
           </div>
 
           <div className="my-2">
             <div className="text-4xl lg:text-5xl font-mono font-black text-[#D4FF00] tracking-tight tabular-nums">
-              {peakHeightCm > 0 ? peakHeightCm.toFixed(1) : '—'}
+              {maxCmj > 0 ? maxCmj.toFixed(1) : '—'}
               <span className="text-sm font-sans text-zinc-400 font-bold ml-1.5">cm</span>
             </div>
-            <p className="text-[11px] text-zinc-400 font-mono mt-1">
-              Approach PR: <strong className="text-white">{maxApproach > 0 ? `${maxApproach.toFixed(1)} cm` : '—'}</strong>
+            <p className="text-[11px] text-zinc-400 font-mono mt-1 flex items-center justify-between">
+              <span>{t.profile.peakApproach}:</span>
+              <strong className="text-white">{maxApproach > 0 ? `${maxApproach.toFixed(1)} cm` : '—'}</strong>
             </p>
           </div>
 
           <div className="w-full bg-zinc-800/80 rounded-full h-1.5 overflow-hidden mt-2">
             <div
               className="bg-[#D4FF00] h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, Math.max(15, (peakHeightCm / 80) * 100))}%` }}
+              style={{ width: `${Math.min(100, Math.max(15, (maxCmj / 95) * 100))}%` }}
             />
           </div>
         </div>
 
-        {/* KPI 2: Peak RSI (Reactive Strength Index) */}
-        <div className="bento-card flex flex-col justify-between">
+        {/* KPI 2: CMJ No Arms (Hands on Hips) */}
+        <div className="bento-card flex flex-col justify-between border-t-2 border-t-[#D4FF00]">
           <div className="flex items-center justify-between text-xs text-zinc-400 font-bold mb-2">
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5 text-white">
+              <Zap size={14} className="text-[#D4FF00]" />
+              {t.profile.cmjNoArms}
+            </span>
+            <span className="badge-volt text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">
+              {maxCmjNoArms > 0 ? (maxCmjNoArms * 0.393701).toFixed(1) : '0.0'} in
+            </span>
+          </div>
+
+          <div className="my-2">
+            <div className="text-4xl lg:text-5xl font-mono font-black text-white tracking-tight tabular-nums">
+              {maxCmjNoArms > 0 ? maxCmjNoArms.toFixed(1) : '—'}
+              <span className="text-sm font-sans text-zinc-400 font-bold ml-1.5">cm</span>
+            </div>
+            <p className="text-[11px] text-zinc-400 font-mono mt-1 flex items-center justify-between">
+              <span>{t.profile.armGain}:</span>
+              <strong className={armSwingGain >= 10 ? 'text-[#10B981]' : armSwingGain > 0 ? 'text-[#D4FF00]' : 'text-zinc-400'}>
+                {armSwingGain > 0 ? `+${armSwingGain.toFixed(1)}%` : '—'}
+              </strong>
+            </p>
+          </div>
+
+          <div className="w-full bg-zinc-800/80 rounded-full h-1.5 overflow-hidden mt-2">
+            <div
+              className="bg-white h-full rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, Math.max(15, (maxCmjNoArms / 90) * 100))}%` }}
+            />
+          </div>
+        </div>
+
+        {/* KPI 3: Squat Jump (SJ - 90° Static) */}
+        <div className="bento-card flex flex-col justify-between border-t-2 border-t-[#D4FF00]">
+          <div className="flex items-center justify-between text-xs text-zinc-400 font-bold mb-2">
+            <span className="flex items-center gap-1.5 text-white">
+              <Scale size={14} className="text-[#D4FF00]" />
+              {t.profile.squatJump}
+            </span>
+            <span className="badge-volt text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">
+              {maxSjNoArms > 0 ? (maxSjNoArms * 0.393701).toFixed(1) : '0.0'} in
+            </span>
+          </div>
+
+          <div className="my-2">
+            <div className="text-4xl lg:text-5xl font-mono font-black text-white tracking-tight tabular-nums">
+              {maxSjNoArms > 0 ? maxSjNoArms.toFixed(1) : '—'}
+              <span className="text-sm font-sans text-zinc-400 font-bold ml-1.5">cm</span>
+            </div>
+            <p className="text-[11px] text-zinc-400 font-mono mt-1 flex items-center justify-between">
+              <span>{t.profile.eurRatio}:</span>
+              <strong className="text-[#D4FF00]">
+                {eur > 0 ? `${eur.toFixed(2)} (${eur > 1.15 ? (isEn ? 'Elastic' : 'مطاطي') : eur < 1.05 ? (isEn ? 'Strength' : 'عضلي') : (isEn ? 'Balanced' : 'متوازن')})` : '—'}
+              </strong>
+            </p>
+          </div>
+
+          <div className="w-full bg-zinc-800/80 rounded-full h-1.5 overflow-hidden mt-2">
+            <div
+              className="bg-white h-full rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, Math.max(15, (maxSjNoArms / 85) * 100))}%` }}
+            />
+          </div>
+        </div>
+
+        {/* KPI 4: Peak RSI (Drop Jump & Contact Time) */}
+        <div className="bento-card flex flex-col justify-between border-t-2 border-t-[#D4FF00]">
+          <div className="flex items-center justify-between text-xs text-zinc-400 font-bold mb-2">
+            <span className="flex items-center gap-1.5 text-white">
               <Zap size={14} className="text-[#D4FF00]" />
               {t.profile.peakRsi}
             </span>
@@ -342,72 +418,74 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
             <div className="text-4xl lg:text-5xl font-mono font-black text-[#D4FF00] tracking-tight tabular-nums">
               {maxRsi > 0 ? maxRsi.toFixed(2) : '—'}
             </div>
-            <p className="text-[11px] text-zinc-400 font-mono mt-1">
-              {t.profile.contactTime}: <strong className="text-white">{latestGctSec > 0 ? `${(latestGctSec * 1000).toFixed(0)} ms` : '—'}</strong>
+            <p className="text-[11px] text-zinc-400 font-mono mt-1 flex items-center justify-between">
+              <span>{t.profile.contactTime}:</span>
+              <strong className="text-white">{gctMs > 0 ? `${gctMs} ms` : '—'}</strong>
             </p>
           </div>
 
           <div className="w-full bg-zinc-800/80 rounded-full h-1.5 overflow-hidden mt-2">
             <div
               className="bg-[#D4FF00] h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, Math.max(15, (maxRsi / 3.2) * 100))}%` }}
+              style={{ width: `${Math.min(100, Math.max(15, (maxRsi / 3.5) * 100))}%` }}
             />
           </div>
         </div>
+      </section>
 
-        {/* KPI 3: Force-Velocity Profile Status (Samozino) */}
-        <div className="bento-card flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs text-zinc-400 font-bold mb-2">
-            <span className="flex items-center gap-1.5">
-              <BarChart3 size={14} className="text-[#FF5500]" />
-              {t.profile.fvpStatus}
-            </span>
-            <span className="badge-blaze text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">
-              SAMOZINO
-            </span>
-          </div>
-
-          <div className="my-2">
-            <div className="text-xl lg:text-2xl font-mono font-black text-white tracking-tight">
-              {eur > 1.15 ? t.profile.elasticDominant : eur < 1.05 && eur > 0 ? t.profile.strengthDominant : t.profile.wellBalanced}
+      {/* =========================================================================
+          ROW 1.5: BIOMECHANICAL & NEUROMUSCULAR DIAGNOSTICS (CNS READINESS & F-V STATUS)
+      ========================================================================= */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* CNS Readiness Monitor */}
+        <div className="bento-card flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#121215] border border-[#27272A]">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={16} className={cnsReadiness.status === 'optimal' ? 'text-[#10B981]' : cnsReadiness.status === 'moderate_fatigue' ? 'text-[#F59E0B]' : 'text-[#F43F5E]'} />
+              <span className="text-xs font-bold text-white">{t.profile.cnsReadiness}</span>
+              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                cnsReadiness.status === 'optimal' ? 'badge-emerald' : cnsReadiness.status === 'moderate_fatigue' ? 'badge-amber' : 'badge-rose'
+              }`}>
+                {cnsReadiness.status === 'optimal' ? t.profile.optimalReadiness : cnsReadiness.status === 'moderate_fatigue' ? t.profile.moderateFatigue : t.profile.highFatigue}
+              </span>
             </div>
-            <p className="text-[11px] text-zinc-400 font-mono mt-1">
-              EUR Ratio: <strong className="text-[#D4FF00]">{eur > 0 ? eur.toFixed(2) : '—'}</strong>
+            <p className="text-[11px] text-zinc-400 max-w-sm">
+              {cnsReadiness.recommendationAr ? (isEn ? cnsReadiness.recommendationEn : cnsReadiness.recommendationAr) : cnsReadiness.advice}
             </p>
           </div>
-
-          <div className="text-[10px] text-zinc-400 font-sans border-t border-zinc-800/80 pt-2 mt-2 truncate">
-            {eur > 1.15 ? t.profile.velocityDeficit : eur < 1.05 && eur > 0 ? t.profile.forceDeficit : t.profile.balancedProfile}
+          <div className="text-right sm:text-left flex sm:flex-col items-center sm:items-end gap-3 sm:gap-0">
+            <div className={`text-3xl font-mono font-black tabular-nums ${
+              cnsReadiness.status === 'optimal' ? 'text-[#10B981]' : cnsReadiness.status === 'moderate_fatigue' ? 'text-[#F59E0B]' : 'text-[#F43F5E]'
+            }`}>
+              {cnsScore}%
+            </div>
+            <span className="text-[10px] text-zinc-500 font-mono">
+              Drop vs 14d: {cnsReadiness.percentDrop > 0 ? `-${cnsReadiness.percentDrop}%` : '0%'}
+            </span>
           </div>
         </div>
 
-        {/* KPI 4: CNS Readiness & Fatigue Monitor */}
-        <div className="bento-card flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs text-zinc-400 font-bold mb-2">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck size={14} className={cnsReadiness.status === 'optimal' ? 'text-[#10B981]' : cnsReadiness.status === 'moderate_fatigue' ? 'text-[#F59E0B]' : 'text-[#F43F5E]'} />
-              {t.profile.cnsReadiness}
-            </span>
-            <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-              cnsReadiness.status === 'optimal' ? 'badge-emerald' : cnsReadiness.status === 'moderate_fatigue' ? 'badge-amber' : 'badge-rose'
-            }`}>
-              {cnsReadiness.status === 'optimal' ? t.profile.optimalReadiness : cnsReadiness.status === 'moderate_fatigue' ? t.profile.moderateFatigue : t.profile.highFatigue}
-            </span>
-          </div>
-
-          <div className="my-2">
-            <div className={`text-4xl lg:text-5xl font-mono font-black tracking-tight tabular-nums ${
-              cnsReadiness.status === 'optimal' ? 'text-[#10B981]' : cnsReadiness.status === 'moderate_fatigue' ? 'text-[#F59E0B]' : 'text-[#F43F5E]'
-            }`}>
-              {cnsReadiness.score}%
+        {/* F-V Profile & Samozino Balance */}
+        <div className="bento-card flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#121215] border border-[#27272A]">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <BarChart3 size={16} className="text-[#FF5500]" />
+              <span className="text-xs font-bold text-white">{t.profile.fvpStatus} (Samozino)</span>
+              <span className="badge-blaze text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">
+                EUR {eur > 0 ? eur.toFixed(2) : '1.00'}
+              </span>
             </div>
-            <p className="text-[11px] text-zinc-400 font-mono mt-1">
-              Drop vs 14d Baseline: <strong className="text-white">{cnsReadiness.dropPercent > 0 ? `-${cnsReadiness.dropPercent}%` : '0%'}</strong>
+            <p className="text-[11px] text-zinc-400 max-w-sm">
+              {eur > 1.15 ? t.profile.velocityDeficit : eur < 1.05 && eur > 0 ? t.profile.forceDeficit : t.profile.balancedProfile}
             </p>
           </div>
-
-          <div className="text-[10px] text-zinc-400 font-sans border-t border-zinc-800/80 pt-2 mt-2 truncate">
-            {cnsReadiness.advice}
+          <div className="text-right sm:text-left">
+            <div className="text-sm font-bold text-white">
+              {eur > 1.15 ? t.profile.elasticDominant : eur < 1.05 && eur > 0 ? t.profile.strengthDominant : t.profile.wellBalanced}
+            </div>
+            <span className="text-[10px] text-zinc-500 font-mono">
+              {eur > 1.15 ? 'Velocity Prioritized' : eur < 1.05 && eur > 0 ? 'Force / Squat Prioritized' : 'Optimal Balance'}
+            </span>
           </div>
         </div>
       </section>
@@ -696,7 +774,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
           <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 space-y-3 font-mono">
             <div className="flex justify-between items-center text-xs">
               <span className="text-zinc-400">Total Touch Reach:</span>
-              <span className="text-lg font-bold text-white">{totalTouchReachCm} cm</span>
+              <span className="text-lg font-bold text-white">{totalTouchReachCm.toFixed(1)} cm</span>
             </div>
             <div className="w-full bg-zinc-800 h-1 rounded-full overflow-hidden">
               <div
@@ -714,7 +792,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 <span className="text-[10px] text-zinc-500">Net: {vballNetHeightCm} cm</span>
               </div>
               <span className={`font-bold text-sm ${vballClearanceCm >= 0 ? 'text-[#10B981]' : 'text-[#F43F5E]'}`}>
-                {vballClearanceCm >= 0 ? `+${vballClearanceCm} cm` : `${vballClearanceCm} cm`}
+                {vballClearanceCm >= 0 ? `+${vballClearanceCm.toFixed(1)} cm` : `${vballClearanceCm.toFixed(1)} cm`}
               </span>
             </div>
 
@@ -724,7 +802,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 <span className="text-[10px] text-zinc-500">Dunk Target: 315 cm</span>
               </div>
               <span className={`font-bold text-sm ${dunkMarginCm >= 0 ? 'text-[#D4FF00]' : 'text-[#F43F5E]'}`}>
-                {dunkMarginCm >= 0 ? `+${dunkMarginCm} cm` : `${dunkMarginCm} cm`}
+                {dunkMarginCm >= 0 ? `+${dunkMarginCm.toFixed(1)} cm` : `${dunkMarginCm.toFixed(1)} cm`}
               </span>
             </div>
 
@@ -734,7 +812,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 <span className="text-[10px] text-zinc-500">Rim Height: 305 cm</span>
               </div>
               <span className={`font-bold text-sm ${rimMarginCm >= 0 ? 'text-[#10B981]' : 'text-zinc-500'}`}>
-                {rimMarginCm >= 0 ? `+${rimMarginCm} cm` : `${rimMarginCm} cm`}
+                {rimMarginCm >= 0 ? `+${rimMarginCm.toFixed(1)} cm` : `${rimMarginCm.toFixed(1)} cm`}
               </span>
             </div>
           </div>
@@ -804,7 +882,8 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                                (parseFloat(String(record.rsi_score)) === maxRsi && maxRsi > 0);
 
                   const gctVal = record.contact_time_sec ? parseFloat(String(record.contact_time_sec)) : 0;
-                  const recordGctInfo = classifyGCT(gctVal);
+                  const displayGctMs = gctVal > 0 ? (gctVal >= 1 ? Math.round(gctVal) : Math.round(gctVal * 1000)) : 0;
+                  const recordGctInfo = classifyGCT(gctVal > 0 && gctVal < 1 ? gctVal : (gctVal >= 1 ? gctVal / 1000 : 0));
 
                   return (
                     <tr
@@ -823,9 +902,9 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                         {record.jump_height_cm ? `${record.jump_height_cm} cm` : record.rsi_score ? record.rsi_score : record.clean_weight_kg ? `${record.clean_weight_kg} kg` : '—'}
                       </td>
                       <td className="py-3 px-3 text-zinc-300">
-                        {gctVal > 0 ? (
+                        {displayGctMs > 0 ? (
                           <span className="flex items-center gap-1.5">
-                            <span>{(gctVal * 1000).toFixed(0)} ms</span>
+                            <span>{displayGctMs} ms</span>
                             <span className={`text-[9px] px-1.5 py-0.2 rounded ${
                               recordGctInfo.classification === 'Fast SSC' ? 'badge-volt' : recordGctInfo.classification === 'Moderate SSC' ? 'badge-amber' : 'badge-rose'
                             }`}>
