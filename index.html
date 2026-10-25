@@ -3,9 +3,9 @@
   <head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json?v=4">
-    <meta name="theme-color" content="#00c9a7">
+    <meta name="theme-color" content="#09090B">
     <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png?v=4">
     <link rel="apple-touch-icon" href="/pwa-192x192.png?v=4">
 
@@ -28,7 +28,6 @@
             keys.forEach(function(key) { caches.delete(key); });
           });
         }
-        // Force refresh from server bypassing cache
         setTimeout(function() {
           window.location.reload(true);
         }, 500);
@@ -49,9 +48,19 @@
       tailwind.config = {
         theme: {
           extend: {
+            colors: {
+              carbon: '#09090B',
+              graphite: '#121215',
+              surface: '#18181B',
+              borderDark: '#27272A',
+              volt: '#D4FF00',
+              blaze: '#FF5500',
+            },
             fontFamily: {
-              sans: ['Cairo', 'Outfit', 'sans-serif'],
-              mono: ['Outfit', 'Cairo', 'monospace'],
+              arabic: ['"IBM Plex Sans Arabic"', 'sans-serif'],
+              heading: ['"Space Grotesk"', 'sans-serif'],
+              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace'],
             }
           }
         }
@@ -60,7 +69,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <title>VERTICAL LAB — Athletic Biomechanics & Telemetry</title>
   </head>
   <body>
     <div id="root"></div>

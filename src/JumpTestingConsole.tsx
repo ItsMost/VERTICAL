@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import useJumpMechanics from './useJumpMechanics';
+import { useData } from './context/DataContext';
 import { 
   Activity, Zap, ScanEye, X, Play, Pause, Focus, Save, Award, HelpCircle, Scaling, Video,
   Share2, CheckCircle, Download
@@ -38,6 +39,7 @@ export default function JumpTestingConsole({
   language = 'ar',
   playerHistory
 }) {
+  const { addMeasurement } = useData();
   // Video & Playback States
   const [videoPreset, setVideoPreset] = useState('slow240');
   const [cameraFps, setCameraFps] = useState(240);
@@ -1087,7 +1089,7 @@ export default function JumpTestingConsole({
 
     const calculatedForce = (parseFloat(bodyMass) * 9.81 * ((parseFloat(stats.heightCm)/100)/(((parseFloat(legLength) > 2 ? parseFloat(legLength)/100 : parseFloat(legLength)) || 1.0)*0.45) + 1)).toFixed(2);
 
-    const { data, error } = await supabase.from('lab_jump_measurements').insert([ { 
+    const savedRecord = await addMeasurement({ 
       player_id: selectedPlayerId, 
       test_type: finalTestType, 
       jump_height_cm: stats.heightCm, 
@@ -1097,16 +1099,16 @@ export default function JumpTestingConsole({
       peak_power_watts: powerVal.toFixed(2), 
       mean_force_newtons: calculatedForce, 
       leg_used: legUsed 
-    } ]).select();
+    });
     
-    if (!error && data) { 
+    if (savedRecord) { 
       if (onSaveSuccess) {
-        onSaveSuccess(data[0]);
+        onSaveSuccess(savedRecord);
       }
       setShowResults(false); 
-      alert("✅ تم حفظ نتيجة القفزة بنجاح في ملف اللاعب!");
-    } else if (error) {
-      alert("خطأ في حفظ القياس: " + error.message);
+      alert(language === 'en' ? "✅ Jump test result saved successfully to athlete profile!" : "✅ تم حفظ نتيجة القفزة بنجاح في ملف اللاعب!");
+    } else {
+      alert(language === 'en' ? "Error saving measurement" : "خطأ في حفظ القياس");
     }
     setIsSaving(false);
   };
@@ -2076,7 +2078,7 @@ export default function JumpTestingConsole({
                           key={type.id}
                           type="button"
                           onClick={() => { setJumpType(type.id); setShowResults(false); }}
-                          className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${jumpType === type.id ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-[#070a13] shadow' : 'text-gray-400 bg-transparent'}`}
+                          className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${jumpType === type.id ? 'bg-[#D4FF00] text-[#09090B] font-black shadow-[0_0_12px_rgba(212,255,0,0.3)]' : 'text-zinc-400 bg-transparent'}`}
                         >
                           {type.name}
                         </button>
@@ -2662,9 +2664,9 @@ export default function JumpTestingConsole({
                       <span className="text-[10px] text-gray-500 mr-1">({parseFloat(stats.heightInches).toFixed(1)} بوصة)</span>
                     </span>
                   </div>
-                  <div className="border-t border-blue-500/30 pt-2 flex justify-between items-center">
-                    <span className="text-gray-300 font-bold">الفارق البيوميكانيكي بين القياسين:</span>
-                    <span className="font-bold text-cyan-400 font-mono">
+                  <div className="border-t border-[#27272A] pt-2 flex justify-between items-center">
+                    <span className="text-zinc-300 font-bold">الفارق البيوميكانيكي بين القياسين:</span>
+                    <span className="font-bold text-[#D4FF00] font-mono">
                       {Math.abs((maxTouchHeight - standingReach) - parseFloat(stats.heightCm)).toFixed(1)} سم
                     </span>
                   </div>
@@ -3001,7 +3003,7 @@ export default function JumpTestingConsole({
                       key={type.id}
                       type="button"
                       onClick={() => { setJumpType(type.id); setShowResults(false); }}
-                      className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${jumpType === type.id ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-[#070a13] shadow' : 'text-gray-400 bg-transparent'}`}
+                      className={`py-2 px-1 text-[9px] font-bold rounded-xl transition-all cursor-pointer ${jumpType === type.id ? 'bg-[#D4FF00] text-[#09090B] font-black shadow-[0_0_12px_rgba(212,255,0,0.3)]' : 'text-zinc-400 bg-transparent'}`}
                     >
                       {type.name}
                     </button>
@@ -3343,15 +3345,15 @@ export default function JumpTestingConsole({
                 </div>
 
                 {/* Force Estimation Column */}
-                <div className="bg-black/20 p-4.5 rounded-2xl border border-cyan-500/10 space-y-2">
-                  <span className="block font-black text-cyan-400">🏋️ Takeoff Force (الدفع الأرضي المقدر)</span>
+                <div className="bg-black/20 p-4.5 rounded-2xl border border-[#D4FF00]/20 space-y-2">
+                  <span className="block font-black text-[#D4FF00]">🏋️ Takeoff Force (الدفع الأرضي المقدر)</span>
                   <div className="bg-black/30 p-2 rounded-xl font-mono text-center text-[10px] text-white flex justify-between px-3">
                     <span>Avg: {parseFloat(stats.meanForce).toFixed(0)} N</span>
                     <span>Peak: {parseFloat(stats.peakForce).toFixed(0)} N</span>
                   </div>
-                  <p className="text-[10px] text-gray-405 leading-relaxed">
-                    متوسط الدفع: <span className="text-cyan-400 font-bold">{(parseFloat(stats.meanForce) / (bodyMass * 9.81)).toFixed(2)} BW</span> <br />
-                    ذروة الدفع: <span className="text-cyan-400 font-bold">{(parseFloat(stats.peakForce) / (bodyMass * 9.81)).toFixed(2)} BW</span>
+                  <p className="text-[10px] text-zinc-400 leading-relaxed">
+                    متوسط الدفع: <span className="text-[#D4FF00] font-bold">{(parseFloat(stats.meanForce) / (bodyMass * 9.81)).toFixed(2)} BW</span> <br />
+                    ذروة الدفع: <span className="text-[#D4FF00] font-bold">{(parseFloat(stats.peakForce) / (bodyMass * 9.81)).toFixed(2)} BW</span>
                   </p>
                   <p className="text-[9px] text-gray-500 leading-normal">
                     تُعبر القوة التفاعلية الأرضية (GRF) عن شدة دفع أرجل اللاعب للأرض لحظة الصعود. النسب المثالية للرياضيين النخبة تتعدى 2.5 أضعاف وزن الجسم (Peak &gt; 2.5 BW).
