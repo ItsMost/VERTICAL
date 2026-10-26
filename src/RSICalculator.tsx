@@ -124,8 +124,8 @@ export default function RSICalculator({
       const hCm = hM * 100;
       const hIn = hCm * 0.393701;
 
-      // Standard RSI calculation
-      const computedRsi = calculateRSI(hM, ct, ft, rsiMethod);
+      // Standard RSI calculation (Height in cm, Flight time in sec, Contact time in sec, method)
+      const computedRsi = calculateRSI(hCm, ft, ct, rsiMethod);
       const rsiMod = ct > 0 ? (hCm / (ct * 1000)).toFixed(2) : '0.00';
 
       const mass = parseFloat(String(activePlayer?.weight_kg)) || 72;

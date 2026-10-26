@@ -243,6 +243,11 @@ export interface TranslationDictionary {
     flightTimeInput: string;
     contactTimeInput: string;
     rsiDirectInput: string;
+    rsiModeToggle: string;
+    rsiModeDirect: string;
+    rsiModeAutoHeight: string;
+    rsiModeAutoFlight: string;
+    gctMillisecondsHint: string;
     boxHeightInput: string;
     addedLoadInput: string;
     strengthLiftLabel: string;
@@ -558,8 +563,13 @@ export const translations: Record<Language, TranslationDictionary> = {
       dateLabel: 'تاريخ الاختبار:',
       heightInput: 'ارتفاع القفزة (سم):',
       flightTimeInput: 'زمن الطيران (ثانية):',
-      contactTimeInput: 'زمن التلامس بالأرض (ثانية):',
-      rsiDirectInput: 'مؤشر RSI المباشر (اختياري):',
+      contactTimeInput: 'زمن التلامس بالأرض (GCT):',
+      rsiDirectInput: 'مؤشر RSI المباشر:',
+      rsiModeToggle: 'طريقة إدخال الـ RSI:',
+      rsiModeDirect: 'إدخال رقم RSI يدوياً ✍️',
+      rsiModeAutoHeight: 'حساب تلقائي (الارتفاع ÷ التلامس)',
+      rsiModeAutoFlight: 'حساب تلقائي (زمن الطيران ÷ التلامس)',
+      gctMillisecondsHint: 'بالمللي ثانية (ms) أو بالثواني (s)',
       boxHeightInput: 'ارتفاع صندوق السقوط (سم):',
       addedLoadInput: 'الوزن الإضافي المرفوع (كجم):',
       strengthLiftLabel: 'التمرين المحدد:',
@@ -873,8 +883,13 @@ export const translations: Record<Language, TranslationDictionary> = {
       dateLabel: 'Test Date:',
       heightInput: 'Jump Height (cm):',
       flightTimeInput: 'Flight Duration (s):',
-      contactTimeInput: 'Ground Contact Time (s):',
-      rsiDirectInput: 'Direct RSI Score (optional):',
+      contactTimeInput: 'Ground Contact Time (GCT):',
+      rsiDirectInput: 'Direct RSI Score:',
+      rsiModeToggle: 'RSI Calculation Mode:',
+      rsiModeDirect: 'Direct Manual RSI ✍️',
+      rsiModeAutoHeight: 'Auto (Height / GCT)',
+      rsiModeAutoFlight: 'Auto (Flight / GCT)',
+      gctMillisecondsHint: 'in milliseconds (ms) or seconds (s)',
       boxHeightInput: 'Drop Box Height (cm):',
       addedLoadInput: 'Added Load (kg):',
       strengthLiftLabel: 'Strength Exercise:',

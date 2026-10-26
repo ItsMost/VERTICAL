@@ -73,11 +73,16 @@ export function calculateRSI(
   method: 'height_gct' | 'flight_gct' = 'height_gct'
 ): number {
   if (contactTimeSec <= 0 || !Number.isFinite(contactTimeSec)) return 0;
+  // Automatically normalize milliseconds (e.g. 180ms) vs seconds (e.g. 0.180s)
+  const ctSec = contactTimeSec > 5 ? contactTimeSec / 1000 : contactTimeSec;
+  if (ctSec <= 0) return 0;
+
   if (method === 'height_gct') {
-    const heightM = jumpHeightCm / 100;
-    return heightM > 0 ? Number((heightM / contactTimeSec).toFixed(2)) : 0;
+    // If jump height is already in meters (< 1.5), keep as meters; otherwise convert cm to meters
+    const heightM = jumpHeightCm > 1.5 ? jumpHeightCm / 100 : (jumpHeightCm > 0 ? jumpHeightCm : 0);
+    return heightM > 0 ? Number((heightM / ctSec).toFixed(2)) : 0;
   } else {
-    return flightTimeSec > 0 ? Number((flightTimeSec / contactTimeSec).toFixed(2)) : 0;
+    return flightTimeSec > 0 ? Number((flightTimeSec / ctSec).toFixed(2)) : 0;
   }
 }
 

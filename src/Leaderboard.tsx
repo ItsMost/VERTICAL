@@ -35,7 +35,7 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language: pro
           bestScore = Math.max(...verticalMeasures.map((m: any) => parseFloat(m.jump_height_cm) || 0));
         }
       } else {
-        const rsiMeasures = playerMeasures.filter((m: any) => m.test_type === 'rsi' || (m.rsi_score && parseFloat(m.rsi_score) > 0));
+        const rsiMeasures = playerMeasures.filter((m: any) => m.test_type === 'rsi');
         if (rsiMeasures.length > 0) {
           bestScore = Math.max(...rsiMeasures.map((m: any) => parseFloat(m.rsi_score) || 0));
         }

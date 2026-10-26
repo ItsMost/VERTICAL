@@ -87,7 +87,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
   const cmjJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'cmj' || h.test_type === 'cmj_arms' || h.test_type === 'standard'), [playerHistory]);
   const cmjNoArmsJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'cmj_no_arms'), [playerHistory]);
   const sjNoArmsJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'sj_no_arms' || h.test_type === 'sj' || h.test_type === 'sj_arms'), [playerHistory]);
-  const rsiJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'rsi' || (h.rsi_score && parseFloat(String(h.rsi_score)) > 0)), [playerHistory]);
+  const rsiJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'rsi'), [playerHistory]);
   const approachJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'approach' || h.test_type === 'approach_jump'), [playerHistory]);
   
   const fullSquatRecords = useMemo(() => playerHistory.filter(h => h.test_type === 'full_squat'), [playerHistory]);
