@@ -180,11 +180,16 @@ export interface TranslationDictionary {
     eurTitle: string;
     eurFormula: string;
     eurScore: string;
+    eurRatio: string;
     reactiveIndex: string;
     elasticDominant: string;
+    elasticDominantDesc: string;
     strengthDominant: string;
+    strengthDominantDesc: string;
     wellBalanced: string;
+    wellBalancedDesc: string;
     generalDeficit: string;
+    generalDeficitDesc: string;
     strength1rmTitle: string;
     fullSquat1rm: string;
     benchPress1rm: string;
@@ -502,11 +507,16 @@ export const translations: Record<Language, TranslationDictionary> = {
       eurTitle: 'نسبة الاستفادة اللامركزية (EUR Ratio)',
       eurFormula: 'EUR = CMJ (بدون ذراعين) ÷ SJ (من الثبات)',
       eurScore: 'قيمة مؤشر EUR',
+      eurRatio: 'معدل الاستغلال اللامركزي (EUR)',
       reactiveIndex: 'مؤشر الارتداد (DJ / CMJ)',
       elasticDominant: 'نمط مرن مطاطي ارتدادي (Elastic-Dominant)',
+      elasticDominantDesc: 'استغلال عالي جداً لمنعكس الاستطالة؛ الأوتار مطاطية وتتطلب تمارين أوزان ثقيلة لرفع القوة العضلية البحتة (F0).',
       strengthDominant: 'نمط عضلي انقباضي بطيء (Muscle-Dominant)',
+      strengthDominantDesc: 'فارق ضئيل بين CMJ بدون أذرع و SJ؛ اللاعب يعتمد على القوة العضلية ويفقد الارتداد؛ يحتاج لبلايومتريكس سريع وتمارين هبوط.',
       wellBalanced: 'توازن نخبة مثالي بين الأوتار والعضلات',
+      wellBalancedDesc: 'توازن استثنائي وتناغم تام بين القوة الانقباضية العضلية والصلابة الوترية الارتدادية.',
       generalDeficit: 'عجز عام في منظومة القدرة الانفجارية',
+      generalDeficitDesc: 'سجل كلا من اختبار CMJ (بدون أذرع) و Squat Jump لحساب مصفوفة المرونة ومعامل EUR بدقة.',
       strength1rmTitle: 'سجلات القوة القصوى المقدرة 1RM',
       fullSquat1rm: 'سكوات كامل (Full Squat)',
       benchPress1rm: 'بنش برس (Bench Press)',
@@ -822,11 +832,16 @@ export const translations: Record<Language, TranslationDictionary> = {
       eurTitle: 'Eccentric Utilization Ratio (EUR)',
       eurFormula: 'EUR = CMJ (no arms) ÷ Squat Jump (SJ)',
       eurScore: 'EUR Index Value',
+      eurRatio: 'EUR Ratio',
       reactiveIndex: 'Reactive Index (DJ / CMJ)',
       elasticDominant: 'Elastic-Dominant (High Tendon Recoil)',
+      elasticDominantDesc: 'High tendon compliance and stretch recoil. Athlete needs heavy slow resistance (F0) to balance strength.',
       strengthDominant: 'Muscle-Dominant (Slow Force Production)',
+      strengthDominantDesc: 'High contractile muscular force but deficient stretch-shortening recoil. Athlete needs elastic plyometrics.',
       wellBalanced: 'Elite Equilibrium (Optimal Tendon-Muscle)',
+      wellBalancedDesc: 'Optimal harmony between muscle cross-sectional force and tendon stiffness recoil.',
       generalDeficit: 'General Explosive Deficit',
+      generalDeficitDesc: 'Log both CMJ (no arms) and Squat Jump (SJ) tests to calculate full elasticity profile.',
       strength1rmTitle: 'Estimated Maximum Strength (1RM)',
       fullSquat1rm: 'Full Squat 1RM',
       benchPress1rm: 'Bench Press 1RM',

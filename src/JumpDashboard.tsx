@@ -127,14 +127,17 @@ export default function JumpDashboard() {
   const bestCmj = cmjJumps.length > 0 ? Math.max(...cmjJumps.map((j) => parseFloat(String(j.jump_height_cm)) || 0)) : 0;
   const recentCmj = cmjJumps.length > 0 ? parseFloat(String(cmjJumps[0].jump_height_cm)) || 0 : bestCmj;
 
-  const sjJumps = playerHistory.filter((j) => j.test_type === 'sj');
-  const bestSj = sjJumps.length > 0 ? Math.max(...sjJumps.map((j) => parseFloat(String(j.jump_height_cm)) || 0)) : bestCmj * 0.92;
+  const cmjNoArmsJumps = playerHistory.filter((j) => j.test_type === 'cmj_no_arms' || j.test_type === 'cmj_no_arm');
+  const bestCmjNoArms = cmjNoArmsJumps.length > 0 ? Math.max(...cmjNoArmsJumps.map((j) => parseFloat(String(j.jump_height_cm)) || 0)) : 0;
+
+  const sjJumps = playerHistory.filter((j) => j.test_type === 'sj' || j.test_type === 'sj_no_arms');
+  const bestSj = sjJumps.length > 0 ? Math.max(...sjJumps.map((j) => parseFloat(String(j.jump_height_cm)) || 0)) : 0;
 
   const djJumps = playerHistory.filter((j) => j.test_type === 'rsi' || j.test_type === 'dj');
-  const bestDj = djJumps.length > 0 ? Math.max(...djJumps.map((j) => parseFloat(String(j.jump_height_cm)) || 0)) : bestCmj * 0.95;
+  const bestDj = djJumps.length > 0 ? Math.max(...djJumps.map((j) => parseFloat(String(j.jump_height_cm)) || 0)) : 0;
 
-  // 2. Elasticity vs Strength Quadrant
-  const elasticityData: ElasticityQuadrantData = calculateElasticityQuadrant(bestCmj, bestSj, bestDj);
+  // 2. Elasticity vs Strength Quadrant - EUR strictly measured by CMJ (No Arms) and SJ
+  const elasticityData: ElasticityQuadrantData = calculateElasticityQuadrant(bestCmjNoArms, bestSj, bestDj);
 
   // 3. CNS Readiness Monitor
   const baselineCmjHistory = cmjJumps.map((j) => parseFloat(String(j.jump_height_cm)) || 0);
@@ -257,7 +260,7 @@ export default function JumpDashboard() {
                   مربع المرونة ضد القوة العضلية (Elasticity vs Strength Quadrant)
                 </h4>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  حساب معامل استغلال الانقباض اللامركزي (EUR = CMJ / SJ) ومؤشر الارتداد (DJ / CMJ) لتحديد نوع البروفايل الحركي.
+                  حساب معامل استغلال الانقباض اللامركزي (EUR = CMJ No Arms / SJ) ومؤشر الارتداد (DJ / CMJ) لتحديد نوع البروفايل الحركي.
                 </p>
               </div>
               <span className="text-xs font-mono font-bold px-3 py-1 rounded-full border" style={{ color: elasticityData.color, borderColor: elasticityData.color, backgroundColor: `${elasticityData.color}15` }}>

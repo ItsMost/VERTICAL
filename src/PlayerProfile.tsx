@@ -85,7 +85,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
   // Jump and Strength Segregations
   const cmjJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'cmj' || h.test_type === 'cmj_arms' || h.test_type === 'standard'), [playerHistory]);
-  const cmjNoArmsJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'cmj_no_arms'), [playerHistory]);
+  const cmjNoArmsJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'cmj_no_arms' || h.test_type === 'cmj_no_arm'), [playerHistory]);
   const sjNoArmsJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'sj_no_arms' || h.test_type === 'sj' || h.test_type === 'sj_arms'), [playerHistory]);
   const rsiJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'rsi'), [playerHistory]);
   const approachJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'approach' || h.test_type === 'approach_jump'), [playerHistory]);
@@ -123,8 +123,9 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
   // Biomechanics Ratios (Arm Swing, EUR & Quadrant)
   const armSwingGain = maxCmj > 0 && maxCmjNoArms > 0 ? (((maxCmj - maxCmjNoArms) / maxCmjNoArms) * 100) : 0;
-  const eur = maxSjNoArms > 0 && maxCmj > 0 ? (maxCmj / maxSjNoArms) : (maxSjNoArms > 0 && maxCmjNoArms > 0 ? (maxCmjNoArms / maxSjNoArms) : 0);
-  const elasticityQuadrant = calculateElasticityQuadrant(maxCmj > 0 ? maxCmj : maxCmjNoArms, maxSjNoArms, maxRsi > 0 ? maxRsi * 20 : 0);
+  // EUR is strictly defined as CMJ (No Arms) / Squat Jump (SJ) - both performed with hands on hips
+  const eur = (maxSjNoArms > 0 && maxCmjNoArms > 0) ? (maxCmjNoArms / maxSjNoArms) : 0;
+  const elasticityQuadrant = calculateElasticityQuadrant(maxCmjNoArms, maxSjNoArms, maxRsi > 0 ? maxRsi * 20 : 0);
 
   // CNS Readiness (14-day rolling baseline comparison)
   const baselineCmjHistory = cmjJumps.map(j => parseFloat(String(j.jump_height_cm)) || 0);
@@ -472,19 +473,31 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               <BarChart3 size={16} className="text-[#FF5500]" />
               <span className="text-xs font-bold text-white">{t.profile.fvpStatus} (Samozino)</span>
               <span className="badge-blaze text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">
-                EUR {eur > 0 ? eur.toFixed(2) : '1.00'}
+                EUR {eur > 0 ? eur.toFixed(2) : '—'}
               </span>
             </div>
             <p className="text-[11px] text-zinc-400 max-w-sm">
-              {eur > 1.15 ? t.profile.velocityDeficit : eur < 1.05 && eur > 0 ? t.profile.forceDeficit : t.profile.balancedProfile}
+              {eur > 1.15
+                ? t.profile.velocityDeficit
+                : (eur < 1.05 && eur > 0)
+                  ? t.profile.forceDeficit
+                  : eur >= 1.05
+                    ? t.profile.balancedProfile
+                    : (isEn ? 'Requires CMJ (No Arms) & SJ tests' : 'يتطلب تسجيل اختبار CMJ بدون أذرع و SJ')}
             </p>
           </div>
           <div className="text-right sm:text-left">
             <div className="text-sm font-bold text-white">
-              {eur > 1.15 ? t.profile.elasticDominant : eur < 1.05 && eur > 0 ? t.profile.strengthDominant : t.profile.wellBalanced}
+              {eur > 1.15
+                ? t.profile.elasticDominant
+                : (eur < 1.05 && eur > 0)
+                  ? t.profile.strengthDominant
+                  : eur >= 1.05
+                    ? t.profile.wellBalanced
+                    : (isEn ? 'Uncalibrated' : 'غير مكتمل')}
             </div>
             <span className="text-[10px] text-zinc-500 font-mono">
-              {eur > 1.15 ? 'Velocity Prioritized' : eur < 1.05 && eur > 0 ? 'Force / Squat Prioritized' : 'Optimal Balance'}
+              {eur > 1.15 ? 'Velocity Prioritized' : (eur < 1.05 && eur > 0) ? 'Force / Squat Prioritized' : eur >= 1.05 ? 'Optimal Balance' : '—'}
             </span>
           </div>
         </div>
@@ -647,7 +660,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                     <span className="badge-volt text-[10px] font-mono px-2 py-0.5 rounded">EUR &gt; 1.15</span>
                   </div>
                   <p className="text-[11px] text-zinc-400">
-                    High tendon compliance and stretch recoil. Athlete needs heavy slow resistance (F0) to balance strength.
+                    {t.profile.elasticDominantDesc}
                   </p>
                 </div>
 
@@ -661,7 +674,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                     <span className="badge-blaze text-[10px] font-mono px-2 py-0.5 rounded">EUR &lt; 1.05</span>
                   </div>
                   <p className="text-[11px] text-zinc-400">
-                    High contractile muscular force but deficient stretch-shortening recoil. Athlete needs elastic plyometrics.
+                    {t.profile.strengthDominantDesc}
                   </p>
                 </div>
 
@@ -672,10 +685,10 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 }`}>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-bold text-white">{t.profile.wellBalanced}</span>
-                    <span className="badge-emerald text-[10px] font-mono px-2 py-0.5 rounded">EUR 1.08 - 1.15</span>
+                    <span className="badge-emerald text-[10px] font-mono px-2 py-0.5 rounded">EUR 1.05 - 1.15</span>
                   </div>
                   <p className="text-[11px] text-zinc-400">
-                    Optimal harmony between muscle cross-sectional force and tendon stiffness recoil.
+                    {t.profile.wellBalancedDesc}
                   </p>
                 </div>
 
@@ -689,7 +702,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                     <span className="text-[10px] font-mono text-zinc-500">Uncalibrated</span>
                   </div>
                   <p className="text-[11px] text-zinc-400">
-                    Log both CMJ (no arms) and Squat Jump (SJ) tests to calculate full elasticity profile.
+                    {t.profile.generalDeficitDesc}
                   </p>
                 </div>
               </div>

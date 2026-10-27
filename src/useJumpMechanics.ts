@@ -364,16 +364,16 @@ export function calculateCNSReadiness(
  * - Reactive Index = Drop Jump / CMJ
  */
 export function calculateElasticityQuadrant(
-  cmjHeight: number,
+  cmjNoArmsHeight: number,
   sjHeight: number,
-  djHeight: number
+  djHeight: number = 0
 ): ElasticityQuadrantData {
-  const cmj = parseFloat(String(cmjHeight)) || 0;
-  const sj = parseFloat(String(sjHeight)) || (cmj > 0 ? cmj * 0.92 : 0);
-  const dj = parseFloat(String(djHeight)) || (cmj > 0 ? cmj * 0.95 : 0);
+  const cmj = parseFloat(String(cmjNoArmsHeight)) || 0;
+  const sj = parseFloat(String(sjHeight)) || 0;
+  const dj = parseFloat(String(djHeight)) || 0;
 
-  const eur = sj > 0 ? Number((cmj / sj).toFixed(2)) : 1.08;
-  const reactiveIndex = cmj > 0 ? Number((dj / cmj).toFixed(2)) : 0.98;
+  const eur = (cmj > 0 && sj > 0) ? Number((cmj / sj).toFixed(2)) : 0;
+  const reactiveIndex = (cmj > 0 && dj > 0) ? Number((dj / cmj).toFixed(2)) : 0;
 
   let quadrant: ElasticityQuadrantData['quadrant'];
   let titleAr: string;
@@ -382,34 +382,34 @@ export function calculateElasticityQuadrant(
   let descriptionEn: string;
   let color: string;
 
-  if (eur >= 1.15 && reactiveIndex >= 0.98) {
+  if (eur === 0) {
+    quadrant = 'general_deficit';
+    titleAr = 'غير مكتمل (يتطلب CMJ بدون يدين و SJ)';
+    titleEn = 'Uncalibrated (Requires CMJ No Arms & SJ)';
+    descriptionAr = 'يتطلب قياس معامل الاستغلال اللامركزي تسجيل وثبتي CMJ بدون أذرع و Squat Jump لعزل استجابة الأوتار.';
+    descriptionEn: 'Both CMJ (No Arms) and Squat Jump (SJ) tests are required to calculate the EUR elasticity profile.';
+    color = '#94a3b8';
+  } else if (eur > 1.15) {
     quadrant = 'elastic_dominant';
     titleAr = 'مطاطي متفجر (Elastic-Dominant ⚡)';
     titleEn = 'Elastic-Dominant Profile';
     descriptionAr = 'استغلال عالي جداً لمنعكس الاستطالة؛ اللاعب يملك أوتار قوية ولكنه يحتاج لزيادة القوة البحتة (Squat/Concentric).';
     descriptionEn: 'High stretch-shortening utilization. Tendons are reactive; prioritize raw concentric strength.',
     color = '#00f0ff';
-  } else if (eur < 1.05 && reactiveIndex < 0.95) {
+  } else if (eur < 1.05) {
     quadrant = 'strength_dominant';
     titleAr = 'قوة عضلية طاغية (Strength-Dominant 🏋️)';
     titleEn = 'Strength/Muscular-Dominant';
-    descriptionAr = 'فارق ضئيل بين CMJ و SJ؛ اللاعب يعتمد على العضلات فقط ويفقد استغلال مطاطية الأوتار؛ ركز على البلايومتريكس السريع.';
+    descriptionAr = 'فارق ضئيل بين CMJ بدون أذرع و SJ؛ اللاعب يعتمد على العضلات فقط ويفقد استغلال مطاطية الأوتار؛ ركز على البلايومتريكس السريع.';
     descriptionEn: 'EUR < 1.05 shows poor stretch reflex usage. Prescribe fast reactive plyometrics & drop jumps.',
     color = '#f59e0b';
-  } else if (eur >= 1.05 && eur < 1.15 && reactiveIndex >= 0.95 && cmj >= 45) {
+  } else {
     quadrant = 'well_balanced_elite';
     titleAr = 'نخبة متوازنة (Well-Balanced Elite 👑)';
     titleEn = 'Well-Balanced Elite';
-    descriptionAr = 'توازن استثنائي بين القوة العضلية الانقباضية والمطاطية الوترية مع رقم قفز مرتفع.';
-    descriptionEn: 'Exceptional balance between concentric power and reactive tendon stiffness.',
+    descriptionAr = 'توازن استثنائي بين القوة العضلية الانقباضية والمطاطية الوترية (EUR 1.05 - 1.15).';
+    descriptionEn: 'Exceptional balance between concentric power and reactive tendon stiffness (EUR 1.05 - 1.15).';
     color = '#10b981';
-  } else {
-    quadrant = 'general_deficit';
-    titleAr = 'تأسيس شامل (General Deficit 🎯)';
-    titleEn = 'General Athletic Deficit';
-    descriptionAr = 'يحتاج اللاعب لتطوير متزامن في القوة الأساسية والمرونة السريعة لرفع مستوى القفز.';
-    descriptionEn: 'Athlete requires foundational development in both concentric strength and elastic rebound.',
-    color = '#94a3b8';
   }
 
   return {
