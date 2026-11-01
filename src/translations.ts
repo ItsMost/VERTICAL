@@ -211,8 +211,30 @@ export interface TranslationDictionary {
     contactTimeCol: string;
     powerCol: string;
     dateCol: string;
+    flightTimeCol: string;
+    jumpHeightCol: string;
+    rsiScoreCol: string;
     deleteRecordConfirm: string;
     editRecordTitle: string;
+    editTestTypeLabel: string;
+    editDateLabel: string;
+    editJumpHeightLabel: string;
+    editFlightTimeLabel: string;
+    editRsiScoreLabel: string;
+    editContactTimeLabel: string;
+    editBoxHeightLabel: string;
+    editTakeoffVelocityLabel: string;
+    editPeakPowerLabel: string;
+    editCleanWeightLabel: string;
+    editRepsCountLabel: string;
+    editWeekNumberLabel: string;
+    autoRecalcRsi: string;
+    syncFlightFromHeight: string;
+    subfilterAll: string;
+    subfilterCmjArms: string;
+    subfilterCmjNoArms: string;
+    subfilterSquatJump: string;
+    subfilterApproach: string;
     printReportTitle: string;
     includeStrengthOption: string;
     generatePdf: string;
@@ -251,7 +273,9 @@ export interface TranslationDictionary {
     rsiModeToggle: string;
     rsiModeDirect: string;
     rsiModeAutoHeight: string;
+    rsiModeAutoHeightDesc: string;
     rsiModeAutoFlight: string;
+    rsiModeAutoFlightDesc: string;
     gctMillisecondsHint: string;
     boxHeightInput: string;
     addedLoadInput: string;
@@ -538,8 +562,30 @@ export const translations: Record<Language, TranslationDictionary> = {
       contactTimeCol: 'زمن التلامس GCT',
       powerCol: 'القدرة (واط)',
       dateCol: 'التاريخ',
+      flightTimeCol: 'زمن الطيران (FT)',
+      jumpHeightCol: 'ارتفاع القفزة (سم)',
+      rsiScoreCol: 'مؤشر RSI',
       deleteRecordConfirm: 'هل أنت متأكد من حذف هذا السجل نهائياً؟',
-      editRecordTitle: 'تعديل سجل الاختبار',
+      editRecordTitle: 'تعديل سجل الاختبار والقياسات',
+      editTestTypeLabel: 'نوع الاختبار / القفزة',
+      editDateLabel: 'تاريخ الاختبار',
+      editJumpHeightLabel: 'ارتفاع القفزة (سم)',
+      editFlightTimeLabel: 'زمن الطيران (ثواني)',
+      editRsiScoreLabel: 'رقم مؤشر RSI',
+      editContactTimeLabel: 'زمن التلامس (مللي ثانية أو ثواني)',
+      editBoxHeightLabel: 'ارتفاع صندوق الهبوط (سم)',
+      editTakeoffVelocityLabel: 'سرعة الانطلاق (م/ث)',
+      editPeakPowerLabel: 'القدرة الانفجارية القصوى (واط)',
+      editCleanWeightLabel: 'الوزن المرفوع (كجم)',
+      editRepsCountLabel: 'عدد التكرارات',
+      editWeekNumberLabel: 'رقم الأسبوع التدريبي',
+      autoRecalcRsi: 'إعادة حساب RSI آلياً',
+      syncFlightFromHeight: 'مزامنة زمن الطيران من الارتفاع',
+      subfilterAll: 'جميع الوثب الرأسي',
+      subfilterCmjArms: 'CMJ بالأذرع (with arms)',
+      subfilterCmjNoArms: 'CMJ بدون أذرع (no arms)',
+      subfilterSquatJump: 'وثب من الثبات (Squat Jump SJ)',
+      subfilterApproach: 'قفزة اقتراب (Approach)',
       printReportTitle: 'خيارات تصدير ملف اللاعب PDF',
       includeStrengthOption: 'تضمين جدول تمارين القوة القصوى (1RM) في التقرير',
       generatePdf: 'تحميل وطباعة التقرير 📄',
@@ -578,7 +624,9 @@ export const translations: Record<Language, TranslationDictionary> = {
       rsiModeToggle: 'طريقة إدخال الـ RSI:',
       rsiModeDirect: 'إدخال رقم RSI يدوياً ✍️',
       rsiModeAutoHeight: 'حساب تلقائي (الارتفاع ÷ التلامس)',
+      rsiModeAutoHeightDesc: 'معيار فاليد VALD ومنصات القوة: الارتفاع (م) ÷ التلامس (ث) - أدق علمياً',
       rsiModeAutoFlight: 'حساب تلقائي (زمن الطيران ÷ التلامس)',
+      rsiModeAutoFlightDesc: 'معيار سجادات التلامس وتطبيق MyJump: زمن الطيران (ث) ÷ التلامس (ث) - أعلى بـ 25%',
       gctMillisecondsHint: 'بالمللي ثانية (ms) أو بالثواني (s)',
       boxHeightInput: 'ارتفاع صندوق السقوط (سم):',
       addedLoadInput: 'الوزن الإضافي المرفوع (كجم):',
@@ -863,8 +911,30 @@ export const translations: Record<Language, TranslationDictionary> = {
       contactTimeCol: 'Ground Contact (GCT)',
       powerCol: 'Peak Power',
       dateCol: 'Date',
+      flightTimeCol: 'Flight Time (FT)',
+      jumpHeightCol: 'Jump Height (cm)',
+      rsiScoreCol: 'RSI Score',
       deleteRecordConfirm: 'Are you sure you want to permanently delete this test record?',
-      editRecordTitle: 'Edit Test Record',
+      editRecordTitle: 'Edit Test Record & Telemetry',
+      editTestTypeLabel: 'Test / Jump Type',
+      editDateLabel: 'Test Date',
+      editJumpHeightLabel: 'Jump Height (cm)',
+      editFlightTimeLabel: 'Flight Time (seconds)',
+      editRsiScoreLabel: 'RSI Index Score',
+      editContactTimeLabel: 'Ground Contact Time (ms / s)',
+      editBoxHeightLabel: 'Drop Box Height (cm)',
+      editTakeoffVelocityLabel: 'Takeoff Velocity (m/s)',
+      editPeakPowerLabel: 'Peak Power (Watts)',
+      editCleanWeightLabel: 'Lifted Weight (kg)',
+      editRepsCountLabel: 'Reps Count',
+      editWeekNumberLabel: 'Training Week Number',
+      autoRecalcRsi: 'Auto Recalculate RSI',
+      syncFlightFromHeight: 'Sync Flight Time from Height',
+      subfilterAll: 'All Vertical Jumps',
+      subfilterCmjArms: 'CMJ (with arms)',
+      subfilterCmjNoArms: 'CMJ (no arms)',
+      subfilterSquatJump: 'Squat Jump (SJ)',
+      subfilterApproach: 'Approach Jump',
       printReportTitle: 'Athlete PDF Export Configuration',
       includeStrengthOption: 'Include Maximum Strength (1RM) table in report',
       generatePdf: 'Download PDF Report 📄',
@@ -903,7 +973,9 @@ export const translations: Record<Language, TranslationDictionary> = {
       rsiModeToggle: 'RSI Calculation Mode:',
       rsiModeDirect: 'Direct Manual RSI ✍️',
       rsiModeAutoHeight: 'Auto (Height / GCT)',
+      rsiModeAutoHeightDesc: 'VALD / ForceDecks standard: Jump Height (m) ÷ GCT (s) - scientific research benchmark',
       rsiModeAutoFlight: 'Auto (Flight / GCT)',
+      rsiModeAutoFlightDesc: 'Contact Mat / MyJump standard: Flight Time (s) ÷ GCT (s) - produces ~25% higher index',
       gctMillisecondsHint: 'in milliseconds (ms) or seconds (s)',
       boxHeightInput: 'Drop Box Height (cm):',
       addedLoadInput: 'Added Load (kg):',

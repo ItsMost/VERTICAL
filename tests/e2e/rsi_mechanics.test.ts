@@ -27,6 +27,15 @@ describe('RSI Mechanics & Unit Normalization', () => {
     expect(classifyGCT(0.200).category).toBe('moderate');
     expect(classifyGCT(0.300).category).toBe('slow');
   });
+
+  it('validates 50cm jump with 190ms contact time under both Height/GCT and Flight/GCT modes', () => {
+    // 50 cm jump, 190 ms contact time
+    const rsiHeight = calculateRSI(50.0, 0.639, 190, 'height_gct');
+    expect(rsiHeight).toBe(2.63);
+
+    const rsiFlight = calculateRSI(50.0, 0.639, 190, 'flight_gct');
+    expect(rsiFlight).toBe(3.36);
+  });
 });
 
 describe('EUR (Eccentric Utilization Ratio) & Stretch-Shortening Mechanics', () => {

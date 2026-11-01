@@ -109,7 +109,7 @@ export default function ManualEntryConsole({
       };
     } else if (rsiMode === 'auto_height') {
       // Standard Bosco / Vald / Flanagan method: Jump Height (m) / Contact Time (s)
-      const heightM = jumpHeight > 1.5 ? jumpHeight / 100 : (jumpHeight > 0 ? jumpHeight : 0);
+      const heightM = jumpHeight >= 10 ? jumpHeight / 100 : (jumpHeight > 0 ? jumpHeight : 0);
       if (heightM > 0 && contactTimeSec > 0) {
         const val = heightM / contactTimeSec;
         return {
@@ -380,6 +380,13 @@ export default function ManualEntryConsole({
                       {t.manualEntry.rsiModeAutoFlight}
                     </button>
                   </div>
+                  <p className="text-[11px] text-zinc-400 mt-2 font-mono">
+                    {rsiMode === 'direct'
+                      ? (isAr ? '✍️ اكتب رقم الـ RSI الظاهر على شاشة جهازك أو التطبيق مباشرة دون أي معادلة.' : '✍️ Direct manual entry of the RSI number from your device.')
+                      : rsiMode === 'auto_height'
+                        ? (isAr ? '📐 معيار فاليد (VALD / ForceDecks): الارتفاع بالمتر ÷ زمن التلامس بالثواني (المعيار الرسمي للأبحاث ومنصات القوة).' : '📐 VALD / ForceDecks standard: Jump Height (m) ÷ Contact Time (s).')
+                        : (isAr ? '⏱️ معيار سجادات التلامس وتطبيق MyJump: زمن الطيران ÷ زمن التلامس (يعطي رقماً أعلى بحوالي 25% لنفس القفزة).' : '⏱️ Contact Mat / MyJump standard: Flight Time (s) ÷ Contact Time (s) (~25% higher index).')}
+                  </p>
                 </div>
 
                 {/* DIRECT RSI INPUT FIELD */}

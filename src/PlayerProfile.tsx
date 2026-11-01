@@ -35,7 +35,24 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
   
   // History Filter & Edit States
   const [historyFilter, setHistoryFilter] = useState<'all' | 'cmj' | 'rsi' | 'strength'>('all');
+  const [verticalSubFilter, setVerticalSubFilter] = useState<'all' | 'cmj_arms' | 'cmj_no_arms' | 'sj' | 'approach'>('all');
   const [editingRecord, setEditingRecord] = useState<JumpMeasurement | null>(null);
+  const [editForm, setEditForm] = useState({
+    id: '',
+    test_type: 'cmj',
+    created_at: '',
+    jump_height_cm: '',
+    flight_time_sec: '',
+    contact_time_sec: '',
+    rsi_score: '',
+    box_height_cm: '',
+    takeoff_velocity_ms: '',
+    peak_power_watts: '',
+    clean_weight_kg: '',
+    reps_count: '1',
+    week_number: '1',
+    notes: '',
+  });
   const [isEditSaving, setIsEditSaving] = useState(false);
 
   // Export / Print Modals
@@ -164,7 +181,31 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
   // Filtered History
   const filteredHistory = useMemo(() => {
     if (historyFilter === 'cmj') {
-      return playerHistory.filter(h => h.test_type === 'cmj' || h.test_type === 'cmj_arms' || h.test_type === 'cmj_no_arms' || h.test_type === 'sj_no_arms' || h.test_type === 'approach');
+      const allVert = playerHistory.filter(h => 
+        h.test_type === 'cmj' || 
+        h.test_type === 'cmj_arms' || 
+        h.test_type === 'standard' ||
+        h.test_type === 'cmj_no_arms' || 
+        h.test_type === 'cmj_no_arm' ||
+        h.test_type === 'sj_no_arms' || 
+        h.test_type === 'sj' || 
+        h.test_type === 'sj_arms' || 
+        h.test_type === 'approach' || 
+        h.test_type === 'approach_jump'
+      );
+      if (verticalSubFilter === 'cmj_arms') {
+        return allVert.filter(h => h.test_type === 'cmj' || h.test_type === 'cmj_arms' || h.test_type === 'standard');
+      }
+      if (verticalSubFilter === 'cmj_no_arms') {
+        return allVert.filter(h => h.test_type === 'cmj_no_arms' || h.test_type === 'cmj_no_arm');
+      }
+      if (verticalSubFilter === 'sj') {
+        return allVert.filter(h => h.test_type === 'sj_no_arms' || h.test_type === 'sj' || h.test_type === 'sj_arms');
+      }
+      if (verticalSubFilter === 'approach') {
+        return allVert.filter(h => h.test_type === 'approach' || h.test_type === 'approach_jump');
+      }
+      return allVert;
     }
     if (historyFilter === 'rsi') {
       return playerHistory.filter(h => h.test_type === 'rsi');
@@ -173,7 +214,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
       return playerHistory.filter(h => h.test_type === 'full_squat' || h.test_type === 'bench_press' || h.test_type === 'power_clean' || parseFloat(String(h.clean_weight_kg)) > 0);
     }
     return playerHistory;
-  }, [playerHistory, historyFilter]);
+  }, [playerHistory, historyFilter, verticalSubFilter]);
 
   // Handle Record Delete (Instant Sync)
   const handleDeleteRecord = async (id: string) => {
@@ -181,22 +222,79 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
     await deleteMeasurement(id);
   };
 
+  // Open Edit Modal with prefilled state
+  const handleOpenEdit = (record: JumpMeasurement) => {
+    setEditingRecord(record);
+    const dateStr = record.created_at ? String(record.created_at).substring(0, 10) : new Date().toISOString().substring(0, 10);
+    let gctStr = '';
+    if (record.contact_time_sec != null) {
+      const num = parseFloat(String(record.contact_time_sec));
+      if (num > 0) {
+        gctStr = num >= 1 ? String(Math.round(num)) : String(num);
+      }
+    }
+    setEditForm({
+      id: record.id,
+      test_type: String(record.test_type || 'cmj').toLowerCase(),
+      created_at: dateStr,
+      jump_height_cm: record.jump_height_cm != null ? String(record.jump_height_cm) : '',
+      flight_time_sec: record.flight_time_sec != null ? String(record.flight_time_sec) : '',
+      contact_time_sec: gctStr,
+      rsi_score: record.rsi_score != null ? String(record.rsi_score) : '',
+      box_height_cm: record.box_height_cm != null ? String(record.box_height_cm) : '',
+      takeoff_velocity_ms: record.takeoff_velocity_ms != null ? String(record.takeoff_velocity_ms) : '',
+      peak_power_watts: record.peak_power_watts != null ? String(record.peak_power_watts) : '',
+      clean_weight_kg: record.clean_weight_kg != null ? String(record.clean_weight_kg) : '',
+      reps_count: record.reps_count != null ? String(record.reps_count) : '1',
+      week_number: record.week_number != null ? String(record.week_number) : '1',
+      notes: record.notes || '',
+    });
+  };
+
   // Handle Record Edit Save (Instant Sync)
   const handleSaveEditRecord = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingRecord) return;
+    if (!editingRecord || !editForm.id) return;
     setIsEditSaving(true);
     try {
-      await updateMeasurement(editingRecord.id, {
-        jump_height_cm: editingRecord.jump_height_cm,
-        rsi_score: editingRecord.rsi_score,
-        contact_time_sec: editingRecord.contact_time_sec,
-        clean_weight_kg: editingRecord.clean_weight_kg,
-        reps_count: editingRecord.reps_count,
-        week_number: editingRecord.week_number,
-        notes: editingRecord.notes,
-      });
+      const isRsi = editForm.test_type === 'rsi' || editForm.test_type === 'dj';
+      const isStrength = editForm.test_type === 'full_squat' || editForm.test_type === 'bench_press' || editForm.test_type === 'power_clean';
+
+      const payload: any = {
+        test_type: editForm.test_type,
+        created_at: editForm.created_at ? new Date(editForm.created_at).toISOString() : new Date().toISOString(),
+        notes: editForm.notes || null,
+      };
+
+      if (isRsi) {
+        const rawGct = parseFloat(editForm.contact_time_sec) || 0;
+        const gctSec = rawGct >= 5 ? rawGct / 1000 : rawGct;
+        payload.rsi_score = parseFloat(editForm.rsi_score) || null;
+        payload.contact_time_sec = gctSec > 0 ? Number(gctSec.toFixed(4)) : null;
+        payload.flight_time_sec = parseFloat(editForm.flight_time_sec) || null;
+        payload.jump_height_cm = parseFloat(editForm.jump_height_cm) || null;
+        payload.box_height_cm = parseFloat(editForm.box_height_cm) || null;
+        payload.peak_power_watts = parseFloat(editForm.peak_power_watts) || null;
+      } else if (isStrength) {
+        const cleanWt = parseFloat(editForm.clean_weight_kg) || null;
+        payload.clean_weight_kg = cleanWt;
+        payload.reps_count = parseInt(editForm.reps_count) || 1;
+        payload.week_number = parseInt(editForm.week_number) || 1;
+        if (cleanWt && mass > 0) {
+          payload.clean_bw_ratio = Number((cleanWt / mass).toFixed(2));
+        }
+      } else {
+        // Vertical Jump
+        payload.jump_height_cm = parseFloat(editForm.jump_height_cm) || null;
+        payload.flight_time_sec = parseFloat(editForm.flight_time_sec) || null;
+        payload.takeoff_velocity_ms = parseFloat(editForm.takeoff_velocity_ms) || null;
+        payload.peak_power_watts = parseFloat(editForm.peak_power_watts) || null;
+      }
+
+      await updateMeasurement(editForm.id, payload);
       setEditingRecord(null);
+    } catch (err) {
+      console.error('Failed to save edited record:', err);
     } finally {
       setIsEditSaving(false);
     }
@@ -846,27 +944,31 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
             </p>
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex items-center gap-1.5 bg-zinc-900/80 p-1 rounded-xl border border-zinc-800 text-xs font-bold">
+          {/* Primary Filter Pills */}
+          <div className="flex items-center gap-1.5 bg-zinc-900/80 p-1 rounded-xl border border-zinc-800 text-xs font-bold flex-wrap">
             <button
+              type="button"
               onClick={() => setHistoryFilter('all')}
               className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${historyFilter === 'all' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
             >
               {t.profile.filterAll}
             </button>
             <button
+              type="button"
               onClick={() => setHistoryFilter('cmj')}
               className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${historyFilter === 'cmj' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
             >
               {t.profile.filterCmj}
             </button>
             <button
+              type="button"
               onClick={() => setHistoryFilter('rsi')}
               className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${historyFilter === 'rsi' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
             >
               {t.profile.filterRsi}
             </button>
             <button
+              type="button"
               onClick={() => setHistoryFilter('strength')}
               className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${historyFilter === 'strength' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
             >
@@ -875,29 +977,290 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
           </div>
         </div>
 
+        {/* Vertical Jump Specific Sub-Filter Pills */}
+        {historyFilter === 'cmj' && (
+          <div className="flex items-center gap-1.5 flex-wrap pt-2.5 pb-1 border-t border-zinc-800/80 text-xs font-mono">
+            <span className="text-[11px] text-zinc-400 font-bold mr-1 rtl:ml-1 rtl:mr-0">
+              {isEn ? 'Filter Jump Type:' : 'تصفية نوع القفزة:'}
+            </span>
+            <button
+              type="button"
+              onClick={() => setVerticalSubFilter('all')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                verticalSubFilter === 'all'
+                  ? 'bg-white text-zinc-950 font-black shadow-sm'
+                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+              }`}
+            >
+              {t.profile.subfilterAll}
+            </button>
+            <button
+              type="button"
+              onClick={() => setVerticalSubFilter('cmj_arms')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                verticalSubFilter === 'cmj_arms'
+                  ? 'bg-[#D4FF00] text-[#09090B] font-black shadow-sm'
+                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+              }`}
+            >
+              {t.profile.subfilterCmjArms}
+            </button>
+            <button
+              type="button"
+              onClick={() => setVerticalSubFilter('cmj_no_arms')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                verticalSubFilter === 'cmj_no_arms'
+                  ? 'bg-[#D4FF00] text-[#09090B] font-black shadow-sm'
+                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+              }`}
+            >
+              {t.profile.subfilterCmjNoArms}
+            </button>
+            <button
+              type="button"
+              onClick={() => setVerticalSubFilter('sj')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                verticalSubFilter === 'sj'
+                  ? 'bg-[#D4FF00] text-[#09090B] font-black shadow-sm'
+                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+              }`}
+            >
+              {t.profile.subfilterSquatJump}
+            </button>
+            <button
+              type="button"
+              onClick={() => setVerticalSubFilter('approach')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                verticalSubFilter === 'approach'
+                  ? 'bg-[#D4FF00] text-[#09090B] font-black shadow-sm'
+                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+              }`}
+            >
+              {t.profile.subfilterApproach}
+            </button>
+          </div>
+        )}
+
         {/* History Table */}
         {filteredHistory.length > 0 ? (
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left rtl:text-right border-collapse text-xs">
               <thead>
-                <tr className="border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-mono text-[10px]">
-                  <th className="py-3 px-3">{t.profile.testTypeCol}</th>
-                  <th className="py-3 px-3">{t.profile.scoreCol}</th>
-                  <th className="py-3 px-3">{t.profile.contactTimeCol}</th>
-                  <th className="py-3 px-3">{t.profile.powerCol}</th>
-                  <th className="py-3 px-3">{t.profile.dateCol}</th>
-                  <th className="py-3 px-3 text-right rtl:text-left">{t.common.actions}</th>
-                </tr>
+                {historyFilter === 'rsi' ? (
+                  <tr className="border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-mono text-[10px]">
+                    <th className="py-3 px-3">{t.profile.testTypeCol}</th>
+                    <th className="py-3 px-3 text-[#D4FF00] font-black">{t.profile.rsiScoreCol}</th>
+                    <th className="py-3 px-3">{t.profile.contactTimeCol}</th>
+                    <th className="py-3 px-3">{t.profile.flightTimeCol}</th>
+                    <th className="py-3 px-3">{t.profile.jumpHeightCol}</th>
+                    <th className="py-3 px-3">{t.profile.powerCol}</th>
+                    <th className="py-3 px-3">{t.profile.dateCol}</th>
+                    <th className="py-3 px-3 text-right rtl:text-left">{t.common.actions}</th>
+                  </tr>
+                ) : historyFilter === 'cmj' ? (
+                  <tr className="border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-mono text-[10px]">
+                    <th className="py-3 px-3">{t.profile.testTypeCol}</th>
+                    <th className="py-3 px-3 text-[#D4FF00] font-black">{t.profile.jumpHeightCol}</th>
+                    <th className="py-3 px-3">{t.profile.flightTimeCol}</th>
+                    <th className="py-3 px-3">{t.profile.powerCol}</th>
+                    <th className="py-3 px-3">{t.profile.dateCol}</th>
+                    <th className="py-3 px-3 text-right rtl:text-left">{t.common.actions}</th>
+                  </tr>
+                ) : historyFilter === 'strength' ? (
+                  <tr className="border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-mono text-[10px]">
+                    <th className="py-3 px-3">{t.profile.testTypeCol}</th>
+                    <th className="py-3 px-3 text-[#D4FF00] font-black">{t.profile.editCleanWeightLabel}</th>
+                    <th className="py-3 px-3">{t.profile.repsCount}</th>
+                    <th className="py-3 px-3">{t.profile.bwRatio}</th>
+                    <th className="py-3 px-3">{t.profile.dateCol}</th>
+                    <th className="py-3 px-3 text-right rtl:text-left">{t.common.actions}</th>
+                  </tr>
+                ) : (
+                  <tr className="border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-mono text-[10px]">
+                    <th className="py-3 px-3">{t.profile.testTypeCol}</th>
+                    <th className="py-3 px-3">{t.profile.scoreCol}</th>
+                    <th className="py-3 px-3">{t.profile.contactTimeCol}</th>
+                    <th className="py-3 px-3">{t.profile.powerCol}</th>
+                    <th className="py-3 px-3">{t.profile.dateCol}</th>
+                    <th className="py-3 px-3 text-right rtl:text-left">{t.common.actions}</th>
+                  </tr>
+                )}
               </thead>
               <tbody className="divide-y divide-zinc-800/60 font-mono">
                 {filteredHistory.slice().reverse().map((record) => {
+                  const isRsiRec = record.test_type === 'rsi' || record.test_type === 'dj';
                   const isPr = (parseFloat(String(record.jump_height_cm)) === peakHeightCm && peakHeightCm > 0) ||
                                (parseFloat(String(record.rsi_score)) === maxRsi && maxRsi > 0);
 
                   const gctVal = record.contact_time_sec ? parseFloat(String(record.contact_time_sec)) : 0;
                   const displayGctMs = gctVal > 0 ? (gctVal >= 1 ? Math.round(gctVal) : Math.round(gctVal * 1000)) : 0;
-                  const recordGctInfo = classifyGCT(gctVal > 0 && gctVal < 1 ? gctVal : (gctVal >= 1 ? gctVal / 1000 : 0));
+                  const gctSecVal = gctVal > 0 && gctVal < 1 ? gctVal : (gctVal >= 1 ? gctVal / 1000 : 0);
+                  const recordGctInfo = classifyGCT(gctSecVal);
 
+                  // DEDICATED RSI ROW VIEW
+                  if (historyFilter === 'rsi') {
+                    return (
+                      <tr
+                        key={record.id}
+                        className={`hover:bg-zinc-900/60 transition-colors ${isPr ? 'bg-[#D4FF00]/5' : ''}`}
+                      >
+                        <td className="py-3 px-3 font-bold text-white flex items-center gap-2">
+                          <span className="uppercase">{record.test_type}</span>
+                          {isPr && (
+                            <span className="badge-blaze text-[9px] px-1.5 py-0.2 rounded font-mono font-bold">
+                              PR
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 font-black text-[#D4FF00] text-base tabular-nums">
+                          {record.rsi_score ? Number(record.rsi_score).toFixed(2) : '—'}
+                        </td>
+                        <td className="py-3 px-3 text-zinc-300">
+                          {displayGctMs > 0 ? (
+                            <span className="flex items-center gap-1.5">
+                              <span className="font-bold">{displayGctMs} ms</span>
+                              <span className={`text-[9px] px-1.5 py-0.2 rounded ${
+                                recordGctInfo.classification === 'Fast SSC' ? 'badge-volt' : recordGctInfo.classification === 'Moderate SSC' ? 'badge-amber' : 'badge-rose'
+                              }`}>
+                                {recordGctInfo.classification}
+                              </span>
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td className="py-3 px-3 text-zinc-300 tabular-nums font-bold">
+                          {record.flight_time_sec ? `${Number(record.flight_time_sec).toFixed(3)} s` : '—'}
+                        </td>
+                        <td className="py-3 px-3 font-bold text-white tabular-nums">
+                          {record.jump_height_cm ? `${Number(record.jump_height_cm).toFixed(1)} cm` : '—'}
+                        </td>
+                        <td className="py-3 px-3 text-zinc-400">
+                          {record.peak_power_watts ? `${record.peak_power_watts} W` : '—'}
+                        </td>
+                        <td className="py-3 px-3 text-zinc-400 text-[11px]">
+                          {record.created_at ? String(record.created_at).substring(0, 10) : '—'}
+                        </td>
+                        <td className="py-3 px-3 text-right rtl:text-left">
+                          <div className="flex items-center justify-end rtl:justify-start gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit(record)}
+                              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                              title={t.common.edit}
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRecord(record.id)}
+                              className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer"
+                              title={t.common.delete}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  // DEDICATED VERTICAL JUMP ROW VIEW
+                  if (historyFilter === 'cmj') {
+                    return (
+                      <tr
+                        key={record.id}
+                        className={`hover:bg-zinc-900/60 transition-colors ${isPr ? 'bg-[#D4FF00]/5' : ''}`}
+                      >
+                        <td className="py-3 px-3 font-bold text-white flex items-center gap-2">
+                          <span className="uppercase">{record.test_type}</span>
+                          {isPr && (
+                            <span className="badge-blaze text-[9px] px-1.5 py-0.2 rounded font-mono font-bold">
+                              PR
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 font-black text-[#D4FF00] text-base tabular-nums">
+                          {record.jump_height_cm ? `${Number(record.jump_height_cm).toFixed(1)} cm` : '—'}
+                        </td>
+                        <td className="py-3 px-3 text-zinc-300 tabular-nums font-bold">
+                          {record.flight_time_sec ? `${Number(record.flight_time_sec).toFixed(3)} s` : '—'}
+                        </td>
+                        <td className="py-3 px-3 text-zinc-400">
+                          {record.peak_power_watts ? `${record.peak_power_watts} W` : '—'}
+                        </td>
+                        <td className="py-3 px-3 text-zinc-400 text-[11px]">
+                          {record.created_at ? String(record.created_at).substring(0, 10) : '—'}
+                        </td>
+                        <td className="py-3 px-3 text-right rtl:text-left">
+                          <div className="flex items-center justify-end rtl:justify-start gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit(record)}
+                              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                              title={t.common.edit}
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRecord(record.id)}
+                              className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer"
+                              title={t.common.delete}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  // DEDICATED STRENGTH ROW VIEW
+                  if (historyFilter === 'strength') {
+                    return (
+                      <tr
+                        key={record.id}
+                        className="hover:bg-zinc-900/60 transition-colors"
+                      >
+                        <td className="py-3 px-3 font-bold text-white flex items-center gap-2">
+                          <span className="uppercase">{record.test_type}</span>
+                        </td>
+                        <td className="py-3 px-3 font-black text-[#D4FF00] text-base tabular-nums">
+                          {record.clean_weight_kg ? `${record.clean_weight_kg} kg` : '—'}
+                        </td>
+                        <td className="py-3 px-3 text-zinc-300 font-bold">
+                          {record.reps_count || 1} reps
+                        </td>
+                        <td className="py-3 px-3 text-zinc-400">
+                          {record.clean_bw_ratio ? `${record.clean_bw_ratio}x BW` : '—'}
+                        </td>
+                        <td className="py-3 px-3 text-zinc-400 text-[11px]">
+                          {record.created_at ? String(record.created_at).substring(0, 10) : '—'}
+                        </td>
+                        <td className="py-3 px-3 text-right rtl:text-left">
+                          <div className="flex items-center justify-end rtl:justify-start gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit(record)}
+                              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                              title={t.common.edit}
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRecord(record.id)}
+                              className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer"
+                              title={t.common.delete}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  // GENERAL "ALL TESTS" ROW VIEW
                   return (
                     <tr
                       key={record.id}
@@ -911,8 +1274,25 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-3 font-bold text-[#D4FF00] text-sm">
-                        {record.jump_height_cm ? `${record.jump_height_cm} cm` : record.rsi_score ? record.rsi_score : record.clean_weight_kg ? `${record.clean_weight_kg} kg` : '—'}
+                      <td className="py-3 px-3 font-bold text-[#D4FF00] text-sm tabular-nums">
+                        {isRsiRec ? (
+                          <div className="flex flex-col">
+                            <span className="font-black text-[#D4FF00]">
+                              RSI: {record.rsi_score ? Number(record.rsi_score).toFixed(2) : '—'}
+                            </span>
+                            {record.jump_height_cm && (
+                              <span className="text-[10px] text-zinc-400">
+                                {Number(record.jump_height_cm).toFixed(1)} cm
+                              </span>
+                            )}
+                          </div>
+                        ) : record.jump_height_cm ? (
+                          `${Number(record.jump_height_cm).toFixed(1)} cm`
+                        ) : record.clean_weight_kg ? (
+                          `${record.clean_weight_kg} kg`
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td className="py-3 px-3 text-zinc-300">
                         {displayGctMs > 0 ? (
@@ -924,7 +1304,11 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                               {recordGctInfo.classification}
                             </span>
                           </span>
-                        ) : '—'}
+                        ) : record.flight_time_sec ? (
+                          `${Number(record.flight_time_sec).toFixed(3)} s`
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td className="py-3 px-3 text-zinc-400">
                         {record.peak_power_watts ? `${record.peak_power_watts} W` : record.reps_count ? `${record.reps_count} reps` : '—'}
@@ -935,13 +1319,15 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                       <td className="py-3 px-3 text-right rtl:text-left">
                         <div className="flex items-center justify-end rtl:justify-start gap-1">
                           <button
-                            onClick={() => setEditingRecord(record)}
+                            type="button"
+                            onClick={() => handleOpenEdit(record)}
                             className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
                             title={t.common.edit}
                           >
                             <Edit3 size={14} />
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleDeleteRecord(record.id)}
                             className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer"
                             title={t.common.delete}
@@ -964,7 +1350,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
       </section>
 
       {/* =========================================================================
-          EDIT RECORD MODAL
+          POWERFUL TELEMETRY EDIT RECORD MODAL (TYPE-SPECIFIC & DATE EDITING)
       ========================================================================= */}
       <AnimatePresence>
         {editingRecord && (
@@ -973,73 +1359,362 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bento-card bg-[#121215] border border-[#27272A] p-6 w-full max-w-md rounded-2xl shadow-2xl relative"
+              className="bento-card bg-[#121215] border border-[#27272A] p-6 w-full max-w-lg rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
               <div className="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4">
-                <h3 className="font-heading font-bold text-white text-base">
-                  {t.profile.editRecordTitle}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <Edit3 size={18} className="text-[#D4FF00]" />
+                  <h3 className="font-heading font-bold text-white text-base">
+                    {t.profile.editRecordTitle}
+                  </h3>
+                </div>
                 <button
+                  type="button"
                   onClick={() => setEditingRecord(null)}
-                  className="p-1 text-zinc-400 hover:text-white rounded-lg"
+                  className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition-colors"
                 >
                   <X size={16} />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveEditRecord} className="space-y-3 font-sans text-xs">
-                <div>
-                  <label className="text-zinc-400 block mb-1 font-mono text-[11px]">{t.profile.scoreCol} (Jump Height cm / RSI / Weight kg)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editingRecord.jump_height_cm || editingRecord.rsi_score || editingRecord.clean_weight_kg || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setEditingRecord({
-                        ...editingRecord,
-                        jump_height_cm: val,
-                        rsi_score: val,
-                        clean_weight_kg: val,
-                      });
-                    }}
-                    className="glass-input w-full font-mono text-sm"
-                    required
-                  />
+              <form onSubmit={handleSaveEditRecord} className="space-y-4 font-sans text-xs">
+                {/* ROW 1: TEST TYPE & TEST DATE (EDITABLE FOR ALL) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-zinc-400 block mb-1 font-mono text-[11px] font-bold">
+                      {t.profile.editTestTypeLabel}
+                    </label>
+                    <select
+                      value={editForm.test_type}
+                      onChange={(e) => setEditForm({ ...editForm, test_type: e.target.value })}
+                      className="glass-input w-full font-mono text-xs font-bold text-white bg-[#0A0B0F] border border-[#27272A] rounded-xl px-3 py-2.5 outline-none focus:border-[#D4FF00]"
+                    >
+                      <optgroup label={isEn ? "Vertical Jumps" : "الوثب الرأسي"}>
+                        <option value="cmj">CMJ (with arms / بالأذرع)</option>
+                        <option value="cmj_no_arms">CMJ (no arms / بدون أذرع)</option>
+                        <option value="sj_no_arms">Squat Jump (SJ - 90° Static)</option>
+                        <option value="approach">Approach Jump (قفزة اقتراب)</option>
+                      </optgroup>
+                      <optgroup label={isEn ? "Reactive Strength (RSI)" : "القوة التفاعلية (RSI)"}>
+                        <option value="rsi">Drop Jump / RSI</option>
+                      </optgroup>
+                      <optgroup label={isEn ? "Maximum Strength 1RM" : "تمارين القوة القصوى 1RM"}>
+                        <option value="full_squat">Full Squat (سكوات كامل)</option>
+                        <option value="bench_press">Bench Press (بنش برس)</option>
+                        <option value="power_clean">Power Clean (باور كلين)</option>
+                      </optgroup>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-zinc-400 block mb-1 font-mono text-[11px] font-bold">
+                      {t.profile.editDateLabel}
+                    </label>
+                    <input
+                      type="date"
+                      value={editForm.created_at}
+                      onChange={(e) => setEditForm({ ...editForm, created_at: e.target.value })}
+                      className="glass-input w-full font-mono text-xs text-white bg-[#0A0B0F] border border-[#27272A] rounded-xl px-3 py-2 outline-none focus:border-[#D4FF00]"
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-zinc-400 block mb-1 font-mono text-[11px]">{t.profile.contactTimeCol} (Contact Time in seconds, e.g. 0.180)</label>
-                  <input
-                    type="number"
-                    step="0.001"
-                    value={editingRecord.contact_time_sec || ''}
-                    onChange={(e) => setEditingRecord({ ...editingRecord, contact_time_sec: e.target.value })}
-                    className="glass-input w-full font-mono text-sm"
-                  />
-                </div>
+                {/* DYNAMIC FIELDS: RSI MODE */}
+                {(editForm.test_type === 'rsi' || editForm.test_type === 'dj') && (
+                  <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-[#D4FF00]/30 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#D4FF00] font-mono">
+                        {isEn ? '⚡ RSI Reactive Strength Inputs' : '⚡ مدخلات قفزة الهبوط ومؤشر RSI'}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 font-mono">
+                        Drop Box: {editForm.box_height_cm || '30'} cm
+                      </span>
+                    </div>
 
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                          {t.profile.editRsiScoreLabel}
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="2.40"
+                          value={editForm.rsi_score}
+                          onChange={(e) => setEditForm({ ...editForm, rsi_score: e.target.value })}
+                          className="glass-input w-full font-mono text-sm font-black text-[#D4FF00]"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                          {t.profile.editContactTimeLabel}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 190 ms or 0.190"
+                          value={editForm.contact_time_sec}
+                          onChange={(e) => setEditForm({ ...editForm, contact_time_sec: e.target.value })}
+                          className="glass-input w-full font-mono text-sm text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                          {t.profile.editFlightTimeLabel}
+                        </label>
+                        <input
+                          type="number"
+                          step="0.001"
+                          placeholder="0.639"
+                          value={editForm.flight_time_sec}
+                          onChange={(e) => {
+                            const ft = parseFloat(e.target.value);
+                            const updated = { ...editForm, flight_time_sec: e.target.value };
+                            if (ft > 0) {
+                              updated.jump_height_cm = (1.22625 * Math.pow(ft, 2) * 100).toFixed(1);
+                            }
+                            setEditForm(updated);
+                          }}
+                          className="glass-input w-full font-mono text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                          {t.profile.editJumpHeightLabel}
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          placeholder="50.0"
+                          value={editForm.jump_height_cm}
+                          onChange={(e) => {
+                            const h = parseFloat(e.target.value);
+                            const updated = { ...editForm, jump_height_cm: e.target.value };
+                            if (h > 0) {
+                              updated.flight_time_sec = Math.sqrt((8 * (h / 100)) / 9.81).toFixed(3);
+                            }
+                            setEditForm(updated);
+                          }}
+                          className="glass-input w-full font-mono text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                          {t.profile.editBoxHeightLabel}
+                        </label>
+                        <input
+                          type="number"
+                          step="1"
+                          placeholder="30"
+                          value={editForm.box_height_cm}
+                          onChange={(e) => setEditForm({ ...editForm, box_height_cm: e.target.value })}
+                          className="glass-input w-full font-mono text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Quick Recalculation Action Buttons */}
+                    <div className="flex gap-2 pt-1 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const h = parseFloat(editForm.jump_height_cm) || 0;
+                          const rawCt = parseFloat(editForm.contact_time_sec) || 0;
+                          const ctSec = rawCt >= 5 ? rawCt / 1000 : rawCt;
+                          const hM = h >= 10 ? h / 100 : h;
+                          if (hM > 0 && ctSec > 0) {
+                            setEditForm(prev => ({ ...prev, rsi_score: (hM / ctSec).toFixed(2) }));
+                          }
+                        }}
+                        className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-[#D4FF00] font-mono text-[10px] font-bold cursor-pointer"
+                      >
+                        ⚡ {isEn ? 'Recalc RSI: Height(m) ÷ GCT(s)' : 'حساب: الارتفاع ÷ التلامس'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const ft = parseFloat(editForm.flight_time_sec) || 0;
+                          const rawCt = parseFloat(editForm.contact_time_sec) || 0;
+                          const ctSec = rawCt >= 5 ? rawCt / 1000 : rawCt;
+                          if (ft > 0 && ctSec > 0) {
+                            setEditForm(prev => ({ ...prev, rsi_score: (ft / ctSec).toFixed(2) }));
+                          }
+                        }}
+                        className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-cyan-400 font-mono text-[10px] font-bold cursor-pointer"
+                      >
+                        ⚡ {isEn ? 'Recalc RSI: Flight(s) ÷ GCT(s)' : 'حساب: الطيران ÷ التلامس'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* DYNAMIC FIELDS: VERTICAL JUMP MODE */}
+                {(editForm.test_type === 'cmj' || editForm.test_type === 'cmj_no_arms' || editForm.test_type === 'sj_no_arms' || editForm.test_type === 'approach') && (
+                  <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white font-mono">
+                        {isEn ? '📈 Vertical Jump Kinematics' : '📈 قياسات الوثب الرأسي والكينماتيكا'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                          {t.profile.editJumpHeightLabel}
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          placeholder="65.0"
+                          value={editForm.jump_height_cm}
+                          onChange={(e) => {
+                            const h = parseFloat(e.target.value);
+                            const updated = { ...editForm, jump_height_cm: e.target.value };
+                            if (h > 0) {
+                              const ft = Math.sqrt((8 * (h / 100)) / 9.81);
+                              updated.flight_time_sec = ft.toFixed(3);
+                              updated.takeoff_velocity_ms = Math.sqrt(2 * 9.81 * (h / 100)).toFixed(2);
+                              if (mass > 0) {
+                                updated.peak_power_watts = Math.round(61.9 * h + 36.0 * mass - 1822).toString();
+                              }
+                            }
+                            setEditForm(updated);
+                          }}
+                          className="glass-input w-full font-mono text-sm font-black text-[#D4FF00]"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                          {t.profile.editFlightTimeLabel}
+                        </label>
+                        <input
+                          type="number"
+                          step="0.001"
+                          placeholder="0.728"
+                          value={editForm.flight_time_sec}
+                          onChange={(e) => setEditForm({ ...editForm, flight_time_sec: e.target.value })}
+                          className="glass-input w-full font-mono text-sm text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                          {t.profile.editTakeoffVelocityLabel}
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="3.57"
+                          value={editForm.takeoff_velocity_ms}
+                          onChange={(e) => setEditForm({ ...editForm, takeoff_velocity_ms: e.target.value })}
+                          className="glass-input w-full font-mono text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                          {t.profile.editPeakPowerLabel}
+                        </label>
+                        <input
+                          type="number"
+                          step="1"
+                          placeholder="4800"
+                          value={editForm.peak_power_watts}
+                          onChange={(e) => setEditForm({ ...editForm, peak_power_watts: e.target.value })}
+                          className="glass-input w-full font-mono text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* DYNAMIC FIELDS: MAXIMUM STRENGTH 1RM MODE */}
+                {(editForm.test_type === 'full_squat' || editForm.test_type === 'bench_press' || editForm.test_type === 'power_clean') && (
+                  <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white font-mono">
+                        {isEn ? '🏋️ Strength 1RM Parameters' : '🏋️ معايير القوة القصوى 1RM'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                          {t.profile.editCleanWeightLabel}
+                        </label>
+                        <input
+                          type="number"
+                          step="0.5"
+                          placeholder="140"
+                          value={editForm.clean_weight_kg}
+                          onChange={(e) => setEditForm({ ...editForm, clean_weight_kg: e.target.value })}
+                          className="glass-input w-full font-mono text-sm font-black text-[#D4FF00]"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                          {t.profile.editRepsCountLabel}
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="20"
+                          placeholder="3"
+                          value={editForm.reps_count}
+                          onChange={(e) => setEditForm({ ...editForm, reps_count: e.target.value })}
+                          className="glass-input w-full font-mono text-sm text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                          {t.profile.editWeekNumberLabel}
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="4"
+                          value={editForm.week_number}
+                          onChange={(e) => setEditForm({ ...editForm, week_number: e.target.value })}
+                          className="glass-input w-full font-mono text-sm text-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* COACH NOTES */}
                 <div>
-                  <label className="text-zinc-400 block mb-1 font-mono text-[11px]">{t.common.notes}</label>
+                  <label className="text-zinc-400 block mb-1 font-mono text-[11px] font-bold">
+                    {t.common.notes}
+                  </label>
                   <textarea
-                    value={editingRecord.notes || ''}
-                    onChange={(e) => setEditingRecord({ ...editingRecord, notes: e.target.value })}
-                    className="glass-input w-full h-20 text-xs"
+                    value={editForm.notes}
+                    onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                    placeholder={isEn ? "Coaching observations, technique cues..." : "ملاحظات فنية أو توصيات تدريبية..."}
+                    className="glass-input w-full h-20 text-xs text-white"
                   />
                 </div>
 
+                {/* SUBMIT BUTTONS */}
                 <div className="flex gap-2 pt-2">
                   <button
                     type="submit"
                     disabled={isEditSaving}
-                    className="btn-volt flex-1 py-2.5 rounded-xl font-bold"
+                    className="btn-volt flex-1 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg"
                   >
                     {isEditSaving ? t.common.saving : t.common.save}
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditingRecord(null)}
-                    className="px-4 py-2.5 rounded-xl bg-zinc-900 text-zinc-400 hover:text-white font-bold"
+                    className="px-4 py-2.5 rounded-xl bg-zinc-900 text-zinc-400 hover:text-white font-bold cursor-pointer transition-colors"
                   >
                     {t.common.cancel}
                   </button>
