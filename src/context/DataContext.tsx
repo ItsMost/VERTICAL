@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { supabase } from '../supabaseClient';
 import { translations, type Language, type TranslationDictionary } from '../translations';
 import type { Player, Coach, JumpMeasurement } from '../types/athletics';
+import { birthYearToDob } from '../lib/utils';
 
 interface DataContextType {
   players: Player[];
@@ -259,7 +260,7 @@ const VALID_MEASUREMENT_KEYS = new Set([
       setIsSyncing(true);
       const payload = {
         full_name: newPlayerData.name,
-        birth_year: parseInt(newPlayerData.birthYear) || null,
+        date_of_birth: birthYearToDob(newPlayerData.birthYear),
         weight_kg: parseFloat(newPlayerData.weight) || 70,
         leg_length_m: parseFloat(newPlayerData.leg) || 1.0,
         gender: newPlayerData.gender || 'male',
@@ -285,11 +286,12 @@ const VALID_MEASUREMENT_KEYS = new Set([
       return null;
     } catch (err) {
       console.error('Failed to add player:', err);
+      alert(language === 'ar' ? `تعذر حفظ اللاعب: ${(err as any)?.message || err}` : `Failed to save player: ${(err as any)?.message || err}`);
       return null;
     } finally {
       setIsSyncing(false);
     }
-  }, [setSelectedPlayerId]);
+  }, [setSelectedPlayerId, language]);
 
   // UPDATE PLAYER
   const updatePlayer = useCallback(async (id: string, updates: any): Promise<boolean> => {
@@ -297,7 +299,7 @@ const VALID_MEASUREMENT_KEYS = new Set([
       setIsSyncing(true);
       const payload = {
         full_name: updates.name,
-        birth_year: parseInt(updates.birthYear) || null,
+        date_of_birth: birthYearToDob(updates.birthYear, players.find(p => p.id === id)?.date_of_birth),
         weight_kg: parseFloat(updates.weight) || 70,
         leg_length_m: parseFloat(updates.leg) || 1.0,
         gender: updates.gender || 'male',
@@ -321,11 +323,12 @@ const VALID_MEASUREMENT_KEYS = new Set([
       return true;
     } catch (err) {
       console.error('Failed to update player:', err);
+      alert(language === 'ar' ? `تعذر تعديل اللاعب: ${(err as any)?.message || err}` : `Failed to update player: ${(err as any)?.message || err}`);
       return false;
     } finally {
       setIsSyncing(false);
     }
-  }, [selectedPlayerId]);
+  }, [selectedPlayerId, players, language]);
 
   // DELETE PLAYER
   const deletePlayer = useCallback(async (id: string): Promise<boolean> => {

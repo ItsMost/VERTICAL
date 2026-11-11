@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from './context/DataContext';
+import { getPlayerAge } from './lib/utils';
 import type { Player } from './types/athletics';
 
 interface TeamDashboardProps {
@@ -133,10 +134,7 @@ export default function TeamDashboard({
   }, [allPlayers, selectedCoachId, genderFilter, searchQuery]);
 
   const getPlayerAge = (player: Player) => {
-    if (player.birth_year) {
-      return Math.max(1, new Date().getFullYear() - Number(player.birth_year));
-    }
-    return 20;
+    return getPlayerAge(player);
   };
 
   const getStatusBadge = (heightCm: number | null, type: 'cmj' | 'approach' | 'rsi', gender: string, age: number) => {

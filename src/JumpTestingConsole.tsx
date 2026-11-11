@@ -1062,6 +1062,46 @@ export default function JumpTestingConsole({
   };
   const activeCorrectionMs = getActiveCorrectionMs();
 
+  const manualFramePanel = (
+    <div className="bg-black/15 border border-gray-800 p-3 rounded-2xl my-3 space-y-2" dir="rtl">
+      <button
+        type="button"
+        onClick={() => {
+          const next = timeCalculationMethod === 'manual' ? 'fps' : 'manual';
+          setTimeCalculationMethod(next);
+          if (next === 'manual' && !isFrameDurationManual) {
+            setManualFrameDuration(parseFloat((1 / (cameraFps || 240)).toFixed(6)));
+          }
+        }}
+        className={`w-full py-2 px-3 text-[10px] font-bold rounded-xl border transition-all cursor-pointer ${
+          timeCalculationMethod === 'manual'
+            ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+            : 'bg-black/30 text-gray-400 border-gray-800 hover:text-white'
+        }`}
+      >
+        {timeCalculationMethod === 'manual' ? 'الحساب بزمن الفريم اليدوي (مفعّل)' : 'الحساب بزمن الفريم اليدوي (معطّل)'}
+      </button>
+      {timeCalculationMethod === 'manual' && (
+        <div>
+          <label className="text-[9px] text-gray-400 mb-1 block">
+            زمن الفريم الحقيقي بالثانية (مثلاً 240fps = 0.004167)
+          </label>
+          <input
+            type="number"
+            step="0.000001"
+            min="0.0001"
+            value={manualFrameDuration}
+            onChange={(e) => { setIsFrameDurationManual(true); setManualFrameDuration(e.target.value as any); }}
+            className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-amber-500"
+          />
+          <p className="text-[9px] text-gray-500 mt-1 font-mono">
+            = {(1 / (parseFloat(String(manualFrameDuration)) || 1)).toFixed(1)} FPS حقيقي · الفريمات تُعد من الفيديو بـ {videoFps} FPS
+          </p>
+        </div>
+      )}
+    </div>
+  );
+
   const stats = useJumpMechanics(
     cameraFps,
     videoFps,
@@ -2178,6 +2218,7 @@ export default function JumpTestingConsole({
                     <input type="number" value={cameraFps} onChange={(e) => setCameraFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono focus:border-blue-500" />
                   </div>
                 </div>
+                {manualFramePanel}
 
                 {/* AI tracking toggle */}
                 <div className="bg-black/15 border border-gray-850 p-3 rounded-2xl mb-3">
@@ -3101,6 +3142,7 @@ export default function JumpTestingConsole({
                   <input type="number" value={cameraFps} onChange={(e) => setCameraFps(Number(e.target.value))} className="w-full bg-[#111827]/60 border border-gray-800 rounded-xl p-2 px-3 text-xs text-white outline-none font-mono" />
                 </div>
               </div>
+              {manualFramePanel}
 
               {/* AI Auto-Tracking Toggle (Mobile) */}
               <div className="bg-black/15 border border-gray-850 p-2.5 rounded-2xl mb-1.5">

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useData } from './context/DataContext';
+import { getPlayerAge } from './lib/utils';
 import AppLogo from './AppLogo';
 import MotionGraphicVideoModal from './components/MotionGraphicVideoModal';
 import { classifyGCT, calculateElasticityQuadrant, calculateCNSReadiness } from './useJumpMechanics';
@@ -92,10 +93,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
   // Accurate dynamic age calculation
   const age = useMemo(() => {
-    if (activePlayer.birth_year) {
-      return Math.max(1, new Date().getFullYear() - Number(activePlayer.birth_year));
-    }
-    return 20;
+    return getPlayerAge(activePlayer);
   }, [activePlayer]);
 
   const isFemale = activePlayer.gender === 'female';

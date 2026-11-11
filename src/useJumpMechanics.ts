@@ -387,28 +387,28 @@ export function calculateElasticityQuadrant(
     titleAr = 'غير مكتمل (يتطلب CMJ بدون يدين و SJ)';
     titleEn = 'Uncalibrated (Requires CMJ No Arms & SJ)';
     descriptionAr = 'يتطلب قياس معامل الاستغلال اللامركزي تسجيل وثبتي CMJ بدون أذرع و Squat Jump لعزل استجابة الأوتار.';
-    descriptionEn: 'Both CMJ (No Arms) and Squat Jump (SJ) tests are required to calculate the EUR elasticity profile.';
+    descriptionEn = 'Both CMJ (No Arms) and Squat Jump (SJ) tests are required to calculate the EUR elasticity profile.';
     color = '#94a3b8';
   } else if (eur > 1.15) {
     quadrant = 'elastic_dominant';
     titleAr = 'مطاطي متفجر (Elastic-Dominant ⚡)';
     titleEn = 'Elastic-Dominant Profile';
     descriptionAr = 'استغلال عالي جداً لمنعكس الاستطالة؛ اللاعب يملك أوتار قوية ولكنه يحتاج لزيادة القوة البحتة (Squat/Concentric).';
-    descriptionEn: 'High stretch-shortening utilization. Tendons are reactive; prioritize raw concentric strength.',
+    descriptionEn = 'High stretch-shortening utilization. Tendons are reactive; prioritize raw concentric strength.';
     color = '#00f0ff';
   } else if (eur < 1.05) {
     quadrant = 'strength_dominant';
     titleAr = 'قوة عضلية طاغية (Strength-Dominant 🏋️)';
     titleEn = 'Strength/Muscular-Dominant';
     descriptionAr = 'فارق ضئيل بين CMJ بدون أذرع و SJ؛ اللاعب يعتمد على العضلات فقط ويفقد استغلال مطاطية الأوتار؛ ركز على البلايومتريكس السريع.';
-    descriptionEn: 'EUR < 1.05 shows poor stretch reflex usage. Prescribe fast reactive plyometrics & drop jumps.',
+    descriptionEn = 'EUR < 1.05 shows poor stretch reflex usage. Prescribe fast reactive plyometrics & drop jumps.';
     color = '#f59e0b';
   } else {
     quadrant = 'well_balanced_elite';
     titleAr = 'نخبة متوازنة (Well-Balanced Elite 👑)';
     titleEn = 'Well-Balanced Elite';
     descriptionAr = 'توازن استثنائي بين القوة العضلية الانقباضية والمطاطية الوترية (EUR 1.05 - 1.15).';
-    descriptionEn: 'Exceptional balance between concentric power and reactive tendon stiffness (EUR 1.05 - 1.15).';
+    descriptionEn = 'Exceptional balance between concentric power and reactive tendon stiffness (EUR 1.05 - 1.15).';
     color = '#10b981';
   }
 
@@ -471,9 +471,9 @@ export function useJumpMechanics(
       // 2. Slow-Motion Scaling Factor
       let rawFlightTime: number;
       if (useManualFrameDuration && manualFrameDuration > 0) {
-        const takeoffFrame = takeoffTime * videoFps;
-        const landingFrame = landingTime * videoFps;
-        rawFlightTime = Math.abs(landingFrame - takeoffFrame) / cameraFps;
+        // Manual mode: number of frames in the video file x real duration of one frame
+        const flightFrames = Math.round(Math.abs(landingTime - takeoffTime) * videoFps);
+        rawFlightTime = flightFrames * manualFrameDuration;
       } else {
         rawFlightTime = videoDeltaTime * (videoFps / cameraFps);
       }
@@ -513,8 +513,8 @@ export function useJumpMechanics(
 
       if (jumpType === 'dj' && boxTouchdownTime > 0 && takeoffTime > boxTouchdownTime) {
         if (useManualFrameDuration && manualFrameDuration > 0) {
-          const contactFrames = (takeoffTime - boxTouchdownTime) * videoFps;
-          contactTimeSec = contactFrames / cameraFps;
+          const contactFrames = Math.round((takeoffTime - boxTouchdownTime) * videoFps);
+          contactTimeSec = contactFrames * manualFrameDuration;
         } else {
           contactTimeSec = (takeoffTime - boxTouchdownTime) * (videoFps / cameraFps);
         }

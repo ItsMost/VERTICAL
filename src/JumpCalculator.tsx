@@ -5,6 +5,7 @@ import {
   Save, ChevronDown, Moon, Sun, Users, Trophy, Globe, Star, Sparkles
 } from 'lucide-react';
 import { useData } from './context/DataContext';
+import { getBirthYear } from './lib/utils';
 import PlayerProfile from './PlayerProfile';
 import RSICalculator from './RSICalculator';
 import FVPCalculator from './FVPCalculator';
@@ -94,7 +95,7 @@ export default function JumpCalculator() {
     setEditPlayerForm({
       id: player.id,
       name: player.full_name || '',
-      birthYear: player.birth_year ? String(player.birth_year) : '',
+      birthYear: getBirthYear(player) ? String(getBirthYear(player)) : '',
       weight: player.weight_kg ? String(player.weight_kg) : '',
       leg: player.leg_length_m ? String(player.leg_length_m) : '',
       gender: player.gender || 'male',
