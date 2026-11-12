@@ -1,105 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  LineChart, Zap, TrendingUp, AlertCircle, Info, CheckCircle, 
-  Activity, ArrowLeftRight 
-} from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { LineChart, TrendingUp, Zap, Plus, Trash2, Activity, AlertTriangle, Upload } from 'lucide-react';
 import { useData } from './context/DataContext';
 import type { Player } from './types/athletics';
-
-// Animated counter helper
-const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }: { value: string | number; duration?: number; decimals?: number }) => {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    let start = 0;
-    const end = parseFloat(String(value)) || 0;
-    if (end === 0) {
-      setCount(0);
-      return;
-    }
-    const startTime = performance.now();
-    const updateCount = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easeProgress = progress * (2 - progress); // easeOutQuad
-      setCount(start + easeProgress * (end - start));
-      if (progress < 1) {
-        requestAnimationFrame(updateCount);
-      }
-    };
-    requestAnimationFrame(updateCount);
-  }, [value, duration]);
-  return <span className="font-mono tabular-nums">{count.toFixed(decimals)}</span>;
-};
-
-// Heuristic Force-Time presets generator
-const generateDemoForceData = (type: string, mass: number, samplingRate: number = 1000): number[] => {
-  const dt = 1 / samplingRate;
-  const BW = mass * 9.81;
-  const data: number[] = [];
-  
-  const totalPoints = Math.round(2.2 * samplingRate);
-  
-  let peakForceFactor = 2.6; 
-  let propulsionDuration = 0.25; 
-  let brakingDuration = 0.20;
-  let unweightingDuration = 0.30;
-  let flightDuration = 0.45; 
-  let timeToPeakFactor = 0.6; 
-  
-  if (type === 'low_rfd') {
-    peakForceFactor = 2.4;
-    propulsionDuration = 0.40;
-    brakingDuration = 0.30;
-    timeToPeakFactor = 0.85; 
-  } else if (type === 'low_force') {
-    peakForceFactor = 1.6;
-    propulsionDuration = 0.28;
-    brakingDuration = 0.25;
-    timeToPeakFactor = 0.5;
-  }
-
-  const quietPoints = Math.round(0.5 * samplingRate);
-  const unweightPoints = Math.round(unweightingDuration * samplingRate);
-  const brakePoints = Math.round(brakingDuration * samplingRate);
-  const propPoints = Math.round(propulsionDuration * samplingRate);
-  const flightPoints = Math.round(flightDuration * samplingRate);
-
-  for (let i = 0; i < totalPoints; i++) {
-    let force = BW;
-    const noise = (Math.random() - 0.5) * 8; 
-
-    if (i < quietPoints) {
-      force = BW + noise;
-    } else if (i < quietPoints + unweightPoints) {
-      const p = (i - quietPoints) / unweightPoints;
-      force = BW - (BW * 0.45 * Math.sin(p * Math.PI)) + noise;
-    } else if (i < quietPoints + unweightPoints + brakePoints) {
-      const p = (i - (quietPoints + unweightPoints)) / brakePoints;
-      force = (BW * 0.55) + ((peakForceFactor * BW - BW * 0.55) * p) + noise;
-    } else if (i < quietPoints + unweightPoints + brakePoints + propPoints) {
-      const p = (i - (quietPoints + unweightPoints + brakePoints)) / propPoints;
-      const peakF = peakForceFactor * BW;
-      if (p <= timeToPeakFactor) {
-        force = peakF - ((peakF - BW) * (1 - p / timeToPeakFactor) * 0.2) + noise;
-      } else {
-        const fallP = (p - timeToPeakFactor) / (1 - timeToPeakFactor);
-        force = peakF * (1 - fallP) + noise;
-      }
-    } else if (i < quietPoints + unweightPoints + brakePoints + propPoints + flightPoints) {
-      force = 0; 
-    } else {
-      const p = (i - (quietPoints + unweightPoints + brakePoints + propPoints + flightPoints)) / 200;
-      if (p <= 1) {
-        force = (BW * 3.5 * Math.sin(p * Math.PI)) + noise;
-      } else {
-        force = BW + noise;
-      }
-    }
-    data.push(Math.round(Math.max(0, force)));
-  }
-  
-  return data;
-};
+import {
+  forceVelocityProfile,
+  resolveHpo,
+  analyzeForceTime,
+  type FvProfileResult,
+  type ForceTimeResult,
+  type FvImbalanceBand,
+} from './lib/biomechanics';
 
 interface FVPCalculatorProps {
   activePlayer?: Player | null;
@@ -107,419 +17,267 @@ interface FVPCalculatorProps {
   language?: string;
 }
 
-export default function FVPCalculator({ activePlayer: propPlayer, language: propLang }: FVPCalculatorProps) {
-  const { activePlayer: ctxPlayer, language: ctxLang, t } = useData();
+const DASH = '—';
+const n = (v: number | null | undefined, d: number) => (v === null || v === undefined || !Number.isFinite(v) ? DASH : v.toFixed(d));
+
+function Metric({ label, value, unit, sub }: { label: string; value: string; unit?: string; sub?: string }) {
+  return (
+    <div className="card p-4">
+      <span className="block text-xs text-muted mb-1">{label}</span>
+      <span className="text-2xl font-bold font-mono tabular-nums text-text">
+        {value}
+        {unit && <span className="text-xs text-muted font-sans ms-1">{unit}</span>}
+      </span>
+      {sub && <span className="block text-xs text-muted font-mono tabular-nums mt-1">{sub}</span>}
+    </div>
+  );
+}
+
+export default function FVPCalculator({ activePlayer: propPlayer }: FVPCalculatorProps) {
+  const { activePlayer: ctxPlayer, t } = useData();
   const activePlayer = propPlayer || ctxPlayer;
-  const language = propLang || ctxLang;
-  const isAr = language === 'ar';
+  const f = t.fvpConsole;
 
-  const [activeSubTab, setActiveSubTab] = useState<'fvp' | 'ftc'>('fvp');
+  const [tab, setTab] = useState<'fvp' | 'ftc'>('fvp');
 
-  // ==========================================
-  // STATE FOR FORCE-TIME CURVE (FTC) ANALYSIS
-  // ==========================================
-  const [athleteMass, setAthleteMass] = useState<number | string>(activePlayer?.weight_kg || 75);
-  const [samplingRate, setSamplingRate] = useState<number | string>(1000);
-  const [rawForceInput, setRawForceInput] = useState('');
-  const [ftcResult, setFtcResult] = useState<any>(null);
-
-  useEffect(() => {
-    if (activePlayer?.weight_kg) {
-      setAthleteMass(activePlayer.weight_kg);
-    }
-  }, [activePlayer]);
-
-  const loadPreset = (type: string) => {
-    const mass = parseFloat(String(athleteMass)) || 75;
-    const rate = parseFloat(String(samplingRate)) || 1000;
-    const data = generateDemoForceData(type, mass, rate);
-    setRawForceInput(data.join(', '));
-  };
-
-  const handleFTCAnalyze = () => {
-    const mass = parseFloat(String(athleteMass));
-    const rate = parseFloat(String(samplingRate));
-    if (!mass || mass <= 0) {
-      return alert(isAr ? 'الرجاء إدخال كتلة اللاعب بشكل صحيح' : 'Please enter a valid athlete mass (kg)');
-    }
-    if (!rate || rate <= 0) {
-      return alert(isAr ? 'الرجاء إدخال معدل أخذ العينات بشكل صحيح' : 'Please enter a valid sampling rate (Hz)');
-    }
-
-    const forceArray: number[] = [];
-    if (!rawForceInput.trim()) {
-      return alert(isAr ? 'الرجاء إدخال قيم القوة أو اختيار نموذج تجريبي' : 'Please enter force values or load a preset model');
-    }
-    
-    const parts = rawForceInput.split(/[\s,;\n]+/);
-    for (const part of parts) {
-      const val = parseFloat(part);
-      if (!isNaN(val)) forceArray.push(val);
-    }
-
-    if (forceArray.length < 50) {
-      return alert(isAr ? 'البيانات المدخلة قصيرة جداً لتحليل بيوميكانيكي دقيق (الحد الأدنى 50 عينة)' : 'Data sample is too short for biomechanical analysis (min 50 samples)');
-    }
-
-    const BW = mass * 9.81;
-    const peakForce = Math.max(...forceArray);
-    const peakForceRel = peakForce / mass;
-    const meanForce = forceArray.reduce((a, b) => a + b, 0) / forceArray.length;
-    const meanForceRel = meanForce / mass;
-
-    setFtcResult({
-      peakForce: peakForce.toFixed(0),
-      peakForceRel: peakForceRel.toFixed(1),
-      meanForce: meanForce.toFixed(0),
-      meanForceRel: meanForceRel.toFixed(1),
-      samplingRate: rate,
-      mass,
-      BW: BW.toFixed(0),
-    });
-  };
-
-  // ==========================================
-  // STATE FOR SAMOZINO FVP (FORCE-VELOCITY PROFILE)
-  // ==========================================
+  // ------------------------------- F-V profile -------------------------------
   const [jumps, setJumps] = useState([
-    { weight: '0', flightTime: '0.62' },
-    { weight: '15', flightTime: '0.54' },
-    { weight: '30', flightTime: '0.46' },
-    { weight: '45', flightTime: '0.38' },
+    { load: '0', flight: '' },
+    { load: '15', flight: '' },
+    { load: '30', flight: '' },
+    { load: '45', flight: '' },
   ]);
+  const [result, setResult] = useState<FvProfileResult | null>(null);
 
-  const [fvpResult, setFvpResult] = useState<any>(null);
+  const mass = Number(activePlayer?.weight_kg) || 0;
+  const hpo = resolveHpo(activePlayer);
 
-  const handleJumpChange = (index: number, field: string, value: string) => {
-    const updated = [...jumps];
-    (updated[index] as any)[field] = value;
-    setJumps(updated);
+  const compute = () => {
+    setResult(
+      forceVelocityProfile(
+        jumps
+          .filter(j => j.flight.trim() !== '')
+          .map(j => ({ loadKg: parseFloat(j.load) || 0, flightTimeSec: parseFloat(j.flight) })),
+        mass,
+        hpo.hpoM,
+      ),
+    );
   };
 
-  const handleFVPAnalyze = () => {
-    const mass = parseFloat(String(athleteMass)) || 75;
-    const legLength = parseFloat(String(activePlayer?.leg_length_m)) || 1.0;
-    const pushDistance = Math.max(0.2, (legLength > 2 ? legLength / 100 : legLength) * 0.45);
-    const g = 9.80665;
+  const bandLabel: Record<FvImbalanceBand, string> = {
+    well_balanced: f.bandWell,
+    moderate_force_deficit: f.bandModForce,
+    moderate_velocity_deficit: f.bandModVel,
+    large_force_deficit: f.bandLargeForce,
+    large_velocity_deficit: f.bandLargeVel,
+  };
+  const bandTone = (b: FvImbalanceBand) =>
+    b === 'well_balanced' ? 'tone-success' : b.startsWith('moderate') ? 'tone-warning' : 'tone-danger';
+  const presc = (b: FvImbalanceBand) =>
+    b === 'well_balanced' ? f.prescBalanced : b.endsWith('force_deficit') ? f.prescForce : f.prescVel;
 
-    const points: { v: number; f: number; weight: number }[] = [];
+  const reasonText = (r: string) =>
+    ({ too_few_points: f.reasonTooFew, no_variation: f.reasonNoVariation, non_negative_slope: f.reasonSlope, low_r2: f.reasonR2, missing_inputs: f.reasonMissing } as Record<string, string>)[r] || r;
 
-    for (let i = 0; i < jumps.length; i++) {
-      const extraWeight = parseFloat(jumps[i].weight) || 0;
-      const ft = parseFloat(jumps[i].flightTime);
+  // Plot geometry (actual vs optimal line, plus raw points)
+  const plot = useMemo(() => {
+    if (!result || !result.ok) return null;
+    const F0opt = Math.sqrt(-4 * result.Pmax * result.SfvOpt);
+    const V0opt = -F0opt / result.SfvOpt;
+    const maxV = Math.max(result.V0, V0opt) * 1.05;
+    const maxF = Math.max(result.F0, F0opt) * 1.05;
+    const W = 320, H = 200, L = 36, B = 24;
+    const x = (v: number) => L + (v / maxV) * (W - L - 8);
+    const y = (fv: number) => H - B - (fv / maxF) * (H - B - 8);
+    return { W, H, L, B, x, y, F0opt, V0opt, maxV, maxF };
+  }, [result]);
 
-      if (!ft || ft <= 0) {
-        return alert(isAr ? `يرجى إدخال زمن الطيران للمحاولة رقم ${i + 1} بشكل صحيح.` : `Please enter valid flight time for trial #${i + 1}`);
-      }
+  // ------------------------------- Force-time --------------------------------
+  const [fs, setFs] = useState('1000');
+  const [raw, setRaw] = useState('');
+  const [ft, setFt] = useState<ForceTimeResult | null>(null);
 
-      const h = 0.125 * g * Math.pow(ft, 2);
-      const v_takeoff = Math.sqrt(2 * g * h);
-      const mean_v = v_takeoff / 2;
-      const totalMass = mass + extraWeight;
-      const mean_f = totalMass * g * ((h / pushDistance) + 1);
-
-      points.push({ v: mean_v, f: mean_f, weight: extraWeight });
-    }
-
-    const n = points.length;
-    let sum_v = 0;
-    let sum_f = 0;
-    points.forEach((p) => { sum_v += p.v; sum_f += p.f; });
-    const mean_v_all = sum_v / n;
-    const mean_f_all = sum_f / n;
-
-    let numerator = 0;
-    let denominator = 0;
-    points.forEach((p) => {
-      numerator += (p.v - mean_v_all) * (p.f - mean_f_all);
-      denominator += (p.v - mean_v_all) * (p.v - mean_v_all);
-    });
-
-    const slope = denominator !== 0 ? numerator / denominator : -50;
-    const isDistorted = slope >= 0 || Number.isNaN(slope);
-    const effectiveSlope = isDistorted ? -60 : slope;
-
-    const F0 = Math.max(100, mean_f_all - effectiveSlope * mean_v_all);
-    const V0 = Math.max(0.5, effectiveSlope < 0 ? -F0 / effectiveSlope : 2.5);
-    const Pmax = (F0 * V0) / 4;
-    const f0_rel = F0 / mass;
-
-    // Optimal slope benchmark
-    const Sopt_rel = -22.5;
-    const Sopt = Sopt_rel * mass;
-    const V0_opt = Math.max(1.0, 2 * Math.sqrt(Pmax / Math.abs(Sopt)));
-    const F0_opt = Math.max(100, V0_opt * Math.abs(Sopt));
-    const fvpIndex = Math.round((effectiveSlope / Sopt) * 100);
-
-    let diagnosis = "";
-    let advice = "";
-    let color = "";
-
-    if (fvpIndex < 85 || (V0 >= 3.0 && f0_rel < 28)) {
-      diagnosis = isAr ? "عجز في القوة (High Force Deficit)" : "High Force Deficit";
-      advice = isAr ? t.fvpConsole.highForceDeficitPresc : "Athlete exhibits high elastic velocity but lacks raw absolute force. Prioritize heavy slow resistance squatting (>85% 1RM).";
-      color = "border-amber-500/40 bg-amber-500/10 text-amber-400";
-    } else if (fvpIndex > 115 || (f0_rel >= 32 && V0 < 2.5)) {
-      diagnosis = isAr ? "عجز في السرعة (Velocity Deficit)" : "Velocity Deficit";
-      advice = isAr ? t.fvpConsole.highVelocityDeficitPresc : "Athlete has high structural strength but sluggish acceleration. Prioritize light ballistic squats and assisted plyometrics.";
-      color = "border-[#FF5500]/40 bg-[#FF5500]/10 text-[#FF5500]";
-    } else {
-      diagnosis = isAr ? "ملف مثالي متوازن (Well-Balanced Elite)" : "Well-Balanced Elite";
-      advice = isAr ? t.fvpConsole.balancedPresc : "Optimal neuromuscular balance between force and velocity. Continue comprehensive complex training.";
-      color = "border-[#D4FF00]/40 bg-[#D4FF00]/10 text-[#D4FF00]";
-    }
-
-    setFvpResult({
-      F0: F0.toFixed(0),
-      V0: V0.toFixed(2),
-      Pmax: Pmax.toFixed(0),
-      f0_rel: f0_rel.toFixed(1),
-      effectiveSlope: effectiveSlope.toFixed(1),
-      Sopt: Sopt.toFixed(1),
-      F0_opt: F0_opt.toFixed(0),
-      V0_opt: V0_opt.toFixed(2),
-      fvpIndex,
-      diagnosis,
-      advice,
-      color,
-      isDistorted,
+  const analyze = () => {
+    const samples = raw.split(/[\s,;]+/).map(Number).filter(Number.isFinite);
+    setFt(analyzeForceTime(samples, parseFloat(fs)));
+  };
+  const loadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    file.text().then(txt => {
+      // keep the last numeric column of each row (common force-plate export layout)
+      const vals = txt.split(/\r?\n/).map(line => {
+        const nums = line.split(/[,;\t ]+/).map(Number).filter(Number.isFinite);
+        return nums.length ? nums[nums.length - 1] : NaN;
+      }).filter(Number.isFinite);
+      setRaw(vals.join(', '));
     });
   };
+  const ftReason = (r: string) =>
+    ({ too_short: f.ftErrTooShort, no_quiet_phase: f.ftErrQuiet, no_onset: f.ftErrOnset, no_takeoff: f.ftErrTakeoff, negative_takeoff_velocity: f.ftErrVelocity } as Record<string, string>)[r] || r;
 
   return (
-    <div className={`p-4 md:p-6 text-white rounded-3xl border border-[#27272A] bg-[#121215] relative overflow-hidden shadow-2xl ${isAr ? 'text-right' : 'text-left'}`} dir={isAr ? 'rtl' : 'ltr'}>
-      {/* Subtle brand glow behind title */}
-      <div className="absolute -top-16 -left-16 w-48 h-48 bg-[#D4FF00]/5 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Sub-tab selection */}
-      <div className="flex justify-center gap-2 mb-6 bg-[#09090B] p-1.5 rounded-2xl border border-[#27272A] max-w-md mx-auto">
-        <button
-          onClick={() => setActiveSubTab('fvp')}
-          className={`flex-1 py-2 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
-            activeSubTab === 'fvp'
-              ? 'bg-[#D4FF00] text-[#09090B] shadow-[0_0_15px_rgba(212,255,0,0.3)]'
-              : 'text-zinc-400 hover:text-white'
-          }`}
-        >
-          <TrendingUp size={16} />
-          {isAr ? 'منحنى القوة والسرعة (FVP Curve)' : 'Force-Velocity Profile'}
-        </button>
-        <button
-          onClick={() => setActiveSubTab('ftc')}
-          className={`flex-1 py-2 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
-            activeSubTab === 'ftc'
-              ? 'bg-[#D4FF00] text-[#09090B] shadow-[0_0_15px_rgba(212,255,0,0.3)]'
-              : 'text-zinc-400 hover:text-white'
-          }`}
-        >
-          <LineChart size={16} />
-          {isAr ? 'منحنى القوة والزمن (FTC Analysis)' : 'Force-Time Curve (FTC)'}
-        </button>
+    <div className="space-y-6">
+      <div className="segmented max-w-md mx-auto">
+        <button onClick={() => setTab('fvp')} aria-pressed={tab === 'fvp'}><TrendingUp size={16} /> {f.tabFvp}</button>
+        <button onClick={() => setTab('ftc')} aria-pressed={tab === 'ftc'}><LineChart size={16} /> {f.tabFt}</button>
       </div>
 
-      {/* ========================================================================= */}
-      {/* ================= TAB 1: FORCE-VELOCITY PROFILE (FVP) =================== */}
-      {/* ========================================================================= */}
-      {activeSubTab === 'fvp' && (
-        <div className="space-y-6">
-          <div className="text-center mb-6">
-            <h3 className="text-xl md:text-2xl font-black text-white flex items-center justify-center gap-2">
-              <Zap className="text-[#D4FF00]" size={24} />
-              {t.fvpConsole.title}
-            </h3>
-            <p className="text-zinc-400 text-xs mt-1.5 max-w-xl mx-auto">
-              {t.fvpConsole.subtitle}
-            </p>
-          </div>
+      {tab === 'fvp' && (
+        <section className="space-y-5">
+          <header className="text-center space-y-1">
+            <h3 className="text-xl font-bold flex items-center justify-center gap-2"><Zap className="text-accent" size={22} />{f.title}</h3>
+            <p className="text-muted text-sm max-w-xl mx-auto">{f.subtitle}</p>
+            <div className="flex flex-wrap justify-center gap-2 pt-1 text-xs font-mono tabular-nums">
+              <span className="chip">{f.bodyMass}: {mass > 0 ? `${mass} kg` : DASH}</span>
+              <span className="chip">hPO: {hpo.hpoM ? `${hpo.hpoM.toFixed(2)} m` : DASH}</span>
+              {hpo.estimated && hpo.hpoM && <span className="chip tone-warning">{t.hud.hpoEstimatedBadge}</span>}
+            </div>
+          </header>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto mb-6">
-            {jumps.map((jump, idx) => (
-              <div key={idx} className="bg-[#18181B] p-4 rounded-2xl border border-[#27272A] text-center">
-                <span className="text-xs font-black text-[#D4FF00] block mb-2">
-                  {isAr ? `القفزة #${idx + 1}` : `Trial #${idx + 1}`}
-                </span>
-                <div className="space-y-2">
-                  <div>
-                    <label className="text-[10px] text-zinc-400 block mb-0.5">{t.fvpConsole.loadTrial} (kg)</label>
-                    <input
-                      type="number"
-                      value={jump.weight}
-                      onChange={(e) => handleJumpChange(idx, 'weight', e.target.value)}
-                      className="w-full bg-[#09090B] border border-[#27272A] p-2 text-white font-mono tabular-nums text-center rounded-xl text-xs outline-none focus:border-[#D4FF00]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-zinc-400 block mb-0.5">{isAr ? 'زمن الطيران (s)' : 'Flight Time (s)'}</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={jump.flightTime}
-                      onChange={(e) => handleJumpChange(idx, 'flightTime', e.target.value)}
-                      className="w-full bg-[#09090B] border border-[#27272A] p-2 text-[#D4FF00] font-mono tabular-nums text-center rounded-xl text-xs outline-none focus:border-[#D4FF00]"
-                    />
-                  </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {jumps.map((j, i) => (
+              <div key={i} className="card p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-accent">{f.trial} {i + 1}</span>
+                  {jumps.length > 2 && (
+                    <button aria-label={f.removeTrial} className="icon-btn" onClick={() => setJumps(jumps.filter((_, k) => k !== i))}><Trash2 size={16} /></button>
+                  )}
                 </div>
+                <label className="block text-xs text-muted">{f.loadTrial} (kg)
+                  <input type="number" inputMode="decimal" value={j.load} onChange={e => setJumps(jumps.map((x, k) => (k === i ? { ...x, load: e.target.value } : x)))} className="field mt-1" />
+                </label>
+                <label className="block text-xs text-muted">{f.flightTimeS}
+                  <input type="number" inputMode="decimal" step="0.001" value={j.flight} placeholder="0.000" onChange={e => setJumps(jumps.map((x, k) => (k === i ? { ...x, flight: e.target.value } : x)))} className="field mt-1" />
+                </label>
               </div>
             ))}
           </div>
 
-          <div className="text-center mb-6">
-            <button
-              onClick={handleFVPAnalyze}
-              className="px-10 py-3.5 bg-[#D4FF00] text-[#09090B] rounded-xl font-black text-sm shadow-[0_0_20px_rgba(212,255,0,0.3)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
-            >
-              📊 {isAr ? 'حساب ملف القوة والسرعة ومنحنى ساموزينو' : 'Compute Samozino F-V Profile & Curve'}
-            </button>
+          <div className="flex flex-wrap justify-center gap-3">
+            <button className="btn-ghost" onClick={() => setJumps([...jumps, { load: '', flight: '' }])}><Plus size={16} /> {f.addTrial}</button>
+            <button className="btn-primary" onClick={compute}>{f.compute}</button>
           </div>
 
-          {fvpResult && (
-            <div className="space-y-6 border-t border-[#27272A] pt-6 animate-fade-in">
-              {/* Automated Prescription Badge */}
-              <div className={`p-6 rounded-2xl border ${fvpResult.color} shadow-lg text-center`}>
-                <p className="text-xs font-bold opacity-80 mb-1">{t.fvpConsole.trainingPrescription}</p>
-                <h4 className="text-2xl font-black mb-2 text-white">{fvpResult.diagnosis}</h4>
-                <p className="text-xs opacity-90 max-w-xl mx-auto leading-relaxed">
-                  💡 {fvpResult.advice}
-                </p>
-                <div className="mt-3 inline-block bg-black/50 px-3 py-1 rounded-full border border-white/10 font-mono tabular-nums text-xs font-bold text-white">
-                  {t.fvpConsole.imbalancePercent}: {fvpResult.fvpIndex}% ({isAr ? 'المثالي = 100%' : 'Optimal = 100%'})
-                </div>
-              </div>
-
-              {/* F-V Curve Plot SVG */}
-              <div className="bg-[#18181B] p-6 rounded-2xl border border-[#27272A]">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4">
-                  <h4 className="font-bold text-sm text-zinc-200">{t.fvpConsole.actualVsOptCurve}</h4>
-                  <div className="flex gap-4 text-xs font-bold">
-                    <span className="flex items-center gap-1.5 text-[#D4FF00]">
-                      <span className="w-3.5 h-0.5 bg-[#D4FF00] inline-block" /> {isAr ? 'المنحنى الفعلي للرياضي' : 'Actual Athlete Curve'}
-                    </span>
-                    <span className="flex items-center gap-1.5 text-[#10B981]">
-                      <span className="w-3.5 h-0.5 border-t-2 border-dashed border-[#10B981] inline-block" /> {isAr ? 'المنحنى المثالي المستهدف' : 'Optimal Target Curve'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="relative h-64 flex items-end">
-                  <div className="absolute left-2 top-2 text-[9px] text-zinc-500 font-bold font-mono">Force (N)</div>
-                  <div className="absolute right-4 bottom-2 text-[9px] text-zinc-500 font-bold font-mono">Velocity (m/s)</div>
-
-                  <svg className="w-full h-full" viewBox="0 0 500 220">
-                    <line x1="40" y1="20" x2="40" y2="190" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
-                    <line x1="40" y1="190" x2="480" y2="190" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
-                    
-                    {/* Grid Lines */}
-                    <line x1="40" y1="105" x2="480" y2="105" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4,4" />
-                    <line x1="260" y1="20" x2="260" y2="190" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4,4" />
-
-                    {/* Actual Curve (Acid Volt) */}
-                    <line x1="40" y1="40" x2="420" y2="190" stroke="#D4FF00" strokeWidth="3" />
-                    <circle cx="40" cy="40" r="5" fill="#D4FF00" />
-                    <circle cx="420" cy="190" r="5" fill="#D4FF00" />
-
-                    {/* Optimal Target Curve (Emerald Dashed) */}
-                    <line x1="40" y1="65" x2="450" y2="190" stroke="#10B981" strokeWidth="2.5" strokeDasharray="6,4" />
-                    <circle cx="40" cy="65" r="4" fill="#10B981" />
-                    <circle cx="450" cy="190" r="4" fill="#10B981" />
-
-                    <text x="50" y="45" fill="#D4FF00" fontSize="10" fontFamily="JetBrains Mono, monospace">F0: {fvpResult.F0} N</text>
-                    <text x="360" y="180" fill="#D4FF00" fontSize="10" fontFamily="JetBrains Mono, monospace">V0: {fvpResult.V0} m/s</text>
-                  </svg>
-                </div>
-              </div>
-
-              {/* Numerical Metrics Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div className="bg-[#18181B] p-4 rounded-2xl border-b-2 border-[#D4FF00] border border-[#27272A]">
-                  <span className="block text-[11px] text-zinc-400 mb-1">{t.fvpConsole.f0Force} (F0)</span>
-                  <span className="text-2xl font-black text-white font-mono tabular-nums">{fvpResult.F0} <span className="text-xs text-zinc-400 font-sans">N</span></span>
-                  <span className="block text-[9px] text-[#D4FF00] mt-1 font-mono">({fvpResult.f0_rel} N/kg)</span>
-                </div>
-                <div className="bg-[#18181B] p-4 rounded-2xl border-b-2 border-[#FF5500] border border-[#27272A]">
-                  <span className="block text-[11px] text-zinc-400 mb-1">{t.fvpConsole.v0Velocity} (V0)</span>
-                  <span className="text-2xl font-black text-white font-mono tabular-nums">{fvpResult.V0} <span className="text-xs text-zinc-400 font-sans">m/s</span></span>
-                </div>
-                <div className="bg-[#18181B] p-4 rounded-2xl border-b-2 border-[#10B981] border border-[#27272A]">
-                  <span className="block text-[11px] text-zinc-400 mb-1">{t.fvpConsole.pmaxPower} (Pmax)</span>
-                  <span className="text-2xl font-black text-[#10B981] font-mono tabular-nums">{fvpResult.Pmax} <span className="text-xs text-zinc-400 font-sans">W</span></span>
-                </div>
-                <div className="bg-[#18181B] p-4 rounded-2xl border-b-2 border-zinc-500 border border-[#27272A]">
-                  <span className="block text-[11px] text-zinc-400 mb-1">{t.fvpConsole.sfvSlope} (Sfv)</span>
-                  <span className="text-2xl font-black text-white font-mono tabular-nums">{fvpResult.effectiveSlope}</span>
-                </div>
-              </div>
+          {result && !result.ok && (
+            <div className="card p-4 space-y-3 tone-danger" role="alert">
+              <h4 className="font-bold flex items-center gap-2"><AlertTriangle size={18} /> {f.invalidTitle}</h4>
+              <p className="text-sm">{reasonText(result.reason)}</p>
+              {(result.slope !== undefined || result.r2 !== undefined) && (
+                <p className="text-xs font-mono tabular-nums">Sfv = {n(result.slope ?? null, 2)} · R² = {n(result.r2 ?? null, 3)}</p>
+              )}
             </div>
           )}
-        </div>
+
+          {result && result.points.length > 0 && (
+            <div className="card p-4 overflow-x-auto">
+              <h4 className="text-sm font-bold mb-2">{f.rawPoints}</h4>
+              <table className="w-full text-sm font-mono tabular-nums">
+                <thead className="text-muted text-xs">
+                  <tr><th className="text-start py-1">{f.load} (kg)</th><th className="text-start">{f.height} (cm)</th><th className="text-start">{f.force} (N/kg)</th><th className="text-start">{f.velocity} (m/s)</th></tr>
+                </thead>
+                <tbody>
+                  {result.points.map((p, i) => (
+                    <tr key={i} className="border-t border-border"><td className="py-1">{p.loadKg}</td><td>{(p.jumpHeightM * 100).toFixed(1)}</td><td>{p.forceNkg.toFixed(2)}</td><td>{p.velocityMs.toFixed(3)}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {result && result.ok && plot && (
+            <div className="space-y-4">
+              <div className={`card p-5 text-center ${bandTone(result.band)}`}>
+                <p className="text-xs text-muted">{f.imbalancePercent}</p>
+                <p className="text-5xl font-bold font-mono tabular-nums my-1">{result.FVimb.toFixed(0)}%</p>
+                <p className="font-bold">{bandLabel[result.band]}</p>
+                <p className="text-sm text-muted mt-2 max-w-md mx-auto">{presc(result.band)}</p>
+              </div>
+
+              <div className="card p-4">
+                <div className="flex flex-wrap justify-between gap-2 mb-2 text-xs">
+                  <span className="font-bold text-sm">{f.actualVsOptCurve}</span>
+                  <span className="flex gap-3">
+                    <span className="flex items-center gap-1 text-accent"><span className="w-4 h-0.5 bg-accent inline-block" />{f.actualCurve}</span>
+                    <span className="flex items-center gap-1 text-success"><span className="w-4 border-t-2 border-dashed border-success inline-block" />{f.optimalCurve}</span>
+                  </span>
+                </div>
+                <svg viewBox={`0 0 ${plot.W} ${plot.H}`} className="w-full h-auto" role="img" aria-label={f.actualVsOptCurve} style={{ direction: "ltr" }}>
+                  <line x1={plot.L} y1={8} x2={plot.L} y2={plot.H - plot.B} className="stroke-border" />
+                  <line x1={plot.L} y1={plot.H - plot.B} x2={plot.W - 8} y2={plot.H - plot.B} className="stroke-border" />
+                  <line x1={plot.x(0)} y1={plot.y(result.F0)} x2={plot.x(result.V0)} y2={plot.y(0)} className="stroke-accent" strokeWidth={2.5} />
+                  <line x1={plot.x(0)} y1={plot.y(plot.F0opt)} x2={plot.x(plot.V0opt)} y2={plot.y(0)} className="stroke-success" strokeWidth={2} strokeDasharray="6 4" />
+                  {result.points.map((p, i) => <circle key={i} cx={plot.x(p.velocityMs)} cy={plot.y(p.forceNkg)} r={4} className="fill-text" />)}
+                  <text x={plot.L - 4} y={14} textAnchor="end" className="fill-muted" fontSize={10}>N/kg</text>
+                  <text x={plot.W - 8} y={plot.H - 6} textAnchor="end" className="fill-muted" fontSize={10}>m/s</text>
+                  <text x={plot.L - 4} y={plot.y(result.F0) + 3} textAnchor="end" className="fill-muted" fontSize={9}>{result.F0.toFixed(0)}</text>
+                  <text x={plot.x(result.V0)} y={plot.H - 10} textAnchor="middle" className="fill-muted" fontSize={9}>{result.V0.toFixed(1)}</text>
+                </svg>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Metric label={`${f.f0Force} (F0)`} value={n(result.F0, 1)} unit="N/kg" sub={`${n(result.F0 * mass, 0)} N`} />
+                <Metric label={`${f.v0Velocity} (V0)`} value={n(result.V0, 2)} unit="m/s" />
+                <Metric label={`${f.pmaxPower} (Pmax)`} value={n(result.Pmax, 1)} unit="W/kg" sub={`${n(result.Pmax * mass, 0)} W`} />
+                <Metric label="R²" value={n(result.r2, 3)} />
+                <Metric label={`${f.sfvSlope} (Sfv)`} value={n(result.Sfv, 2)} unit="N·s/m/kg" />
+                <Metric label={`${f.sfvOptSlope} (Sfv opt)`} value={n(result.SfvOpt, 2)} unit="N·s/m/kg" />
+                <Metric label="hPO" value={n(result.hpoM, 2)} unit="m" sub={hpo.estimated ? t.hud.hpoEstimatedBadge : undefined} />
+              </div>
+              <p className="text-xs text-muted">{f.methodDesc}</p>
+            </div>
+          )}
+        </section>
       )}
 
-      {/* ========================================================================= */}
-      {/* ================= TAB 2: FORCE-TIME CURVE (FTC) ========================= */}
-      {/* ========================================================================= */}
-      {activeSubTab === 'ftc' && (
-        <div className="space-y-6">
-          <div className="text-center mb-6">
-            <h3 className="text-xl md:text-2xl font-black text-white flex items-center justify-center gap-2">
-              <Activity className="text-[#D4FF00]" size={24} />
-              {isAr ? 'تحليل منحنى القوة والزمن (FTC)' : 'Force-Time Curve Analysis (FTC)'}
-            </h3>
-            <p className="text-zinc-400 text-xs mt-1.5 max-w-xl mx-auto">
-              {isAr ? 'تحليل إشارات القوة الخام ومعدل توليد القوة (RFD) ومراحل الكبح والارتقاء.' : 'Analyze raw telemetry force signals, rate of force development (RFD), and propulsion phases.'}
-            </p>
+      {tab === 'ftc' && (
+        <section className="space-y-5">
+          <header className="text-center space-y-1">
+            <h3 className="text-xl font-bold flex items-center justify-center gap-2"><Activity className="text-accent" size={22} />{f.ftTitle}</h3>
+            <p className="text-muted text-sm max-w-xl mx-auto">{f.ftSubtitle}</p>
+          </header>
+          <div className="grid gap-3 max-w-2xl mx-auto">
+            <label className="text-xs text-muted">{f.ftSampling}
+              <input type="number" inputMode="numeric" value={fs} onChange={e => setFs(e.target.value)} className="field mt-1" />
+            </label>
+            <label className="text-xs text-muted">{f.ftPaste}
+              <textarea value={raw} onChange={e => setRaw(e.target.value)} rows={5} className="field mt-1 font-mono" dir="ltr" />
+            </label>
+            <div className="flex flex-wrap gap-3 justify-center">
+              <label className="btn-ghost cursor-pointer"><Upload size={16} /> {f.ftLoadFile}
+                <input type="file" accept=".csv,.txt" className="sr-only" onChange={loadFile} />
+              </label>
+              <button className="btn-primary" onClick={analyze} disabled={!raw.trim()}>{f.ftAnalyze}</button>
+            </div>
+            <p className="text-xs text-muted">{f.ftMethod}</p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-2 mb-4">
-            <button onClick={() => loadPreset('elite')} className="px-3 py-1.5 bg-[#18181B] hover:bg-zinc-800 text-[#D4FF00] border border-[#D4FF00]/30 rounded-xl text-xs font-bold cursor-pointer">
-              {isAr ? 'نموذج رياضي نخبة ⚡' : 'Elite Athlete Preset ⚡'}
-            </button>
-            <button onClick={() => loadPreset('low_rfd')} className="px-3 py-1.5 bg-[#18181B] hover:bg-zinc-800 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold cursor-pointer">
-              {isAr ? 'نموذج انفجارية منخفضة ⚠️' : 'Low RFD Preset ⚠️'}
-            </button>
-            <button onClick={() => loadPreset('low_force')} className="px-3 py-1.5 bg-[#18181B] hover:bg-zinc-800 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-bold cursor-pointer">
-              {isAr ? 'نموذج قوة منخفضة 🛑' : 'Low Force Preset 🛑'}
-            </button>
-          </div>
+          {ft && !ft.ok && (
+            <div className="card p-4 tone-danger max-w-2xl mx-auto" role="alert">
+              <p className="font-bold flex items-center gap-2"><AlertTriangle size={18} /> {ftReason(ft.reason)}</p>
+            </div>
+          )}
 
-          <div className="max-w-2xl mx-auto mb-4">
-            <textarea
-              value={rawForceInput}
-              onChange={(e) => setRawForceInput(e.target.value)}
-              placeholder={isAr ? "ضع قيم القوة هنا مفصولة بفواصل أو مسافات..." : "Paste raw force data values (separated by commas or spaces)..."}
-              className="w-full h-28 bg-[#09090B] border border-[#27272A] p-3 text-white font-mono tabular-nums text-xs rounded-xl outline-none focus:border-[#D4FF00]"
-            />
-          </div>
-
-          <div className="text-center">
-            <button
-              onClick={handleFTCAnalyze}
-              className="px-10 py-3 bg-[#D4FF00] text-[#09090B] rounded-xl font-black text-xs shadow-lg cursor-pointer hover:bg-[#b8dd00]"
-            >
-              {isAr ? 'تحليل منحنى القوة والزمن 📈' : 'Run Force-Time Analysis 📈'}
-            </button>
-          </div>
-
-          {ftcResult && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center max-w-3xl mx-auto border-t border-[#27272A] pt-6">
-              <div className="bg-[#18181B] p-4 rounded-2xl border-b-2 border-[#D4FF00] border border-[#27272A]">
-                <span className="block text-[11px] text-zinc-400 mb-1">{isAr ? 'ذروة القوة (Peak F)' : 'Peak Force'}</span>
-                <span className="text-2xl font-black text-white font-mono tabular-nums">{ftcResult.peakForce} N</span>
-                <span className="block text-[9px] text-[#D4FF00] font-mono">({ftcResult.peakForceRel} N/kg)</span>
+          {ft && ft.ok && (
+            <div className="space-y-3 max-w-3xl mx-auto">
+              <div className="card p-5 text-center">
+                <p className="text-xs text-muted">{f.ftJumpHeight}</p>
+                <p className="text-5xl font-bold font-mono tabular-nums">{(ft.jumpHeight * 100).toFixed(1)}<span className="text-base text-muted ms-1">cm</span></p>
               </div>
-              <div className="bg-[#18181B] p-4 rounded-2xl border-b-2 border-[#FF5500] border border-[#27272A]">
-                <span className="block text-[11px] text-zinc-400 mb-1">{isAr ? 'متوسط القوة' : 'Mean Force'}</span>
-                <span className="text-2xl font-black text-white font-mono tabular-nums">{ftcResult.meanForce} N</span>
-              </div>
-              <div className="bg-[#18181B] p-4 rounded-2xl border-b-2 border-[#10B981] border border-[#27272A]">
-                <span className="block text-[11px] text-zinc-400 mb-1">{isAr ? 'وزن الجسم المعياري' : 'Body Weight'}</span>
-                <span className="text-2xl font-black text-[#10B981] font-mono tabular-nums">{ftcResult.BW} N</span>
-              </div>
-              <div className="bg-[#18181B] p-4 rounded-2xl border-b-2 border-zinc-500 border border-[#27272A]">
-                <span className="block text-[11px] text-zinc-400 mb-1">{isAr ? 'معدل العينات' : 'Sampling Rate'}</span>
-                <span className="text-2xl font-black text-white font-mono tabular-nums">{ftcResult.samplingRate} Hz</span>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Metric label={f.ftTakeoffVel} value={n(ft.takeoffVelocity, 2)} unit="m/s" />
+                <Metric label={f.ftTimeToTakeoff} value={n(ft.timeToTakeoff, 3)} unit="s" />
+                <Metric label={f.ftRsiMod} value={n(ft.rsiMod, 2)} unit="m/s" />
+                <Metric label={f.ftPropDuration} value={n(ft.propulsiveDuration, 3)} unit="s" />
+                <Metric label={f.ftPeakForce} value={n(ft.peakForce, 0)} unit="N" sub={`${n(ft.peakForce / ft.bodyMassKg, 1)} N/kg`} />
+                <Metric label={f.ftMeanPropForce} value={n(ft.meanPropulsiveForce, 0)} unit="N" sub={`${n(ft.meanPropulsiveForce / ft.bodyMassKg, 1)} N/kg`} />
+                <Metric label={f.ftPeakPower} value={n(ft.peakPower, 0)} unit="W" sub={`${n(ft.peakPower / ft.bodyMassKg, 1)} W/kg`} />
+                <Metric label={f.ftImpulse} value={n(ft.propulsiveImpulse, 1)} unit="N·s" />
+                <Metric label={f.ftBodyWeight} value={n(ft.bodyWeightN, 0)} unit="N" sub={`${n(ft.bodyMassKg, 1)} kg`} />
               </div>
             </div>
           )}
-        </div>
+        </section>
       )}
     </div>
   );

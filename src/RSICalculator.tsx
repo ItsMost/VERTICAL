@@ -4,7 +4,8 @@ import {
   Award, Video, Sliders, Check
 } from 'lucide-react';
 import { useData } from './context/DataContext';
-import { classifyGCT, calculateRSI } from './useJumpMechanics';
+import { classifyGCT } from './useJumpMechanics';
+import { jumpHeightFromFlightTime, rsiFromHeight, rsiFromFlightTime, legStiffnessDalleau, takeoffVelocityFromJumpHeight, realDurationFromVideo } from './lib/biomechanics';
 import type { JumpMeasurement, GCTAnalysis } from './types/athletics';
 
 // Animated counter helper
@@ -38,7 +39,6 @@ interface RSIStats {
   heightCm: string;
   heightInches: string;
   rsi: string;
-  rsiMod: string;
   legStiffness: string;
   gctAnalysis: GCTAnalysis;
 }
@@ -91,8 +91,7 @@ export default function RSICalculator({
     heightCm: '0.0',
     heightInches: '0.0',
     rsi: '0.00',
-    rsiMod: '0.00',
-    legStiffness: '0.0',
+    legStiffness: '—',
     gctAnalysis: classifyGCT(0),
   });
 
@@ -111,25 +110,20 @@ export default function RSICalculator({
     if (touchdownTime > 0 && takeoffTime > touchdownTime && landingTime > takeoffTime) {
       const cFps = parseFloat(String(cameraFps)) || 240;
       const vFps = parseFloat(String(videoFps)) || 30;
-      const fpsRatio = vFps / cFps;
+      const ct = realDurationFromVideo(takeoffTime - touchdownTime, cFps, vFps);
+      const ft = realDurationFromVideo(landingTime - takeoffTime, cFps, vFps);
 
-      const rawCT = takeoffTime - touchdownTime;
-      const rawFT = landingTime - takeoffTime;
-
-      const ct = rawCT * fpsRatio;
-      const ft = rawFT * fpsRatio;
-
-      const g = 9.81;
-      const hM = (g * Math.pow(ft, 2)) / 8;
+      const hM = jumpHeightFromFlightTime(ft) ?? 0;
       const hCm = hM * 100;
-      const hIn = hCm * 0.393701;
+      const hIn = hCm / 2.54;
 
-      // Standard RSI calculation (Height in cm, Flight time in sec, Contact time in sec, method)
-      const computedRsi = calculateRSI(hCm, ft, ct, rsiMethod);
-      const rsiMod = ct > 0 ? (hCm / (ct * 1000)).toFixed(2) : '0.00';
+      // RSI with explicit units: metres / seconds or seconds / seconds
+      const computedRsi = (rsiMethod === 'flight_gct' ? rsiFromFlightTime(ft, ct) : rsiFromHeight(hM, ct)) ?? 0;
 
-      const mass = parseFloat(String(activePlayer?.weight_kg)) || 72;
-      const stiffness = ct > 0 ? ((mass * Math.PI * (ft + ct)) / (2 * Math.pow(ct, 2) * (ft / Math.PI + ct / 4)) / 1000).toFixed(1) : '0.0';
+      // Dalleau et al. (2004) vertical leg stiffness; needs the athlete's real body mass
+      const mass = parseFloat(String(activePlayer?.weight_kg));
+      const k = legStiffnessDalleau(mass, ct, ft);
+      const stiffness = k === null ? '—' : (k / 1000).toFixed(1);
 
       const gctAnalysis = classifyGCT(ct);
 
@@ -139,7 +133,6 @@ export default function RSICalculator({
         heightCm: hCm.toFixed(1),
         heightInches: hIn.toFixed(1),
         rsi: computedRsi.toFixed(2),
-        rsiMod: rsiMod,
         legStiffness: stiffness,
         gctAnalysis,
       });
@@ -165,9 +158,9 @@ export default function RSICalculator({
         flight_time_sec: parseFloat(stats.flightTime),
         contact_time_sec: parseFloat(stats.contactTime),
         rsi_score: parseFloat(stats.rsi),
-        takeoff_velocity_ms: 0,
-        mean_power_watts: 0,
-        notes: `GCT: ${stats.contactTime}s (${stats.gctAnalysis.classification})`,
+        takeoff_velocity_ms: takeoffVelocityFromJumpHeight(parseFloat(stats.heightCm) / 100),
+        mean_power_watts: null,
+        notes: `GCT: ${stats.contactTime}s (${stats.gctAnalysis.labelEn})`,
       };
 
       // CENTRAL DATA CALL (Instant in-memory sync across the app!)
@@ -412,9 +405,9 @@ export default function RSICalculator({
             </div>
 
             <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold ${
-              stats.gctAnalysis.classification === 'Fast SSC' ? 'badge-volt' : stats.gctAnalysis.classification === 'Moderate SSC' ? 'badge-amber' : 'badge-rose'
+              stats.gctAnalysis.category === 'elite_fast' ? 'badge-volt' : stats.gctAnalysis.category === 'moderate' ? 'badge-amber' : 'badge-rose'
             }`}>
-              {stats.gctAnalysis.classification}
+              {isEn ? stats.gctAnalysis.labelEn : stats.gctAnalysis.labelAr}
             </span>
           </div>
 
@@ -443,7 +436,7 @@ export default function RSICalculator({
             <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800">
               <span className="text-[10px] text-zinc-500 block uppercase">Leg Stiffness</span>
               <span className="text-3xl font-black text-[#FF5500] block my-1">
-                {stats.legStiffness} kN/m
+                {stats.legStiffness}{stats.legStiffness !== '—' && ' kN/m'}
               </span>
             </div>
           </div>

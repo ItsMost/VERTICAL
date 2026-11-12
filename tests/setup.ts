@@ -39,6 +39,22 @@ import { vi } from 'vitest';
 (global as any).drawConnectors = vi.fn();
 (global as any).drawLandmarks = vi.fn();
 
+// Node 22+ ships its own (disabled) global localStorage that shadows jsdom's;
+// install a small in-memory Storage so components can read/write it in tests.
+{
+  const store = new Map<string, string>();
+  const memoryStorage = {
+    getItem: (k: string) => (store.has(k) ? store.get(k)! : null),
+    setItem: (k: string, v: string) => { store.set(k, String(v)); },
+    removeItem: (k: string) => { store.delete(k); },
+    clear: () => { store.clear(); },
+    key: (i: number) => Array.from(store.keys())[i] ?? null,
+    get length() { return store.size; },
+  };
+  Object.defineProperty(globalThis, 'localStorage', { value: memoryStorage, configurable: true, writable: true });
+  if (typeof window !== 'undefined') Object.defineProperty(window, 'localStorage', { value: memoryStorage, configurable: true, writable: true });
+}
+
 // Mock ResizeObserver
 (global as any).ResizeObserver = class MockResizeObserver {
   observe() {}

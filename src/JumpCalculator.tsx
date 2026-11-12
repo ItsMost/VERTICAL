@@ -55,6 +55,7 @@ export default function JumpCalculator() {
     gender: 'male',
     height: '',
     standingReach: '',
+    squatHeight: '',
     coachId: ''
   });
 
@@ -71,6 +72,7 @@ export default function JumpCalculator() {
     gender: '',
     height: '',
     standingReach: '',
+    squatHeight: '',
     coachId: ''
   });
 
@@ -101,6 +103,7 @@ export default function JumpCalculator() {
       gender: player.gender || 'male',
       height: player.height_cm ? String(player.height_cm) : '',
       standingReach: player.standing_reach_cm ? String(player.standing_reach_cm) : '',
+      squatHeight: player.hpo_m && player.leg_length_m ? String(Number((player.leg_length_m - player.hpo_m).toFixed(3))) : '',
       coachId: player.coach_id || ''
     });
     setIsEditingPlayer(true);
@@ -124,7 +127,7 @@ export default function JumpCalculator() {
     if (!newPlayer.name) return;
     const created = await addPlayer(newPlayer);
     if (created) {
-      setNewPlayer({ name: '', birthYear: '', weight: '', leg: '', gender: 'male', height: '', standingReach: '', coachId: '' });
+      setNewPlayer({ name: '', birthYear: '', weight: '', leg: '', gender: 'male', height: '', standingReach: '', squatHeight: '', coachId: '' });
       setShowNewPlayerForm(false);
       setActiveTab('profile');
     }
@@ -800,6 +803,14 @@ export default function JumpCalculator() {
                   </div>
                 </div>
                 <div>
+                  <label className="text-zinc-400 block mb-1 font-bold">{t.hud.squatTrochanterM}</label>
+                  <input type="number" step="0.01" inputMode="decimal" value={newPlayer.squatHeight} onChange={e => setNewPlayer({...newPlayer, squatHeight: e.target.value})} className="glass-input w-full font-mono font-bold" />
+                  <p className="text-[11px] text-zinc-500 mt-1">{t.hud.squatTrochanterHelp}</p>
+                  {parseFloat(newPlayer.leg) > 0 && parseFloat(newPlayer.squatHeight) > 0 && (
+                    <p className="text-[11px] mt-1 font-mono tabular-nums">{t.hud.hpoLabel}: {(parseFloat(newPlayer.leg) - parseFloat(newPlayer.squatHeight)).toFixed(2)} m</p>
+                  )}
+                </div>
+                <div>
                   <label className="text-zinc-400 block mb-1 font-bold">{t.hud.assignedCoach}</label>
                   <select value={newPlayer.coachId} onChange={e => setNewPlayer({...newPlayer, coachId: e.target.value})} className="glass-input w-full font-bold bg-[#121215] text-white">
                     <option value="">{t.hud.noCoach}</option>
@@ -867,6 +878,14 @@ export default function JumpCalculator() {
                     <label className="text-zinc-400 block mb-1 font-bold">{t.hud.standingReachCm}</label>
                     <input type="number" value={editPlayerForm.standingReach} onChange={e => setEditPlayerForm({...editPlayerForm, standingReach: e.target.value})} className="glass-input w-full font-mono font-bold" />
                   </div>
+                </div>
+                <div>
+                  <label className="text-zinc-400 block mb-1 font-bold">{t.hud.squatTrochanterM}</label>
+                  <input type="number" step="0.01" inputMode="decimal" value={editPlayerForm.squatHeight} onChange={e => setEditPlayerForm({...editPlayerForm, squatHeight: e.target.value})} className="glass-input w-full font-mono font-bold" />
+                  <p className="text-[11px] text-zinc-500 mt-1">{t.hud.squatTrochanterHelp}</p>
+                  {parseFloat(editPlayerForm.leg) > 0 && parseFloat(editPlayerForm.squatHeight) > 0 && (
+                    <p className="text-[11px] mt-1 font-mono tabular-nums">{t.hud.hpoLabel}: {(parseFloat(editPlayerForm.leg) - parseFloat(editPlayerForm.squatHeight)).toFixed(2)} m</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-zinc-400 block mb-1 font-bold">{t.hud.assignedCoach}</label>

@@ -11,7 +11,8 @@ import { useData } from './context/DataContext';
 import { getPlayerAge } from './lib/utils';
 import AppLogo from './AppLogo';
 import MotionGraphicVideoModal from './components/MotionGraphicVideoModal';
-import { classifyGCT, calculateElasticityQuadrant, calculateCNSReadiness } from './useJumpMechanics';
+import { classifyGCT, calculateElasticityQuadrant } from './useJumpMechanics';
+import { cnsReadiness as computeReadiness, sayersPeakPowerW, harmanPeakPowerW, flightTimeFromJumpHeight, takeoffVelocityFromJumpHeight } from './lib/biomechanics';
 import type { JumpMeasurement } from './types/athletics';
 
 interface PlayerProfileProps {
@@ -86,10 +87,10 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
   }
 
   // Anthropometrics
-  const mass = parseFloat(String(activePlayer.weight_kg)) || 72;
-  const playerHeight = parseFloat(String(activePlayer.height_cm)) || 178;
-  const standingReach = parseFloat(String(activePlayer.standing_reach_cm)) || Math.round(playerHeight * 1.32);
-  const legLengthM = parseFloat(String(activePlayer.leg_length_m)) || 1.0;
+  const mass = parseFloat(String(activePlayer.weight_kg)) || 0;
+  const playerHeight: number | null = parseFloat(String(activePlayer.height_cm)) || null;
+  const standingReach: number | null = parseFloat(String(activePlayer.standing_reach_cm)) || null;
+  const legLengthM: number | null = parseFloat(String(activePlayer.leg_length_m)) || null;
 
   // Accurate dynamic age calculation
   const age = useMemo(() => {
@@ -140,24 +141,29 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
   const armSwingGain = maxCmj > 0 && maxCmjNoArms > 0 ? (((maxCmj - maxCmjNoArms) / maxCmjNoArms) * 100) : 0;
   // EUR is strictly defined as CMJ (No Arms) / Squat Jump (SJ) - both performed with hands on hips
   const eur = (maxSjNoArms > 0 && maxCmjNoArms > 0) ? (maxCmjNoArms / maxSjNoArms) : 0;
-  const elasticityQuadrant = calculateElasticityQuadrant(maxCmjNoArms, maxSjNoArms, maxRsi > 0 ? maxRsi * 20 : 0);
+  // Reactive index uses real drop-jump heights only (DJ tests are stored as test_type 'rsi')
+  const maxDjHeight = rsiJumps.length > 0 ? Math.max(...rsiJumps.map(j => parseFloat(String(j.jump_height_cm)) || 0)) : 0;
+  const elasticityQuadrant = calculateElasticityQuadrant(maxCmjNoArms, maxSjNoArms, maxDjHeight);
 
   // CNS Readiness (14-day rolling baseline comparison)
-  const baselineCmjHistory = cmjJumps.map(j => parseFloat(String(j.jump_height_cm)) || 0);
-  const latestCmjVal = cmjJumps.length > 0 ? parseFloat(String(cmjJumps[cmjJumps.length - 1].jump_height_cm)) || 0 : maxCmj;
-  const cnsReadiness = calculateCNSReadiness(latestCmjVal, baselineCmjHistory);
-  const cnsScore = Math.max(0, Math.min(100, Math.round(100 - (cnsReadiness.percentDrop || 0))));
+  // Baseline = mean/SD of CMJ tests in the 14 days before the latest test day (that day excluded), >= 3 tests
+  const readiness = computeReadiness(cmjJumps.map(j => ({ created_at: String(j.created_at), value: parseFloat(String(j.jump_height_cm)) || 0 })));
 
   // Power Calculation (Sayers Peak)
-  const sayersPeak = peakHeightCm > 0 ? (61.9 * peakHeightCm + 36.0 * mass - 1822) : 0;
+  // Sayers et al. (1999) is the main peak-power value; Harman (1991, +1822) is secondary
+  const sayersPeak = sayersPeakPowerW(peakHeightCm, mass) ?? 0;
+  const harmanPeak = harmanPeakPowerW(peakHeightCm, mass);
   const relativePower = mass > 0 && sayersPeak > 0 ? (sayersPeak / mass) : 0;
 
   // Touch Reach & Projections
-  const totalTouchReachCm = standingReach + Math.max(peakHeightCm, maxApproach);
+  // Needs a measured standing reach; otherwise every projection shows "—"
+  const hasReach = standingReach !== null && Math.max(peakHeightCm, maxApproach) > 0;
+  const totalTouchReachCm = hasReach ? (standingReach as number) + Math.max(peakHeightCm, maxApproach) : 0;
   const vballNetHeightCm = isFemale ? 224 : 243;
   const vballClearanceCm = totalTouchReachCm - vballNetHeightCm;
   const dunkMarginCm = totalTouchReachCm - 315;
   const rimMarginCm = totalTouchReachCm - 305;
+  const signedCm = (v: number) => (!hasReach ? '—' : v >= 0 ? `+${v.toFixed(1)} cm` : `${v.toFixed(1)} cm`);
 
   // Progression Chart Dataset
   const chartData = useMemo(() => {
@@ -165,7 +171,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
       .filter(h => parseFloat(String(h.jump_height_cm)) > 0)
       .map((h, i) => {
         const height = parseFloat(String(h.jump_height_cm)) || 0;
-        const pwr = parseFloat(String(h.peak_power_watts)) || (61.9 * height + 36.0 * mass - 1822);
+        const pwr = parseFloat(String(h.peak_power_watts)) || sayersPeakPowerW(height, mass) || 0;
         return {
           session: `${i + 1}`,
           date: h.created_at ? String(h.created_at).substring(5, 10) : `#${i + 1}`,
@@ -336,16 +342,16 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               {/* Anthropometrics Quick Pills */}
               <div className="flex items-center gap-2 mt-3 flex-wrap font-mono text-xs">
                 <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-3 py-1 rounded-lg">
-                  <strong className="text-zinc-400">{t.profile.massKg}</strong> {mass} kg
+                  <strong className="text-zinc-400">{t.profile.massKg}</strong> {mass > 0 ? `${mass} kg` : '—'}
                 </span>
                 <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-3 py-1 rounded-lg">
-                  <strong className="text-zinc-400">{t.profile.statureCm}</strong> {playerHeight} cm
+                  <strong className="text-zinc-400">{t.profile.statureCm}</strong> {playerHeight ? `${playerHeight} cm` : '—'}
                 </span>
                 <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-3 py-1 rounded-lg">
-                  <strong className="text-zinc-400">{t.profile.reachCm}</strong> {standingReach} cm
+                  <strong className="text-zinc-400">{t.profile.reachCm}</strong> {standingReach ? `${standingReach} cm` : '—'}
                 </span>
                 <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-3 py-1 rounded-lg">
-                  <strong className="text-zinc-400">{t.profile.legLengthM}</strong> {legLengthM} m
+                  <strong className="text-zinc-400">{t.profile.legLengthM}</strong> {legLengthM ? `${legLengthM} m` : '—'}
                 </span>
               </div>
             </div>
@@ -505,9 +511,9 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               {t.profile.peakRsi}
             </span>
             <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-              gctAnalysis.classification === 'Fast SSC' ? 'badge-volt' : gctAnalysis.classification === 'Moderate SSC' ? 'badge-amber' : 'badge-rose'
+              gctAnalysis.category === 'elite_fast' ? 'badge-volt' : gctAnalysis.category === 'moderate' ? 'badge-amber' : 'badge-rose'
             }`}>
-              {gctAnalysis.classification}
+              {isEn ? gctAnalysis.labelEn : gctAnalysis.labelAr}
             </span>
           </div>
 
@@ -536,30 +542,45 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* CNS Readiness Monitor */}
         <div className="bento-card flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#121215] border border-[#27272A]">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <ShieldCheck size={16} className={cnsReadiness.status === 'optimal' ? 'text-[#10B981]' : cnsReadiness.status === 'moderate_fatigue' ? 'text-[#F59E0B]' : 'text-[#F43F5E]'} />
-              <span className="text-xs font-bold text-white">{t.profile.cnsReadiness}</span>
-              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                cnsReadiness.status === 'optimal' ? 'badge-emerald' : cnsReadiness.status === 'moderate_fatigue' ? 'badge-amber' : 'badge-rose'
-              }`}>
-                {cnsReadiness.status === 'optimal' ? t.profile.optimalReadiness : cnsReadiness.status === 'moderate_fatigue' ? t.profile.moderateFatigue : t.profile.highFatigue}
-              </span>
+          {readiness.ok ? (
+            <>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={16} className={readiness.status === 'optimal' ? 'text-[#10B981]' : readiness.status === 'moderate_fatigue' ? 'text-[#F59E0B]' : 'text-[#F43F5E]'} />
+                  <span className="text-xs font-bold text-white">{t.profile.cnsReadiness}</span>
+                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                    readiness.status === 'optimal' ? 'badge-emerald' : readiness.status === 'moderate_fatigue' ? 'badge-amber' : 'badge-rose'
+                  }`}>
+                    {readiness.status === 'optimal' ? t.profile.optimalReadiness : readiness.status === 'moderate_fatigue' ? t.profile.moderateFatigue : t.profile.highFatigue}
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-400 max-w-sm font-mono tabular-nums">
+                  {t.profile.readinessBaseline}: {readiness.baselineMean.toFixed(1)} ± {readiness.baselineSd.toFixed(1)} cm (n = {readiness.baselineN}) · {readiness.referenceDay}
+                </p>
+              </div>
+              <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-0">
+                <div className={`text-3xl font-mono font-black tabular-nums ${
+                  readiness.status === 'optimal' ? 'text-[#10B981]' : readiness.status === 'moderate_fatigue' ? 'text-[#F59E0B]' : 'text-[#F43F5E]'
+                }`} dir="ltr">
+                  {readiness.percentChange >= 0 ? '+' : ''}{readiness.percentChange.toFixed(1)}%
+                </div>
+                <span className="text-[10px] text-zinc-500 font-mono tabular-nums" dir="ltr">
+                  {readiness.todayValue.toFixed(1)} cm{readiness.zScore !== null ? ` · z ${readiness.zScore.toFixed(2)}` : ''}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={16} className="text-zinc-500" />
+                <span className="text-xs font-bold text-white">{t.profile.cnsReadiness}</span>
+                <span className="text-lg font-mono text-zinc-500">—</span>
+              </div>
+              <p className="text-[11px] text-zinc-400 max-w-sm">
+                {t.profile.readinessNotEnough} ({readiness.baselineN}/3)
+              </p>
             </div>
-            <p className="text-[11px] text-zinc-400 max-w-sm">
-              {cnsReadiness.recommendationAr ? (isEn ? cnsReadiness.recommendationEn : cnsReadiness.recommendationAr) : cnsReadiness.advice}
-            </p>
-          </div>
-          <div className="text-right sm:text-left flex sm:flex-col items-center sm:items-end gap-3 sm:gap-0">
-            <div className={`text-3xl font-mono font-black tabular-nums ${
-              cnsReadiness.status === 'optimal' ? 'text-[#10B981]' : cnsReadiness.status === 'moderate_fatigue' ? 'text-[#F59E0B]' : 'text-[#F43F5E]'
-            }`}>
-              {cnsScore}%
-            </div>
-            <span className="text-[10px] text-zinc-500 font-mono">
-              Drop vs 14d: {cnsReadiness.percentDrop > 0 ? `-${cnsReadiness.percentDrop}%` : '0%'}
-            </span>
-          </div>
+          )}
         </div>
 
         {/* F-V Profile & Samozino Balance */}
@@ -715,12 +736,13 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               {/* Power Metrics Quick Banner */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3 border-t border-zinc-800 font-mono text-xs">
                 <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
-                  <span className="text-zinc-500 block text-[10px]">Sayers Peak Power</span>
-                  <span className="text-white font-bold text-sm">{Math.round(sayersPeak)} W</span>
+                  <span className="text-zinc-500 block text-[10px]">Peak Power (Sayers 1999)</span>
+                  <span className="text-white font-bold text-sm">{sayersPeak > 0 ? `${Math.round(sayersPeak)} W` : '—'}</span>
+                  {harmanPeak !== null && <span className="text-zinc-500 block text-[10px]">Harman (1991): {Math.round(harmanPeak)} W</span>}
                 </div>
                 <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
                   <span className="text-zinc-500 block text-[10px]">Relative Power</span>
-                  <span className="text-[#D4FF00] font-bold text-sm">{relativePower.toFixed(1)} W/kg</span>
+                  <span className="text-[#D4FF00] font-bold text-sm">{relativePower > 0 ? `${relativePower.toFixed(1)} W/kg` : '—'}</span>
                 </div>
                 <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 col-span-2 sm:col-span-1">
                   <span className="text-zinc-500 block text-[10px]">Approach Advantage</span>
@@ -883,7 +905,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
           <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 space-y-3 font-mono">
             <div className="flex justify-between items-center text-xs">
               <span className="text-zinc-400">Total Touch Reach:</span>
-              <span className="text-lg font-bold text-white">{totalTouchReachCm.toFixed(1)} cm</span>
+              <span className="text-lg font-bold text-white">{hasReach ? `${totalTouchReachCm.toFixed(1)} cm` : '—'}</span>
             </div>
             <div className="w-full bg-zinc-800 h-1 rounded-full overflow-hidden">
               <div
@@ -901,7 +923,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 <span className="text-[10px] text-zinc-500">Net: {vballNetHeightCm} cm</span>
               </div>
               <span className={`font-bold text-sm ${vballClearanceCm >= 0 ? 'text-[#10B981]' : 'text-[#F43F5E]'}`}>
-                {vballClearanceCm >= 0 ? `+${vballClearanceCm.toFixed(1)} cm` : `${vballClearanceCm.toFixed(1)} cm`}
+                {signedCm(vballClearanceCm)}
               </span>
             </div>
 
@@ -911,7 +933,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 <span className="text-[10px] text-zinc-500">Dunk Target: 315 cm</span>
               </div>
               <span className={`font-bold text-sm ${dunkMarginCm >= 0 ? 'text-[#D4FF00]' : 'text-[#F43F5E]'}`}>
-                {dunkMarginCm >= 0 ? `+${dunkMarginCm.toFixed(1)} cm` : `${dunkMarginCm.toFixed(1)} cm`}
+                {signedCm(dunkMarginCm)}
               </span>
             </div>
 
@@ -921,7 +943,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 <span className="text-[10px] text-zinc-500">Rim Height: 305 cm</span>
               </div>
               <span className={`font-bold text-sm ${rimMarginCm >= 0 ? 'text-[#10B981]' : 'text-zinc-500'}`}>
-                {rimMarginCm >= 0 ? `+${rimMarginCm.toFixed(1)} cm` : `${rimMarginCm.toFixed(1)} cm`}
+                {signedCm(rimMarginCm)}
               </span>
             </div>
           </div>
@@ -1118,9 +1140,9 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             <span className="flex items-center gap-1.5">
                               <span className="font-bold">{displayGctMs} ms</span>
                               <span className={`text-[9px] px-1.5 py-0.2 rounded ${
-                                recordGctInfo.classification === 'Fast SSC' ? 'badge-volt' : recordGctInfo.classification === 'Moderate SSC' ? 'badge-amber' : 'badge-rose'
+                                recordGctInfo.category === 'elite_fast' ? 'badge-volt' : recordGctInfo.category === 'moderate' ? 'badge-amber' : 'badge-rose'
                               }`}>
-                                {recordGctInfo.classification}
+                                {isEn ? recordGctInfo.labelEn : recordGctInfo.labelAr}
                               </span>
                             </span>
                           ) : '—'}
@@ -1297,9 +1319,9 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                           <span className="flex items-center gap-1.5">
                             <span>{displayGctMs} ms</span>
                             <span className={`text-[9px] px-1.5 py-0.2 rounded ${
-                              recordGctInfo.classification === 'Fast SSC' ? 'badge-volt' : recordGctInfo.classification === 'Moderate SSC' ? 'badge-amber' : 'badge-rose'
+                              recordGctInfo.category === 'elite_fast' ? 'badge-volt' : recordGctInfo.category === 'moderate' ? 'badge-amber' : 'badge-rose'
                             }`}>
-                              {recordGctInfo.classification}
+                              {isEn ? recordGctInfo.labelEn : recordGctInfo.labelAr}
                             </span>
                           </span>
                         ) : record.flight_time_sec ? (
@@ -1493,7 +1515,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             const h = parseFloat(e.target.value);
                             const updated = { ...editForm, jump_height_cm: e.target.value };
                             if (h > 0) {
-                              updated.flight_time_sec = Math.sqrt((8 * (h / 100)) / 9.81).toFixed(3);
+                              updated.flight_time_sec = flightTimeFromJumpHeight(h / 100)!.toFixed(3);
                             }
                             setEditForm(updated);
                           }}
@@ -1573,11 +1595,11 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             const h = parseFloat(e.target.value);
                             const updated = { ...editForm, jump_height_cm: e.target.value };
                             if (h > 0) {
-                              const ft = Math.sqrt((8 * (h / 100)) / 9.81);
-                              updated.flight_time_sec = ft.toFixed(3);
-                              updated.takeoff_velocity_ms = Math.sqrt(2 * 9.81 * (h / 100)).toFixed(2);
-                              if (mass > 0) {
-                                updated.peak_power_watts = Math.round(61.9 * h + 36.0 * mass - 1822).toString();
+                              updated.flight_time_sec = flightTimeFromJumpHeight(h / 100)!.toFixed(3);
+                              updated.takeoff_velocity_ms = takeoffVelocityFromJumpHeight(h / 100)!.toFixed(2);
+                              const pp = sayersPeakPowerW(h, mass);
+                              if (pp !== null) {
+                                updated.peak_power_watts = Math.round(pp).toString();
                               }
                             }
                             setEditForm(updated);
@@ -1794,8 +1816,8 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
             heightCm: peakHeightCm > 0 ? peakHeightCm.toFixed(1) : '—',
             flightTime: '—',
             takeoffVelocity: '—',
-            harmanPeakPower: sayersPeak.toFixed(0),
-            meanPower: (sayersPeak * 0.48).toFixed(0),
+            harmanPeakPower: sayersPeak > 0 ? sayersPeak.toFixed(0) : '—',
+            meanPower: '—',
             peakVelocity: '—',
             rsiScore: maxRsi > 0 ? maxRsi.toFixed(2) : '—',
           }}

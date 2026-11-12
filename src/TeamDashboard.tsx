@@ -383,7 +383,7 @@ export default function TeamDashboard({
                   {/* Footer actions */}
                   <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 text-xs">
                     <span className="text-[10px] text-zinc-500 font-mono">
-                      Reach: {player.standing_reach_cm || Math.round(Number(player.height_cm || 178) * 1.32)} cm
+                      Reach: {player.standing_reach_cm ? `${player.standing_reach_cm} cm` : '—'}
                     </span>
                     <span className="text-[11px] font-bold text-[#D4FF00] group-hover:underline">
                       {t.roster.viewProfile} →

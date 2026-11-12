@@ -19,6 +19,8 @@ export interface Player {
   age?: number | null;
   weight_kg: number;
   leg_length_m?: number | null;
+  /** Measured push-off distance (m); null → estimated from leg length */
+  hpo_m?: number | null;
   gender?: 'male' | 'female' | string;
   height_cm?: number | null;
   standing_reach_cm?: number | null;
@@ -90,7 +92,8 @@ export interface JumpMechanicsStats {
   contactTime: string;
   rsi: string;
   meanForce: string;
-  peakForce: string;
+  /** true when hPO fell back to leg length × 0.45 */
+  hpoEstimated: boolean;
   gctAnalysis?: GCTAnalysis | null;
 }
 

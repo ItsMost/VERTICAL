@@ -1,25 +1,22 @@
 import { describe, it, expect } from 'vitest';
-import { calculateRSI, classifyGCT, calculateElasticityQuadrant } from '../../src/useJumpMechanics';
+import { classifyGCT, calculateElasticityQuadrant } from '../../src/useJumpMechanics';
+import { rsiFromHeight, rsiFromFlightTime } from '../../src/lib/biomechanics';
 
-describe('RSI Mechanics & Unit Normalization', () => {
+const r2 = (x: number | null) => (x === null ? null : Number(x.toFixed(2)));
+
+describe('RSI Mechanics (explicit units)', () => {
   it('correctly calculates standard RSI using Height(m) / GCT(s)', () => {
-    // 23.2 cm jump, 0.180 s contact time
-    const rsi = calculateRSI(23.2, 0.435, 0.180, 'height_gct');
-    // 0.232 / 0.180 = 1.288... => 1.29
-    expect(rsi).toBe(1.29);
+    // 23.2 cm jump, 0.180 s contact time: 0.232 / 0.180 = 1.288... => 1.29
+    expect(r2(rsiFromHeight(0.232, 0.18))).toBe(1.29);
   });
 
-  it('correctly calculates RSI when GCT is entered in milliseconds (180ms vs 0.180s)', () => {
-    // 23.2 cm jump, 180 ms contact time
-    const rsi = calculateRSI(23.2, 0.435, 180, 'height_gct');
-    expect(rsi).toBe(1.29);
+  it('callers convert milliseconds explicitly (180 ms → 0.180 s)', () => {
+    expect(r2(rsiFromHeight(23.2 / 100, 180 / 1000))).toBe(1.29);
   });
 
   it('correctly calculates RSI using Flight Time / GCT', () => {
-    // 0.435s flight time, 0.180s contact time
-    const rsi = calculateRSI(23.2, 0.435, 0.180, 'flight_gct');
     // 0.435 / 0.180 = 2.416... => 2.42
-    expect(rsi).toBe(2.42);
+    expect(r2(rsiFromFlightTime(0.435, 0.18))).toBe(2.42);
   });
 
   it('classifies GCT into fast, moderate, and slow SSC categories correctly', () => {
@@ -29,12 +26,8 @@ describe('RSI Mechanics & Unit Normalization', () => {
   });
 
   it('validates 50cm jump with 190ms contact time under both Height/GCT and Flight/GCT modes', () => {
-    // 50 cm jump, 190 ms contact time
-    const rsiHeight = calculateRSI(50.0, 0.639, 190, 'height_gct');
-    expect(rsiHeight).toBe(2.63);
-
-    const rsiFlight = calculateRSI(50.0, 0.639, 190, 'flight_gct');
-    expect(rsiFlight).toBe(3.36);
+    expect(r2(rsiFromHeight(0.5, 0.19))).toBe(2.63);
+    expect(r2(rsiFromFlightTime(0.639, 0.19))).toBe(3.36);
   });
 });
 

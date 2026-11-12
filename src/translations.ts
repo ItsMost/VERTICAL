@@ -101,6 +101,10 @@ export interface TranslationDictionary {
     heightCm: string;
     standingReachCm: string;
     legLengthM: string;
+    squatTrochanterM: string;
+    squatTrochanterHelp: string;
+    hpoLabel: string;
+    hpoEstimatedBadge: string;
     assignedCoach: string;
     saveAthlete: string;
     deleteAthlete: string;
@@ -157,6 +161,8 @@ export interface TranslationDictionary {
     peakApproach: string;
     peakRsi: string;
     fvpStatus: string;
+    readinessBaseline: string;
+    readinessNotEnough: string;
     cnsReadiness: string;
     contactTime: string;
     flightTime: string;
@@ -328,6 +334,56 @@ export interface TranslationDictionary {
     highForceDeficitPresc: string;
     highVelocityDeficitPresc: string;
     balancedPresc: string;
+    flightTimeS: string;
+    trial: string;
+    addTrial: string;
+    removeTrial: string;
+    compute: string;
+    invalidTitle: string;
+    reasonTooFew: string;
+    reasonNoVariation: string;
+    reasonSlope: string;
+    reasonR2: string;
+    reasonMissing: string;
+    rawPoints: string;
+    load: string;
+    height: string;
+    force: string;
+    velocity: string;
+    bandWell: string;
+    bandModForce: string;
+    bandModVel: string;
+    bandLargeForce: string;
+    bandLargeVel: string;
+    prescForce: string;
+    prescVel: string;
+    prescBalanced: string;
+    optimalCurve: string;
+    actualCurve: string;
+    tabFvp: string;
+    tabFt: string;
+    ftTitle: string;
+    ftSubtitle: string;
+    ftSampling: string;
+    ftPaste: string;
+    ftLoadFile: string;
+    ftAnalyze: string;
+    ftMethod: string;
+    ftErrTooShort: string;
+    ftErrQuiet: string;
+    ftErrOnset: string;
+    ftErrTakeoff: string;
+    ftErrVelocity: string;
+    ftJumpHeight: string;
+    ftTakeoffVel: string;
+    ftTimeToTakeoff: string;
+    ftRsiMod: string;
+    ftPeakForce: string;
+    ftMeanPropForce: string;
+    ftPeakPower: string;
+    ftImpulse: string;
+    ftBodyWeight: string;
+    ftPropDuration: string;
   };
   leaderboard: {
     title: string;
@@ -452,6 +508,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       heightCm: 'طول اللاعب (سم)',
       standingReachCm: 'الوصول من الثبات (سم)',
       legLengthM: 'طول الرجل (م)',
+      squatTrochanterM: 'ارتفاع المدور في قرفصاء 90° (م)',
+      squatTrochanterHelp: 'طول الرجل = من المدور الكبير لأطراف الأصابع والقدم ممدودة. hPO = طول الرجل − ارتفاع نفس النقطة في قرفصاء 90°.',
+      hpoLabel: 'مسافة الدفع hPO',
+      hpoEstimatedBadge: 'hPO تقديري',
       assignedCoach: 'المدرب المسؤول',
       saveAthlete: 'حفظ بيانات اللاعب',
       deleteAthlete: 'حذف اللاعب',
@@ -508,6 +568,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       peakApproach: 'أعلى ارتقاء Approach',
       peakRsi: 'أعلى مؤشر RSI',
       fvpStatus: 'توازن القوة والسرعة F-V',
+      readinessBaseline: 'خط الأساس (آخر 14 يوم)',
+      readinessNotEnough: 'بيانات غير كافية: محتاج 3 اختبارات CMJ على الأقل في الـ14 يوم اللي قبل آخر اختبار',
       cnsReadiness: 'جاهزية الجهاز العصبي CNS',
       contactTime: 'زمن التلامس GCT',
       flightTime: 'زمن الطيران',
@@ -619,7 +681,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       dateLabel: 'تاريخ الاختبار:',
       heightInput: 'ارتفاع القفزة (سم):',
       flightTimeInput: 'زمن الطيران (ثانية):',
-      contactTimeInput: 'زمن التلامس بالأرض (GCT):',
+      contactTimeInput: 'زمن التلامس بالأرض (GCT) بالملّي ثانية:',
       rsiDirectInput: 'مؤشر RSI المباشر:',
       rsiModeToggle: 'طريقة إدخال الـ RSI:',
       rsiModeDirect: 'إدخال رقم RSI يدوياً ✍️',
@@ -679,6 +741,56 @@ export const translations: Record<Language, TranslationDictionary> = {
       highForceDeficitPresc: 'عجز حاد في القوة -> التركيز على أوزان ثقيلة وسكوات بطيء لرفع F₀',
       highVelocityDeficitPresc: 'عجز حاد في السرعة -> التركيز على بليومتريك سريع ومساعد لرفع V₀',
       balancedPresc: 'ملف متوازن ومثالي -> الحفاظ على التدريب التبادلي المشترك للقدرة',
+      flightTimeS: 'زمن الطيران (ث)',
+      trial: 'المحاولة',
+      addTrial: 'إضافة محاولة',
+      removeTrial: 'حذف',
+      compute: 'احسب ملف القوة والسرعة',
+      invalidTitle: 'ملف غير صالح',
+      reasonTooFew: 'محتاج محاولتين صالحتين على الأقل.',
+      reasonNoVariation: 'كل المحاولات بنفس السرعة، مفيش خط نقدر نرسمه.',
+      reasonSlope: 'الميل موجب أو صفر (القوة مش بتقل مع زيادة السرعة). راجع الأوزان وأزمنة الطيران.',
+      reasonR2: 'R² أقل من 0.9، النقاط مش على خط واحد. أعد المحاولات.',
+      reasonMissing: 'ناقص وزن اللاعب أو مسافة الدفع hPO.',
+      rawPoints: 'النقاط الخام',
+      load: 'الحمل',
+      height: 'الارتفاع',
+      force: 'القوة',
+      velocity: 'السرعة',
+      bandWell: 'متوازن (90–110%)',
+      bandModForce: 'عجز قوة متوسط (60–90%)',
+      bandModVel: 'عجز سرعة متوسط (110–140%)',
+      bandLargeForce: 'عجز قوة كبير (أقل من 60%)',
+      bandLargeVel: 'عجز سرعة كبير (أكثر من 140%)',
+      prescForce: 'أولوية لتمارين القوة القصوى (أحمال ثقيلة، سرعة بطيئة).',
+      prescVel: 'أولوية للقفز الباليستي بأحمال خفيفة أو بمساعدة.',
+      prescBalanced: 'حافظ على تدريب متوازن على كامل المنحنى.',
+      optimalCurve: 'المنحنى الأمثل (نفس Pmax)',
+      actualCurve: 'منحنى اللاعب',
+      tabFvp: 'ملف القوة والسرعة',
+      tabFt: 'منحنى القوة والزمن',
+      ftTitle: 'تحليل منحنى القوة والزمن (CMJ)',
+      ftSubtitle: 'الصق قيم القوة الرأسية (نيوتن) من منصة القوة. أول ثانية لازم تكون وقوف ثابت.',
+      ftSampling: 'معدل العينات (Hz)',
+      ftPaste: 'قيم القوة مفصولة بفواصل أو مسافات أو أسطر',
+      ftLoadFile: 'تحميل ملف CSV / TXT',
+      ftAnalyze: 'حلّل',
+      ftMethod: 'بداية الحركة = أول قيمة أقل من وزن الجسم − 5×SD لفترة الوقوف. الإقلاع = القوة أقل من 20 نيوتن. السرعة بتكامل (F − BW)/m.',
+      ftErrTooShort: 'البيانات أقصر من 1.2 ثانية عند معدل العينات ده.',
+      ftErrQuiet: 'مفيش فترة وقوف ثابت في أول ثانية.',
+      ftErrOnset: 'مقدرناش نحدد بداية الحركة.',
+      ftErrTakeoff: 'مقدرناش نحدد لحظة الإقلاع (القوة مانزلتش تحت 20 نيوتن).',
+      ftErrVelocity: 'سرعة الإقلاع طلعت سالبة؛ راجع البيانات.',
+      ftJumpHeight: 'ارتفاع القفزة (دفع-زخم)',
+      ftTakeoffVel: 'سرعة الإقلاع',
+      ftTimeToTakeoff: 'زمن حتى الإقلاع',
+      ftRsiMod: 'RSImod',
+      ftPeakForce: 'ذروة القوة',
+      ftMeanPropForce: 'متوسط قوة الدفع',
+      ftPeakPower: 'ذروة القدرة',
+      ftImpulse: 'الدفع الصافي',
+      ftBodyWeight: 'وزن الجسم (من الوقوف)',
+      ftPropDuration: 'مدة مرحلة الدفع',
     },
     leaderboard: {
       title: 'لوحة المتصدرين والأرقام القياسية',
@@ -801,6 +913,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       heightCm: 'Height (cm)',
       standingReachCm: 'Standing Reach (cm)',
       legLengthM: 'Leg Length (m)',
+      squatTrochanterM: 'Trochanter height in 90° squat (m)',
+      squatTrochanterHelp: 'Leg length = greater trochanter to toes, feet extended. hPO = leg length − height of the same point in a 90° squat.',
+      hpoLabel: 'Push-off distance hPO',
+      hpoEstimatedBadge: 'estimated hPO',
       assignedCoach: 'Assigned Coach',
       saveAthlete: 'Save Athlete',
       deleteAthlete: 'Delete Athlete',
@@ -857,6 +973,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       peakApproach: 'Peak Approach',
       peakRsi: 'Peak RSI Score',
       fvpStatus: 'F-V Profile Status',
+      readinessBaseline: 'Baseline (previous 14 days)',
+      readinessNotEnough: 'Not enough data: needs at least 3 CMJ tests in the 14 days before the latest test',
       cnsReadiness: 'CNS Readiness Score',
       contactTime: 'Contact Time (GCT)',
       flightTime: 'Flight Duration',
@@ -968,7 +1086,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       dateLabel: 'Test Date:',
       heightInput: 'Jump Height (cm):',
       flightTimeInput: 'Flight Duration (s):',
-      contactTimeInput: 'Ground Contact Time (GCT):',
+      contactTimeInput: 'Ground Contact Time (GCT, ms):',
       rsiDirectInput: 'Direct RSI Score:',
       rsiModeToggle: 'RSI Calculation Mode:',
       rsiModeDirect: 'Direct Manual RSI ✍️',
@@ -1028,6 +1146,56 @@ export const translations: Record<Language, TranslationDictionary> = {
       highForceDeficitPresc: 'Severe Force Deficit -> Prioritize heavy slow resistance and deep squats to raise F₀',
       highVelocityDeficitPresc: 'Severe Velocity Deficit -> Prioritize high-speed ballistics and assisted jumps to raise V₀',
       balancedPresc: 'Well-Balanced Profile -> Maintain combined contrast and power training',
+      flightTimeS: 'Flight time (s)',
+      trial: 'Trial',
+      addTrial: 'Add trial',
+      removeTrial: 'Remove',
+      compute: 'Compute F-V profile',
+      invalidTitle: 'Invalid profile',
+      reasonTooFew: 'At least two valid trials are needed.',
+      reasonNoVariation: 'All trials have the same velocity; no line can be fitted.',
+      reasonSlope: 'Slope is zero or positive (force does not drop as velocity rises). Check the loads and flight times.',
+      reasonR2: 'R² is below 0.9; the points are not on a line. Repeat the trials.',
+      reasonMissing: 'Missing body mass or push-off distance (hPO).',
+      rawPoints: 'Raw points',
+      load: 'Load',
+      height: 'Height',
+      force: 'Force',
+      velocity: 'Velocity',
+      bandWell: 'Well balanced (90–110%)',
+      bandModForce: 'Moderate force deficit (60–90%)',
+      bandModVel: 'Moderate velocity deficit (110–140%)',
+      bandLargeForce: 'Large force deficit (< 60%)',
+      bandLargeVel: 'Large velocity deficit (> 140%)',
+      prescForce: 'Prioritise maximal strength work (heavy loads, slow velocity).',
+      prescVel: 'Prioritise ballistic jumps with light or assisted loads.',
+      prescBalanced: 'Keep training across the whole force-velocity spectrum.',
+      optimalCurve: 'Optimal profile (same Pmax)',
+      actualCurve: 'Athlete profile',
+      tabFvp: 'F-V profile',
+      tabFt: 'Force-time',
+      ftTitle: 'Force-time analysis (CMJ)',
+      ftSubtitle: 'Paste vertical force samples (N) from a force plate. The first second must be quiet standing.',
+      ftSampling: 'Sampling rate (Hz)',
+      ftPaste: 'Force values separated by commas, spaces or new lines',
+      ftLoadFile: 'Load CSV / TXT file',
+      ftAnalyze: 'Analyse',
+      ftMethod: 'Onset = first sample below BW − 5×SD of quiet standing. Take-off = force below 20 N. Velocity by integrating (F − BW)/m.',
+      ftErrTooShort: 'Signal is shorter than 1.2 s at this sampling rate.',
+      ftErrQuiet: 'No quiet-standing phase in the first second.',
+      ftErrOnset: 'Movement onset could not be detected.',
+      ftErrTakeoff: 'Take-off not found (force never drops below 20 N).',
+      ftErrVelocity: 'Take-off velocity is not positive; check the data.',
+      ftJumpHeight: 'Jump height (impulse-momentum)',
+      ftTakeoffVel: 'Take-off velocity',
+      ftTimeToTakeoff: 'Time to take-off',
+      ftRsiMod: 'RSImod',
+      ftPeakForce: 'Peak force',
+      ftMeanPropForce: 'Mean propulsive force',
+      ftPeakPower: 'Peak power',
+      ftImpulse: 'Net impulse',
+      ftBodyWeight: 'Body weight (quiet standing)',
+      ftPropDuration: 'Propulsive duration',
     },
     leaderboard: {
       title: 'Athlete Leaderboard & Records',

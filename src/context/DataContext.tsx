@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
 import { translations, type Language, type TranslationDictionary } from '../translations';
 import type { Player, Coach, JumpMeasurement } from '../types/athletics';
 import { birthYearToDob } from '../lib/utils';
+import { hpoFromMeasurements } from '../lib/biomechanics';
 
 interface DataContextType {
   players: Player[];
@@ -266,6 +267,7 @@ const VALID_MEASUREMENT_KEYS = new Set([
         gender: newPlayerData.gender || 'male',
         height_cm: parseFloat(newPlayerData.height) || null,
         standing_reach_cm: parseFloat(newPlayerData.standingReach) || null,
+        hpo_m: hpoFromMeasurements(parseFloat(newPlayerData.leg), parseFloat(newPlayerData.squatHeight)),
         coach_id: newPlayerData.coachId || null,
       };
 
@@ -305,6 +307,7 @@ const VALID_MEASUREMENT_KEYS = new Set([
         gender: updates.gender || 'male',
         height_cm: parseFloat(updates.height) || null,
         standing_reach_cm: parseFloat(updates.standingReach) || null,
+        hpo_m: hpoFromMeasurements(parseFloat(updates.leg), parseFloat(updates.squatHeight)),
         coach_id: updates.coachId || null,
       };
 

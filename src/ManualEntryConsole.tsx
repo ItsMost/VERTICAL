@@ -7,7 +7,8 @@ import {
 } from 'lucide-react';
 import { useData } from './context/DataContext';
 import AppLogo from './AppLogo';
-import { classifyGCT, calculateRSI } from './useJumpMechanics';
+import { classifyGCT } from './useJumpMechanics';
+import { sayersPeakPowerW, samozinoMeanPowerW, samozinoMeanForceN, takeoffVelocityFromJumpHeight, flightTimeFromJumpHeight, jumpHeightFromFlightTime, rsiFromHeight, rsiFromFlightTime, resolveHpo } from './lib/biomechanics';
 
 interface ManualEntryConsoleProps {
   activePlayer?: any;
@@ -53,7 +54,7 @@ export default function ManualEntryConsole({
     created_at: new Date().toISOString().substring(0, 10),
     jumpHeightCm: '',
     flightTimeSec: '',
-    contactTimeInput: '', // Can be ms (e.g. 180) or seconds (e.g. 0.180)
+    contactTimeInput: '', // milliseconds
     rsiScoreDirect: '',
     boxHeightCm: '30',
     addedLoadKg: '',
@@ -75,8 +76,7 @@ export default function ManualEntryConsole({
   }, [selectedPlayerId]);
 
   // Derived Player Metrics
-  const weight = parseFloat(String(activePlayer?.weight_kg)) || 72;
-  const heightCm = parseFloat(String(activePlayer?.height_cm)) || 178;
+  const weight = parseFloat(String(activePlayer?.weight_kg)) || 0;
 
   // Live Math Inputs
   const jumpHeight = parseFloat(form.jumpHeightCm) || 0;
@@ -85,14 +85,13 @@ export default function ManualEntryConsole({
   const addedLoad = parseFloat(form.addedLoadKg) || 0;
   const boxHeight = parseFloat(form.boxHeightCm) || 0;
 
-  // Contact Time Normalization: Automatically detects seconds (e.g. 0.180) vs milliseconds (e.g. 180)
-  const rawContact = parseFloat(form.contactTimeInput) || 0;
-  const contactTimeSec = rawContact > 5 ? rawContact / 1000 : rawContact;
-  const contactTimeMs = rawContact > 5 ? Math.round(rawContact) : Math.round(rawContact * 1000);
+  // Contact time is always entered in milliseconds
+  const contactTimeMs = parseFloat(form.contactTimeInput) || 0;
+  const contactTimeSec = contactTimeMs / 1000;
   const gctAnalysis = useMemo(() => classifyGCT(contactTimeSec), [contactTimeSec]);
 
-  // Sayers Peak Power Formula: 61.9 * H(cm) + 36.0 * BW(kg) - 1822
-  const peakPower = jumpHeight > 0 ? (61.9 * jumpHeight + 36.0 * weight - 1822) : 0;
+  // Sayers et al. (1999) peak power
+  const peakPower = sayersPeakPowerW(jumpHeight, weight) ?? 0;
   const relativePower = weight > 0 && peakPower > 0 ? peakPower / weight : 0;
 
   // Precise RSI Calculation based on selected mode
@@ -109,9 +108,9 @@ export default function ManualEntryConsole({
       };
     } else if (rsiMode === 'auto_height') {
       // Standard Bosco / Vald / Flanagan method: Jump Height (m) / Contact Time (s)
-      const heightM = jumpHeight >= 10 ? jumpHeight / 100 : (jumpHeight > 0 ? jumpHeight : 0);
-      if (heightM > 0 && contactTimeSec > 0) {
-        const val = heightM / contactTimeSec;
+      const heightM = jumpHeight / 100;
+      const val = rsiFromHeight(heightM, contactTimeSec);
+      if (val !== null) {
         return {
           finalRsi: Number(val.toFixed(2)),
           rsiFormulaDisplay: `${heightM.toFixed(3)} m ÷ ${contactTimeSec.toFixed(3)} s = ${val.toFixed(2)}`
@@ -120,8 +119,8 @@ export default function ManualEntryConsole({
       return { finalRsi: 0, rsiFormulaDisplay: 'H(m) ÷ GCT(s)' };
     } else {
       // Flight Time / Contact Time method
-      if (flightTime > 0 && contactTimeSec > 0) {
-        const val = flightTime / contactTimeSec;
+      const val = rsiFromFlightTime(flightTime, contactTimeSec);
+      if (val !== null) {
         return {
           finalRsi: Number(val.toFixed(2)),
           rsiFormulaDisplay: `${flightTime.toFixed(3)} s ÷ ${contactTimeSec.toFixed(3)} s = ${val.toFixed(2)}`
@@ -138,16 +137,14 @@ export default function ManualEntryConsole({
     if (field === 'jumpHeightCm') {
       const h = parseFloat(value);
       if (h > 0) {
-        const ft = Math.sqrt((8 * (h / 100)) / 9.81);
-        updated.flightTimeSec = ft.toFixed(3);
+        updated.flightTimeSec = flightTimeFromJumpHeight(h / 100)!.toFixed(3);
       } else {
         updated.flightTimeSec = '';
       }
     } else if (field === 'flightTimeSec') {
       const ft = parseFloat(value);
       if (ft > 0) {
-        const h = 1.22625 * Math.pow(ft, 2) * 100;
-        updated.jumpHeightCm = h.toFixed(1);
+        updated.jumpHeightCm = (jumpHeightFromFlightTime(ft)! * 100).toFixed(1);
       }
     }
 
@@ -175,8 +172,16 @@ export default function ManualEntryConsole({
         payload.flight_time_sec = flightTime > 0 ? flightTime.toFixed(4) : null;
         payload.box_height_cm = boxHeight > 0 ? boxHeight : null;
         payload.added_load_kg = addedLoad > 0 ? addedLoad : null;
-        payload.peak_power_watts = peakPower > 0 ? peakPower.toFixed(0) : null;
-        payload.mean_power_watts = peakPower > 0 ? (peakPower * 0.48).toFixed(0) : null;
+        // Derived values: Sayers peak power; Samozino mean force/power with the player's hPO
+        const hM = jumpHeight / 100;
+        const { hpoM } = resolveHpo(activePlayer);
+        const meanPower = hpoM ? samozinoMeanPowerW(weight + addedLoad, hM, hpoM) : null;
+        const meanForce = hpoM ? samozinoMeanForceN(weight + addedLoad, hM, hpoM) : null;
+        const vTO = takeoffVelocityFromJumpHeight(hM);
+        payload.peak_power_watts = addedLoad > 0 || !(peakPower > 0) ? null : peakPower.toFixed(0);
+        payload.mean_power_watts = meanPower !== null ? meanPower.toFixed(0) : null;
+        payload.mean_force_newtons = meanForce !== null ? meanForce.toFixed(2) : null;
+        payload.takeoff_velocity_ms = vTO !== null ? vTO.toFixed(2) : null;
 
         if (form.testType === 'rsi') {
           payload.contact_time_sec = contactTimeSec > 0 ? contactTimeSec.toFixed(4) : null;
@@ -419,13 +424,13 @@ export default function ManualEntryConsole({
                         <input
                           type="number"
                           step="any"
-                          placeholder={isAr ? "مثال: 180 أو 0.180" : "e.g. 180 ms or 0.180 s"}
+                          placeholder="180" min="1" inputMode="decimal"
                           value={form.contactTimeInput}
                           onChange={e => setForm({ ...form, contactTimeInput: e.target.value })}
                           className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-white font-mono tabular-nums text-sm font-bold outline-none focus:border-[#D4FF00]"
                         />
                         <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2.5 text-zinc-500 text-[11px] font-mono pointer-events-none">
-                          {contactTimeMs > 0 ? `${contactTimeMs} ms` : 'ms / s'}
+                          {contactTimeMs > 0 ? `${(contactTimeMs / 1000).toFixed(3)} s` : 'ms'}
                         </span>
                       </div>
                       <p className="text-[10px] text-zinc-500 mt-1">
@@ -492,14 +497,14 @@ export default function ManualEntryConsole({
                       <input
                         type="number"
                         step="any"
-                        placeholder="0.180 or 180"
+                        placeholder="180" min="1" inputMode="decimal"
                         value={form.contactTimeInput}
                         onChange={e => setForm({ ...form, contactTimeInput: e.target.value })}
                         className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-white font-mono tabular-nums text-sm font-bold outline-none focus:border-[#D4FF00]"
                         required
                       />
                       <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2.5 text-zinc-500 text-[11px] font-mono pointer-events-none">
-                        {contactTimeMs > 0 ? `${contactTimeMs} ms` : 'ms / s'}
+                        {contactTimeMs > 0 ? `${(contactTimeMs / 1000).toFixed(3)} s` : 'ms'}
                       </span>
                     </div>
                   </div>
@@ -670,13 +675,13 @@ export default function ManualEntryConsole({
                     <div className="flex justify-between items-center">
                       <span className="text-zinc-400">{isAr ? 'تصنيف الاستطالة:' : 'SSC Zone:'}</span>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                        gctAnalysis.classification === 'Fast SSC'
+                        gctAnalysis.category === 'elite_fast'
                           ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
-                          : gctAnalysis.classification === 'Moderate SSC'
+                          : gctAnalysis.category === 'moderate'
                           ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
                           : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
                       }`}>
-                        {gctAnalysis.classification}
+                        {isEn ? gctAnalysis.labelEn : gctAnalysis.labelAr}
                       </span>
                     </div>
                   )}

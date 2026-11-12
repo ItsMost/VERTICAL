@@ -39,7 +39,7 @@ export default function JumpTestingConsole({
   language = 'ar',
   playerHistory
 }) {
-  const { addMeasurement } = useData();
+  const { addMeasurement, t: tr } = useData();
   // Video & Playback States
   const [videoPreset, setVideoPreset] = useState('slow240');
   const [cameraFps, setCameraFps] = useState(240);
@@ -1114,20 +1114,20 @@ export default function JumpTestingConsole({
     jumpType,
     boxHeight,
     timeCalculationMethod === 'manual',
-    parseFloat(manualFrameDuration) || 0.033
+    parseFloat(manualFrameDuration) || 0.033,
+    'height_gct',
+    activePlayer?.hpo_m ?? null
   );
 
   const saveMeasurement = async () => {
     if (!selectedPlayerId) return; 
     setIsSaving(true);
-    const powerVal = parseFloat(stats.harmanPeakPower) > 0 ? parseFloat(stats.harmanPeakPower) : parseFloat(stats.meanPower) * 2.1;
-    
+    const powerVal = parseFloat(stats.sayersPeakPower);
+
     let finalTestType = saveJumpTag;
     if (jumpType === 'dj') {
       finalTestType = 'rsi';
     }
-
-    const calculatedForce = (parseFloat(bodyMass) * 9.81 * ((parseFloat(stats.heightCm)/100)/(((parseFloat(legLength) > 2 ? parseFloat(legLength)/100 : parseFloat(legLength)) || 1.0)*0.45) + 1)).toFixed(2);
 
     const savedRecord = await addMeasurement({ 
       player_id: selectedPlayerId, 
@@ -1137,10 +1137,10 @@ export default function JumpTestingConsole({
       contact_time_sec: stats.contactTime ? parseFloat(stats.contactTime) : null,
       rsi_score: stats.rsi ? parseFloat(stats.rsi) : null,
       box_height_cm: jumpType === 'dj' && boxHeight ? parseFloat(boxHeight) : null,
-      takeoff_velocity_ms: stats.takeoffVelocity, 
-      mean_power_watts: stats.meanPower, 
-      peak_power_watts: powerVal.toFixed(2), 
-      mean_force_newtons: calculatedForce, 
+      takeoff_velocity_ms: stats.takeoffVelocity || null, 
+      mean_power_watts: stats.meanPower || null, 
+      peak_power_watts: powerVal > 0 ? powerVal.toFixed(2) : null, 
+      mean_force_newtons: stats.meanForce || null, 
       leg_used: legUsed 
     });
     
@@ -2466,7 +2466,7 @@ export default function JumpTestingConsole({
                   <svg className="w-full h-full" viewBox="0 0 100 55">
                     <path d="M 15 50 A 35 35 0 0 1 85 50" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" strokeLinecap="round" />
                     {(() => {
-                      const powerVal = parseFloat(stats.harmanPeakPower) > 0 ? parseFloat(stats.harmanPeakPower) : parseFloat(stats.meanPower)*2.1;
+                      const powerVal = (parseFloat(stats.sayersPeakPower) || 0);
                       const maxPower = 8000;
                       const pct = Math.min(1.0, powerVal / maxPower);
                       const strokeDasharray = 110;
@@ -2505,16 +2505,16 @@ export default function JumpTestingConsole({
                 
                 <div className="text-center mt-2 space-y-1">
                   <div className="text-xl font-black text-orange-505 font-mono">
-                    <AnimatedCounter value={parseFloat(stats.harmanPeakPower) > 0 ? stats.harmanPeakPower : parseFloat(stats.meanPower)*2.1} decimals={0} />
+                    <AnimatedCounter value={stats.sayersPeakPower || 0} decimals={0} />
                     <span className="text-[10px] text-blue-500/80 font-bold mr-1">Watts</span>
                   </div>
-                  <span className="text-[9px] text-gray-500 block">ذروة القدرة الميكانيكية (Harman Model)</span>
+                  <span className="text-[9px] text-gray-500 block">ذروة القدرة (Sayers 1999)</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 w-full mt-4 pt-3 border-t border-gray-800/40 text-[9px]">
                   <div className="bg-black/20 p-2 rounded-xl text-center">
-                    <span className="text-gray-500 block text-[8px] font-bold">Sayers Power</span>
-                    <span className="font-bold text-white font-mono">{stats.sayersPeakPower} W</span>
+                    <span className="text-gray-500 block text-[8px] font-bold">Harman 1991</span>
+                    <span className="font-bold text-white font-mono">{stats.harmanPeakPower ? `${parseFloat(stats.harmanPeakPower).toFixed(0)} W` : '—'}</span>
                   </div>
                   <div className="bg-black/20 p-2 rounded-xl text-center">
                     <span className="text-gray-550 block text-[8px] font-bold">سرعة الإقلاع V0</span>
@@ -3324,7 +3324,7 @@ export default function JumpTestingConsole({
                       strokeWidth="8" 
                       strokeLinecap="round"
                       strokeDasharray="125.6"
-                      strokeDashoffset={125.6 - (125.6 * Math.min(100, (parseFloat(stats.harmanPeakPower) > 0 ? parseFloat(stats.harmanPeakPower) : parseFloat(stats.meanPower) * 2.1) / 7500)) * 1}
+                      strokeDashoffset={125.6 - (125.6 * Math.min(100, ((parseFloat(stats.sayersPeakPower) || 0)) / 7500)) * 1}
                       className="transition-all duration-1000"
                     />
                     <defs>
@@ -3337,7 +3337,7 @@ export default function JumpTestingConsole({
                   
                   <div className="absolute bottom-1 text-center">
                     <span className="text-lg font-black text-white font-mono">
-                      <AnimatedCounter value={parseFloat(stats.harmanPeakPower) > 0 ? stats.harmanPeakPower : (parseFloat(stats.meanPower) * 2.1).toFixed(0)} decimals={0} />
+                      <AnimatedCounter value={stats.sayersPeakPower || 0} decimals={0} />
                     </span>
                     <span className="text-[8px] text-gray-500 block">Peak Watts</span>
                   </div>
@@ -3391,17 +3391,16 @@ export default function JumpTestingConsole({
 
                 {/* Force Estimation Column */}
                 <div className="bg-black/20 p-4.5 rounded-2xl border border-[#D4FF00]/20 space-y-2">
-                  <span className="block font-black text-[#D4FF00]">🏋️ Takeoff Force (الدفع الأرضي المقدر)</span>
+                  <span className="block font-black text-[#D4FF00]">🏋️ Mean push-off force (Samozino)</span>
                   <div className="bg-black/30 p-2 rounded-xl font-mono text-center text-[10px] text-white flex justify-between px-3">
-                    <span>Avg: {parseFloat(stats.meanForce).toFixed(0)} N</span>
-                    <span>Peak: {parseFloat(stats.peakForce).toFixed(0)} N</span>
+                    <span>{stats.meanForce ? `${parseFloat(stats.meanForce).toFixed(0)} N` : '—'}</span>
+                    <span>{stats.meanForce && bodyMass > 0 ? `${(parseFloat(stats.meanForce) / (bodyMass * 9.81)).toFixed(2)} BW` : '—'}</span>
                   </div>
-                  <p className="text-[10px] text-zinc-400 leading-relaxed">
-                    متوسط الدفع: <span className="text-[#D4FF00] font-bold">{(parseFloat(stats.meanForce) / (bodyMass * 9.81)).toFixed(2)} BW</span> <br />
-                    ذروة الدفع: <span className="text-[#D4FF00] font-bold">{(parseFloat(stats.peakForce) / (bodyMass * 9.81)).toFixed(2)} BW</span>
-                  </p>
+                  {stats.hpoEstimated && (
+                    <span className="inline-block text-[10px] px-2 py-0.5 rounded-full border border-amber-500/40 text-amber-400">{tr.hud.hpoEstimatedBadge}</span>
+                  )}
                   <p className="text-[9px] text-gray-500 leading-normal">
-                    تُعبر القوة التفاعلية الأرضية (GRF) عن شدة دفع أرجل اللاعب للأرض لحظة الصعود. النسب المثالية للرياضيين النخبة تتعدى 2.5 أضعاف وزن الجسم (Peak &gt; 2.5 BW).
+                    F = m·g·(h/hPO + 1). ذروة القوة مش بتتحسب من الفيديو؛ محتاجة منصة قوة.
                   </p>
                 </div>
 
@@ -3410,12 +3409,12 @@ export default function JumpTestingConsole({
                   <span className="block font-black text-purple-400">⚡ Power Models (القدرة الميكانيكية)</span>
                   <div className="space-y-1.5 text-[10px]">
                     <div className="flex justify-between items-center bg-black/15 px-2 py-1 rounded">
-                      <span className="text-gray-450 font-bold">Harman Peak:</span>
-                      <span className="font-mono text-white font-bold">{parseFloat(stats.harmanPeakPower).toFixed(0)} W</span>
+                      <span className="text-gray-450 font-bold">Sayers 1999 (main):</span>
+                      <span className="font-mono text-white font-bold">{stats.sayersPeakPower ? `${parseFloat(stats.sayersPeakPower).toFixed(0)} W` : '—'}</span>
                     </div>
                     <div className="flex justify-between items-center bg-black/15 px-2 py-1 rounded">
-                      <span className="text-gray-450 font-bold">Sayers Peak:</span>
-                      <span className="font-mono text-white font-bold">{parseFloat(stats.sayersPeakPower).toFixed(0)} W</span>
+                      <span className="text-gray-450 font-bold">Harman 1991:</span>
+                      <span className="font-mono text-white font-bold">{stats.harmanPeakPower ? `${parseFloat(stats.harmanPeakPower).toFixed(0)} W` : '—'}</span>
                     </div>
                   </div>
                   <p className="text-[9px] text-gray-500 leading-normal">
