@@ -133,9 +133,6 @@ export default function TeamDashboard({
     });
   }, [allPlayers, selectedCoachId, genderFilter, searchQuery]);
 
-  const getPlayerAge = (player: Player) => {
-    return getPlayerAge(player);
-  };
 
   const getStatusBadge = (heightCm: number | null, type: 'cmj' | 'approach' | 'rsi', gender: string, age: number) => {
     if (!heightCm || isNaN(heightCm) || heightCm <= 0) {
