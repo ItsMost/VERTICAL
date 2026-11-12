@@ -84,3 +84,6 @@ if (typeof window !== 'undefined') {
     return timer;
   });
 }
+
+// Access-code gate is covered separately; render the app directly in tests
+vi.mock('../src/AuthGate', () => ({ default: ({ children }: { children: any }) => children }));

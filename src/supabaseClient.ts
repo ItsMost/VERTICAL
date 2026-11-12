@@ -12,11 +12,19 @@ export const supabaseUrl: string = envUrl || defaultSupabaseUrl;
 export const supabaseAnonKey: string = envAnonKey || defaultSupabaseAnonKey;
 
 // Create and export the Supabase client
-export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+export const LAB_KEY_STORAGE = 'lab_access_code';
+const readLabKey = (): string => {
+  try { return localStorage.getItem(LAB_KEY_STORAGE) || ''; } catch { return ''; }
+};
+
+export const makeClient = (labKey: string): SupabaseClient => createClient(supabaseUrl, supabaseAnonKey, {
+  global: { headers: { 'x-lab-key': labKey } },
   auth: {
     persistSession: true,
     autoRefreshToken: true,
   },
 });
+
+export const supabase: SupabaseClient = makeClient(readLabKey());
 
 export default supabase;
