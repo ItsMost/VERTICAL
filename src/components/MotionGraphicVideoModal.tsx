@@ -12,7 +12,7 @@ export default function MotionGraphicVideoModal({
   playerHistory = [],
   isOpen,
   onClose,
-  language = 'ar'
+  language: _language = 'ar'
 }: {
   activePlayer: Player | null;
   playerHistory?: JumpMeasurement[];
@@ -32,7 +32,7 @@ export default function MotionGraphicVideoModal({
   const [isRecording, setIsRecording] = useState(false);
   const [recordProgress, setRecordProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState<any>(null);
-  const [recordedBlob, setRecordedBlob] = useState<any>(null);
+  const [, setRecordedBlob] = useState<any>(null);
 
   // Player Stats
   const playerName = activePlayer?.full_name || tx.media.athlete;
@@ -54,11 +54,6 @@ export default function MotionGraphicVideoModal({
   const squatRecords = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.FULL_SQUAT);
   const squatWeight = squatRecords.length > 0 ? Math.max(...squatRecords.map(j => parseFloat(String(j.clean_weight_kg)) || 0)) : 0;
 
-  const benchRecords = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.BENCH_PRESS);
-  const benchWeight = benchRecords.length > 0 ? Math.max(...benchRecords.map(j => parseFloat(String(j.clean_weight_kg)) || 0)) : 0;
-
-  const cleanRecords = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.POWER_CLEAN || (parseFloat(String(r.clean_weight_kg)) > 0 && normalizeTestType(r.test_type) !== TEST_TYPES.FULL_SQUAT && normalizeTestType(r.test_type) !== TEST_TYPES.BENCH_PRESS));
-  const cleanWeight = cleanRecords.length > 0 ? Math.max(...cleanRecords.map(j => parseFloat(String(j.clean_weight_kg)) || 0)) : 0;
 
   // Auto-switch preview phases every 2.5 seconds
   useEffect(() => {

@@ -22,6 +22,8 @@ const measurements: Row[] = [
   m('p1', 'cmj_no_arms', 45.2, 9), m('p1', 'sj_no_arms', 41.0, 9), m('p1', 'approach', 68.3, 6),
   m('p1', 'rsi', 38.2, 6, { contact_time_sec: 0.182, rsi_score: 2.1, box_height_cm: 40 }),
   m('p1', 'power_clean', 0, 15, { clean_weight_kg: 90, reps_count: 1 }),
+  m('p1', 'full_squat', 0, 15, { clean_weight_kg: 120, reps_count: 1 }),
+  m('p1', 'sj_no_arms', 44.0, 3), m('p1', 'sj_no_arms', 37.9, 3, { added_load_kg: 15 }), m('p1', 'sj_no_arms', 32.2, 3, { added_load_kg: 30 }), m('p1', 'sj_no_arms', 27.1, 3, { added_load_kg: 45 }),
   m('p2', 'cmj_arms', 38.5, 30), m('p2', 'cmj_no_arms', 33.1, 3), m('p2', 'sj_no_arms', 31.7, 3),
   m('p3', 'cmj_arms', 44.0, 2), m('p3', 'rsi', 30.1, 2, { contact_time_sec: 0.231, rsi_score: 1.3 }),
 ];

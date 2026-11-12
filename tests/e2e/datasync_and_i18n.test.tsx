@@ -9,36 +9,23 @@ describe('Bilingual & State Sync Verification', () => {
     await act(async () => {
       render(<App />);
     });
-
-    // Language toggle buttons EN and عربي
-    const enButtons = screen.getAllByRole('button', { name: /EN/i });
-    expect(enButtons.length).toBeGreaterThan(0);
-
-    // Switch to English
     await act(async () => {
-      fireEvent.click(enButtons[0]);
+      fireEvent.click(screen.getAllByRole('button', { name: /^EN$/ })[0]);
     });
+    expect(document.documentElement.dir).toBe('ltr');
+    expect(screen.getAllByText(translations.en.s.navAthletes).length).toBeGreaterThan(0);
 
-    // Check English translations rendered
-    expect(screen.getByText(translations.en.hud.addCoach)).toBeInTheDocument();
-    expect(screen.getAllByText(translations.en.nav.roster).length).toBeGreaterThan(0);
-
-    // Switch back to Arabic
-    const arButtons = screen.getAllByRole('button', { name: /عربي/i });
     await act(async () => {
-      fireEvent.click(arButtons[0]);
+      fireEvent.click(screen.getAllByRole('button', { name: /عربي/ })[0]);
     });
-
-    // Check Arabic translations rendered
-    expect(screen.getByText(translations.ar.hud.addCoach)).toBeInTheDocument();
+    expect(document.documentElement.dir).toBe('rtl');
+    expect(screen.getAllByText(translations.ar.s.navAthletes).length).toBeGreaterThan(0);
   });
 
   test('verifies Sprint and VBT menus are completely removed as requested', async () => {
     await act(async () => {
       render(<App />);
     });
-
-    // SprintAnalyzer and VBTCamera should NOT exist in navigation
     expect(screen.queryByText(/تحليل السرعة/i)).toBeNull();
     expect(screen.queryByText(/كاميرا VBT/i)).toBeNull();
     expect(screen.queryByText(/Sprint Analyzer/i)).toBeNull();

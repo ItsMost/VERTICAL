@@ -8,37 +8,38 @@
    Fonts are loaded once, in index.html.
 =========================================================================== */
 @theme {
-  --color-bg: #09090B;
-  --color-surface: #121215;
-  --color-surface-2: #1A1A1E;
-  --color-border: #27272A;
-  --color-text: #F4F4F5;
-  --color-muted: #A1A1AA;
-  --color-faint: #71717A;
+  /* Warm dark (Claude-style): charcoal surfaces, cream text, one orange accent */
+  --color-bg: #1F1E1D;
+  --color-surface: #2A2927;
+  --color-surface-2: #33322F;
+  --color-border: #3D3C38;
+  --color-text: #F5F4ED;
+  --color-muted: #ABA79D;
+  --color-faint: #85827A;
   --color-accent: #D97757;
   --color-accent-hover: #E38B6D;
-  --color-accent-ink: #1A0F0A;
-  --color-success: #22C55E;
-  --color-warning: #F5B544;
-  --color-danger: #F05252;
+  --color-accent-soft: #3A2A23;
+  --color-accent-ink: #1F1E1D;
+  --color-success: #8FC08A;
+  --color-warning: #E2B65C;
+  --color-danger: #E5735E;
 
-  /* legacy names used by older classes (bg-carbon, text-volt, ...) */
+  /* legacy names still used by the share card */
   --color-carbon: var(--color-bg);
   --color-graphite: var(--color-surface);
   --color-borderDark: var(--color-border);
   --color-volt: var(--color-accent);
   --color-blaze: var(--color-accent);
 
-  --radius-card: 1rem;
-  --radius-control: 0.75rem;
+  --radius-card: 1.25rem;
+  --radius-control: 0.875rem;
 
   --font-arabic: "IBM Plex Sans Arabic", system-ui, sans-serif;
-  --font-sans: "Plus Jakarta Sans", "IBM Plex Sans Arabic", system-ui, sans-serif;
-  --font-heading: "Space Grotesk", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-heading: "IBM Plex Sans Arabic", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  /* type scale */
-  --text-metric: 2.5rem;
+  --text-metric: 2.75rem;
   --text-metric--line-height: 1;
 }
 
@@ -46,7 +47,7 @@
   /* Tailwind v4 defaults borders to currentColor; keep the old neutral border */
   *, ::before, ::after { border-color: var(--color-border); }
 
-  html { color-scheme: dark; -webkit-text-size-adjust: 100%; }
+  html { color-scheme: dark; -webkit-text-size-adjust: 100%; background: var(--color-bg); }
   body {
     margin: 0;
     background-color: var(--color-bg);
@@ -82,7 +83,6 @@
   /* numbers always tabular mono */
   .font-mono, .metric-num, [data-mono="true"] { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
   .font-heading { font-family: var(--font-heading); }
-  html[dir="rtl"] .font-heading { font-family: var(--font-arabic); }
 
   /* cards */
   .card, .bento-card, .glass-card, .glass-panel {
@@ -169,3 +169,12 @@
 @keyframes pulse-accent { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
 @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 .animate-fade-in { animation: fade-in .25s ease-out; }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+@media print {
+  html, body { background: #fff !important; color: #111 !important; }
+  .print\:hidden, nav, .toaster { display: none !important; }
+  section { break-inside: avoid; border-color: #ccc !important; background: #fff !important; color: #111 !important; }
+  .text-muted, .text-faint { color: #555 !important; }
+}

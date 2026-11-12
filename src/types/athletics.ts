@@ -44,6 +44,12 @@ export interface JumpMeasurement {
   contact_time_sec?: number | null;
   rsi_score?: number | null;
   box_height_cm?: number | null;
+  added_load_kg?: number | null;
+  mean_force_newtons?: number | null;
+  leg_used?: string | null;
+  f0_value?: number | null;
+  v0_value?: number | null;
+  fvp_slope?: number | null;
   takeoff_velocity_ms?: number | null;
   mean_power_watts?: number | null;
   peak_power_watts?: number | null;

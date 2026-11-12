@@ -78,6 +78,8 @@ if (typeof window !== 'undefined') {
   window.URL.createObjectURL = vi.fn(() => 'mock-video-stream-url');
   window.URL.revokeObjectURL = vi.fn();
 
+  window.scrollTo = vi.fn() as any;
+
   // Mock Alert dialogs
   window.alert = vi.fn();
 

@@ -9,23 +9,24 @@ Live: <https://vertical-pi.vercel.app> (access code required).
 
 ## Screens
 
-| Screen | What it does |
+Four tabs (bottom bar on phones, side rail on desktop). The app reopens the
+athlete you looked at last.
+
+| Tab | What it does |
 |---|---|
-| Roster | Athletes grouped by coach, search and filters, best CMJ / approach / RSI per athlete. |
-| Video jump test | Mark take-off and landing frames on a (slow-motion) video → flight time → jump height, take-off velocity, Sayers peak power, Samozino mean force/power. Drop jumps also give contact time and RSI. |
-| Drop jump (RSI) | Touch-down / take-off / landing frames → RSI, contact time, leg stiffness. |
-| Manual entry | Type results from a jump mat, app or force plate; strength tests (power clean, squat, bench). |
-| F-V profile | Samozino loaded-jump profile (F0, V0, Pmax, Sfv, optimal Sfv, FVimb) and a force-plate force-time analysis. |
-| Athlete profile | History, progression chart, EUR, readiness, reach projections, edit/delete tests, printable report. |
-| Leaderboard | Rankings per test. |
+| Athletes | Search, coach / gender filters, sort, favourites; best CMJ, approach and RSI with level dots; add/edit athletes (incl. hPO), coaches, levels guide. |
+| Test | Pick athlete → method: **Video** (mark take-off/landing, or touch-down for drop jumps; AI pose tracking; FPS, frame duration, landing correction, calibration, touch-height comparison and video export under "Advanced"), **Numbers** (any test incl. strength, RSI typed or computed), **F-V session** (3–5 loaded squat jumps on one day, live profile preview). |
+| Rankings | Per test (CMJ arms / no arms, SJ, approach, RSI), filter by gender and coach. |
+| Profile | Best CMJ + change vs last test, 14-day readiness, best RSI + contact time; EUR, reach & court margins, strength; F-V profile from the latest F-V session; progress chart; all jumps & power; editable history; share card; print. |
 
 ## Run it
 
 ```bash
 npm ci
 npm run dev        # http://localhost:5173
+npm run dev:mock   # same UI with demo data (no access code, no database)
 npm test           # vitest (unit + UI smoke tests)
-npm run build      # production build into dist/
+npm run build      # type-check + production build into dist/
 ```
 
 Environment (optional — defaults point to the lab project):
@@ -67,7 +68,6 @@ the app shows **"—"** instead of estimating it.
 | Leg stiffness | K = m·π·(tf + tc) / (tc²·((tf + tc)/π − tc/4)) | Dalleau et al. 2004, *Int J Sports Med* 25:170 |
 | EUR | CMJ (no arms) / SJ (no arms) | McGuigan et al. 2006, *JSCR* 20:992 |
 | Readiness | latest CMJ vs mean ± SD of CMJ tests in the previous 14 days (latest day excluded, ≥ 3 tests) | — |
-| Force-time CMJ | BW = mean of first 1 s; onset = F < BW − 5·SD; take-off = F < 20 N; v = ∫(F − BW)/m dt | Owen et al. 2014, *JSCR* 28:1552 |
 
 The F-V profile is rejected (shown as "invalid profile" with the raw points)
 when the slope is ≥ 0 or R² < 0.9.
