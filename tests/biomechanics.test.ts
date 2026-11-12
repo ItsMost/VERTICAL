@@ -289,3 +289,15 @@ describe('video timing', () => {
     expect(realDurationFromVideo(4, 240, 30, 1 / 120)).toBeCloseTo(1, 9);
   });
 });
+
+describe('leg length units', () => {
+  it('accepts 0.6–1.3 m or 60–130 cm; rejects ambiguous values', async () => {
+    const { legLengthMetres } = await import('../src/lib/biomechanics');
+    expect(legLengthMetres(0.95)).toBe(0.95);
+    expect(legLengthMetres(99)).toBeCloseTo(0.99, 9);
+    expect(legLengthMetres(0)).toBeNull();
+    expect(legLengthMetres(9)).toBeNull();
+    expect(legLengthMetres(185)).toBeNull();
+    expect(resolveHpo({ leg_length_m: 100 }).hpoM).toBeCloseTo(0.45, 9);
+  });
+});

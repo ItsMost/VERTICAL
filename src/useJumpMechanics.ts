@@ -18,6 +18,7 @@ import {
   reactiveIndex,
   eurQuadrant,
   HPO_ESTIMATE_FRACTION,
+  legLengthMetres,
 } from './lib/biomechanics';
 
 /**
@@ -138,14 +139,17 @@ export function useJumpMechanics(
     const leg = parseFloat(String(legLength));
     const measuredHpo = parseFloat(String(hpoM));
     const hpoEstimated = !(measuredHpo > 0);
-    const hpo = !hpoEstimated ? measuredHpo : leg > 0 ? leg * HPO_ESTIMATE_FRACTION : null;
+    const legM = legLengthMetres(leg);
+    const hpo = !hpoEstimated ? measuredHpo : legM !== null ? legM * HPO_ESTIMATE_FRACTION : null;
 
     const hM = jumpHeightFromFlightTime(flight);
     if (hM === null) return EMPTY;
     const hCm = hM * 100;
     const vTO = takeoffVelocityFromJumpHeight(hM);
-    const meanForce = hpo ? samozinoMeanForceN(mass, hM, hpo) : null;
-    const meanPower = hpo ? samozinoMeanPowerW(mass, hM, hpo) : null;
+    // Push-off models (Samozino, Sayers, Harman) describe standing jumps, not drop jumps
+    const standing = jumpType !== 'dj';
+    const meanForce = standing && hpo ? samozinoMeanForceN(mass, hM, hpo) : null;
+    const meanPower = standing && hpo ? samozinoMeanPowerW(mass, hM, hpo) : null;
 
     let ct: number | null = null;
     let rsi: number | null = null;
@@ -164,9 +168,9 @@ export function useJumpMechanics(
       flightTime: flight.toFixed(3),
       takeoffVelocity: fmt(vTO, 2),
       meanPower: fmt(meanPower, 2),
-      harmanPeakPower: fmt(harmanPeakPowerW(hCm, mass), 2),
-      harmanMeanPower: fmt(harmanMeanPowerW(hCm, mass), 2),
-      sayersPeakPower: fmt(sayersPeakPowerW(hCm, mass), 2),
+      harmanPeakPower: standing ? fmt(harmanPeakPowerW(hCm, mass), 2) : '',
+      harmanMeanPower: standing ? fmt(harmanMeanPowerW(hCm, mass), 2) : '',
+      sayersPeakPower: standing ? fmt(sayersPeakPowerW(hCm, mass), 2) : '',
       pushAcceleration: hpo ? fmt(pushOffAccelerationMs2(hM, hpo), 2) : '',
       pushDuration: hpo ? fmt(pushOffDurationSec(hM, hpo), 3) : '',
       contactTime: ct && ct > 0 ? ct.toFixed(3) : '',

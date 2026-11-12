@@ -118,9 +118,27 @@ export interface HpoResult {
 export function resolveHpo(player: { hpo_m?: number | string | null; leg_length_m?: number | string | null } | null | undefined): HpoResult {
   const measured = Number(player?.hpo_m);
   if (isPos(measured)) return { hpoM: measured, estimated: false };
-  const leg = Number(player?.leg_length_m);
-  if (isPos(leg)) return { hpoM: leg * HPO_ESTIMATE_FRACTION, estimated: true };
+  const leg = legLengthMetres(player?.leg_length_m);
+  if (leg !== null) return { hpoM: leg * HPO_ESTIMATE_FRACTION, estimated: true };
   return { hpoM: null, estimated: true };
+}
+
+/** Plausible leg length (greater trochanter → toes) in metres. */
+export const LEG_LENGTH_RANGE_M = [0.6, 1.3] as const;
+
+/**
+ * Leg length in metres. Some players have it typed in centimetres in the
+ * `leg_length_m` column (e.g. 99). A value inside 0.6–1.3 is metres, inside
+ * 60–130 is centimetres (unambiguous: the ranges don't overlap). Anything else
+ * (e.g. 9 or 185) is ambiguous or implausible and returns null.
+ */
+export function legLengthMetres(value: number | string | null | undefined): number | null {
+  const v = Number(value);
+  if (!isPos(v)) return null;
+  const [lo, hi] = LEG_LENGTH_RANGE_M;
+  if (v >= lo && v <= hi) return v;
+  if (v >= lo * 100 && v <= hi * 100) return v / 100;
+  return null;
 }
 
 /** hPO (m) from the two measurements (both in m). */

@@ -8,6 +8,7 @@ import {
 import { useData } from './context/DataContext';
 import AppLogo from './AppLogo';
 import { classifyGCT } from './useJumpMechanics';
+import { supportsStandingJumpModels } from './lib/testTypes';
 import { sayersPeakPowerW, samozinoMeanPowerW, samozinoMeanForceN, takeoffVelocityFromJumpHeight, flightTimeFromJumpHeight, jumpHeightFromFlightTime, rsiFromHeight, rsiFromFlightTime, resolveHpo } from './lib/biomechanics';
 
 interface ManualEntryConsoleProps {
@@ -175,10 +176,12 @@ export default function ManualEntryConsole({
         // Derived values: Sayers peak power; Samozino mean force/power with the player's hPO
         const hM = jumpHeight / 100;
         const { hpoM } = resolveHpo(activePlayer);
-        const meanPower = hpoM ? samozinoMeanPowerW(weight + addedLoad, hM, hpoM) : null;
-        const meanForce = hpoM ? samozinoMeanForceN(weight + addedLoad, hM, hpoM) : null;
+        // Sayers / Samozino only describe standing SJ/CMJ, not approach or drop jumps
+        const standing = supportsStandingJumpModels(form.testType);
+        const meanPower = standing && hpoM ? samozinoMeanPowerW(weight + addedLoad, hM, hpoM) : null;
+        const meanForce = standing && hpoM ? samozinoMeanForceN(weight + addedLoad, hM, hpoM) : null;
         const vTO = takeoffVelocityFromJumpHeight(hM);
-        payload.peak_power_watts = addedLoad > 0 || !(peakPower > 0) ? null : peakPower.toFixed(0);
+        payload.peak_power_watts = !standing || addedLoad > 0 || !(peakPower > 0) ? null : peakPower.toFixed(0);
         payload.mean_power_watts = meanPower !== null ? meanPower.toFixed(0) : null;
         payload.mean_force_newtons = meanForce !== null ? meanForce.toFixed(2) : null;
         payload.takeoff_velocity_ms = vTO !== null ? vTO.toFixed(2) : null;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import useJumpMechanics from './useJumpMechanics';
+import { supportsStandingJumpModels } from './lib/testTypes';
 import { useData } from './context/DataContext';
 import { 
   Activity, Zap, ScanEye, X, Play, Pause, Focus, Save, Award, HelpCircle, Scaling, Video,
@@ -1138,9 +1139,10 @@ export default function JumpTestingConsole({
       rsi_score: stats.rsi ? parseFloat(stats.rsi) : null,
       box_height_cm: jumpType === 'dj' && boxHeight ? parseFloat(boxHeight) : null,
       takeoff_velocity_ms: stats.takeoffVelocity || null, 
-      mean_power_watts: stats.meanPower || null, 
-      peak_power_watts: powerVal > 0 ? powerVal.toFixed(2) : null, 
-      mean_force_newtons: stats.meanForce || null, 
+      // Sayers / Samozino only describe standing SJ/CMJ, not approach or drop jumps
+      mean_power_watts: supportsStandingJumpModels(finalTestType) ? stats.meanPower || null : null, 
+      peak_power_watts: supportsStandingJumpModels(finalTestType) && powerVal > 0 ? powerVal.toFixed(2) : null, 
+      mean_force_newtons: supportsStandingJumpModels(finalTestType) ? stats.meanForce || null : null, 
       leg_used: legUsed 
     });
     
