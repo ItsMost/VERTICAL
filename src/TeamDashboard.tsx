@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { TEST_TYPES, normalizeTestType } from './lib/testTypes';
 import {
   Users, Award, ChevronDown, Activity, Zap, Play, BookOpen,
   User, X, Edit3, Grid, List, Search, ArrowUpRight
@@ -54,19 +55,19 @@ export default function TeamDashboard({
       const pId = m.player_id;
       if (!scoresMap[pId]) return;
 
-      if (m.test_type === 'cmj' || m.test_type === 'cmj_arms' || m.test_type === 'cmj_no_arms' || m.test_type === 'standard') {
+      if (normalizeTestType(m.test_type) === TEST_TYPES.CMJ_ARMS || normalizeTestType(m.test_type) === TEST_TYPES.CMJ_ARMS || normalizeTestType(m.test_type) === TEST_TYPES.CMJ_NO_ARMS || normalizeTestType(m.test_type) === TEST_TYPES.CMJ_ARMS) {
         const val = parseFloat(String(m.jump_height_cm)) || 0;
         const currentPeak = scoresMap[pId].cmj ? (parseFloat(String(scoresMap[pId].cmj.jump_height_cm)) || 0) : -1;
         if (val > currentPeak) {
           scoresMap[pId].cmj = m;
         }
-      } else if (m.test_type === 'approach' || m.test_type === 'approach_jump') {
+      } else if (normalizeTestType(m.test_type) === TEST_TYPES.APPROACH || normalizeTestType(m.test_type) === TEST_TYPES.APPROACH) {
         const val = parseFloat(String(m.jump_height_cm)) || 0;
         const currentPeak = scoresMap[pId].approach ? (parseFloat(String(scoresMap[pId].approach.jump_height_cm)) || 0) : -1;
         if (val > currentPeak) {
           scoresMap[pId].approach = m;
         }
-      } else if (m.test_type === 'rsi') {
+      } else if (normalizeTestType(m.test_type) === TEST_TYPES.DROP_JUMP) {
         const val = parseFloat(String(m.rsi_score)) || 0;
         const currentPeak = scoresMap[pId].rsi ? (parseFloat(String(scoresMap[pId].rsi.rsi_score)) || 0) : -1;
         if (val > currentPeak) {

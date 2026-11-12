@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import { toast } from './Toast';
+import { TEST_TYPES, normalizeTestType } from '../lib/testTypes';
 import { Video, Download, Check, X, Film } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import AppLogo from '../AppLogo';
@@ -23,11 +25,11 @@ export default function VideoGeneratorModal({
   const playerHeight = parseFloat(activePlayer?.height_cm) || 178;
   const age = activePlayer?.age || 24;
 
-  const maxCmjRecord = playerHistory.find(r => r.test_type === 'cmj' || r.test_type === 'cmj_arms');
+  const maxCmjRecord = playerHistory.find(r => normalizeTestType(r.test_type) === TEST_TYPES.CMJ_ARMS || normalizeTestType(r.test_type) === TEST_TYPES.CMJ_ARMS);
   const maxCmj = maxCmjRecord ? parseFloat(maxCmjRecord.jump_height_cm) || 0 : 0;
   const cmjFlightTime = maxCmjRecord ? parseFloat(maxCmjRecord.flight_time_sec) || 0 : 0;
 
-  const maxRsiRecord = playerHistory.find(r => r.test_type === 'rsi');
+  const maxRsiRecord = playerHistory.find(r => normalizeTestType(r.test_type) === TEST_TYPES.DROP_JUMP);
   const maxRsi = maxRsiRecord ? parseFloat(maxRsiRecord.rsi_score) || 0 : 0;
 
   // Handle Video Generation using MediaRecorder over HTML Canvas
@@ -85,7 +87,7 @@ export default function VideoGeneratorModal({
     } catch (err) {
       console.error("Video Generation Error:", err);
       setIsGenerating(false);
-      alert(isEn ? 'Error generating video clip.' : 'حدث خطأ أثناء استخراج الفيديو، يمكنك تحميل الصورة عالية الدقة بدلاً من ذلك.');
+      toast.error(isEn ? 'Error generating video clip.' : 'حدث خطأ أثناء استخراج الفيديو، يمكنك تحميل الصورة عالية الدقة بدلاً من ذلك.');
     }
   };
 

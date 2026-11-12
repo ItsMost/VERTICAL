@@ -379,3 +379,11 @@ input[type="range"].timeline-slider::-webkit-slider-thumb:hover {
 .segmented { display: flex; gap: .25rem; padding: .25rem; border-radius: 1rem; background: var(--color-surface); border: 1px solid var(--color-border); }
 .segmented > button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 44px; border-radius: .75rem; font-weight: 700; font-size: .8125rem; color: var(--color-muted); }
 .segmented > button[aria-pressed="true"] { background: var(--color-accent); color: var(--color-accent-ink); }
+.toaster { position: fixed; inset-inline: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 92px); z-index: 300; display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 0 16px; pointer-events: none; }
+.toast { pointer-events: auto; width: 100%; max-width: 28rem; display: flex; align-items: center; gap: .625rem; padding: .625rem .75rem; border-radius: .875rem; background: var(--color-surface-2); border: 1px solid var(--color-border); color: var(--color-text); box-shadow: 0 12px 30px -10px rgba(0,0,0,.7); }
+.toast-success { border-color: color-mix(in srgb, var(--color-success) 50%, transparent); }
+.toast-success svg:first-child { color: var(--color-success); }
+.toast-error { border-color: color-mix(in srgb, var(--color-danger) 55%, transparent); }
+.toast-error svg:first-child { color: var(--color-danger); }
+.toast-info svg:first-child { color: var(--color-accent); }
+.toast-close { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; color: var(--color-muted); margin: -.5rem -.5rem -.5rem 0; }

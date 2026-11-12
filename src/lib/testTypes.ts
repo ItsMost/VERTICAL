@@ -4,16 +4,13 @@
  * `normalizeTestType` until the database rows are migrated.
  */
 export const TEST_TYPES = {
-  CMJ: 'cmj',                 // CMJ with arm swing (legacy rows: 'cmj', 'cmj_arms', 'standard')
-  CMJ_ARMS: 'cmj_arms',
+  CMJ_ARMS: 'cmj_arms',       // CMJ with arm swing (legacy: 'cmj', 'standard')
   CMJ_NO_ARMS: 'cmj_no_arms',
   SJ_NO_ARMS: 'sj_no_arms',
   SJ_ARMS: 'sj_arms',
   APPROACH: 'approach',
   DROP_JUMP: 'rsi',           // drop jump / reactive strength test
-  STANDARD: 'standard',
   POWER_CLEAN: 'power_clean',
-  CLEAN: 'clean',
   FULL_SQUAT: 'full_squat',
   BENCH_PRESS: 'bench_press',
 } as const;
@@ -27,6 +24,9 @@ export const TEST_TYPE_ALIASES: Record<string, TestTypeValue> = {
   approach_jump: TEST_TYPES.APPROACH,
   sj: TEST_TYPES.SJ_NO_ARMS,
   dj: TEST_TYPES.DROP_JUMP,
+  cmj: TEST_TYPES.CMJ_ARMS,
+  standard: TEST_TYPES.CMJ_ARMS,
+  clean: TEST_TYPES.POWER_CLEAN,
 };
 
 export function normalizeTestType(t: string | null | undefined): string {
@@ -35,8 +35,8 @@ export function normalizeTestType(t: string | null | undefined): string {
 }
 
 /** CMJ family (arm swing allowed), used for readiness and peak height. */
-export const CMJ_FAMILY: string[] = [TEST_TYPES.CMJ, TEST_TYPES.CMJ_ARMS, TEST_TYPES.STANDARD];
-export const STRENGTH_TYPES: string[] = [TEST_TYPES.POWER_CLEAN, TEST_TYPES.CLEAN, TEST_TYPES.FULL_SQUAT, TEST_TYPES.BENCH_PRESS];
+export const CMJ_FAMILY: string[] = [TEST_TYPES.CMJ_ARMS];
+export const STRENGTH_TYPES: string[] = [TEST_TYPES.POWER_CLEAN, TEST_TYPES.FULL_SQUAT, TEST_TYPES.BENCH_PRESS];
 
 export const isType = (t: string | null | undefined, ...types: string[]) => types.includes(normalizeTestType(t));
 
@@ -45,5 +45,5 @@ export const isType = (t: string | null | undefined, ...types: string[]) => type
  * jump (SJ / CMJ). They are not valid for approach jumps (run-up) or drop jumps.
  */
 export function supportsStandingJumpModels(t: string | null | undefined): boolean {
-  return isType(t, TEST_TYPES.CMJ, TEST_TYPES.CMJ_ARMS, TEST_TYPES.CMJ_NO_ARMS, TEST_TYPES.SJ_NO_ARMS, TEST_TYPES.SJ_ARMS, TEST_TYPES.STANDARD);
+  return isType(t, TEST_TYPES.CMJ_ARMS, TEST_TYPES.CMJ_NO_ARMS, TEST_TYPES.SJ_NO_ARMS, TEST_TYPES.SJ_ARMS);
 }

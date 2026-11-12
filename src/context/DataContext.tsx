@@ -1,9 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
 import { translations, type Language, type TranslationDictionary } from '../translations';
 import type { Player, Coach, JumpMeasurement } from '../types/athletics';
 import { birthYearToDob } from '../lib/utils';
 import { hpoFromMeasurements } from '../lib/biomechanics';
+import { normalizeTestType } from '../lib/testTypes';
+import { supabaseErrorAr } from '../lib/supabaseErrors';
+import { toast } from '../components/Toast';
 
 interface DataContextType {
   players: Player[];
@@ -25,6 +28,8 @@ interface DataContextType {
   deleteMeasurement: (id: string) => Promise<boolean>;
   addPlayer: (newPlayer: any) => Promise<Player | null>;
   updatePlayer: (id: string, updates: any) => Promise<boolean>;
+  /** Update only the given lab_players columns (nothing else is touched). */
+  updatePlayerFields: (id: string, fields: Partial<Pick<Player, 'height_cm' | 'standing_reach_cm' | 'hpo_m'>>) => Promise<boolean>;
   deletePlayer: (id: string) => Promise<boolean>;
   addCoach: (fullName: string) => Promise<Coach | null>;
   deleteCoach: (id: string) => Promise<boolean>;
@@ -42,9 +47,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [selectedPlayerId, setSelectedPlayerIdState] = useState<string>('');
-  const [activePlayer, setActivePlayer] = useState<Player | null>(null);
-  const [playerHistory, setPlayerHistory] = useState<JumpMeasurement[]>([]);
   const [allMeasurements, setAllMeasurements] = useState<JumpMeasurement[]>([]);
+  // Derived, so they can never drift out of sync with the source arrays
+  const activePlayer = useMemo(() => players.find(p => p.id === selectedPlayerId) || null, [players, selectedPlayerId]);
+  const playerHistory = useMemo(
+    () => (selectedPlayerId ? allMeasurements.filter(m => m.player_id === selectedPlayerId) : []),
+    [allMeasurements, selectedPlayerId],
+  );
+  const sortByCreated = (rows: JumpMeasurement[]) =>
+    [...rows].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   const [dataVersion, setDataVersion] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
@@ -87,71 +98,81 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
 
       // 2. Fetch Players
-      const { data: playersData } = await supabase
+      const { data: playersData, error: playersError } = await supabase
         .from('lab_players')
         .select('*')
         .order('created_at', { ascending: false });
 
+      if (playersError) throw playersError;
       if (playersData) {
         setPlayers(playersData as Player[]);
       }
 
       // 3. Fetch All Measurements
-      const { data: measurementsData } = await supabase
+      const { data: measurementsData, error: measurementsError } = await supabase
         .from('lab_jump_measurements')
         .select('*')
         .order('created_at', { ascending: true });
 
+      if (measurementsError) throw measurementsError;
       if (measurementsData) {
-        const typedMeasurements = measurementsData as JumpMeasurement[];
-        setAllMeasurements(typedMeasurements);
-
-        // Update active player's history in memory immediately
-        if (selectedPlayerId) {
-          const currentAthleteHistory = typedMeasurements.filter(m => m.player_id === selectedPlayerId);
-          setPlayerHistory(currentAthleteHistory);
-        }
+        setAllMeasurements(measurementsData as JumpMeasurement[]);
       }
 
       setLastSyncedAt(new Date());
       setDataVersion(v => v + 1);
     } catch (err) {
       console.error('Error refreshing central data:', err);
+      toast.error(supabaseErrorAr(err, 'تحميل البيانات'));
     } finally {
       setIsSyncing(false);
     }
-  }, [selectedPlayerId]);
+  }, []);
 
-  // Initial Load
+  // One-time migration: height / standing reach used to live in localStorage on this device.
+  // Fill only EMPTY lab_players columns; never overwrite a DB value; keep the local keys.
+  const migratedRef = useRef(false);
   useEffect(() => {
+    if (migratedRef.current || players.length === 0) return;
+    migratedRef.current = true;
+    let done = false;
+    try { done = localStorage.getItem('lab_reach_migrated_v1') === '1'; } catch { done = true; }
+    if (done) return;
+    (async () => {
+      const conflicts: Record<string, unknown>[] = [];
+      let failed = false;
+      for (const p of players) {
+        const fields: Partial<Pick<Player, 'height_cm' | 'standing_reach_cm'>> = {};
+        const read = (k: string) => { try { return parseFloat(localStorage.getItem(k) || ''); } catch { return NaN; } };
+        const h = read(`player_height_${p.id}`);
+        const r = read(`standing_reach_${p.id}`);
+        if (h > 0) { if (p.height_cm == null) fields.height_cm = h; else if (Number(p.height_cm) !== h) conflicts.push({ id: p.id, field: 'height_cm', db: p.height_cm, local: h }); }
+        if (r > 0) { if (p.standing_reach_cm == null) fields.standing_reach_cm = r; else if (Number(p.standing_reach_cm) !== r) conflicts.push({ id: p.id, field: 'standing_reach_cm', db: p.standing_reach_cm, local: r }); }
+        if (Object.keys(fields).length) {
+          const { error } = await supabase.from('lab_players').update(fields).eq('id', p.id);
+          if (error) { failed = true; console.error('reach migration failed for', p.id, error); }
+          else setPlayers(prev => prev.map(x => (x.id === p.id ? { ...x, ...fields } : x)));
+        }
+      }
+      try {
+        if (conflicts.length) localStorage.setItem('lab_reach_conflicts', JSON.stringify(conflicts));
+        if (!failed) localStorage.setItem('lab_reach_migrated_v1', '1');
+      } catch { /* ignore */ }
+    })();
+  }, [players]);
+
+  // Initial load (once)
+  const loadedRef = useRef(false);
+  useEffect(() => {
+    if (loadedRef.current) return;
+    loadedRef.current = true;
     refreshData();
   }, [refreshData]);
 
   // Synchronize activePlayer and playerHistory when selectedPlayerId changes
   const setSelectedPlayerId = useCallback((id: string) => {
     setSelectedPlayerIdState(id);
-    if (!id) {
-      setActivePlayer(null);
-      setPlayerHistory([]);
-      return;
-    }
-
-    const matchedPlayer = players.find(p => p.id === id) || null;
-    setActivePlayer(matchedPlayer);
-
-    const athleteMeasurements = allMeasurements.filter(m => m.player_id === id);
-    setPlayerHistory(athleteMeasurements);
-  }, [players, allMeasurements]);
-
-  // Auto-sync active player object when players array changes
-  useEffect(() => {
-    if (selectedPlayerId) {
-      const matched = players.find(p => p.id === selectedPlayerId);
-      if (matched) {
-        setActivePlayer(matched);
-      }
-    }
-  }, [players, selectedPlayerId]);
+  }, []);
 
 const VALID_MEASUREMENT_KEYS = new Set([
   'id', 'player_id', 'coach_id', 'test_type', 'jump_height_cm',
@@ -170,6 +191,7 @@ const VALID_MEASUREMENT_KEYS = new Set([
       const sanitizedPayload = Object.fromEntries(
         Object.entries(payload).filter(([k, v]) => VALID_MEASUREMENT_KEYS.has(k) && v !== undefined)
       );
+      if (sanitizedPayload.test_type) sanitizedPayload.test_type = normalizeTestType(String(sanitizedPayload.test_type));
 
       const { data, error } = await supabase
         .from('lab_jump_measurements')
@@ -178,26 +200,17 @@ const VALID_MEASUREMENT_KEYS = new Set([
 
       if (error) {
         console.error('Supabase measurement insert error:', error);
-        alert(language === 'ar' ? `تعذر حفظ القياس: ${error.message}` : `Failed to save measurement: ${error.message}`);
+        toast.error(supabaseErrorAr(error, 'حفظ القياس'));
         throw error;
       }
 
       if (data && data.length > 0) {
         const newRecord = data[0] as JumpMeasurement;
 
-        // Optimistically update states in memory instantly
-        setAllMeasurements(prev => [...prev, newRecord]);
-        if (newRecord.player_id === selectedPlayerId) {
-          setPlayerHistory(prev => [...prev, newRecord]);
-        }
+        // Insert the row the server returned; no full re-download
+        setAllMeasurements(prev => sortByCreated([...prev, newRecord]));
         setDataVersion(v => v + 1);
         setLastSyncedAt(new Date());
-
-        // Background sync to ensure full parity
-        setTimeout(() => {
-          refreshData();
-        }, 100);
-
         return newRecord;
       }
       return null;
@@ -207,25 +220,29 @@ const VALID_MEASUREMENT_KEYS = new Set([
     } finally {
       setIsSyncing(false);
     }
-  }, [selectedPlayerId, refreshData, language]);
+  }, [language]);
 
   // UPDATE MEASUREMENT
   const updateMeasurement = useCallback(async (id: string, updates: Partial<JumpMeasurement>): Promise<boolean> => {
     try {
       setIsSyncing(true);
-      const { error } = await supabase
+      const clean: Partial<JumpMeasurement> = { ...updates };
+      if (clean.test_type) clean.test_type = normalizeTestType(String(clean.test_type));
+      const { data, error } = await supabase
         .from('lab_jump_measurements')
-        .update(updates)
-        .eq('id', id);
+        .update(clean)
+        .eq('id', id)
+        .select();
 
       if (error) throw error;
 
-      setAllMeasurements(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
-      setPlayerHistory(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+      const saved = (data && data[0]) as JumpMeasurement | undefined;
+      setAllMeasurements(prev => sortByCreated(prev.map(m => m.id === id ? { ...m, ...(saved || clean) } : m)));
       setDataVersion(v => v + 1);
       return true;
     } catch (err) {
       console.error('Failed to update measurement:', err);
+      toast.error(supabaseErrorAr(err, 'تعديل القياس'));
       return false;
     } finally {
       setIsSyncing(false);
@@ -244,11 +261,11 @@ const VALID_MEASUREMENT_KEYS = new Set([
       if (error) throw error;
 
       setAllMeasurements(prev => prev.filter(m => m.id !== id));
-      setPlayerHistory(prev => prev.filter(m => m.id !== id));
       setDataVersion(v => v + 1);
       return true;
     } catch (err) {
       console.error('Failed to delete measurement:', err);
+      toast.error(supabaseErrorAr(err, 'حذف القياس'));
       return false;
     } finally {
       setIsSyncing(false);
@@ -288,7 +305,7 @@ const VALID_MEASUREMENT_KEYS = new Set([
       return null;
     } catch (err) {
       console.error('Failed to add player:', err);
-      alert(language === 'ar' ? `تعذر حفظ اللاعب: ${(err as any)?.message || err}` : `Failed to save player: ${(err as any)?.message || err}`);
+      toast.error(supabaseErrorAr(err, 'حفظ اللاعب'));
       return null;
     } finally {
       setIsSyncing(false);
@@ -319,19 +336,28 @@ const VALID_MEASUREMENT_KEYS = new Set([
       if (error) throw error;
 
       setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...payload } : p));
-      if (selectedPlayerId === id) {
-        setActivePlayer(prev => prev ? { ...prev, ...payload } : null);
-      }
       setDataVersion(v => v + 1);
       return true;
     } catch (err) {
       console.error('Failed to update player:', err);
-      alert(language === 'ar' ? `تعذر تعديل اللاعب: ${(err as any)?.message || err}` : `Failed to update player: ${(err as any)?.message || err}`);
+      toast.error(supabaseErrorAr(err, 'تعديل اللاعب'));
       return false;
     } finally {
       setIsSyncing(false);
     }
   }, [selectedPlayerId, players, language]);
+
+  // UPDATE ONLY SOME PLAYER COLUMNS
+  const updatePlayerFields = useCallback(async (id: string, fields: Partial<Pick<Player, 'height_cm' | 'standing_reach_cm' | 'hpo_m'>>): Promise<boolean> => {
+    const { error } = await supabase.from('lab_players').update(fields).eq('id', id);
+    if (error) {
+      console.error('Failed to update player fields:', error);
+      toast.error(supabaseErrorAr(error, 'حفظ بيانات اللاعب'));
+      return false;
+    }
+    setPlayers(prev => prev.map(p => (p.id === id ? { ...p, ...fields } : p)));
+    return true;
+  }, []);
 
   // DELETE PLAYER
   const deletePlayer = useCallback(async (id: string): Promise<boolean> => {
@@ -347,13 +373,12 @@ const VALID_MEASUREMENT_KEYS = new Set([
       setPlayers(prev => prev.filter(p => p.id !== id));
       if (selectedPlayerId === id) {
         setSelectedPlayerIdState('');
-        setActivePlayer(null);
-        setPlayerHistory([]);
       }
       setDataVersion(v => v + 1);
       return true;
     } catch (err) {
       console.error('Failed to delete player:', err);
+      toast.error(supabaseErrorAr(err, 'حذف اللاعب'));
       return false;
     } finally {
       setIsSyncing(false);
@@ -380,6 +405,7 @@ const VALID_MEASUREMENT_KEYS = new Set([
       return null;
     } catch (err) {
       console.error('Failed to add coach:', err);
+      toast.error(supabaseErrorAr(err, 'إضافة المدرب'));
       return null;
     } finally {
       setIsSyncing(false);
@@ -402,6 +428,7 @@ const VALID_MEASUREMENT_KEYS = new Set([
       return true;
     } catch (err) {
       console.error('Failed to delete coach:', err);
+      toast.error(supabaseErrorAr(err, 'حذف المدرب'));
       return false;
     } finally {
       setIsSyncing(false);
@@ -431,6 +458,7 @@ const VALID_MEASUREMENT_KEYS = new Set([
         .eq('id', playerId);
     } catch (err) {
       console.error('Failed to toggle favorite on Supabase:', err);
+      toast.error(supabaseErrorAr(err, 'تحديث المفضلة'));
     }
   }, [favoritePlayerIds]);
 
@@ -456,6 +484,7 @@ const VALID_MEASUREMENT_KEYS = new Set([
         deleteMeasurement,
         addPlayer,
         updatePlayer,
+        updatePlayerFields,
         deletePlayer,
         addCoach,
         deleteCoach,

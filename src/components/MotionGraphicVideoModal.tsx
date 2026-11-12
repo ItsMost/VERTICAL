@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { TEST_TYPES, normalizeTestType } from '../lib/testTypes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Video, Download, Play, Pause, RotateCcw, X, Film, Check, Sparkles, Award, Image as ImageIcon } from 'lucide-react';
 import html2canvas from 'html2canvas';
@@ -32,23 +33,23 @@ export default function MotionGraphicVideoModal({
   const age = activePlayer?.age || 24;
 
   // Calculate All-time Personal Bests (PBs) from full history
-  const cmjJumps = playerHistory.filter(r => r.test_type === 'cmj' || r.test_type === 'cmj_arms');
+  const cmjJumps = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.CMJ_ARMS || normalizeTestType(r.test_type) === TEST_TYPES.CMJ_ARMS);
   const maxCmj = cmjJumps.length > 0 ? Math.max(...cmjJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
   const bestCmjRecord = cmjJumps.find(j => parseFloat(j.jump_height_cm) === maxCmj);
   const cmjFlightTime = bestCmjRecord ? parseFloat(bestCmjRecord.flight_time_sec) || 0 : (maxCmj > 0 ? Math.sqrt((8 * (maxCmj / 100)) / 9.81) : 0);
 
-  const rsiJumps = playerHistory.filter(r => r.test_type === 'rsi');
+  const rsiJumps = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.DROP_JUMP);
   const maxRsi = rsiJumps.length > 0 ? Math.max(...rsiJumps.map(j => parseFloat(j.rsi_score) || 0)) : 0;
   const bestRsiRecord = rsiJumps.find(j => parseFloat(j.rsi_score) === maxRsi);
   const boxHeight = bestRsiRecord?.box_height_cm || 30;
 
-  const squatRecords = playerHistory.filter(r => r.test_type === 'full_squat');
+  const squatRecords = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.FULL_SQUAT);
   const squatWeight = squatRecords.length > 0 ? Math.max(...squatRecords.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
 
-  const benchRecords = playerHistory.filter(r => r.test_type === 'bench_press');
+  const benchRecords = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.BENCH_PRESS);
   const benchWeight = benchRecords.length > 0 ? Math.max(...benchRecords.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
 
-  const cleanRecords = playerHistory.filter(r => r.test_type === 'power_clean' || (parseFloat(r.clean_weight_kg) > 0 && r.test_type !== 'full_squat' && r.test_type !== 'bench_press'));
+  const cleanRecords = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.POWER_CLEAN || (parseFloat(r.clean_weight_kg) > 0 && normalizeTestType(r.test_type) !== TEST_TYPES.FULL_SQUAT && normalizeTestType(r.test_type) !== TEST_TYPES.BENCH_PRESS));
   const cleanWeight = cleanRecords.length > 0 ? Math.max(...cleanRecords.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
 
   // Auto-switch preview phases every 2.5 seconds

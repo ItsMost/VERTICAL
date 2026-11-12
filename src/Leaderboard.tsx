@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { TEST_TYPES, normalizeTestType } from './lib/testTypes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Award, Flame, Zap } from 'lucide-react';
 import { useData } from './context/DataContext';
@@ -30,12 +31,12 @@ export default function Leaderboard({ onSelectPlayer, onChangeTab, language: pro
       let bestScore = 0;
       
       if (category === 'vertical') {
-        const verticalMeasures = playerMeasures.filter((m: any) => m.test_type !== 'rsi');
+        const verticalMeasures = playerMeasures.filter((m: any) => normalizeTestType(m.test_type) !== TEST_TYPES.DROP_JUMP);
         if (verticalMeasures.length > 0) {
           bestScore = Math.max(...verticalMeasures.map((m: any) => parseFloat(m.jump_height_cm) || 0));
         }
       } else {
-        const rsiMeasures = playerMeasures.filter((m: any) => m.test_type === 'rsi');
+        const rsiMeasures = playerMeasures.filter((m: any) => normalizeTestType(m.test_type) === TEST_TYPES.DROP_JUMP);
         if (rsiMeasures.length > 0) {
           bestScore = Math.max(...rsiMeasures.map((m: any) => parseFloat(m.rsi_score) || 0));
         }

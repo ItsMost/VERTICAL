@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { TEST_TYPES, normalizeTestType } from './lib/testTypes';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Download, Zap, TrendingUp, Clock, Scale, Calendar, Trophy,
@@ -41,7 +42,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
   const [editingRecord, setEditingRecord] = useState<JumpMeasurement | null>(null);
   const [editForm, setEditForm] = useState({
     id: '',
-    test_type: 'cmj',
+    test_type: 'cmj_arms',
     created_at: '',
     jump_height_cm: '',
     flight_time_sec: '',
@@ -100,15 +101,15 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
   const isFemale = activePlayer.gender === 'female';
 
   // Jump and Strength Segregations
-  const cmjJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'cmj' || h.test_type === 'cmj_arms' || h.test_type === 'standard'), [playerHistory]);
-  const cmjNoArmsJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'cmj_no_arms' || h.test_type === 'cmj_no_arm'), [playerHistory]);
-  const sjNoArmsJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'sj_no_arms' || h.test_type === 'sj' || h.test_type === 'sj_arms'), [playerHistory]);
-  const rsiJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'rsi'), [playerHistory]);
-  const approachJumps = useMemo(() => playerHistory.filter(h => h.test_type === 'approach' || h.test_type === 'approach_jump'), [playerHistory]);
+  const cmjJumps = useMemo(() => playerHistory.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.CMJ_ARMS || normalizeTestType(h.test_type) === TEST_TYPES.CMJ_ARMS || normalizeTestType(h.test_type) === TEST_TYPES.CMJ_ARMS), [playerHistory]);
+  const cmjNoArmsJumps = useMemo(() => playerHistory.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.CMJ_NO_ARMS || normalizeTestType(h.test_type) === TEST_TYPES.CMJ_NO_ARMS), [playerHistory]);
+  const sjNoArmsJumps = useMemo(() => playerHistory.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.SJ_NO_ARMS || normalizeTestType(h.test_type) === TEST_TYPES.SJ_NO_ARMS || normalizeTestType(h.test_type) === TEST_TYPES.SJ_ARMS), [playerHistory]);
+  const rsiJumps = useMemo(() => playerHistory.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.DROP_JUMP), [playerHistory]);
+  const approachJumps = useMemo(() => playerHistory.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.APPROACH || normalizeTestType(h.test_type) === TEST_TYPES.APPROACH), [playerHistory]);
   
-  const fullSquatRecords = useMemo(() => playerHistory.filter(h => h.test_type === 'full_squat'), [playerHistory]);
-  const benchPressRecords = useMemo(() => playerHistory.filter(h => h.test_type === 'bench_press'), [playerHistory]);
-  const powerCleanRecords = useMemo(() => playerHistory.filter(h => h.test_type === 'power_clean' || (parseFloat(String(h.clean_weight_kg)) > 0 && h.test_type !== 'full_squat' && h.test_type !== 'bench_press')), [playerHistory]);
+  const fullSquatRecords = useMemo(() => playerHistory.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.FULL_SQUAT), [playerHistory]);
+  const benchPressRecords = useMemo(() => playerHistory.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.BENCH_PRESS), [playerHistory]);
+  const powerCleanRecords = useMemo(() => playerHistory.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.POWER_CLEAN || (parseFloat(String(h.clean_weight_kg)) > 0 && normalizeTestType(h.test_type) !== TEST_TYPES.FULL_SQUAT && normalizeTestType(h.test_type) !== TEST_TYPES.BENCH_PRESS)), [playerHistory]);
 
   // Peak Jump & Strength Records
   const maxCmj = useMemo(() => cmjJumps.length > 0 ? Math.max(...cmjJumps.map(j => parseFloat(String(j.jump_height_cm)) || 0)) : 0, [cmjJumps]);
@@ -186,36 +187,36 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
   const filteredHistory = useMemo(() => {
     if (historyFilter === 'cmj') {
       const allVert = playerHistory.filter(h => 
-        h.test_type === 'cmj' || 
-        h.test_type === 'cmj_arms' || 
-        h.test_type === 'standard' ||
-        h.test_type === 'cmj_no_arms' || 
-        h.test_type === 'cmj_no_arm' ||
-        h.test_type === 'sj_no_arms' || 
-        h.test_type === 'sj' || 
-        h.test_type === 'sj_arms' || 
-        h.test_type === 'approach' || 
-        h.test_type === 'approach_jump'
+        normalizeTestType(h.test_type) === TEST_TYPES.CMJ_ARMS || 
+        normalizeTestType(h.test_type) === TEST_TYPES.CMJ_ARMS || 
+        normalizeTestType(h.test_type) === TEST_TYPES.CMJ_ARMS ||
+        normalizeTestType(h.test_type) === TEST_TYPES.CMJ_NO_ARMS || 
+        normalizeTestType(h.test_type) === TEST_TYPES.CMJ_NO_ARMS ||
+        normalizeTestType(h.test_type) === TEST_TYPES.SJ_NO_ARMS || 
+        normalizeTestType(h.test_type) === TEST_TYPES.SJ_NO_ARMS || 
+        normalizeTestType(h.test_type) === TEST_TYPES.SJ_ARMS || 
+        normalizeTestType(h.test_type) === TEST_TYPES.APPROACH || 
+        normalizeTestType(h.test_type) === TEST_TYPES.APPROACH
       );
       if (verticalSubFilter === 'cmj_arms') {
-        return allVert.filter(h => h.test_type === 'cmj' || h.test_type === 'cmj_arms' || h.test_type === 'standard');
+        return allVert.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.CMJ_ARMS || normalizeTestType(h.test_type) === TEST_TYPES.CMJ_ARMS || normalizeTestType(h.test_type) === TEST_TYPES.CMJ_ARMS);
       }
       if (verticalSubFilter === 'cmj_no_arms') {
-        return allVert.filter(h => h.test_type === 'cmj_no_arms' || h.test_type === 'cmj_no_arm');
+        return allVert.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.CMJ_NO_ARMS || normalizeTestType(h.test_type) === TEST_TYPES.CMJ_NO_ARMS);
       }
       if (verticalSubFilter === 'sj') {
-        return allVert.filter(h => h.test_type === 'sj_no_arms' || h.test_type === 'sj' || h.test_type === 'sj_arms');
+        return allVert.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.SJ_NO_ARMS || normalizeTestType(h.test_type) === TEST_TYPES.SJ_NO_ARMS || normalizeTestType(h.test_type) === TEST_TYPES.SJ_ARMS);
       }
       if (verticalSubFilter === 'approach') {
-        return allVert.filter(h => h.test_type === 'approach' || h.test_type === 'approach_jump');
+        return allVert.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.APPROACH || normalizeTestType(h.test_type) === TEST_TYPES.APPROACH);
       }
       return allVert;
     }
     if (historyFilter === 'rsi') {
-      return playerHistory.filter(h => h.test_type === 'rsi');
+      return playerHistory.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.DROP_JUMP);
     }
     if (historyFilter === 'strength') {
-      return playerHistory.filter(h => h.test_type === 'full_squat' || h.test_type === 'bench_press' || h.test_type === 'power_clean' || parseFloat(String(h.clean_weight_kg)) > 0);
+      return playerHistory.filter(h => normalizeTestType(h.test_type) === TEST_TYPES.FULL_SQUAT || normalizeTestType(h.test_type) === TEST_TYPES.BENCH_PRESS || normalizeTestType(h.test_type) === TEST_TYPES.POWER_CLEAN || parseFloat(String(h.clean_weight_kg)) > 0);
     }
     return playerHistory;
   }, [playerHistory, historyFilter, verticalSubFilter]);
@@ -239,7 +240,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
     }
     setEditForm({
       id: record.id,
-      test_type: String(record.test_type || 'cmj').toLowerCase(),
+      test_type: normalizeTestType(record.test_type || 'cmj_arms'),
       created_at: dateStr,
       jump_height_cm: record.jump_height_cm != null ? String(record.jump_height_cm) : '',
       flight_time_sec: record.flight_time_sec != null ? String(record.flight_time_sec) : '',
@@ -261,8 +262,8 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
     if (!editingRecord || !editForm.id) return;
     setIsEditSaving(true);
     try {
-      const isRsi = editForm.test_type === 'rsi' || editForm.test_type === 'dj';
-      const isStrength = editForm.test_type === 'full_squat' || editForm.test_type === 'bench_press' || editForm.test_type === 'power_clean';
+      const isRsi = normalizeTestType(editForm.test_type) === TEST_TYPES.DROP_JUMP || normalizeTestType(editForm.test_type) === TEST_TYPES.DROP_JUMP;
+      const isStrength = normalizeTestType(editForm.test_type) === TEST_TYPES.FULL_SQUAT || normalizeTestType(editForm.test_type) === TEST_TYPES.BENCH_PRESS || normalizeTestType(editForm.test_type) === TEST_TYPES.POWER_CLEAN;
 
       const payload: any = {
         test_type: editForm.test_type,
@@ -1108,7 +1109,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               </thead>
               <tbody className="divide-y divide-zinc-800/60 font-mono">
                 {filteredHistory.slice().reverse().map((record) => {
-                  const isRsiRec = record.test_type === 'rsi' || record.test_type === 'dj';
+                  const isRsiRec = normalizeTestType(record.test_type) === TEST_TYPES.DROP_JUMP || normalizeTestType(record.test_type) === TEST_TYPES.DROP_JUMP;
                   const isPr = (parseFloat(String(record.jump_height_cm)) === peakHeightCm && peakHeightCm > 0) ||
                                (parseFloat(String(record.rsi_score)) === maxRsi && maxRsi > 0);
 
@@ -1410,9 +1411,10 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                       className="glass-input w-full font-mono text-xs font-bold text-white bg-[#0A0B0F] border border-[#27272A] rounded-xl px-3 py-2.5 outline-none focus:border-[#D4FF00]"
                     >
                       <optgroup label={isEn ? "Vertical Jumps" : "الوثب الرأسي"}>
-                        <option value="cmj">CMJ (with arms / بالأذرع)</option>
+                        <option value="cmj_arms">CMJ (with arms / بالأذرع)</option>
                         <option value="cmj_no_arms">CMJ (no arms / بدون أذرع)</option>
                         <option value="sj_no_arms">Squat Jump (SJ - 90° Static)</option>
+                        <option value="sj_arms">Squat Jump (with arms / بالأذرع)</option>
                         <option value="approach">Approach Jump (قفزة اقتراب)</option>
                       </optgroup>
                       <optgroup label={isEn ? "Reactive Strength (RSI)" : "القوة التفاعلية (RSI)"}>
@@ -1441,7 +1443,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 </div>
 
                 {/* DYNAMIC FIELDS: RSI MODE */}
-                {(editForm.test_type === 'rsi' || editForm.test_type === 'dj') && (
+                {(normalizeTestType(editForm.test_type) === TEST_TYPES.DROP_JUMP || normalizeTestType(editForm.test_type) === TEST_TYPES.DROP_JUMP) && (
                   <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-[#D4FF00]/30 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[#D4FF00] font-mono">
@@ -1573,7 +1575,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 )}
 
                 {/* DYNAMIC FIELDS: VERTICAL JUMP MODE */}
-                {(editForm.test_type === 'cmj' || editForm.test_type === 'cmj_no_arms' || editForm.test_type === 'sj_no_arms' || editForm.test_type === 'approach') && (
+                {(normalizeTestType(editForm.test_type) === TEST_TYPES.CMJ_ARMS || normalizeTestType(editForm.test_type) === TEST_TYPES.CMJ_NO_ARMS || normalizeTestType(editForm.test_type) === TEST_TYPES.SJ_NO_ARMS || normalizeTestType(editForm.test_type) === TEST_TYPES.APPROACH) && (
                   <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white font-mono">
@@ -1655,7 +1657,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 )}
 
                 {/* DYNAMIC FIELDS: MAXIMUM STRENGTH 1RM MODE */}
-                {(editForm.test_type === 'full_squat' || editForm.test_type === 'bench_press' || editForm.test_type === 'power_clean') && (
+                {(normalizeTestType(editForm.test_type) === TEST_TYPES.FULL_SQUAT || normalizeTestType(editForm.test_type) === TEST_TYPES.BENCH_PRESS || normalizeTestType(editForm.test_type) === TEST_TYPES.POWER_CLEAN) && (
                   <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white font-mono">

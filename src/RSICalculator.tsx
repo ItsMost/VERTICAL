@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { toast } from './components/Toast';
 import {
   Zap, Play, Pause, X, Save, Info, Sparkles, Clock, ArrowUpCircle,
   Award, Video, Sliders, Check
@@ -145,7 +146,7 @@ export default function RSICalculator({
 
   const saveMeasurement = async () => {
     if (!selectedPlayerId) {
-      alert(t.hud.selectAthlete);
+      toast.info(t.hud.selectAthlete);
       return;
     }
     setIsSaving(true);

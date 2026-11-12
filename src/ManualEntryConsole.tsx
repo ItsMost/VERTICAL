@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { toast } from './components/Toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Edit3, Save, Printer, User, Trash2, Check,
@@ -8,7 +9,7 @@ import {
 import { useData } from './context/DataContext';
 import AppLogo from './AppLogo';
 import { classifyGCT } from './useJumpMechanics';
-import { supportsStandingJumpModels } from './lib/testTypes';
+import { TEST_TYPES, normalizeTestType, supportsStandingJumpModels } from './lib/testTypes';
 import { sayersPeakPowerW, samozinoMeanPowerW, samozinoMeanForceN, takeoffVelocityFromJumpHeight, flightTimeFromJumpHeight, jumpHeightFromFlightTime, rsiFromHeight, rsiFromFlightTime, resolveHpo } from './lib/biomechanics';
 
 interface ManualEntryConsoleProps {
@@ -51,7 +52,7 @@ export default function ManualEntryConsole({
 
   // Form State
   const [form, setForm] = useState({
-    testType: 'cmj',
+    testType: 'cmj_arms',
     created_at: new Date().toISOString().substring(0, 10),
     jumpHeightCm: '',
     flightTimeSec: '',
@@ -97,7 +98,7 @@ export default function ManualEntryConsole({
 
   // Precise RSI Calculation based on selected mode
   const { finalRsi, rsiFormulaDisplay } = useMemo(() => {
-    if (form.testType !== 'rsi') {
+    if (normalizeTestType(form.testType) !== TEST_TYPES.DROP_JUMP) {
       return { finalRsi: 0, rsiFormulaDisplay: '' };
     }
 
@@ -155,7 +156,7 @@ export default function ManualEntryConsole({
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPlayerId) {
-      alert(t.hud.selectAthlete);
+      toast.info(t.hud.selectAthlete);
       return;
     }
 
@@ -186,7 +187,7 @@ export default function ManualEntryConsole({
         payload.mean_force_newtons = meanForce !== null ? meanForce.toFixed(2) : null;
         payload.takeoff_velocity_ms = vTO !== null ? vTO.toFixed(2) : null;
 
-        if (form.testType === 'rsi') {
+        if (normalizeTestType(form.testType) === TEST_TYPES.DROP_JUMP) {
           payload.contact_time_sec = contactTimeSec > 0 ? contactTimeSec.toFixed(4) : null;
           payload.rsi_score = finalRsi > 0 ? finalRsi.toFixed(2) : null;
         }
@@ -205,7 +206,7 @@ export default function ManualEntryConsole({
       if (res) {
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
-        alert(isEn ? '✅ Measurement logged and saved to athlete profile!' : '✅ تم حفظ القياس بنجاح وتحديث ملف اللاعب فورياً!');
+        toast.success(isEn ? '✅ Measurement logged and saved to athlete profile!' : '✅ تم حفظ القياس بنجاح وتحديث ملف اللاعب فورياً!');
         // Reset numeric inputs
         setForm(prev => ({
           ...prev,
@@ -217,7 +218,7 @@ export default function ManualEntryConsole({
           notes: ''
         }));
       } else {
-        alert(isEn ? 'Failed to save measurement. Please check athlete and values.' : 'تعذر حفظ القياس، يرجى التأكد من اختيار اللاعب وصحة الأرقام.');
+        toast.error(isEn ? 'Failed to save measurement. Please check athlete and values.' : 'تعذر حفظ القياس، يرجى التأكد من اختيار اللاعب وصحة الأرقام.');
       }
     } catch (err) {
       console.error('Error saving measurement in ManualEntryConsole:', err);
@@ -258,7 +259,7 @@ export default function ManualEntryConsole({
             type="button"
             onClick={() => {
               setEntryMode('jump');
-              setForm(prev => ({ ...prev, testType: 'cmj' }));
+              setForm(prev => ({ ...prev, testType: 'cmj_arms' }));
             }}
             className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
               entryMode === 'jump'
@@ -308,9 +309,10 @@ export default function ManualEntryConsole({
                     onChange={e => setForm({ ...form, testType: e.target.value })}
                     className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-white font-bold outline-none focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] transition-all"
                   >
-                    <option value="cmj">CMJ (Countermovement Jump with Arms)</option>
+                    <option value="cmj_arms">CMJ (Countermovement Jump with Arms)</option>
                     <option value="cmj_no_arms">CMJ (No Arms / Hands on Hips)</option>
                     <option value="sj_no_arms">Squat Jump (SJ - From Static 90°)</option>
+                    <option value="sj_arms">Squat Jump (SJ - With Arms)</option>
                     <option value="approach">Approach / Spike Jump (Max Dynamic)</option>
                     <option value="rsi">Drop Jump / RSI (Reactive Strength)</option>
                   </select>
@@ -342,7 +344,7 @@ export default function ManualEntryConsole({
             {/* =========================================================================
                 RSI DEDICATED CONFIGURATION BLOCK (WHEN TEST TYPE IS RSI)
             ========================================================================= */}
-            {entryMode === 'jump' && form.testType === 'rsi' && (
+            {entryMode === 'jump' && normalizeTestType(form.testType) === TEST_TYPES.DROP_JUMP && (
               <div className="bg-[#151822] border border-[#272F42] p-4 sm:p-5 rounded-2xl space-y-4">
                 
                 {/* Method / Direct Toggle Header */}
@@ -518,7 +520,7 @@ export default function ManualEntryConsole({
             {/* =========================================================================
                 STANDARD JUMP MODE INPUTS (CMJ, SQUAT JUMP, APPROACH)
             ========================================================================= */}
-            {entryMode === 'jump' && form.testType !== 'rsi' && (
+            {entryMode === 'jump' && normalizeTestType(form.testType) !== TEST_TYPES.DROP_JUMP && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                 <div>
                   <label className="text-zinc-300 block mb-1.5 font-bold">{t.manualEntry.heightInput}</label>
@@ -652,7 +654,7 @@ export default function ManualEntryConsole({
             <div className="space-y-3">
               
               {/* RSI SPECIALIZED HUD CARD */}
-              {form.testType === 'rsi' ? (
+              {normalizeTestType(form.testType) === TEST_TYPES.DROP_JUMP ? (
                 <div className="bg-[#151822] border border-[#272F42] p-4 rounded-2xl space-y-3">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-zinc-400 font-bold">{isAr ? 'مؤشر RSI النهائي:' : 'Active RSI Score:'}</span>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { toast } from './components/Toast';
 import { supabase } from './supabaseClient';
 import useJumpMechanics from './useJumpMechanics';
 import { supportsStandingJumpModels } from './lib/testTypes';
@@ -40,7 +41,7 @@ export default function JumpTestingConsole({
   language = 'ar',
   playerHistory
 }) {
-  const { addMeasurement, t: tr } = useData();
+  const { addMeasurement, updatePlayerFields, t: tr } = useData();
   // Video & Playback States
   const [videoPreset, setVideoPreset] = useState('slow240');
   const [cameraFps, setCameraFps] = useState(240);
@@ -67,8 +68,8 @@ export default function JumpTestingConsole({
   const [manualFrameDuration, setManualFrameDuration] = useState(0.033);
   const [isFrameDurationManual, setIsFrameDurationManual] = useState(false);
 
-  const [playerHeight, setPlayerHeight] = useState(180);
-  const [standingReach, setStandingReach] = useState(230);
+  const [playerHeight, setPlayerHeight] = useState(0);
+  const [standingReach, setStandingReach] = useState(0);
   const [maxTouchHeight, setMaxTouchHeight] = useState('');
 
   const [saveJumpTag, setSaveJumpTag] = useState('sj_no_arms');
@@ -131,13 +132,9 @@ export default function JumpTestingConsole({
     if (activePlayer) {
       setBodyMass(activePlayer.weight_kg || 72);
       setLegLength(activePlayer.leg_length_m || 1.0);
-      setPlayerHeight(activePlayer.height_cm || 180);
-      setStandingReach(activePlayer.standing_reach_cm || 230);
-      
-      const storedHeight = localStorage.getItem(`player_height_${activePlayer.id}`);
-      const storedReach = localStorage.getItem(`standing_reach_${activePlayer.id}`);
-      if (storedHeight) setPlayerHeight(parseFloat(storedHeight));
-      if (storedReach) setStandingReach(parseFloat(storedReach));
+      // Height / reach come from lab_players (localStorage values are migrated on load)
+      setPlayerHeight(Number(activePlayer.height_cm) || 0);
+      setStandingReach(Number(activePlayer.standing_reach_cm) || 0);
     }
   }, [activePlayer]);
 
@@ -508,7 +505,7 @@ export default function JumpTestingConsole({
 
   const autoDetectJump = () => {
     const data = flightDataRef.current;
-    if (data.length < 15) return alert("يرجى تشغيل الفيديو بالكامل مع تفعيل الذكاء الاصطناعي لجمع إحداثيات القفزة.");
+    if (data.length < 15) return toast.info("يرجى تشغيل الفيديو بالكامل مع تفعيل الذكاء الاصطناعي لجمع إحداثيات القفزة.");
     
     const getAvgKneeAngleAt = (frameData) => {
       if (!frameData) return 180;
@@ -706,7 +703,7 @@ export default function JumpTestingConsole({
       setTrackedJumpHeight(displacementCm.toFixed(1));
     }
     
-    alert(`✅ تم تحديد مراحل الحركة بالذكاء الاصطناعي بنجاح! زاوية الركبة عند الهبوط: ${avgLandingKnee.toFixed(0)}° (تصحيح الهبوط: ${correctionMs}ms).`);
+    toast.success(`✅ تم تحديد مراحل الحركة بالذكاء الاصطناعي بنجاح! زاوية الركبة عند الهبوط: ${avgLandingKnee.toFixed(0)}° (تصحيح الهبوط: ${correctionMs}ms).`);
   };
 
   const calculateJumpPhasesFromData = () => {
@@ -941,7 +938,7 @@ export default function JumpTestingConsole({
       setLegLength(refLen); 
       setIsCalibrating(false);
       setCalibrationStep(0);
-      alert(`✅ تمت معايرة طول الرجل بنجاح! مقياس الفيديو: ${ppm.toFixed(1)} بكسل لكل متر. تم ضبط طول الرجل على ${refLen} متر.`);
+      toast.success(`✅ تمت معايرة طول الرجل بنجاح! مقياس الفيديو: ${ppm.toFixed(1)} بكسل لكل متر. تم ضبط طول الرجل على ${refLen} متر.`);
       
       setTimeout(() => {
         calibrationClicksRef.current = [];
@@ -1044,7 +1041,7 @@ export default function JumpTestingConsole({
       if (flightDataRef.current.length > 10) {
         autoDetectJump();
       } else {
-        return alert("حدد الإقلاع والهبوط يدوياً أولاً، أو قم بتشغيل الفيديو بالكامل مع تفعيل الذكاء الاصطناعي لتتبع الحركة تلقائياً."); 
+        return toast.info("حدد الإقلاع والهبوط يدوياً أولاً، أو قم بتشغيل الفيديو بالكامل مع تفعيل الذكاء الاصطناعي لتتبع الحركة تلقائياً."); 
       }
     } else {
       if (flightDataRef.current.length > 5) {
@@ -1151,21 +1148,31 @@ export default function JumpTestingConsole({
         onSaveSuccess(savedRecord);
       }
       setShowResults(false); 
-      alert(language === 'en' ? "✅ Jump test result saved successfully to athlete profile!" : "✅ تم حفظ نتيجة القفزة بنجاح في ملف اللاعب!");
+      toast.success(language === 'en' ? "✅ Jump test result saved successfully to athlete profile!" : "✅ تم حفظ نتيجة القفزة بنجاح في ملف اللاعب!");
     } else {
-      alert(language === 'en' ? "Error saving measurement" : "خطأ في حفظ القياس");
+      toast.error(language === 'en' ? "Error saving measurement" : "خطأ في حفظ القياس");
     }
     setIsSaving(false);
   };
 
+  // Saved to lab_players, debounced so sliders don't write on every step
+  const saveTimers = useRef({});
+  const persistPlayerField = (field, val) => {
+    if (!selectedPlayerId) return;
+    clearTimeout(saveTimers.current[field]);
+    saveTimers.current[field] = setTimeout(() => {
+      updatePlayerFields(selectedPlayerId, { [field]: val > 0 ? val : null });
+    }, 800);
+  };
+
   const handleHeightChange = (val) => {
     setPlayerHeight(val);
-    localStorage.setItem(`player_height_${selectedPlayerId}`, val);
+    persistPlayerField('height_cm', val);
   };
 
   const handleStandingReachChange = (val) => {
     setStandingReach(val);
-    localStorage.setItem(`standing_reach_${selectedPlayerId}`, val);
+    persistPlayerField('standing_reach_cm', val);
   };
 
   const handleShareVideo = async () => {
@@ -1188,20 +1195,20 @@ export default function JumpTestingConsole({
         });
       } catch (err) {
         if (err.name !== 'AbortError') {
-          alert(language === 'en' ? 'Sharing failed: ' + err.message : 'فشلت المشاركة: ' + err.message);
+          toast.error(language === 'en' ? 'Sharing failed: ' + err.message : 'فشلت المشاركة: ' + err.message);
         }
       }
     } else {
-      alert(language === 'en'
+      toast.info(language === 'en'
         ? 'Your browser does not support direct sharing of video files. Please download the video and share it manually.'
         : 'متصفحك لا يدعم مشاركة ملفات الفيديو مباشرة. يرجى حفظ الفيديو ومشاركته يدوياً.');
     }
   };
 
   const handleExportVideoWithOverlay = async () => {
-    if (!videoSrc || !videoRef.current) return alert("الرجاء تحميل فيديو أولاً.");
+    if (!videoSrc || !videoRef.current) return toast.info("الرجاء تحميل فيديو أولاً.");
     if (!stats || !stats.heightCm || takeoffTime <= 0 || landingTime <= 0) {
-      return alert("الرجاء تحديد زمن الإقلاع والهبوط واستخراج التحليل أولاً.");
+      return toast.info("الرجاء تحديد زمن الإقلاع والهبوط واستخراج التحليل أولاً.");
     }
 
     const exportVideo = videoRef.current;
@@ -1827,7 +1834,7 @@ export default function JumpTestingConsole({
       setTimeout(drawOverlay, 1000 / 30);
 
     } catch (err) {
-      alert("حدث خطأ أثناء تصدير الفيديو: " + err.message);
+      toast.error("حدث خطأ أثناء تصدير الفيديو: " + err.message);
       
       isRecordingActive = false;
       
@@ -2331,7 +2338,7 @@ export default function JumpTestingConsole({
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400 font-bold">طول اللاعب (Player Height):</span>
-                    <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded border border-blue-500/30">{playerHeight} cm</span>
+                    <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded border border-blue-500/30">{playerHeight > 0 ? `${playerHeight} cm` : '—'}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <button type="button" onClick={() => { handleHeightChange(Math.max(130, playerHeight - 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-855 border border-gray-800 text-white font-black flex items-center justify-center">-</button>
@@ -2352,7 +2359,7 @@ export default function JumpTestingConsole({
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400 font-bold">الوصول من الثبات (Standing Reach):</span>
-                    <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded border border-blue-500/30">{standingReach} cm</span>
+                    <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded border border-blue-500/30">{standingReach > 0 ? `${standingReach} cm` : '—'}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <button type="button" onClick={() => { handleStandingReachChange(Math.max(150, standingReach - 1)); setShowResults(false); }} className="w-8 h-8 rounded-lg bg-[#111827]/60 hover:bg-gray-855 border border-gray-800 text-white font-black flex items-center justify-center">-</button>
@@ -2694,7 +2701,7 @@ export default function JumpTestingConsole({
                 </div>
               </div>
 
-              {maxTouchHeight > standingReach && (
+              {standingReach > 0 && maxTouchHeight > standingReach && (
                 <div className="bg-blue-950/20 border border-blue-500/30 p-3 rounded-2xl animate-fade-in space-y-2 text-[11px]">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 font-semibold">قفزة اللمس الفعلية (Reach Jump):</span>
@@ -3218,7 +3225,7 @@ export default function JumpTestingConsole({
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400 font-bold">طول القامة:</span>
-                  <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded">{playerHeight} cm</span>
+                  <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded">{playerHeight > 0 ? `${playerHeight} cm` : '—'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <input type="range" min="120" max="230" step="1" value={playerHeight} onChange={(e) => { handleHeightChange(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-blue-500" />
@@ -3228,7 +3235,7 @@ export default function JumpTestingConsole({
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400 font-bold">الوصول من الثبات:</span>
-                  <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded">{standingReach} cm</span>
+                  <span className="font-mono font-black text-white bg-blue-950/40 px-2 py-0.5 rounded">{standingReach > 0 ? `${standingReach} cm` : '—'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <input type="range" min="150" max="300" step="1" value={standingReach} onChange={(e) => { handleStandingReachChange(Number(e.target.value)); setShowResults(false); }} className="flex-1 h-1.5 bg-[#111827]/60 rounded-lg appearance-none cursor-pointer accent-blue-500" />
@@ -3246,7 +3253,7 @@ export default function JumpTestingConsole({
                 />
               </div>
 
-              {maxTouchHeight > standingReach && (
+              {standingReach > 0 && maxTouchHeight > standingReach && (
                 <div className="bg-blue-950/20 border border-blue-500/30 p-2.5 rounded-2xl space-y-1.5 text-[10px]">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 font-semibold">قفزة اللمس الفعلية:</span>
