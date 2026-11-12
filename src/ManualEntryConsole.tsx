@@ -106,7 +106,7 @@ export default function ManualEntryConsole({
       const val = parseFloat(form.rsiScoreDirect) || 0;
       return {
         finalRsi: val > 0 ? Number(val.toFixed(2)) : 0,
-        rsiFormulaDisplay: val > 0 ? `${isAr ? 'قيمة مباشرة' : 'Direct Score'}: ${val.toFixed(2)}` : ''
+        rsiFormulaDisplay: val > 0 ? `${t.ui.meDirectScore}: ${val.toFixed(2)}` : ''
       };
     } else if (rsiMode === 'auto_height') {
       // Standard Bosco / Vald / Flanagan method: Jump Height (m) / Contact Time (s)
@@ -206,7 +206,7 @@ export default function ManualEntryConsole({
       if (res) {
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
-        toast.success(isEn ? '✅ Measurement logged and saved to athlete profile!' : '✅ تم حفظ القياس بنجاح وتحديث ملف اللاعب فورياً!');
+        toast.success(t.ui.meMeasurementLoggedAndSaved);
         // Reset numeric inputs
         setForm(prev => ({
           ...prev,
@@ -218,7 +218,7 @@ export default function ManualEntryConsole({
           notes: ''
         }));
       } else {
-        toast.error(isEn ? 'Failed to save measurement. Please check athlete and values.' : 'تعذر حفظ القياس، يرجى التأكد من اختيار اللاعب وصحة الأرقام.');
+        toast.error(t.ui.meFailedToSaveMeasurement);
       }
     } catch (err) {
       console.error('Error saving measurement in ManualEntryConsole:', err);
@@ -233,28 +233,28 @@ export default function ManualEntryConsole({
   };
 
   return (
-    <div className={`space-y-6 animate-fade-in ${isAr ? 'text-right' : 'text-left'}`} dir={isAr ? 'rtl' : 'ltr'}>
+    <div className={`space-y-6 animate-fade-in text-start`}>
       
       {/* =========================================================================
           TOP COMMAND HEADER & MODE SWITCHER
       ========================================================================= */}
-      <div className="bg-[#101218] border border-[#1E2330] p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl relative overflow-hidden">
-        <div className="absolute -top-12 -left-12 w-36 h-36 bg-[#D4FF00]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-surface border border-border p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl relative overflow-hidden">
+        <div className="absolute -top-12 -left-12 w-36 h-36 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
         
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#D4FF00]/10 border border-[#D4FF00]/30 flex items-center justify-center text-[#D4FF00]">
+            <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-center text-accent">
               <Edit3 size={18} />
             </div>
             <span>{t.manualEntry.title}</span>
           </h2>
-          <p className="text-xs text-zinc-400 mt-1">
+          <p className="text-xs text-muted mt-1">
             {t.manualEntry.subtitle}
           </p>
         </div>
 
         {/* Mode Switcher (Jump / Strength) */}
-        <div className="flex items-center bg-[#090A0E] p-1.5 rounded-2xl border border-[#1E2330] text-xs font-bold">
+        <div className="flex items-center bg-bg p-1.5 rounded-2xl border border-border text-xs font-bold">
           <button
             type="button"
             onClick={() => {
@@ -263,8 +263,8 @@ export default function ManualEntryConsole({
             }}
             className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
               entryMode === 'jump'
-                ? 'bg-[#D4FF00] text-[#090A0E] shadow-[0_2px_12px_rgba(212,255,0,0.3)] font-black'
-                : 'text-zinc-400 hover:text-white'
+                ? 'bg-accent text-accent-ink shadow-[0_2px_12px_rgba(217,119,87,0.3)] font-black'
+                : 'text-muted hover:text-accent-ink'
             }`}
           >
             <Activity size={14} />
@@ -278,8 +278,8 @@ export default function ManualEntryConsole({
             }}
             className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
               entryMode === 'strength'
-                ? 'bg-[#D4FF00] text-[#090A0E] shadow-[0_2px_12px_rgba(212,255,0,0.3)] font-black'
-                : 'text-zinc-400 hover:text-white'
+                ? 'bg-accent text-accent-ink shadow-[0_2px_12px_rgba(217,119,87,0.3)] font-black'
+                : 'text-muted hover:text-accent-ink'
             }`}
           >
             <Layers size={14} />
@@ -294,7 +294,7 @@ export default function ManualEntryConsole({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* FORM CONTAINER (8 cols) */}
-        <div className="lg:col-span-8 bg-[#101218] border border-[#1E2330] p-6 rounded-3xl shadow-xl">
+        <div className="lg:col-span-8 bg-surface border border-border p-6 rounded-3xl shadow-xl">
           <form onSubmit={handleSave} className="space-y-5 text-xs">
             
             {/* Top Row: Test Type & Date */}
@@ -307,24 +307,24 @@ export default function ManualEntryConsole({
                   <select
                     value={form.testType}
                     onChange={e => setForm({ ...form, testType: e.target.value })}
-                    className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-white font-bold outline-none focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] transition-all"
+                    className="w-full bg-bg border border-border rounded-xl px-3.5 py-2.5 text-white font-bold outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
                   >
-                    <option value="cmj_arms">CMJ (Countermovement Jump with Arms)</option>
-                    <option value="cmj_no_arms">CMJ (No Arms / Hands on Hips)</option>
-                    <option value="sj_no_arms">Squat Jump (SJ - From Static 90°)</option>
-                    <option value="sj_arms">Squat Jump (SJ - With Arms)</option>
-                    <option value="approach">Approach / Spike Jump (Max Dynamic)</option>
-                    <option value="rsi">Drop Jump / RSI (Reactive Strength)</option>
+                    <option value="cmj_arms">{t.testTypes.cmj_arms}</option>
+                    <option value="cmj_no_arms">{t.testTypes.cmj_no_arms}</option>
+                    <option value="sj_no_arms">{t.testTypes.sj_no_arms}</option>
+                    <option value="sj_arms">{t.testTypes.sj_arms}</option>
+                    <option value="approach">{t.testTypes.approach}</option>
+                    <option value="rsi">{t.testTypes.rsi}</option>
                   </select>
                 ) : (
                   <select
                     value={form.testType}
                     onChange={e => setForm({ ...form, testType: e.target.value })}
-                    className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-white font-bold outline-none focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] transition-all"
+                    className="w-full bg-bg border border-border rounded-xl px-3.5 py-2.5 text-white font-bold outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
                   >
-                    <option value="full_squat">Full Squat (سكوات كامل عميق)</option>
-                    <option value="bench_press">Bench Press (بنش برس مستوي)</option>
-                    <option value="power_clean">Power Clean (باور كلين انفجاري)</option>
+                    <option value="full_squat">{t.testTypes.full_squat}</option>
+                    <option value="bench_press">{t.testTypes.bench_press}</option>
+                    <option value="power_clean">{t.testTypes.power_clean}</option>
                   </select>
                 )}
               </div>
@@ -335,7 +335,7 @@ export default function ManualEntryConsole({
                   type="date"
                   value={form.created_at}
                   onChange={e => setForm({ ...form, created_at: e.target.value })}
-                  className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-white font-mono font-bold outline-none focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] transition-all"
+                  className="w-full bg-bg border border-border rounded-xl px-3.5 py-2.5 text-white font-mono font-bold outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
                   required
                 />
               </div>
@@ -345,24 +345,24 @@ export default function ManualEntryConsole({
                 RSI DEDICATED CONFIGURATION BLOCK (WHEN TEST TYPE IS RSI)
             ========================================================================= */}
             {entryMode === 'jump' && normalizeTestType(form.testType) === TEST_TYPES.DROP_JUMP && (
-              <div className="bg-[#151822] border border-[#272F42] p-4 sm:p-5 rounded-2xl space-y-4">
+              <div className="bg-surface border border-border p-4 sm:p-5 rounded-2xl space-y-4">
                 
                 {/* Method / Direct Toggle Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-[#272F42]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-border">
                   <div className="flex items-center gap-2 text-white font-bold">
-                    <Zap size={16} className="text-[#D4FF00]" />
+                    <Zap size={16} className="text-accent" />
                     <span>{t.manualEntry.rsiModeToggle}</span>
                   </div>
 
                   {/* 3-way mode switch */}
-                  <div className="flex items-center bg-[#090A0E] p-1 rounded-xl border border-[#272F42] text-[11px] font-bold">
+                  <div className="flex items-center bg-bg p-1 rounded-xl border border-border text-[11px] font-bold">
                     <button
                       type="button"
                       onClick={() => setRsiMode('direct')}
                       className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                         rsiMode === 'direct'
-                          ? 'bg-[#D4FF00] text-[#090A0E] font-black shadow-sm'
-                          : 'text-zinc-400 hover:text-white'
+                          ? 'bg-accent text-accent-ink font-black shadow-sm'
+                          : 'text-muted hover:text-accent-ink'
                       }`}
                     >
                       {t.manualEntry.rsiModeDirect}
@@ -372,8 +372,8 @@ export default function ManualEntryConsole({
                       onClick={() => setRsiMode('auto_height')}
                       className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                         rsiMode === 'auto_height'
-                          ? 'bg-[#D4FF00] text-[#090A0E] font-black shadow-sm'
-                          : 'text-zinc-400 hover:text-white'
+                          ? 'bg-accent text-accent-ink font-black shadow-sm'
+                          : 'text-muted hover:text-accent-ink'
                       }`}
                     >
                       {t.manualEntry.rsiModeAutoHeight}
@@ -383,29 +383,29 @@ export default function ManualEntryConsole({
                       onClick={() => setRsiMode('auto_flight')}
                       className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                         rsiMode === 'auto_flight'
-                          ? 'bg-[#D4FF00] text-[#090A0E] font-black shadow-sm'
-                          : 'text-zinc-400 hover:text-white'
+                          ? 'bg-accent text-accent-ink font-black shadow-sm'
+                          : 'text-muted hover:text-accent-ink'
                       }`}
                     >
                       {t.manualEntry.rsiModeAutoFlight}
                     </button>
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-2 font-mono">
+                  <p className="text-[11px] text-muted mt-2 font-mono">
                     {rsiMode === 'direct'
-                      ? (isAr ? '✍️ اكتب رقم الـ RSI الظاهر على شاشة جهازك أو التطبيق مباشرة دون أي معادلة.' : '✍️ Direct manual entry of the RSI number from your device.')
+                      ? (t.ui.meDirectManualEntryOf)
                       : rsiMode === 'auto_height'
-                        ? (isAr ? '📐 معيار فاليد (VALD / ForceDecks): الارتفاع بالمتر ÷ زمن التلامس بالثواني (المعيار الرسمي للأبحاث ومنصات القوة).' : '📐 VALD / ForceDecks standard: Jump Height (m) ÷ Contact Time (s).')
-                        : (isAr ? '⏱️ معيار سجادات التلامس وتطبيق MyJump: زمن الطيران ÷ زمن التلامس (يعطي رقماً أعلى بحوالي 25% لنفس القفزة).' : '⏱️ Contact Mat / MyJump standard: Flight Time (s) ÷ Contact Time (s) (~25% higher index).')}
+                        ? (t.ui.meValdForcedecksStandardJump)
+                        : (t.ui.meContactMatMyjumpStandard)}
                   </p>
                 </div>
 
                 {/* DIRECT RSI INPUT FIELD */}
                 {rsiMode === 'direct' && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                    <div className="bg-[#090A0E] p-3.5 rounded-2xl border border-[#D4FF00]/40">
-                      <label className="text-[#D4FF00] block mb-1 font-black text-xs flex items-center justify-between">
+                    <div className="bg-bg p-3.5 rounded-2xl border border-accent/40">
+                      <label className="text-accent block mb-1 font-black text-xs flex items-center justify-between">
                         <span>{t.manualEntry.rsiDirectInput}</span>
-                        <span className="text-[10px] text-zinc-400 font-normal">Score (e.g. 2.40)</span>
+                        <span className="text-[10px] text-muted font-normal">Score (e.g. 2.40)</span>
                       </label>
                       <input
                         type="number"
@@ -416,8 +416,8 @@ export default function ManualEntryConsole({
                         className="w-full bg-transparent text-white font-mono tabular-nums text-2xl font-black outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         required={rsiMode === 'direct'}
                       />
-                      <p className="text-[10px] text-zinc-500 mt-1">
-                        {isAr ? 'أدخل رقم RSI الصادر من بساط القفز أو التطبيق مباشرة' : 'Direct index output from jump mat / telemetry device'}
+                      <p className="text-[10px] text-faint mt-1">
+                        {t.ui.meDirectIndexOutputFrom}
                       </p>
                     </div>
 
@@ -432,14 +432,14 @@ export default function ManualEntryConsole({
                           placeholder="180" min="1" inputMode="decimal"
                           value={form.contactTimeInput}
                           onChange={e => setForm({ ...form, contactTimeInput: e.target.value })}
-                          className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-white font-mono tabular-nums text-sm font-bold outline-none focus:border-[#D4FF00]"
+                          className="w-full bg-bg border border-border rounded-xl px-3.5 py-2.5 text-white font-mono tabular-nums text-sm font-bold outline-none focus:border-accent"
                         />
-                        <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2.5 text-zinc-500 text-[11px] font-mono pointer-events-none">
+                        <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2.5 text-faint text-[11px] font-mono pointer-events-none">
                           {contactTimeMs > 0 ? `${(contactTimeMs / 1000).toFixed(3)} s` : 'ms'}
                         </span>
                       </div>
-                      <p className="text-[10px] text-zinc-500 mt-1">
-                        {isAr ? 'يدعم كتابة الثواني (0.180) أو المللي ثانية (180) تلقائياً' : 'Accepts both seconds (0.180) and milliseconds (180)'}
+                      <p className="text-[10px] text-faint mt-1">
+                        {t.ui.meAcceptsBothSeconds0}
                       </p>
                     </div>
                   </div>
@@ -456,9 +456,9 @@ export default function ManualEntryConsole({
                         placeholder="23.2"
                         value={form.jumpHeightCm}
                         onChange={e => handleInputChange('jumpHeightCm', e.target.value)}
-                        className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2 text-white font-mono tabular-nums text-sm font-bold outline-none focus:border-[#D4FF00]"
+                        className="w-full bg-bg border border-border rounded-xl px-3.5 py-2 text-white font-mono tabular-nums text-sm font-bold outline-none focus:border-accent"
                       />
-                      <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2 text-zinc-500 text-[11px] font-mono pointer-events-none">cm</span>
+                      <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2 text-faint text-[11px] font-mono pointer-events-none">cm</span>
                     </div>
                   </div>
 
@@ -471,9 +471,9 @@ export default function ManualEntryConsole({
                         placeholder="0.435"
                         value={form.flightTimeSec}
                         onChange={e => handleInputChange('flightTimeSec', e.target.value)}
-                        className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2 text-white font-mono tabular-nums text-sm outline-none focus:border-[#D4FF00]"
+                        className="w-full bg-bg border border-border rounded-xl px-3.5 py-2 text-white font-mono tabular-nums text-sm outline-none focus:border-accent"
                       />
-                      <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2 text-zinc-500 text-[11px] font-mono pointer-events-none">sec</span>
+                      <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2 text-faint text-[11px] font-mono pointer-events-none">sec</span>
                     </div>
                   </div>
 
@@ -485,9 +485,9 @@ export default function ManualEntryConsole({
                         step="1"
                         value={form.boxHeightCm}
                         onChange={e => setForm({ ...form, boxHeightCm: e.target.value })}
-                        className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2 text-white font-mono tabular-nums text-sm outline-none focus:border-[#D4FF00]"
+                        className="w-full bg-bg border border-border rounded-xl px-3.5 py-2 text-white font-mono tabular-nums text-sm outline-none focus:border-accent"
                       />
-                      <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2 text-zinc-500 text-[11px] font-mono pointer-events-none">cm</span>
+                      <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2 text-faint text-[11px] font-mono pointer-events-none">cm</span>
                     </div>
                   </div>
                 </div>
@@ -505,10 +505,10 @@ export default function ManualEntryConsole({
                         placeholder="180" min="1" inputMode="decimal"
                         value={form.contactTimeInput}
                         onChange={e => setForm({ ...form, contactTimeInput: e.target.value })}
-                        className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-white font-mono tabular-nums text-sm font-bold outline-none focus:border-[#D4FF00]"
+                        className="w-full bg-bg border border-border rounded-xl px-3.5 py-2.5 text-white font-mono tabular-nums text-sm font-bold outline-none focus:border-accent"
                         required
                       />
-                      <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2.5 text-zinc-500 text-[11px] font-mono pointer-events-none">
+                      <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2.5 text-faint text-[11px] font-mono pointer-events-none">
                         {contactTimeMs > 0 ? `${(contactTimeMs / 1000).toFixed(3)} s` : 'ms'}
                       </span>
                     </div>
@@ -531,10 +531,10 @@ export default function ManualEntryConsole({
                       placeholder="e.g. 58.5"
                       value={form.jumpHeightCm}
                       onChange={e => handleInputChange('jumpHeightCm', e.target.value)}
-                      className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-[#D4FF00] font-mono tabular-nums text-base font-bold outline-none focus:border-[#D4FF00] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full bg-bg border border-border rounded-xl px-3.5 py-2.5 text-accent font-mono tabular-nums text-base font-bold outline-none focus:border-accent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       required
                     />
-                    <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2.5 text-zinc-500 text-xs font-mono pointer-events-none">cm</span>
+                    <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2.5 text-faint text-xs font-mono pointer-events-none">cm</span>
                   </div>
                 </div>
 
@@ -547,9 +547,9 @@ export default function ManualEntryConsole({
                       placeholder="e.g. 0.690"
                       value={form.flightTimeSec}
                       onChange={e => handleInputChange('flightTimeSec', e.target.value)}
-                      className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-white font-mono tabular-nums text-sm outline-none focus:border-[#D4FF00] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full bg-bg border border-border rounded-xl px-3.5 py-2.5 text-white font-mono tabular-nums text-sm outline-none focus:border-accent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
-                    <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2.5 text-zinc-500 text-xs font-mono pointer-events-none">sec</span>
+                    <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2.5 text-faint text-xs font-mono pointer-events-none">sec</span>
                   </div>
                 </div>
               </div>
@@ -569,10 +569,10 @@ export default function ManualEntryConsole({
                       placeholder="e.g. 140"
                       value={form.cleanWeightKg}
                       onChange={e => setForm({ ...form, cleanWeightKg: e.target.value })}
-                      className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-[#D4FF00] font-mono tabular-nums text-base font-bold outline-none focus:border-[#D4FF00]"
+                      className="w-full bg-bg border border-border rounded-xl px-3.5 py-2.5 text-accent font-mono tabular-nums text-base font-bold outline-none focus:border-accent"
                       required
                     />
-                    <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2.5 text-zinc-500 text-xs font-mono pointer-events-none">kg</span>
+                    <span className="absolute right-3 rtl:right-auto rtl:left-3 top-2.5 text-faint text-xs font-mono pointer-events-none">kg</span>
                   </div>
                 </div>
                 <div>
@@ -583,7 +583,7 @@ export default function ManualEntryConsole({
                     max="15"
                     value={form.repsCount}
                     onChange={e => setForm({ ...form, repsCount: e.target.value })}
-                    className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-white font-mono tabular-nums text-sm font-bold outline-none focus:border-[#D4FF00]"
+                    className="w-full bg-bg border border-border rounded-xl px-3.5 py-2.5 text-white font-mono tabular-nums text-sm font-bold outline-none focus:border-accent"
                   />
                 </div>
                 <div>
@@ -594,7 +594,7 @@ export default function ManualEntryConsole({
                     max="52"
                     value={form.weekNumber}
                     onChange={e => setForm({ ...form, weekNumber: e.target.value })}
-                    className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl px-3.5 py-2.5 text-white font-mono tabular-nums text-sm font-bold outline-none focus:border-[#D4FF00]"
+                    className="w-full bg-bg border border-border rounded-xl px-3.5 py-2.5 text-white font-mono tabular-nums text-sm font-bold outline-none focus:border-accent"
                   />
                 </div>
               </div>
@@ -606,8 +606,8 @@ export default function ManualEntryConsole({
               <textarea
                 value={form.notes}
                 onChange={e => setForm({ ...form, notes: e.target.value })}
-                placeholder={isAr ? "ملاحظات وتوجيهات تدريبية اختيارية..." : "Optional coaching observations..."}
-                className="w-full bg-[#0A0B0F] border border-[#1E2330] rounded-xl p-3 text-white text-xs outline-none focus:border-[#D4FF00] h-18 resize-none"
+                placeholder={t.ui.meOptionalCoachingObservations}
+                className="w-full bg-bg border border-border rounded-xl p-3 text-white text-xs outline-none focus:border-accent h-18 resize-none"
               />
             </div>
 
@@ -616,19 +616,19 @@ export default function ManualEntryConsole({
               <button
                 type="submit"
                 disabled={isSaving}
-                className="w-full py-3.5 px-6 rounded-xl font-black text-sm text-[#090A0E] bg-gradient-to-r from-[#D4FF00] via-[#E2FF33] to-[#B8E600] shadow-[0_4px_20px_-2px_rgba(212,255,0,0.3)] hover:shadow-[0_6px_28px_rgba(212,255,0,0.45)] hover:scale-[1.008] active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2.5 disabled:opacity-50"
+                className="w-full py-3.5 px-6 rounded-xl font-black text-sm text-accent-ink bg-gradient-to-r from-accent via-accent to-accent shadow-[0_4px_20px_-2px_rgba(217,119,87,0.3)] hover:shadow-[0_6px_28px_rgba(217,119,87,0.45)] hover:scale-[1.008] active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2.5 disabled:opacity-50"
               >
                 {isSaving ? (
                   <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <Save size={18} className="text-[#090A0E]" />
+                  <Save size={18} className="text-accent-ink" />
                 )}
                 <span>{isSaving ? t.common.saving : t.manualEntry.saveMeasurement}</span>
               </button>
             </div>
 
             {saveSuccess && (
-              <div className="p-3 rounded-xl bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] font-bold text-center text-xs animate-fade-in flex items-center justify-center gap-2">
+              <div className="p-3 rounded-xl bg-success/15 border border-success/30 text-success font-bold text-center text-xs animate-fade-in flex items-center justify-center gap-2">
                 <CheckCircle2 size={16} />
                 <span>{t.common.success} — Updated Dossier Instantly!</span>
               </div>
@@ -639,14 +639,14 @@ export default function ManualEntryConsole({
         {/* =========================================================================
             LIVE MATH HUD (4 cols) — HIGH DENSITY TELEMETRY READOUT
         ========================================================================= */}
-        <div className="lg:col-span-4 bg-[#101218] border border-[#1E2330] p-6 rounded-3xl shadow-xl space-y-4 font-mono text-xs">
-          <div className="border-b border-[#1E2330] pb-3">
+        <div className="lg:col-span-4 bg-surface border border-border p-6 rounded-3xl shadow-xl space-y-4 font-mono text-xs">
+          <div className="border-b border-border pb-3">
             <h3 className="font-heading font-black text-white text-sm flex items-center gap-2">
-              <Gauge size={16} className="text-[#D4FF00]" />
-              {isAr ? 'شاشة القراءات البيوميكانيكية المباشرة' : 'Live Biomechanical Readout'}
+              <Gauge size={16} className="text-accent" />
+              {t.ui.meLiveBiomechanicalReadout}
             </h3>
-            <p className="text-[11px] text-zinc-400 font-sans mt-0.5">
-              {isAr ? 'تحليل فوري للمؤشرات قبل اعتماد الحفظ' : 'Instant telemetry validation before recording'}
+            <p className="text-[11px] text-muted font-sans mt-0.5">
+              {t.ui.meInstantTelemetryValidationBefore}
             </p>
           </div>
 
@@ -655,22 +655,22 @@ export default function ManualEntryConsole({
               
               {/* RSI SPECIALIZED HUD CARD */}
               {normalizeTestType(form.testType) === TEST_TYPES.DROP_JUMP ? (
-                <div className="bg-[#151822] border border-[#272F42] p-4 rounded-2xl space-y-3">
+                <div className="bg-surface border border-border p-4 rounded-2xl space-y-3">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-zinc-400 font-bold">{isAr ? 'مؤشر RSI النهائي:' : 'Active RSI Score:'}</span>
-                    <span className="text-2xl font-black text-[#D4FF00] tabular-nums">
+                    <span className="text-muted font-bold">{t.ui.meActiveRsiScore}</span>
+                    <span className="text-2xl font-black text-accent tabular-nums">
                       {finalRsi > 0 ? finalRsi.toFixed(2) : '—'}
                     </span>
                   </div>
 
                   {rsiFormulaDisplay && (
-                    <div className="text-[10px] text-zinc-400 bg-black/40 px-2.5 py-1.5 rounded-lg border border-white/5 font-mono">
+                    <div className="text-[10px] text-muted bg-black/40 px-2.5 py-1.5 rounded-lg border border-white/5 font-mono">
                       {rsiFormulaDisplay}
                     </div>
                   )}
 
                   <div className="flex justify-between items-center pt-1 border-t border-white/5">
-                    <span className="text-zinc-400">{isAr ? 'زمن التلامس (GCT):' : 'Contact Time (GCT):'}</span>
+                    <span className="text-muted">{t.ui.meContactTimeGct}</span>
                     <span className="text-white font-bold">
                       {contactTimeMs > 0 ? `${contactTimeMs} ms` : '—'}
                     </span>
@@ -678,13 +678,13 @@ export default function ManualEntryConsole({
 
                   {contactTimeSec > 0 && (
                     <div className="flex justify-between items-center">
-                      <span className="text-zinc-400">{isAr ? 'تصنيف الاستطالة:' : 'SSC Zone:'}</span>
+                      <span className="text-muted">{t.ui.meSscZone}</span>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
                         gctAnalysis.category === 'elite_fast'
-                          ? 'bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40'
+                          ? 'bg-success/20 text-success border border-success/40'
                           : gctAnalysis.category === 'moderate'
-                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                          : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                          ? 'bg-warning/20 text-warning border border-warning/40'
+                          : 'bg-danger/20 text-danger border border-danger/40'
                       }`}>
                         {isEn ? gctAnalysis.labelEn : gctAnalysis.labelAr}
                       </span>
@@ -692,51 +692,51 @@ export default function ManualEntryConsole({
                   )}
                 </div>
               ) : (
-                <div className="p-3.5 rounded-2xl bg-[#090A0E] border border-[#1E2330] flex justify-between items-center">
-                  <span className="text-zinc-400">{isAr ? 'ارتفاع الوثب:' : 'Jump Height:'}</span>
-                  <span className="text-lg font-black text-[#D4FF00] tabular-nums">
+                <div className="p-3.5 rounded-2xl bg-bg border border-border flex justify-between items-center">
+                  <span className="text-muted">{t.ui.meJumpHeight}</span>
+                  <span className="text-lg font-black text-accent tabular-nums">
                     {jumpHeight > 0 ? `${jumpHeight.toFixed(1)} cm` : '—'}
                   </span>
                 </div>
               )}
 
-              <div className="p-3.5 rounded-2xl bg-[#090A0E] border border-[#1E2330] flex justify-between items-center">
-                <span className="text-zinc-400">{isAr ? 'زمن الطيران:' : 'Flight Duration:'}</span>
+              <div className="p-3.5 rounded-2xl bg-bg border border-border flex justify-between items-center">
+                <span className="text-muted">{t.ui.meFlightDuration}</span>
                 <span className="text-sm font-bold text-white tabular-nums">
                   {flightTime > 0 ? `${flightTime.toFixed(3)} s` : '—'}
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-[#090A0E] border border-[#1E2330] flex justify-between items-center">
-                <span className="text-zinc-400">{isAr ? 'القدرة القصوى (Sayers):' : 'Sayers Peak Power:'}</span>
+              <div className="p-3.5 rounded-2xl bg-bg border border-border flex justify-between items-center">
+                <span className="text-muted">{t.ui.meSayersPeakPower}</span>
                 <span className="text-sm font-bold text-white tabular-nums">
                   {peakPower > 0 ? `${Math.round(peakPower)} W` : '—'}
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-[#090A0E] border border-[#1E2330] flex justify-between items-center">
-                <span className="text-zinc-400">{isAr ? 'القدرة النسبية:' : 'Relative Power:'}</span>
-                <span className="text-sm font-bold text-[#D4FF00] tabular-nums">
+              <div className="p-3.5 rounded-2xl bg-bg border border-border flex justify-between items-center">
+                <span className="text-muted">{t.ui.meRelativePower}</span>
+                <span className="text-sm font-bold text-accent tabular-nums">
                   {relativePower > 0 ? `${relativePower.toFixed(1)} W/kg` : '—'}
                 </span>
               </div>
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="p-3.5 rounded-2xl bg-[#090A0E] border border-[#1E2330] flex justify-between items-center">
-                <span className="text-zinc-400">{isAr ? 'الوزن المرفوع:' : 'Weight Lifted:'}</span>
-                <span className="text-lg font-black text-[#D4FF00] tabular-nums">
+              <div className="p-3.5 rounded-2xl bg-bg border border-border flex justify-between items-center">
+                <span className="text-muted">{t.ui.meWeightLifted}</span>
+                <span className="text-lg font-black text-accent tabular-nums">
                   {cleanWeight > 0 ? `${cleanWeight} kg` : '—'}
                 </span>
               </div>
-              <div className="p-3.5 rounded-2xl bg-[#090A0E] border border-[#1E2330] flex justify-between items-center">
-                <span className="text-zinc-400">{isAr ? 'مضاعف وزن الجسم:' : 'Bodyweight Multiplier:'}</span>
+              <div className="p-3.5 rounded-2xl bg-bg border border-border flex justify-between items-center">
+                <span className="text-muted">{t.ui.meBodyweightMultiplier}</span>
                 <span className="text-sm font-bold text-white tabular-nums">
                   {cleanWeight > 0 && weight > 0 ? `${(cleanWeight / weight).toFixed(2)}x BW` : '—'}
                 </span>
               </div>
-              <div className="p-3.5 rounded-2xl bg-[#090A0E] border border-[#1E2330] flex justify-between items-center">
-                <span className="text-zinc-400">{isAr ? 'التكرارات:' : 'Reps:'}</span>
+              <div className="p-3.5 rounded-2xl bg-bg border border-border flex justify-between items-center">
+                <span className="text-muted">{t.ui.meReps}</span>
                 <span className="text-sm font-bold text-white tabular-nums">
                   {form.repsCount} reps
                 </span>
@@ -750,13 +750,13 @@ export default function ManualEntryConsole({
           RECENT LOGGED MEASUREMENTS TABLE FOR ACTIVE ATHLETE
       ========================================================================= */}
       {playerHistory && playerHistory.length > 0 && (
-        <div className="bg-[#101218] border border-[#1E2330] p-6 rounded-3xl shadow-xl">
-          <div className="flex items-center justify-between border-b border-[#1E2330] pb-3 mb-4">
+        <div className="bg-surface border border-border p-6 rounded-3xl shadow-xl">
+          <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
             <h3 className="font-heading font-black text-white text-sm flex items-center gap-2">
-              <Calendar size={16} className="text-[#D4FF00]" />
+              <Calendar size={16} className="text-accent" />
               {t.manualEntry.recentLoggedTitle}
             </h3>
-            <span className="text-[11px] font-mono text-zinc-400">
+            <span className="text-[11px] font-mono text-muted">
               Total: {playerHistory.length}
             </span>
           </div>
@@ -764,7 +764,7 @@ export default function ManualEntryConsole({
           <div className="overflow-x-auto">
             <table className="w-full text-xs font-mono" style={{ textAlign: isAr ? 'right' : 'left' }}>
               <thead>
-                <tr className="border-b border-[#1E2330] text-zinc-400 text-[10px] uppercase">
+                <tr className="border-b border-border text-muted text-[10px] uppercase">
                   <th className="py-2.5 px-3">{t.profile.testTypeCol}</th>
                   <th className="py-2.5 px-3">{t.profile.scoreCol}</th>
                   <th className="py-2.5 px-3">{t.profile.contactTimeCol}</th>
@@ -772,27 +772,27 @@ export default function ManualEntryConsole({
                   <th className="py-2.5 px-3 text-center">{t.common.actions}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/40">
+              <tbody className="divide-y divide-border/40">
                 {playerHistory.slice(-5).reverse().map((record) => {
                   const gct = record.contact_time_sec ? parseFloat(String(record.contact_time_sec)) : 0;
                   const gctMs = gct > 0 ? (gct >= 1 ? Math.round(gct) : Math.round(gct * 1000)) : 0;
                   return (
                     <tr key={record.id} className="hover:bg-white/5 transition-colors">
                       <td className="py-2.5 px-3 text-white font-bold uppercase">{record.test_type}</td>
-                      <td className="py-2.5 px-3 text-[#D4FF00] font-black">
+                      <td className="py-2.5 px-3 text-accent font-black">
                         {record.jump_height_cm ? `${record.jump_height_cm} cm` : record.rsi_score ? `RSI: ${record.rsi_score}` : record.clean_weight_kg ? `${record.clean_weight_kg} kg` : '—'}
                       </td>
                       <td className="py-2.5 px-3 text-zinc-300">
                         {gctMs > 0 ? `${gctMs} ms` : '—'}
                       </td>
-                      <td className="py-2.5 px-3 text-zinc-400 text-[11px]">
+                      <td className="py-2.5 px-3 text-muted text-[11px]">
                         {record.created_at ? String(record.created_at).substring(0, 10) : '—'}
                       </td>
                       <td className="py-2.5 px-3 text-center">
                         <button
                           type="button"
                           onClick={() => handleDeleteTest(record.id)}
-                          className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-faint hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer"
                           title="Delete"
                         >
                           <Trash2 size={14} />

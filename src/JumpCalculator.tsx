@@ -1,18 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, lazy, Suspense } from 'react';
 import {
   Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X,
   Save, ChevronDown, Moon, Sun, Users, Trophy, Globe, Star, Sparkles
 } from 'lucide-react';
 import { useData } from './context/DataContext';
 import { getBirthYear } from './lib/utils';
-import PlayerProfile from './PlayerProfile';
-import RSICalculator from './RSICalculator';
-import FVPCalculator from './FVPCalculator';
 import TeamDashboard from './TeamDashboard';
-import JumpTestingConsole from './JumpTestingConsole';
-import Leaderboard from './Leaderboard';
-import ManualEntryConsole from './ManualEntryConsole';
+import { ScreenLoading, ScreenError } from './components/ScreenStates';
+
+// Heavy screens are code-split and loaded on first use
+const PlayerProfile = lazy(() => import('./PlayerProfile'));
+const RSICalculator = lazy(() => import('./RSICalculator'));
+const FVPCalculator = lazy(() => import('./FVPCalculator'));
+const JumpTestingConsole = lazy(() => import('./JumpTestingConsole'));
+const Leaderboard = lazy(() => import('./Leaderboard'));
+const ManualEntryConsole = lazy(() => import('./ManualEntryConsole'));
 import AppLogo from './AppLogo';
 import type { ActiveTabType } from './types/athletics';
 
@@ -35,15 +37,13 @@ export default function JumpCalculator() {
     deleteCoach,
     toggleFavoritePlayer,
     favoritePlayerIds,
+    isLoading,
+    loadError,
+    refreshData,
   } = useData();
 
   const [activeTab, setActiveTab] = useState<ActiveTabType>('team');
-  const [colorMode, setColorMode] = useState<string>(() => localStorage.getItem('app_theme') || 'dark');
 
-  useEffect(() => {
-    localStorage.setItem('app_theme', colorMode);
-    document.documentElement.setAttribute('data-theme', colorMode);
-  }, [colorMode]);
 
   // Modals state
   const [showNewPlayerForm, setShowNewPlayerForm] = useState(false);
@@ -210,18 +210,16 @@ export default function JumpCalculator() {
 
   return (
     <div
-      data-theme={colorMode}
-      className={`min-h-screen bg-[#09090B] text-[#F4F4F5] transition-all duration-300 pb-24 lg:pb-8 flex flex-col ${
+      className={`min-h-screen bg-bg text-text pb-[calc(env(safe-area-inset-bottom)+104px)] lg:pb-8 flex flex-col ${
         language === 'ar' ? 'font-arabic' : 'font-sans'
       }`}
-      style={{ direction: language === 'ar' ? 'rtl' : 'ltr' }}
     >
       <div className="w-full max-w-[1600px] mx-auto flex-1 flex flex-col p-3 md:p-6 pb-2 gap-5">
         
         {/* =========================================================================
             TOP COMMAND HEADER HUD (CARBON & ACID VOLT)
         ========================================================================= */}
-        <header className="relative z-[110] w-full bg-[#121215] border border-[#27272A] p-4 rounded-3xl flex flex-col lg:flex-row items-center justify-between gap-4 shadow-2xl">
+        <header className="relative z-[110] w-full bg-surface border border-border p-4 rounded-3xl flex flex-col lg:flex-row items-center justify-between gap-4 shadow-2xl">
           
           {/* Logo & Brand Identity */}
           <div className="flex items-center justify-between lg:justify-start w-full lg:w-auto gap-4">
@@ -232,11 +230,11 @@ export default function JumpCalculator() {
                   <h1 className="text-xl font-heading font-black tracking-wider text-white">
                     {t.hud.appTitle}
                   </h1>
-                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-[#D4FF00] text-[#09090B] uppercase tracking-widest font-mono shadow-[0_0_12px_rgba(212,255,0,0.35)]">
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-accent text-accent-ink uppercase tracking-widest font-mono">
                     {t.hud.versionBadge}
                   </span>
                 </div>
-                <p className="text-[10px] text-zinc-400 font-bold">
+                <p className="text-[10px] text-muted font-bold">
                   {t.hud.appSubtitle}
                 </p>
               </div>
@@ -244,20 +242,20 @@ export default function JumpCalculator() {
 
             {/* Sync Indicator & Mobile Controls */}
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 font-mono text-[10px]">
-                <span className={`w-2 h-2 rounded-full ${isSyncing ? 'bg-[#FF5500] animate-ping' : 'bg-[#D4FF00] shadow-[0_0_8px_#D4FF00]'}`} />
-                <span className={isSyncing ? 'text-[#FF5500]' : 'text-zinc-300'}>
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-2 border border-border font-mono text-[10px]">
+                <span className={`w-2 h-2 rounded-full ${isSyncing ? 'bg-accent animate-ping' : 'bg-accent shadow-[0_0_8px_#D97757]'}`} />
+                <span className={isSyncing ? 'text-accent' : 'text-zinc-300'}>
                   {isSyncing ? t.nav.syncing : t.nav.synced}
                 </span>
               </div>
 
               {/* Segmented Language Toggle (EN | عربي) */}
-              <div className="flex items-center bg-zinc-900 p-1 rounded-xl border border-zinc-800 shadow-sm font-mono text-xs">
+              <div className="flex items-center bg-surface-2 p-1 rounded-xl border border-border shadow-sm font-mono text-xs">
                 <button
                   type="button"
                   onClick={() => setLanguage('en')}
                   className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                    language === 'en' ? 'bg-[#D4FF00] text-[#09090B] shadow-sm' : 'text-zinc-400 hover:text-white'
+                    language === 'en' ? 'bg-accent text-accent-ink shadow-sm' : 'text-muted hover:text-accent-ink'
                   }`}
                 >
                   EN
@@ -266,7 +264,7 @@ export default function JumpCalculator() {
                   type="button"
                   onClick={() => setLanguage('ar')}
                   className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                    language === 'ar' ? 'bg-[#D4FF00] text-[#09090B] shadow-sm' : 'text-zinc-400 hover:text-white'
+                    language === 'ar' ? 'bg-accent text-accent-ink shadow-sm' : 'text-muted hover:text-accent-ink'
                   }`}
                 >
                   عربي
@@ -281,10 +279,10 @@ export default function JumpCalculator() {
             {/* Quick Action: Register Coach */}
             <button
               onClick={() => setShowCoachModal(true)}
-              className="p-2.5 sm:px-3.5 sm:py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer shrink-0"
+              className="p-2.5 sm:px-3.5 sm:py-2.5 bg-surface-2 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-border rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer shrink-0"
               title={t.hud.addCoach}
             >
-              <Users size={14} className="text-[#D4FF00]" />
+              <Users size={14} className="text-accent" />
               <span className="hidden sm:inline">{t.hud.addCoach}</span>
             </button>
 
@@ -303,36 +301,36 @@ export default function JumpCalculator() {
               <button
                 type="button"
                 onClick={() => setIsSelectorOpen(!isSelectorOpen)}
-                className="w-full bg-zinc-900 text-white border border-zinc-800 hover:border-zinc-700 rounded-xl py-2.5 px-3.5 outline-none transition-all cursor-pointer font-bold text-xs flex items-center justify-between shadow-sm"
+                className="w-full bg-surface-2 text-white border border-border hover:border-border rounded-xl py-2.5 px-3.5 outline-none transition-all cursor-pointer font-bold text-xs flex items-center justify-between shadow-sm"
               >
                 <span className="flex items-center gap-2 truncate">
-                  <UserCircle size={16} className="text-[#D4FF00] shrink-0" />
+                  <UserCircle size={16} className="text-accent shrink-0" />
                   <span className="truncate">
                     {activePlayer ? activePlayer.full_name : t.hud.selectAthlete}
                   </span>
                 </span>
-                <ChevronDown size={14} className={`text-zinc-400 transition-transform ${isSelectorOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-muted transition-transform ${isSelectorOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              <AnimatePresence>
+              <>
                 {isSelectorOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsSelectorOpen(false)} />
-                    <div className={`absolute ${language === 'en' ? 'left-0' : 'right-0'} z-50 mt-1.5 w-full bg-[#121215] border border-[#27272A] rounded-2xl shadow-2xl overflow-hidden max-h-80 flex flex-col`}>
+                    <div className={`absolute ${language === 'en' ? 'left-0' : 'right-0'} z-50 mt-1.5 w-full bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden max-h-80 flex flex-col`}>
                       
                       {/* Search Bar Input */}
-                      <div className="p-2 border-b border-zinc-800 bg-[#121215] sticky top-0 z-10">
+                      <div className="p-2 border-b border-border bg-surface sticky top-0 z-10">
                         <input
                           type="text"
                           placeholder={t.hud.searchAthletePlaceholder}
                           value={headerSearchQuery}
                           onChange={(e) => setHeaderSearchQuery(e.target.value)}
                           autoFocus
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs font-bold text-white outline-none focus:border-[#D4FF00] placeholder:text-zinc-500"
+                          className="w-full bg-surface-2 border border-border rounded-xl px-3 py-2 text-xs font-bold text-white outline-none focus:border-accent placeholder:text-faint"
                         />
                       </div>
 
-                      <div className="overflow-y-auto max-h-64 divide-y divide-zinc-800/80 custom-scrollbar">
+                      <div className="overflow-y-auto max-h-64 divide-y divide-border/80 custom-scrollbar">
                         {headerSearchQuery.trim() ? (
                           <div className="py-1">
                             {players
@@ -347,32 +345,32 @@ export default function JumpCalculator() {
                                       setIsSelectorOpen(false);
                                       setHeaderSearchQuery('');
                                     }}
-                                    className={`w-full px-4 py-2.5 flex items-center justify-between text-xs hover:bg-[#D4FF00]/10 transition-colors cursor-pointer ${
-                                      selectedPlayerId === p.id ? 'bg-[#D4FF00]/15 text-[#D4FF00] font-black' : 'text-zinc-300'
+                                    className={`w-full px-4 py-2.5 flex items-center justify-between text-xs hover:bg-accent/10 transition-colors cursor-pointer ${
+                                      selectedPlayerId === p.id ? 'bg-accent/15 text-accent font-black' : 'text-zinc-300'
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
-                                      <div className="w-6 h-6 rounded-lg bg-zinc-800 text-[#D4FF00] font-black flex items-center justify-center text-[10px] border border-zinc-700">
+                                      <div className="w-6 h-6 rounded-lg bg-zinc-800 text-accent font-black flex items-center justify-center text-[10px] border border-border">
                                         {p.full_name ? p.full_name[0] : 'P'}
                                       </div>
                                       <span className="font-bold">{p.full_name}</span>
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                      <span className="text-[10px] font-mono text-zinc-400">{p.weight_kg}kg</span>
+                                      <span className="text-[10px] font-mono text-muted">{p.weight_kg}kg</span>
                                       <button
                                         type="button"
                                         onClick={(e) => toggleFavoritePlayer(p.id, e)}
                                         className="p-1 hover:scale-125 transition-transform"
                                       >
-                                        <Star size={13} className={isFav ? "text-[#D4FF00] fill-[#D4FF00]" : "text-zinc-500 hover:text-[#D4FF00]"} />
+                                        <Star size={13} className={isFav ? "text-accent fill-accent" : "text-faint hover:text-accent"} />
                                       </button>
                                     </div>
                                   </div>
                                 );
                               })}
                             {players.filter(p => p.full_name?.toLowerCase().includes(headerSearchQuery.toLowerCase().trim())).length === 0 && (
-                              <div className="p-4 text-center text-xs text-zinc-500 font-bold">
+                              <div className="p-4 text-center text-xs text-faint font-bold">
                                 {t.hud.noMatchingAthletes}
                               </div>
                             )}
@@ -381,9 +379,9 @@ export default function JumpCalculator() {
                           <>
                             {/* FAVORITE ATHLETES SECTION */}
                             {favoritePlayerIds.length > 0 && (
-                              <div className="border-b border-zinc-800 bg-[#D4FF00]/5 py-1">
-                                <div className="px-3 py-1.5 text-[10px] font-black text-[#D4FF00] uppercase tracking-wider flex items-center gap-1.5 font-mono">
-                                  <Star size={12} className="fill-[#D4FF00] text-[#D4FF00]" />
+                              <div className="border-b border-border bg-accent/5 py-1">
+                                <div className="px-3 py-1.5 text-[10px] font-black text-accent uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                                  <Star size={12} className="fill-accent text-accent" />
                                   <span>{t.hud.favorites} ({favoritePlayerIds.filter(id => players.some(p => p.id === id)).length})</span>
                                 </div>
 
@@ -396,17 +394,17 @@ export default function JumpCalculator() {
                                         setSelectedPlayerId(p.id);
                                         setIsSelectorOpen(false);
                                       }}
-                                      className={`w-full px-4 py-2 flex items-center justify-between text-xs hover:bg-[#D4FF00]/15 transition-colors cursor-pointer ${
-                                        selectedPlayerId === p.id ? 'bg-[#D4FF00]/20 text-[#D4FF00] font-black' : 'text-zinc-300'
+                                      className={`w-full px-4 py-2 flex items-center justify-between text-xs hover:bg-accent/15 transition-colors cursor-pointer ${
+                                        selectedPlayerId === p.id ? 'bg-accent/20 text-accent font-black' : 'text-zinc-300'
                                       }`}
                                     >
                                       <div className="flex items-center gap-2">
-                                        <div className="w-5 h-5 rounded-md bg-[#D4FF00]/20 text-[#D4FF00] font-bold flex items-center justify-center text-[10px]">
+                                        <div className="w-5 h-5 rounded-md bg-accent/20 text-accent font-bold flex items-center justify-center text-[10px]">
                                           {p.full_name ? p.full_name[0] : 'P'}
                                         </div>
                                         <span className="font-bold">{p.full_name}</span>
                                       </div>
-                                      <span className="text-[10px] font-mono text-zinc-400">{p.weight_kg}kg</span>
+                                      <span className="text-[10px] font-mono text-muted">{p.weight_kg}kg</span>
                                     </div>
                                   ))}
                               </div>
@@ -417,21 +415,21 @@ export default function JumpCalculator() {
                               const coachPlayers = players.filter(p => p.coach_id === coach.id);
                               const isExpanded = !!expandedCoaches[coach.id];
                               return (
-                                <div key={coach.id} className="border-b border-zinc-800/60 last:border-b-0">
+                                <div key={coach.id} className="border-b border-border/60 last:border-b-0">
                                   <button
                                     type="button"
                                     onClick={() => toggleCoachSelector(coach.id)}
-                                    className="w-full px-3 py-2 bg-zinc-900/60 hover:bg-zinc-800/80 flex items-center justify-between text-xs font-bold text-zinc-300 transition-colors"
+                                    className="w-full px-3 py-2 bg-surface-2/60 hover:bg-zinc-800/80 flex items-center justify-between text-xs font-bold text-zinc-300 transition-colors"
                                   >
                                     <span className="flex items-center gap-1.5">
                                       <span>📋 {coach.full_name}</span>
-                                      <span className="text-[10px] font-mono text-zinc-500">({coachPlayers.length})</span>
+                                      <span className="text-[10px] font-mono text-faint">({coachPlayers.length})</span>
                                     </span>
-                                    <ChevronDown size={12} className={`text-zinc-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                    <ChevronDown size={12} className={`text-faint transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                                   </button>
 
                                   {isExpanded && (
-                                    <div className="bg-zinc-950/40 py-1">
+                                    <div className="bg-bg/40 py-1">
                                       {coachPlayers.map(p => {
                                         const isFav = favoritePlayerIds.includes(p.id);
                                         return (
@@ -441,8 +439,8 @@ export default function JumpCalculator() {
                                               setSelectedPlayerId(p.id);
                                               setIsSelectorOpen(false);
                                             }}
-                                            className={`w-full px-5 py-2 flex items-center justify-between text-xs hover:bg-[#D4FF00]/10 transition-colors cursor-pointer ${
-                                              selectedPlayerId === p.id ? 'bg-[#D4FF00]/15 text-[#D4FF00] font-bold' : 'text-zinc-300'
+                                            className={`w-full px-5 py-2 flex items-center justify-between text-xs hover:bg-accent/10 transition-colors cursor-pointer ${
+                                              selectedPlayerId === p.id ? 'bg-accent/15 text-accent font-bold' : 'text-zinc-300'
                                             }`}
                                           >
                                             <span>{p.full_name}</span>
@@ -451,13 +449,13 @@ export default function JumpCalculator() {
                                               onClick={(e) => toggleFavoritePlayer(p.id, e)}
                                               className="p-1 hover:scale-125 transition-transform"
                                             >
-                                              <Star size={13} className={isFav ? "text-[#D4FF00] fill-[#D4FF00]" : "text-zinc-600 hover:text-[#D4FF00]"} />
+                                              <Star size={13} className={isFav ? "text-accent fill-accent" : "text-faint hover:text-accent"} />
                                             </button>
                                           </div>
                                         );
                                       })}
                                       {coachPlayers.length === 0 && (
-                                        <span className="block px-5 py-1.5 text-[10px] text-zinc-500">
+                                        <span className="block px-5 py-1.5 text-[10px] text-faint">
                                           {t.roster.emptyTitle}
                                         </span>
                                       )}
@@ -472,17 +470,17 @@ export default function JumpCalculator() {
                               const unassigned = players.filter(p => !p.coach_id || !coaches.some(c => c.id === p.coach_id));
                               const isExpanded = !!expandedCoaches['unassigned'];
                               return (
-                                <div className="border-b border-zinc-800/60 last:border-b-0">
+                                <div className="border-b border-border/60 last:border-b-0">
                                   <button
                                     type="button"
                                     onClick={() => toggleCoachSelector('unassigned')}
-                                    className="w-full px-3 py-2 bg-zinc-900/60 hover:bg-zinc-800/80 flex items-center justify-between text-xs font-bold text-zinc-400 transition-colors"
+                                    className="w-full px-3 py-2 bg-surface-2/60 hover:bg-zinc-800/80 flex items-center justify-between text-xs font-bold text-muted transition-colors"
                                   >
                                     <span>👤 {t.hud.unassignedAthletes} ({unassigned.length})</span>
                                     <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                                   </button>
                                   {isExpanded && (
-                                    <div className="bg-zinc-950/40 py-1">
+                                    <div className="bg-bg/40 py-1">
                                       {unassigned.map(p => {
                                         const isFav = favoritePlayerIds.includes(p.id);
                                         return (
@@ -492,8 +490,8 @@ export default function JumpCalculator() {
                                               setSelectedPlayerId(p.id);
                                               setIsSelectorOpen(false);
                                             }}
-                                            className={`w-full px-5 py-2 flex items-center justify-between text-xs hover:bg-[#D4FF00]/10 transition-colors cursor-pointer ${
-                                              selectedPlayerId === p.id ? 'bg-[#D4FF00]/15 text-[#D4FF00] font-bold' : 'text-zinc-300'
+                                            className={`w-full px-5 py-2 flex items-center justify-between text-xs hover:bg-accent/10 transition-colors cursor-pointer ${
+                                              selectedPlayerId === p.id ? 'bg-accent/15 text-accent font-bold' : 'text-zinc-300'
                                             }`}
                                           >
                                             <span>{p.full_name}</span>
@@ -502,7 +500,7 @@ export default function JumpCalculator() {
                                               onClick={(e) => toggleFavoritePlayer(p.id, e)}
                                               className="p-1 hover:scale-125 transition-transform"
                                             >
-                                              <Star size={13} className={isFav ? "text-[#D4FF00] fill-[#D4FF00]" : "text-zinc-600 hover:text-[#D4FF00]"} />
+                                              <Star size={13} className={isFav ? "text-accent fill-accent" : "text-faint hover:text-accent"} />
                                             </button>
                                           </div>
                                         );
@@ -518,7 +516,7 @@ export default function JumpCalculator() {
                     </div>
                   </>
                 )}
-              </AnimatePresence>
+              </>
             </div>
           </div>
         </header>
@@ -529,15 +527,15 @@ export default function JumpCalculator() {
         <div className="flex-1 flex flex-col lg:flex-row gap-5 items-start min-h-0">
           
           {/* Desktop Persistent Command Sidebar */}
-          <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-[#121215] border border-[#27272A] rounded-3xl p-3.5 shadow-2xl sticky top-6 justify-between gap-4">
+          <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-surface border border-border rounded-3xl p-3.5 shadow-2xl sticky top-6 justify-between gap-4">
             <div className="space-y-1.5">
-              <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center justify-between border-b border-zinc-800 pb-2 mb-2 font-mono">
+              <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted flex items-center justify-between border-b border-border pb-2 mb-2 font-mono">
                 <span className="flex items-center gap-1.5">
-                  <Activity size={13} className="text-[#D4FF00]" />
+                  <Activity size={13} className="text-accent" />
                   {t.nav.telemetryModules}
                 </span>
-                <span className="flex items-center gap-1 text-[9px] text-[#10B981] font-mono">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
+                <span className="flex items-center gap-1 text-[9px] text-success font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                   {t.nav.systemOnline}
                 </span>
               </div>
@@ -554,14 +552,14 @@ export default function JumpCalculator() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full text-left rtl:text-right px-3 py-2.5 rounded-2xl transition-all duration-200 flex items-center gap-3 relative group cursor-pointer ${
                       isActive 
-                        ? 'bg-[#D4FF00]/10 border border-[#D4FF00]/50 text-[#D4FF00] shadow-[0_0_15px_rgba(212,255,0,0.15)] font-black' 
+                        ? 'bg-accent/10 border border-accent/50 text-accent font-black' 
                         : isDisabled
-                          ? 'opacity-35 cursor-not-allowed text-zinc-600'
-                          : 'text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent'
+                          ? 'opacity-35 cursor-not-allowed text-faint'
+                          : 'text-muted hover:text-white hover:bg-surface-2 border border-transparent'
                     }`}
                   >
                     <div className={`p-2 rounded-xl transition-all shrink-0 ${
-                      isActive ? 'bg-[#D4FF00] text-[#09090B] font-bold shadow-[0_0_10px_rgba(212,255,0,0.4)]' : 'bg-zinc-900 text-zinc-400 group-hover:text-white'
+                      isActive ? 'bg-accent text-accent-ink font-bold' : 'bg-surface-2 text-muted group-hover:text-accent-ink'
                     }`}>
                       <Icon size={16} />
                     </div>
@@ -569,14 +567,14 @@ export default function JumpCalculator() {
                       <div className="text-xs font-bold truncate">
                         {tab.name}
                       </div>
-                      <div className="text-[10px] text-zinc-500 truncate font-mono">
+                      <div className="text-[10px] text-faint truncate font-mono">
                         {tab.tag}
                       </div>
                     </div>
                     {isActive && (
-                      <motion.div
-                        layoutId="active-sidebar-indicator"
-                        className="w-1.5 h-6 rounded-full bg-[#D4FF00] shadow-[0_0_10px_#D4FF00]"
+                      <div
+                       
+                        className="w-1.5 h-6 rounded-full bg-accent shadow-[0_0_10px_#D97757]"
                       />
                     )}
                   </button>
@@ -585,29 +583,29 @@ export default function JumpCalculator() {
             </div>
 
             {/* Sidebar Active Athlete Status & Mini Telemetry Card */}
-            <div className="pt-3 border-t border-zinc-800">
+            <div className="pt-3 border-t border-border">
               {activePlayer ? (
                 <div 
                   onClick={() => setActiveTab('profile')}
-                  className="p-2.5 rounded-2xl bg-zinc-900/60 border border-zinc-800 hover:border-[#D4FF00]/50 cursor-pointer transition-all flex items-center gap-2.5"
+                  className="p-2.5 rounded-2xl bg-surface-2/60 border border-border hover:border-accent/50 cursor-pointer transition-all flex items-center gap-2.5"
                   title={t.profile.athleteDossier}
                 >
-                  <div className="w-8 h-8 rounded-xl bg-[#D4FF00] flex items-center justify-center text-xs font-black text-[#09090B] shrink-0 font-mono shadow-md">
+                  <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center text-xs font-black text-accent-ink shrink-0 font-mono shadow-md">
                     {activePlayer.full_name ? activePlayer.full_name.charAt(0).toUpperCase() : 'A'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-white truncate">{activePlayer.full_name}</p>
-                    <p className="text-[10px] text-[#D4FF00] font-mono">
+                    <p className="text-[10px] text-accent font-mono">
                       {activePlayer.weight_kg} kg • {playerHistory.length} tests
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="p-2.5 rounded-2xl bg-zinc-900/40 border border-zinc-800 text-center">
-                  <p className="text-[10px] text-zinc-400 font-bold">{t.hud.noActiveAthlete}</p>
+                <div className="p-2.5 rounded-2xl bg-surface-2/40 border border-border text-center">
+                  <p className="text-[10px] text-muted font-bold">{t.hud.noActiveAthlete}</p>
                   <button
                     onClick={() => setIsSelectorOpen(true)}
-                    className="mt-1 text-[10px] text-[#D4FF00] hover:underline font-bold cursor-pointer"
+                    className="mt-1 text-[10px] text-accent hover:underline font-bold cursor-pointer"
                   >
                     {t.hud.selectAthleteHint}
                   </button>
@@ -618,9 +616,14 @@ export default function JumpCalculator() {
 
           {/* ================= MAIN CONTENT WORKSPACE ================= */}
           <main className="flex-1 min-w-0 w-full">
-            <AnimatePresence mode="wait">
-              {activeTab === 'team' ? (
-                <motion.div key="team" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+            <Suspense fallback={<ScreenLoading />}>
+            <>
+              {loadError && players.length === 0 ? (
+                <ScreenError key="load-error" message={loadError} onRetry={refreshData} />
+              ) : isLoading && players.length === 0 ? (
+                <ScreenLoading key="loading" />
+              ) : activeTab === 'team' ? (
+                <div key="team" className="animate-fade-in">
                   <TeamDashboard 
                     onSelectPlayer={handleSelectPlayerFromDashboard} 
                     onChangeTab={(tab: string) => setActiveTab(tab as ActiveTabType)} 
@@ -628,17 +631,17 @@ export default function JumpCalculator() {
                     onEditPlayer={handleEditPlayer}
                     language={language}
                   />
-                </motion.div>
+                </div>
               ) : activeTab === 'leaderboard' ? (
-                <motion.div key="leaderboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                <div key="leaderboard" className="animate-fade-in">
                   <Leaderboard 
                     onSelectPlayer={handleSelectPlayerFromDashboard} 
                     onChangeTab={(tab: string) => setActiveTab(tab as ActiveTabType)} 
                     language={language}
                   />
-                </motion.div>
+                </div>
               ) : activePlayer ? (
-                <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                <div key={activeTab} className="animate-fade-in">
                   {activeTab === 'calculator' && (
                     <JumpTestingConsole
                       activePlayer={activePlayer}
@@ -680,16 +683,16 @@ export default function JumpCalculator() {
                       onNavigateTab={(tab: string) => setActiveTab(tab as ActiveTabType)}
                     />
                   )}
-                </motion.div>
+                </div>
               ) : (
-                <motion.div key="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="bento-card p-12 text-center text-zinc-400 shadow-2xl flex flex-col items-center justify-center max-w-xl mx-auto my-8">
-                  <div className="p-4 rounded-3xl bg-[#D4FF00]/10 border border-[#D4FF00]/20 text-[#D4FF00] mb-4">
+                <div key="empty-state" className="bento-card p-12 text-center text-muted shadow-2xl flex flex-col items-center justify-center max-w-xl mx-auto my-8">
+                  <div className="p-4 rounded-3xl bg-accent/10 border border-accent/20 text-accent mb-4">
                     <ScanEye size={48} />
                   </div>
                   <h2 className="text-xl sm:text-2xl font-heading font-black text-white mb-2">
                     {t.profile.noAthleteTitle}
                   </h2>
-                  <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-md mx-auto mb-6">
+                  <p className="text-xs sm:text-sm text-muted leading-relaxed max-w-md mx-auto mb-6">
                     {t.profile.noAthleteDesc}
                   </p>
                   <div className="flex gap-3">
@@ -702,22 +705,23 @@ export default function JumpCalculator() {
                     </button>
                     <button
                       onClick={() => setShowNewPlayerForm(true)}
-                      className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors"
+                      className="px-5 py-2.5 bg-surface-2 hover:bg-zinc-800 border border-border text-zinc-300 hover:text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors"
                     >
                       <Plus size={16} />
                       <span>{t.hud.addAthlete}</span>
                     </button>
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            </>
+            </Suspense>
           </main>
         </div>
 
         {/* =========================================================================
             MOBILE BOTTOM DOCK NAVIGATION (CARBON & ACID VOLT, lg:hidden)
         ========================================================================= */}
-        <nav className="fixed bottom-3 inset-x-2 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-[100] max-w-[98%] bg-[#121215]/90 backdrop-blur-xl border border-[#27272A] rounded-3xl p-1.5 flex items-center justify-start sm:justify-center gap-1 shadow-2xl overflow-x-auto custom-scrollbar lg:hidden">
+        <nav className="fixed bottom-[calc(env(safe-area-inset-bottom)+8px)] inset-x-2 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-[100] max-w-[98%] bg-surface/90 backdrop-blur-xl border border-border rounded-3xl p-1.5 flex items-center justify-start sm:justify-center gap-1 shadow-2xl overflow-x-auto custom-scrollbar lg:hidden">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -727,22 +731,23 @@ export default function JumpCalculator() {
                 key={tab.id}
                 disabled={isDisabled}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative shrink-0 flex flex-col items-center justify-center px-3 py-1.5 rounded-2xl transition-all duration-200 select-none min-w-[56px] cursor-pointer ${
+                aria-current={isActive ? 'page' : undefined}
+                className={`relative shrink-0 flex flex-col items-center justify-center px-3 py-1.5 rounded-2xl transition-colors duration-200 select-none min-w-[56px] min-h-[48px] cursor-pointer ${
                   isActive 
-                    ? 'bg-[#D4FF00] text-[#09090B] font-black shadow-[0_0_12px_rgba(212,255,0,0.35)]' 
+                    ? 'bg-accent text-accent-ink font-black' 
                     : isDisabled 
-                      ? 'text-zinc-600 opacity-40 cursor-not-allowed' 
-                      : 'text-zinc-400 hover:text-white'
+                      ? 'text-faint opacity-40 cursor-not-allowed' 
+                      : 'text-muted hover:text-accent-ink'
                 }`}
               >
                 <Icon size={16} />
-                <span className="text-[9px] mt-0.5 font-bold truncate">
+                <span className="text-[11px] mt-0.5 font-bold truncate">
                   {tab.shortName}
                 </span>
                 {isActive && (
-                  <motion.div 
-                    layoutId="active-dock-indicator"
-                    className="w-1 h-1 rounded-full bg-[#09090B] mt-0.5"
+                  <div 
+                   
+                    className="w-1 h-1 rounded-full bg-bg mt-0.5"
                   />
                 )}
               </button>
@@ -754,29 +759,29 @@ export default function JumpCalculator() {
       {/* =========================================================================
           NEW ATHLETE MODAL (CARBON & VOLT)
       ========================================================================= */}
-      <AnimatePresence>
+      <>
         {showNewPlayerForm && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bento-card bg-[#121215] border border-[#27272A] p-6 w-full max-w-lg shadow-2xl relative">
-              <button type="button" onClick={() => setShowNewPlayerForm(false)} className={`absolute top-4 ${language === 'en' ? 'right-4' : 'left-4'} text-zinc-400 hover:text-white bg-zinc-900 p-2 rounded-full border border-zinc-800`}>
+            <div className="bento-card bg-surface border border-border p-6 w-full max-w-lg shadow-2xl relative">
+              <button type="button" onClick={() => setShowNewPlayerForm(false)} className={`absolute top-4 ${language === 'en' ? 'right-4' : 'left-4'} text-muted hover:text-white bg-surface-2 p-2 rounded-full border border-border`}>
                 <X size={16} />
               </button>
-              <h2 className="text-xl font-heading font-black text-white mb-4 border-b border-zinc-800 pb-2 flex items-center gap-2">
-                <Plus className="text-[#D4FF00]" size={22} /> {t.hud.newAthleteTitle}
+              <h2 className="text-xl font-heading font-black text-white mb-4 border-b border-border pb-2 flex items-center gap-2">
+                <Plus className="text-accent" size={22} /> {t.hud.newAthleteTitle}
               </h2>
               <form onSubmit={handleAddPlayer} className="space-y-3.5 text-xs">
                 <div>
-                  <label className="text-zinc-400 block mb-1 font-bold">{t.hud.fullName}</label>
+                  <label className="text-muted block mb-1 font-bold">{t.hud.fullName}</label>
                   <input required type="text" value={newPlayer.name} onChange={e => setNewPlayer({...newPlayer, name: e.target.value})} className="glass-input w-full font-bold" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-bold">{t.hud.birthYear}</label>
+                    <label className="text-muted block mb-1 font-bold">{t.hud.birthYear}</label>
                     <input required type="number" min="1950" max={new Date().getFullYear()} value={newPlayer.birthYear} onChange={e => setNewPlayer({...newPlayer, birthYear: e.target.value})} className="glass-input w-full font-mono font-bold" />
                   </div>
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-bold">{t.hud.gender}</label>
-                    <select value={newPlayer.gender} onChange={e => setNewPlayer({...newPlayer, gender: e.target.value})} className="glass-input w-full font-bold bg-[#121215] text-white">
+                    <label className="text-muted block mb-1 font-bold">{t.hud.gender}</label>
+                    <select value={newPlayer.gender} onChange={e => setNewPlayer({...newPlayer, gender: e.target.value})} className="glass-input w-full font-bold bg-surface text-white">
                       <option value="male">{t.common.male}</option>
                       <option value="female">{t.common.female}</option>
                     </select>
@@ -784,35 +789,35 @@ export default function JumpCalculator() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-bold">{t.hud.weightKg}</label>
+                    <label className="text-muted block mb-1 font-bold">{t.hud.weightKg}</label>
                     <input required type="number" step="0.1" value={newPlayer.weight} onChange={e => setNewPlayer({...newPlayer, weight: e.target.value})} className="glass-input w-full font-mono font-bold" />
                   </div>
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-bold">{t.hud.legLengthM}</label>
+                    <label className="text-muted block mb-1 font-bold">{t.hud.legLengthM}</label>
                     <input required type="number" step="0.01" value={newPlayer.leg} onChange={e => setNewPlayer({...newPlayer, leg: e.target.value})} className="glass-input w-full font-mono font-bold" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-bold">{t.hud.heightCm}</label>
+                    <label className="text-muted block mb-1 font-bold">{t.hud.heightCm}</label>
                     <input type="number" value={newPlayer.height} onChange={e => setNewPlayer({...newPlayer, height: e.target.value})} className="glass-input w-full font-mono font-bold" />
                   </div>
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-bold">{t.hud.standingReachCm}</label>
+                    <label className="text-muted block mb-1 font-bold">{t.hud.standingReachCm}</label>
                     <input type="number" value={newPlayer.standingReach} onChange={e => setNewPlayer({...newPlayer, standingReach: e.target.value})} className="glass-input w-full font-mono font-bold" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-zinc-400 block mb-1 font-bold">{t.hud.squatTrochanterM}</label>
+                  <label className="text-muted block mb-1 font-bold">{t.hud.squatTrochanterM}</label>
                   <input type="number" step="0.01" inputMode="decimal" value={newPlayer.squatHeight} onChange={e => setNewPlayer({...newPlayer, squatHeight: e.target.value})} className="glass-input w-full font-mono font-bold" />
-                  <p className="text-[11px] text-zinc-500 mt-1">{t.hud.squatTrochanterHelp}</p>
+                  <p className="text-[11px] text-faint mt-1">{t.hud.squatTrochanterHelp}</p>
                   {parseFloat(newPlayer.leg) > 0 && parseFloat(newPlayer.squatHeight) > 0 && (
                     <p className="text-[11px] mt-1 font-mono tabular-nums">{t.hud.hpoLabel}: {(parseFloat(newPlayer.leg) - parseFloat(newPlayer.squatHeight)).toFixed(2)} m</p>
                   )}
                 </div>
                 <div>
-                  <label className="text-zinc-400 block mb-1 font-bold">{t.hud.assignedCoach}</label>
-                  <select value={newPlayer.coachId} onChange={e => setNewPlayer({...newPlayer, coachId: e.target.value})} className="glass-input w-full font-bold bg-[#121215] text-white">
+                  <label className="text-muted block mb-1 font-bold">{t.hud.assignedCoach}</label>
+                  <select value={newPlayer.coachId} onChange={e => setNewPlayer({...newPlayer, coachId: e.target.value})} className="glass-input w-full font-bold bg-surface text-white">
                     <option value="">{t.hud.noCoach}</option>
                     {coaches.map(c => (
                       <option key={c.id} value={c.id}>{c.full_name}</option>
@@ -823,37 +828,37 @@ export default function JumpCalculator() {
                   <Save size={15} /> {t.hud.saveAthlete}
                 </button>
               </form>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
+      </>
 
       {/* =========================================================================
           EDIT ATHLETE MODAL (CARBON & VOLT)
       ========================================================================= */}
-      <AnimatePresence>
+      <>
         {isEditingPlayer && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bento-card bg-[#121215] border border-[#27272A] p-6 w-full max-w-lg shadow-2xl relative">
-              <button type="button" onClick={() => setIsEditingPlayer(false)} className={`absolute top-4 ${language === 'en' ? 'right-4' : 'left-4'} text-zinc-400 hover:text-white bg-zinc-900 p-2 rounded-full border border-zinc-800`}>
+            <div className="bento-card bg-surface border border-border p-6 w-full max-w-lg shadow-2xl relative">
+              <button type="button" onClick={() => setIsEditingPlayer(false)} className={`absolute top-4 ${language === 'en' ? 'right-4' : 'left-4'} text-muted hover:text-white bg-surface-2 p-2 rounded-full border border-border`}>
                 <X size={16} />
               </button>
-              <h2 className="text-xl font-heading font-black text-white mb-4 border-b border-zinc-800 pb-2 flex items-center gap-2">
-                <Edit3 className="text-[#D4FF00]" size={20} /> {t.profile.editAthlete}
+              <h2 className="text-xl font-heading font-black text-white mb-4 border-b border-border pb-2 flex items-center gap-2">
+                <Edit3 className="text-accent" size={20} /> {t.profile.editAthlete}
               </h2>
               <form onSubmit={handleUpdatePlayer} className="space-y-3.5 text-xs">
                 <div>
-                  <label className="text-zinc-400 block mb-1 font-bold">{t.hud.fullName}</label>
+                  <label className="text-muted block mb-1 font-bold">{t.hud.fullName}</label>
                   <input required type="text" value={editPlayerForm.name} onChange={e => setEditPlayerForm({...editPlayerForm, name: e.target.value})} className="glass-input w-full font-bold" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-bold">{t.hud.birthYear}</label>
+                    <label className="text-muted block mb-1 font-bold">{t.hud.birthYear}</label>
                     <input required type="number" min="1950" max={new Date().getFullYear()} value={editPlayerForm.birthYear} onChange={e => setEditPlayerForm({...editPlayerForm, birthYear: e.target.value})} className="glass-input w-full font-mono font-bold" />
                   </div>
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-bold">{t.hud.gender}</label>
-                    <select value={editPlayerForm.gender} onChange={e => setEditPlayerForm({...editPlayerForm, gender: e.target.value})} className="glass-input w-full font-bold bg-[#121215] text-white">
+                    <label className="text-muted block mb-1 font-bold">{t.hud.gender}</label>
+                    <select value={editPlayerForm.gender} onChange={e => setEditPlayerForm({...editPlayerForm, gender: e.target.value})} className="glass-input w-full font-bold bg-surface text-white">
                       <option value="male">{t.common.male}</option>
                       <option value="female">{t.common.female}</option>
                     </select>
@@ -861,35 +866,35 @@ export default function JumpCalculator() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-bold">{t.hud.weightKg}</label>
+                    <label className="text-muted block mb-1 font-bold">{t.hud.weightKg}</label>
                     <input required type="number" step="0.1" value={editPlayerForm.weight} onChange={e => setEditPlayerForm({...editPlayerForm, weight: e.target.value})} className="glass-input w-full font-mono font-bold" />
                   </div>
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-bold">{t.hud.legLengthM}</label>
+                    <label className="text-muted block mb-1 font-bold">{t.hud.legLengthM}</label>
                     <input required type="number" step="0.01" value={editPlayerForm.leg} onChange={e => setEditPlayerForm({...editPlayerForm, leg: e.target.value})} className="glass-input w-full font-mono font-bold" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-bold">{t.hud.heightCm}</label>
+                    <label className="text-muted block mb-1 font-bold">{t.hud.heightCm}</label>
                     <input type="number" value={editPlayerForm.height} onChange={e => setEditPlayerForm({...editPlayerForm, height: e.target.value})} className="glass-input w-full font-mono font-bold" />
                   </div>
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-bold">{t.hud.standingReachCm}</label>
+                    <label className="text-muted block mb-1 font-bold">{t.hud.standingReachCm}</label>
                     <input type="number" value={editPlayerForm.standingReach} onChange={e => setEditPlayerForm({...editPlayerForm, standingReach: e.target.value})} className="glass-input w-full font-mono font-bold" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-zinc-400 block mb-1 font-bold">{t.hud.squatTrochanterM}</label>
+                  <label className="text-muted block mb-1 font-bold">{t.hud.squatTrochanterM}</label>
                   <input type="number" step="0.01" inputMode="decimal" value={editPlayerForm.squatHeight} onChange={e => setEditPlayerForm({...editPlayerForm, squatHeight: e.target.value})} className="glass-input w-full font-mono font-bold" />
-                  <p className="text-[11px] text-zinc-500 mt-1">{t.hud.squatTrochanterHelp}</p>
+                  <p className="text-[11px] text-faint mt-1">{t.hud.squatTrochanterHelp}</p>
                   {parseFloat(editPlayerForm.leg) > 0 && parseFloat(editPlayerForm.squatHeight) > 0 && (
                     <p className="text-[11px] mt-1 font-mono tabular-nums">{t.hud.hpoLabel}: {(parseFloat(editPlayerForm.leg) - parseFloat(editPlayerForm.squatHeight)).toFixed(2)} m</p>
                   )}
                 </div>
                 <div>
-                  <label className="text-zinc-400 block mb-1 font-bold">{t.hud.assignedCoach}</label>
-                  <select value={editPlayerForm.coachId} onChange={e => setEditPlayerForm({...editPlayerForm, coachId: e.target.value})} className="glass-input w-full font-bold bg-[#121215] text-white">
+                  <label className="text-muted block mb-1 font-bold">{t.hud.assignedCoach}</label>
+                  <select value={editPlayerForm.coachId} onChange={e => setEditPlayerForm({...editPlayerForm, coachId: e.target.value})} className="glass-input w-full font-bold bg-surface text-white">
                     <option value="">{t.hud.noCoach}</option>
                     {coaches.map(c => (
                       <option key={c.id} value={c.id}>{c.full_name}</option>
@@ -900,31 +905,31 @@ export default function JumpCalculator() {
                   <button type="submit" className="btn-volt flex-1 py-3 rounded-xl font-black text-xs shadow-md flex justify-center items-center gap-1.5">
                     <Save size={15} /> {t.common.save}
                   </button>
-                  <button type="button" onClick={() => handleDeletePlayer(editPlayerForm.id, editPlayerForm.name)} className="px-4 py-3 rounded-xl text-xs font-bold bg-rose-950/40 border border-rose-800 text-rose-400 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer">
+                  <button type="button" onClick={() => handleDeletePlayer(editPlayerForm.id, editPlayerForm.name)} className="px-4 py-3 rounded-xl text-xs font-bold bg-surface-2/40 border border-danger text-danger hover:text-white transition-all flex items-center gap-1.5 cursor-pointer">
                     <Trash2 size={15} /> {t.common.delete}
                   </button>
                 </div>
               </form>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
+      </>
 
       {/* =========================================================================
           REGISTER COACH MODAL (CARBON & VOLT)
       ========================================================================= */}
       {showCoachModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bento-card bg-[#121215] border border-[#27272A] rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
-            <button onClick={() => setShowCoachModal(false)} className={`absolute top-4 ${language === 'en' ? 'right-4' : 'left-4'} text-zinc-400 hover:text-white bg-zinc-900 p-2 rounded-full border border-zinc-800`}>
+          <div className="bento-card bg-surface border border-border rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
+            <button onClick={() => setShowCoachModal(false)} className={`absolute top-4 ${language === 'en' ? 'right-4' : 'left-4'} text-muted hover:text-white bg-surface-2 p-2 rounded-full border border-border`}>
               <X size={16} />
             </button>
-            <h2 className="text-lg font-heading font-black text-white mb-4 border-b border-zinc-800 pb-2 flex items-center gap-2">
-              <Plus className="text-[#D4FF00]" size={20} /> {t.hud.registerCoachTitle}
+            <h2 className="text-lg font-heading font-black text-white mb-4 border-b border-border pb-2 flex items-center gap-2">
+              <Plus className="text-accent" size={20} /> {t.hud.registerCoachTitle}
             </h2>
             <form onSubmit={handleRegisterCoach} className="space-y-4 text-xs font-sans">
               <div>
-                <label className="block text-zinc-400 mb-1.5 font-bold">{t.hud.coachFullName}</label>
+                <label className="block text-muted mb-1.5 font-bold">{t.hud.coachFullName}</label>
                 <input 
                   required 
                   type="text" 
@@ -940,16 +945,16 @@ export default function JumpCalculator() {
             </form>
 
             {coaches.length > 0 && (
-              <div className="mt-6 border-t border-zinc-800 pt-4">
-                <h3 className="text-xs font-bold text-zinc-400 mb-2">{t.hud.registeredCoaches}</h3>
+              <div className="mt-6 border-t border-border pt-4">
+                <h3 className="text-xs font-bold text-muted mb-2">{t.hud.registeredCoaches}</h3>
                 <div className="max-h-40 overflow-y-auto space-y-2 pr-1 custom-scrollbar font-mono text-xs">
                   {coaches.map(c => (
-                    <div key={c.id} className="flex items-center justify-between bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800">
+                    <div key={c.id} className="flex items-center justify-between bg-surface-2/60 p-2.5 rounded-xl border border-border">
                       <span className="text-white font-bold">{c.full_name}</span>
                       <button 
                         type="button" 
                         onClick={() => handleDeleteCoach(c.id, c.full_name)}
-                        className="text-rose-400 hover:text-rose-300 p-1.5 hover:bg-rose-500/10 rounded-lg transition-all cursor-pointer"
+                        className="text-danger hover:text-danger p-1.5 hover:bg-danger/10 rounded-lg transition-all cursor-pointer"
                         title={t.hud.deleteCoach}
                       >
                         <Trash2 size={14} />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useData } from '../context/DataContext';
 import { TEST_TYPES, normalizeTestType } from '../lib/testTypes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Video, Download, Play, Pause, RotateCcw, X, Film, Check, Sparkles, Award, Image as ImageIcon } from 'lucide-react';
@@ -12,6 +13,7 @@ export default function MotionGraphicVideoModal({
   onClose,
   language = 'ar'
 }) {
+  const { t: tx } = useData();
   const isEn = language === 'en';
   const previewRef = useRef(null);
   const animCanvasRef = useRef(null);
@@ -27,7 +29,7 @@ export default function MotionGraphicVideoModal({
   const [recordedBlob, setRecordedBlob] = useState(null);
 
   // Player Stats
-  const playerName = activePlayer?.full_name || 'اللاعب';
+  const playerName = activePlayer?.full_name || tx.media.athlete;
   const mass = parseFloat(activePlayer?.weight_kg) || 72;
   const playerHeight = parseFloat(activePlayer?.height_cm) || 178;
   const age = activePlayer?.age || 24;
@@ -69,7 +71,7 @@ export default function MotionGraphicVideoModal({
     try {
       const canvas = await html2canvas(previewRef.current, {
         scale: 2.5,
-        backgroundColor: '#03050c',
+        backgroundColor: '#09090B',
         useCORS: true
       });
       const link = document.createElement('a');
@@ -144,9 +146,9 @@ export default function MotionGraphicVideoModal({
 
       // 1. Draw Background Gradient
       const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-      bgGrad.addColorStop(0, '#0a0f24');
-      bgGrad.addColorStop(0.5, '#040612');
-      bgGrad.addColorStop(1, '#010205');
+      bgGrad.addColorStop(0, '#09090B');
+      bgGrad.addColorStop(0.5, '#09090B');
+      bgGrad.addColorStop(1, '#09090B');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
 
@@ -173,7 +175,7 @@ export default function MotionGraphicVideoModal({
       ctx.textAlign = 'left';
       ctx.fillText('VERTICAL LAB', 60, 70);
 
-      ctx.fillStyle = '#ff782d';
+      ctx.fillStyle = '#D97757';
       ctx.font = 'bold 14px monospace';
       ctx.fillText('MOTION GRAPHIC TELEMETRY REPORT', 60, 95);
 
@@ -181,7 +183,7 @@ export default function MotionGraphicVideoModal({
       ctx.fillRect(width - 230, 50, 170, 36);
       ctx.strokeStyle = 'rgba(255, 120, 45, 0.4)';
       ctx.strokeRect(width - 230, 50, 170, 36);
-      ctx.fillStyle = '#ff9e66';
+      ctx.fillStyle = '#D97757';
       ctx.font = 'bold 12px monospace';
       ctx.textAlign = 'center';
       ctx.fillText('OFFICIAL BIOMEX', width - 145, 73);
@@ -206,8 +208,8 @@ export default function MotionGraphicVideoModal({
 
         // Avatar Circle
         const avatarGrad = ctx.createLinearGradient(-50, -50, 50, 50);
-        avatarGrad.addColorStop(0, '#ff641e');
-        avatarGrad.addColorStop(1, '#ff9e3b');
+        avatarGrad.addColorStop(0, '#D97757');
+        avatarGrad.addColorStop(1, '#D97757');
         ctx.fillStyle = avatarGrad;
         ctx.beginPath();
         ctx.arc(0, 0, 55, 0, Math.PI * 2);
@@ -226,7 +228,7 @@ export default function MotionGraphicVideoModal({
         ctx.textAlign = 'center';
         ctx.fillText(playerName, width / 2, 400);
 
-        ctx.fillStyle = '#38bdf8';
+        ctx.fillStyle = '#D97757';
         ctx.font = 'bold 20px monospace';
         ctx.fillText(`${age} yrs • ${mass} kg • ${playerHeight} cm`, width / 2, 440);
 
@@ -234,7 +236,7 @@ export default function MotionGraphicVideoModal({
         ctx.fillRect(width / 2 - 160, 480, 320, 45);
         ctx.strokeStyle = 'rgba(255, 120, 45, 0.4)';
         ctx.strokeRect(width / 2 - 160, 480, 320, 45);
-        ctx.fillStyle = '#ff782d';
+        ctx.fillStyle = '#D97757';
         ctx.font = 'bold 15px monospace';
         ctx.fillText('⚡ ATHLETE PERFORMANCE DOSSIER', width / 2, 508);
 
@@ -243,7 +245,7 @@ export default function MotionGraphicVideoModal({
         const animProgress = Math.min(1, (sceneTime - 2.0) * 1.5);
         const countCmj = (maxCmj * animProgress).toFixed(1);
 
-        ctx.fillStyle = '#38bdf8';
+        ctx.fillStyle = '#D97757';
         ctx.font = '900 20px monospace';
         ctx.textAlign = 'center';
         ctx.fillText('🚀 VERTICAL JUMP POWER (CMJ)', width / 2, 220);
@@ -251,25 +253,25 @@ export default function MotionGraphicVideoModal({
         // Main KPI Box
         ctx.fillStyle = 'rgba(10, 20, 40, 0.9)';
         ctx.fillRect(80, 260, width - 160, 280);
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+        ctx.strokeStyle = 'rgba(217,119,87, 0.5)';
         ctx.lineWidth = 3;
         ctx.strokeRect(80, 260, width - 160, 280);
 
-        ctx.fillStyle = '#94a3b8';
+        ctx.fillStyle = '#A1A1AA';
         ctx.font = 'bold 18px sans-serif';
         ctx.fillText('MAX CMJ JUMP HEIGHT', width / 2, 310);
 
-        ctx.fillStyle = '#38bdf8';
+        ctx.fillStyle = '#D97757';
         ctx.font = '900 64px monospace';
         ctx.fillText(`${countCmj} cm`, width / 2, 400);
 
-        ctx.fillStyle = '#60a5fa';
+        ctx.fillStyle = '#D97757';
         ctx.font = 'bold 20px monospace';
         ctx.fillText(`Air Time: ${cmjFlightTime > 0 ? cmjFlightTime.toFixed(3) : 0} s`, width / 2, 460);
 
       } else {
         // SCENE 3: RSI & SQUAT/BENCH STRENGTH MATRIX
-        ctx.fillStyle = '#facc15';
+        ctx.fillStyle = '#F5B544';
         ctx.font = '900 20px monospace';
         ctx.textAlign = 'center';
         ctx.fillText('🎯 ELASTICITY & STRENGTH MATRIX', width / 2, 220);
@@ -281,15 +283,15 @@ export default function MotionGraphicVideoModal({
         ctx.lineWidth = 2;
         ctx.strokeRect(80, 260, 260, 240);
 
-        ctx.fillStyle = '#94a3b8';
+        ctx.fillStyle = '#A1A1AA';
         ctx.font = 'bold 15px sans-serif';
         ctx.fillText('MAX RSI INDEX', 210, 300);
 
-        ctx.fillStyle = '#facc15';
+        ctx.fillStyle = '#F5B544';
         ctx.font = '900 48px monospace';
         ctx.fillText(maxRsi > 0 ? maxRsi.toFixed(2) : '—', 210, 380);
 
-        ctx.fillStyle = '#eab308';
+        ctx.fillStyle = '#F5B544';
         ctx.font = 'bold 14px monospace';
         ctx.fillText(`📦 ${boxHeight} cm Box`, 210, 440);
 
@@ -300,15 +302,15 @@ export default function MotionGraphicVideoModal({
         ctx.lineWidth = 2;
         ctx.strokeRect(380, 260, 260, 240);
 
-        ctx.fillStyle = '#94a3b8';
+        ctx.fillStyle = '#A1A1AA';
         ctx.font = 'bold 15px sans-serif';
         ctx.fillText('FULL SQUAT (1RM)', 510, 300);
 
-        ctx.fillStyle = '#34d399';
+        ctx.fillStyle = '#22C55E';
         ctx.font = '900 44px monospace';
         ctx.fillText(squatWeight > 0 ? `${squatWeight} kg` : '—', 510, 375);
 
-        ctx.fillStyle = '#10b981';
+        ctx.fillStyle = '#22C55E';
         ctx.font = 'bold 14px monospace';
         const squatBwRatio = (squatWeight > 0 && mass > 0) ? (squatWeight / mass).toFixed(2) : 0;
         ctx.fillText(squatBwRatio > 0 ? `🏋️ ${squatBwRatio}x Bodyweight` : '🏋️ Max Strength', 510, 440);
@@ -321,12 +323,12 @@ export default function MotionGraphicVideoModal({
       ctx.lineTo(width - 50, height - 100);
       ctx.stroke();
 
-      ctx.fillStyle = '#94a3b8';
+      ctx.fillStyle = '#A1A1AA';
       ctx.font = 'bold 14px monospace';
       ctx.textAlign = 'left';
       ctx.fillText('VERIFIED BIOMECHANICAL REPORT', 60, height - 60);
 
-      ctx.fillStyle = '#ff782d';
+      ctx.fillStyle = '#D97757';
       ctx.textAlign = 'right';
       ctx.fillText('READY FOR STORY SHARE 📸', width - 60, height - 60);
 
@@ -341,7 +343,7 @@ export default function MotionGraphicVideoModal({
 
   return (
     <div className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
-      <div className="glass-panel max-w-xl w-full p-6 space-y-6 hud-card border-orange-500/40 relative max-h-[95vh] overflow-y-auto">
+      <div className="glass-panel max-w-xl w-full p-6 space-y-6 hud-card border-accent/40 relative max-h-[95vh] overflow-y-auto">
         
         {/* Hidden Canvas for High FPS Render Recording */}
         <canvas ref={animCanvasRef} className="hidden" />
@@ -349,62 +351,62 @@ export default function MotionGraphicVideoModal({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white p-2 rounded-xl bg-gray-900 border border-gray-800 transition-all cursor-pointer"
+          className="absolute top-4 right-4 text-muted hover:text-white p-2 rounded-xl bg-surface-2 border border-border transition-all cursor-pointer"
         >
           <X size={20} />
         </button>
 
         {/* Modal Header */}
-        <div className="flex items-center gap-3 border-b border-gray-800 pb-3">
-          <div className="p-3 bg-orange-500/10 text-orange-400 rounded-2xl border border-orange-500/30">
+        <div className="flex items-center gap-3 border-b border-border pb-3">
+          <div className="p-3 bg-accent/10 text-accent rounded-2xl border border-accent/30">
             <Film size={26} />
           </div>
           <div>
             <h3 className="text-lg font-black text-white flex items-center gap-2">
-              <span>{isEn ? '60FPS Motion Graphic Video Engine' : 'محرك فيديو الموشن جرافيك 60FPS الحقيقي'}</span>
+              <span>{tx.ui.mg60fpsMotionGraphicVideo}</span>
             </h3>
-            <p className="text-xs text-gray-400">
-              {isEn ? 'Generate playable HD story videos & screenshots for athlete stats' : 'استخراج واستبدال فيديو متحرك حقيقي قابل للتشغيل بمدّة كاملة وصور عالية الدقة'}
+            <p className="text-xs text-muted">
+              {tx.ui.mgGeneratePlayableHdStory}
             </p>
           </div>
         </div>
 
         {/* Controls Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-black/50 p-4 rounded-2xl border border-orange-500/30">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-black/50 p-4 rounded-2xl border border-accent/30">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPlaying(!isPlaying)}
               className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer ${
-                isPlaying ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/20' : 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/20'
+                isPlaying ? 'bg-accent text-accent-ink shadow-lg shadow-accent/20' : 'bg-accent text-accent-ink shadow-lg shadow-accent/20'
               }`}
             >
               {isPlaying ? <Pause size={15} /> : <Play size={15} />}
-              <span>{isPlaying ? 'إيقاف الحركة' : 'تشغيل الحركة'}</span>
+              <span>{isPlaying ? tx.media.stopAnimation : tx.media.playAnimation}</span>
             </button>
 
             <button
               onClick={handleDownloadImage}
-              className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-cyan-300 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-cyan-500/30 transition-all cursor-pointer"
+              className="px-4 py-2.5 bg-surface-2 hover:bg-zinc-800 text-accent rounded-xl text-xs font-bold flex items-center gap-1.5 border border-accent/30 transition-all cursor-pointer"
             >
               <ImageIcon size={15} />
-              <span>📸 تحميل صورة HD</span>
+              <span>{tx.media.downloadImage}</span>
             </button>
           </div>
 
           <button
             onClick={handleExportMotionVideo}
             disabled={isRecording}
-            className="px-5 py-2.5 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-orange-500/25 transition-all cursor-pointer disabled:opacity-50"
+            className="px-5 py-2.5 bg-gradient-to-r from-accent via-warning to-accent hover:from-accent hover:to-warning text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-accent/25 transition-all cursor-pointer disabled:opacity-50"
           >
             {isRecording ? (
               <>
                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>جاري تسجيل الفيديو ({recordProgress}%)...</span>
+                <span>{tx.media.recordingVideo} ({recordProgress}%)...</span>
               </>
             ) : (
               <>
                 <Video size={16} />
-                <span>🎬 بدء تسجيل وتوليد الفيديو 60FPS</span>
+                <span>{tx.media.startRecording}</span>
               </>
             )}
           </button>
@@ -413,13 +415,13 @@ export default function MotionGraphicVideoModal({
         {/* Recording Progress Bar */}
         {isRecording && (
           <div className="space-y-2">
-            <div className="flex justify-between text-xs font-mono font-bold text-orange-400">
-              <span>جاري بناء ورسم إطارات الفيديو (6 ثوانٍ كاملة)...</span>
+            <div className="flex justify-between text-xs font-mono font-bold text-accent">
+              <span>{tx.media.buildingFrames}</span>
               <span>{recordProgress}%</span>
             </div>
-            <div className="w-full h-2.5 bg-gray-900 rounded-full overflow-hidden border border-orange-500/30">
+            <div className="w-full h-2.5 bg-surface-2 rounded-full overflow-hidden border border-accent/30">
               <div
-                className="h-full bg-gradient-to-r from-orange-500 via-amber-400 to-cyan-400 transition-all duration-300"
+                className="h-full bg-gradient-to-r from-accent via-warning to-accent transition-all duration-300"
                 style={{ width: `${recordProgress}%` }}
               />
             </div>
@@ -428,23 +430,23 @@ export default function MotionGraphicVideoModal({
 
         {/* Live Generated Video Download Box */}
         {videoUrl && (
-          <div className="space-y-3 bg-emerald-950/40 border-2 border-emerald-500/50 p-5 rounded-2xl shadow-xl">
+          <div className="space-y-3 bg-surface-2/40 border-2 border-success/50 p-5 rounded-2xl shadow-xl">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-emerald-300 flex items-center gap-1.5 font-mono">
-                <Check size={18} /> تم استخراج الفيديو المتحرك بنجاح (6 ثوانٍ كاملة WebM HD)!
+              <span className="text-xs font-bold text-success flex items-center gap-1.5 font-mono">
+                <Check size={18} /> {tx.media.videoReady}
               </span>
               <a
                 href={videoUrl}
                 download={`${playerName}_60fps_motion_story.webm`}
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25"
+                className="px-5 py-2.5 bg-success hover:bg-success text-white font-black text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-success/25"
               >
                 <Download size={16} />
-                <span>⬇️ تحميل ملف الفيديو فوراً</span>
+                <span>{tx.media.downloadVideo}</span>
               </a>
             </div>
 
             {/* Playable Video Element */}
-            <div className="rounded-xl overflow-hidden border border-emerald-500/30 bg-black">
+            <div className="rounded-xl overflow-hidden border border-success/30 bg-black">
               <video
                 src={videoUrl}
                 controls
@@ -459,29 +461,29 @@ export default function MotionGraphicVideoModal({
 
         {/* UI Animated Card Preview Stage */}
         <div className="space-y-2">
-          <span className="text-xs font-bold text-cyan-400 block font-mono">
-            📌 معاينة بطاقة الموشن جرافيك الحية:
+          <span className="text-xs font-bold text-accent block font-mono">
+            {tx.media.livePreview}
           </span>
 
           <div
             ref={previewRef}
-            className="relative w-full aspect-[4/5] max-w-md mx-auto bg-gradient-to-b from-[#0a0f1e] via-[#050711] to-[#020306] rounded-3xl border-2 border-orange-500/50 p-6 flex flex-col justify-between overflow-hidden shadow-2xl"
+            className="relative w-full aspect-[4/5] max-w-md mx-auto bg-gradient-to-b from-bg via-bg to-bg rounded-3xl border-2 border-accent/50 p-6 flex flex-col justify-between overflow-hidden shadow-2xl"
           >
             {/* Ambient Lighting Orbs */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/15 blur-3xl rounded-full pointer-events-none animate-pulse" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/15 blur-3xl rounded-full pointer-events-none animate-pulse" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-accent/15 blur-3xl rounded-full pointer-events-none animate-pulse" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/15 blur-3xl rounded-full pointer-events-none animate-pulse" />
             <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
 
             {/* Header */}
-            <div className="flex justify-between items-center border-b border-orange-500/30 pb-4 relative z-10">
+            <div className="flex justify-between items-center border-b border-accent/30 pb-4 relative z-10">
               <div className="flex items-center gap-3">
                 <AppLogo size={36} />
                 <div>
                   <span className="text-sm font-black tracking-widest text-white block">VERTICAL LAB</span>
-                  <span className="text-[10px] text-orange-400 font-mono font-bold block">MOTION GRAPHIC TELEMETRY</span>
+                  <span className="text-[10px] text-accent font-mono font-bold block">MOTION GRAPHIC TELEMETRY</span>
                 </div>
               </div>
-              <div className="px-3 py-1 bg-orange-500/20 text-orange-300 border border-orange-500/40 rounded-xl text-[10px] font-mono font-bold">
+              <div className="px-3 py-1 bg-accent/20 text-accent border border-accent/40 rounded-xl text-[10px] font-mono font-bold">
                 OFFICIAL BIOMEX
               </div>
             </div>
@@ -499,16 +501,16 @@ export default function MotionGraphicVideoModal({
                     transition={{ duration: 0.4 }}
                     className="w-full text-center space-y-4"
                   >
-                    <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-orange-500 via-amber-500 to-orange-600 text-white font-black text-3xl flex items-center justify-center shadow-xl font-mono border-2 border-white/20">
+                    <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-accent via-warning to-accent text-white font-black text-3xl flex items-center justify-center shadow-xl font-mono border-2 border-white/20">
                       {playerName ? playerName[0] : 'P'}
                     </div>
                     <div>
                       <h2 className="text-2xl font-black text-white">{playerName}</h2>
-                      <p className="text-sm font-mono text-cyan-400 font-bold mt-1">
-                        {age} سنة • {mass} kg • {playerHeight} cm
+                      <p className="text-sm font-mono text-accent font-bold mt-1">
+                        {age} {tx.media.years} • {mass} kg • {playerHeight} cm
                       </p>
                     </div>
-                    <div className="inline-block px-4 py-1.5 bg-black/60 border border-orange-500/40 rounded-full text-xs text-orange-300 font-mono font-bold">
+                    <div className="inline-block px-4 py-1.5 bg-black/60 border border-accent/40 rounded-full text-xs text-accent font-mono font-bold">
                       ⚡ ATHLETE PERFORMANCE DOSSIER
                     </div>
                   </motion.div>
@@ -523,19 +525,19 @@ export default function MotionGraphicVideoModal({
                     transition={{ duration: 0.4 }}
                     className="w-full space-y-4 text-center"
                   >
-                    <span className="text-xs font-black text-cyan-400 font-mono uppercase tracking-widest block">
+                    <span className="text-xs font-black text-accent font-mono uppercase tracking-widest block">
                       🚀 VERTICAL JUMP POWER (CMJ)
                     </span>
 
-                    <div className="bg-gradient-to-b from-slate-900/90 to-black p-5 rounded-3xl border-2 border-cyan-500/40 shadow-xl space-y-2">
-                      <span className="text-xs text-gray-400 font-bold block uppercase">Max CMJ Jump Height</span>
-                      <span className="text-4xl font-black text-cyan-300 font-mono block">
+                    <div className="bg-gradient-to-b from-zinc-900/90 to-black p-5 rounded-3xl border-2 border-accent/40 shadow-xl space-y-2">
+                      <span className="text-xs text-muted font-bold block uppercase">Max CMJ Jump Height</span>
+                      <span className="text-4xl font-black text-accent font-mono block">
                         {maxCmj > 0 ? `${maxCmj.toFixed(1)} cm` : '—'}
                       </span>
-                      <div className="flex justify-center items-center gap-4 text-xs font-mono font-bold text-gray-300 pt-2 border-t border-gray-800">
+                      <div className="flex justify-center items-center gap-4 text-xs font-mono font-bold text-zinc-300 pt-2 border-t border-border">
                         <span>({maxCmj > 0 ? (maxCmj * 0.393701).toFixed(1) : 0}")</span>
                         <span>•</span>
-                        <span className="text-blue-400">Air Time: {cmjFlightTime > 0 ? `${cmjFlightTime.toFixed(3)} s` : '—'}</span>
+                        <span className="text-accent">Air Time: {cmjFlightTime > 0 ? `${cmjFlightTime.toFixed(3)} s` : '—'}</span>
                       </div>
                     </div>
                   </motion.div>
@@ -550,26 +552,26 @@ export default function MotionGraphicVideoModal({
                     transition={{ duration: 0.4 }}
                     className="w-full space-y-3"
                   >
-                    <span className="text-xs font-black text-yellow-400 font-mono uppercase tracking-widest block text-center">
+                    <span className="text-xs font-black text-warning font-mono uppercase tracking-widest block text-center">
                       🎯 ELASTICITY & STRENGTH MATRIX
                     </span>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-slate-900/90 p-4 rounded-2xl border border-yellow-500/40 text-center">
-                        <span className="text-[10px] text-gray-400 font-bold block uppercase mb-1">Max RSI Index</span>
-                        <span className="text-2xl font-black text-yellow-400 font-mono block">
+                      <div className="bg-surface-2/90 p-4 rounded-2xl border border-warning/40 text-center">
+                        <span className="text-[10px] text-muted font-bold block uppercase mb-1">Max RSI Index</span>
+                        <span className="text-2xl font-black text-warning font-mono block">
                           {maxRsi > 0 ? maxRsi.toFixed(2) : '—'}
                         </span>
-                        <span className="text-[9px] text-yellow-300/80 font-mono block mt-1">📦 {boxHeight}cm Box</span>
+                        <span className="text-[9px] text-warning/80 font-mono block mt-1">📦 {boxHeight}cm Box</span>
                       </div>
 
-                      <div className="bg-slate-900/90 p-4 rounded-2xl border border-emerald-500/40 text-center">
-                        <span className="text-[10px] text-gray-400 font-bold block uppercase mb-1">Full Squat (1RM)</span>
-                        <span className="text-2xl font-black text-emerald-400 font-mono block">
+                      <div className="bg-surface-2/90 p-4 rounded-2xl border border-success/40 text-center">
+                        <span className="text-[10px] text-muted font-bold block uppercase mb-1">Full Squat (1RM)</span>
+                        <span className="text-2xl font-black text-success font-mono block">
                           {squatWeight > 0 ? `${squatWeight} kg` : '—'}
                         </span>
-                        <span className="text-[9px] text-emerald-300 font-mono font-bold block mt-1">
-                          {squatWeight > 0 && mass > 0 ? `🏋️ ${(squatWeight / mass).toFixed(2)}x ضعف وزن الجسم` : '🏋️ Max Strength'}
+                        <span className="text-[9px] text-success font-mono font-bold block mt-1">
+                          {squatWeight > 0 && mass > 0 ? `🏋️ ${(squatWeight / mass).toFixed(2)}${tx.media.xBodyWeight}` : '🏋️ Max Strength'}
                         </span>
                       </div>
                     </div>
@@ -585,14 +587,14 @@ export default function MotionGraphicVideoModal({
                     transition={{ duration: 0.4 }}
                     className="w-full text-center space-y-4"
                   >
-                    <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border-2 border-emerald-500/40 shadow-lg">
+                    <div className="w-16 h-16 mx-auto rounded-full bg-success/20 text-success flex items-center justify-center border-2 border-success/40 shadow-lg">
                       <Award size={32} />
                     </div>
                     <div>
                       <h3 className="text-lg font-black text-white">VERIFIED BIOMECHANICAL REPORT</h3>
-                      <p className="text-xs text-orange-400 font-mono font-bold mt-1">VERTICAL LAB PERFORMANCE METRICS</p>
+                      <p className="text-xs text-accent font-mono font-bold mt-1">VERTICAL LAB PERFORMANCE METRICS</p>
                     </div>
-                    <div className="text-[10px] text-gray-400 font-mono bg-black/60 p-2.5 rounded-xl border border-gray-800">
+                    <div className="text-[10px] text-muted font-mono bg-black/60 p-2.5 rounded-xl border border-border">
                       {new Date().toLocaleDateString('ar-EG')} • HIGH PERFORMANCE SPORTS SCIENCE
                     </div>
                   </motion.div>
@@ -602,19 +604,19 @@ export default function MotionGraphicVideoModal({
             </div>
 
             {/* Footer */}
-            <div className="relative z-10 border-t border-orange-500/20 pt-3 flex justify-between items-center text-[10px] font-mono">
+            <div className="relative z-10 border-t border-accent/20 pt-3 flex justify-between items-center text-[10px] font-mono">
               <div className="flex gap-1.5">
                 {[0, 1, 2, 3].map((idx) => (
                   <div
                     key={idx}
                     onClick={() => setMotionPhase(idx)}
                     className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                      motionPhase === idx ? 'w-6 bg-orange-500' : 'w-2 bg-gray-800'
+                      motionPhase === idx ? 'w-6 bg-accent' : 'w-2 bg-zinc-800'
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-gray-400 font-bold">READY FOR STORY SHARE 📸</span>
+              <span className="text-muted font-bold">READY FOR STORY SHARE 📸</span>
             </div>
 
           </div>

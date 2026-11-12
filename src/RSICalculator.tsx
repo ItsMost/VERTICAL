@@ -9,31 +9,6 @@ import { classifyGCT } from './useJumpMechanics';
 import { jumpHeightFromFlightTime, rsiFromHeight, rsiFromFlightTime, legStiffnessDalleau, takeoffVelocityFromJumpHeight, realDurationFromVideo } from './lib/biomechanics';
 import type { JumpMeasurement, GCTAnalysis } from './types/athletics';
 
-// Animated counter helper
-const AnimatedCounter = ({ value, duration = 1000, decimals = 1 }: { value: string | number; duration?: number; decimals?: number }) => {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    let start = 0;
-    const end = parseFloat(String(value)) || 0;
-    if (end === 0) {
-      setCount(0);
-      return;
-    }
-    const startTime = performance.now();
-    const updateCount = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easeProgress = progress * (2 - progress); // easeOutQuad
-      setCount(start + easeProgress * (end - start));
-      if (progress < 1) {
-        requestAnimationFrame(updateCount);
-      }
-    };
-    requestAnimationFrame(updateCount);
-  }, [value, duration]);
-  return <span className="font-mono metric-num">{count.toFixed(decimals)}</span>;
-};
-
 interface RSIStats {
   contactTime: string;
   flightTime: string;
@@ -227,25 +202,25 @@ export default function RSICalculator({
     <div className="bento-card p-6 shadow-2xl transition-all duration-300 font-sans space-y-6">
       
       {/* Header section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-zinc-800 pb-5 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-border pb-5 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#D4FF00] text-[#09090B] flex items-center justify-center font-bold shadow-[0_0_15px_rgba(212,255,0,0.3)]">
+          <div className="w-12 h-12 rounded-2xl bg-accent text-accent-ink flex items-center justify-center font-bold">
             <Zap size={22} />
           </div>
           <div>
             <h3 className="text-xl font-heading font-black text-white">{t.rsiConsole.title}</h3>
-            <p className="text-xs text-zinc-400 mt-0.5">{t.rsiConsole.subtitle}</p>
+            <p className="text-xs text-muted mt-0.5">{t.rsiConsole.subtitle}</p>
           </div>
         </div>
 
         {/* RSI Calculation Formula Toggle */}
-        <div className="bg-zinc-900 p-1.5 rounded-2xl border border-zinc-800 flex items-center gap-1 font-mono text-xs">
+        <div className="bg-surface-2 p-1.5 rounded-2xl border border-border flex items-center gap-1 font-mono text-xs">
           <button
             onClick={() => setRsiMethod('height_gct')}
             className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
               rsiMethod === 'height_gct'
-                ? 'bg-[#D4FF00] text-[#09090B] shadow-md font-black'
-                : 'text-zinc-400 hover:text-white'
+                ? 'bg-accent text-accent-ink shadow-md font-black'
+                : 'text-muted hover:text-accent-ink'
             }`}
           >
             {t.rsiConsole.heightGctMethod}
@@ -254,8 +229,8 @@ export default function RSICalculator({
             onClick={() => setRsiMethod('flight_gct')}
             className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
               rsiMethod === 'flight_gct'
-                ? 'bg-[#D4FF00] text-[#09090B] shadow-md font-black'
-                : 'text-zinc-400 hover:text-white'
+                ? 'bg-accent text-accent-ink shadow-md font-black'
+                : 'text-muted hover:text-accent-ink'
             }`}
           >
             {t.rsiConsole.flightGctMethod}
@@ -264,7 +239,7 @@ export default function RSICalculator({
       </div>
 
       {/* Video Uploader Frame */}
-      <div className="p-6 bg-zinc-900/60 rounded-3xl border border-zinc-800 relative">
+      <div className="p-6 bg-surface-2/60 rounded-3xl border border-border relative">
         {!videoSrc && (
           <div className="flex flex-col md:flex-row gap-4 w-full">
             <div className="flex-1 relative cursor-pointer group">
@@ -289,8 +264,8 @@ export default function RSICalculator({
                 ref={fileInputRef}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-              <div className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white text-center py-6 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all">
-                <Play size={18} className="text-[#D4FF00]" />
+              <div className="bg-surface-2 hover:bg-zinc-800 border border-border text-white text-center py-6 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all">
+                <Play size={18} className="text-accent" />
                 <span>{t.jumpConsole.selectVideo}</span>
               </div>
             </div>
@@ -301,12 +276,12 @@ export default function RSICalculator({
           <div className="flex flex-col items-center w-full relative">
             <button
               onClick={clearVideo}
-              className="absolute top-2 right-2 rtl:right-auto rtl:left-2 z-20 bg-rose-600 hover:bg-rose-500 text-white p-2.5 rounded-full shadow-lg transition-transform hover:scale-110 cursor-pointer"
+              className="absolute top-2 right-2 rtl:right-auto rtl:left-2 z-20 bg-danger hover:bg-danger text-white p-2.5 rounded-full shadow-lg transition-transform hover:scale-110 cursor-pointer"
             >
               <X size={16} />
             </button>
             
-            <div className="relative inline-block border-2 border-zinc-800 rounded-3xl overflow-hidden mb-5 shadow-2xl bg-black max-w-full">
+            <div className="relative inline-block border-2 border-border rounded-3xl overflow-hidden mb-5 shadow-2xl bg-black max-w-full">
               <video
                 ref={videoRef}
                 src={videoSrc}
@@ -323,16 +298,16 @@ export default function RSICalculator({
             </div>
 
             {/* Video Controls & Time Points Setter */}
-            <div className="w-full bg-[#121215] p-4 rounded-2xl border border-zinc-800 mb-5 space-y-4">
-              <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
+            <div className="w-full bg-surface p-4 rounded-2xl border border-border mb-5 space-y-4">
+              <div className="flex items-center justify-between text-xs font-mono text-muted">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={togglePlay}
-                    className="p-2 rounded-xl bg-zinc-800 text-white hover:text-[#D4FF00]"
+                    className="p-2 rounded-xl bg-zinc-800 text-white hover:text-accent"
                   >
                     {isPlaying ? <Pause size={16} /> : <Play size={16} />}
                   </button>
-                  <span ref={currentTimeDesktopRef} className="font-bold text-[#D4FF00]">
+                  <span ref={currentTimeDesktopRef} className="font-bold text-accent">
                     {currentTime.toFixed(3)}s
                   </span>
                 </div>
@@ -342,7 +317,7 @@ export default function RSICalculator({
                   <select
                     value={cameraFps}
                     onChange={e => setCameraFps(e.target.value)}
-                    className="bg-zinc-900 border border-zinc-800 text-white rounded-lg px-2 py-1 text-xs"
+                    className="bg-surface-2 border border-border text-white rounded-lg px-2 py-1 text-xs"
                   >
                     <option value="240">240 FPS (8x Slow)</option>
                     <option value="120">120 FPS (4x Slow)</option>
@@ -358,10 +333,10 @@ export default function RSICalculator({
                   type="button"
                   onClick={() => setTouchdownTime(currentTime)}
                   className={`p-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
-                    touchdownTime > 0 ? 'bg-[#D4FF00]/15 border-[#D4FF00] text-[#D4FF00]' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                    touchdownTime > 0 ? 'bg-accent/15 border-accent text-accent' : 'bg-surface-2 border-border text-muted hover:text-white'
                   }`}
                 >
-                  <span className="block text-[10px] text-zinc-500">1. TOUCHDOWN</span>
+                  <span className="block text-[10px] text-faint">1. TOUCHDOWN</span>
                   <span>{touchdownTime > 0 ? `${touchdownTime.toFixed(3)}s` : 'Set Time'}</span>
                 </button>
 
@@ -369,10 +344,10 @@ export default function RSICalculator({
                   type="button"
                   onClick={() => setTakeoffTime(currentTime)}
                   className={`p-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
-                    takeoffTime > 0 ? 'bg-[#10B981]/15 border-[#10B981] text-[#10B981]' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                    takeoffTime > 0 ? 'bg-success/15 border-success text-success' : 'bg-surface-2 border-border text-muted hover:text-white'
                   }`}
                 >
-                  <span className="block text-[10px] text-zinc-500">2. TAKEOFF</span>
+                  <span className="block text-[10px] text-faint">2. TAKEOFF</span>
                   <span>{takeoffTime > 0 ? `${takeoffTime.toFixed(3)}s` : 'Set Time'}</span>
                 </button>
 
@@ -380,10 +355,10 @@ export default function RSICalculator({
                   type="button"
                   onClick={() => setLandingTime(currentTime)}
                   className={`p-2.5 rounded-xl border text-center font-bold transition-all cursor-pointer ${
-                    landingTime > 0 ? 'bg-[#FF5500]/15 border-[#FF5500] text-[#FF5500]' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                    landingTime > 0 ? 'bg-accent/15 border-accent text-accent' : 'bg-surface-2 border-border text-muted hover:text-white'
                   }`}
                 >
-                  <span className="block text-[10px] text-zinc-500">3. LANDING</span>
+                  <span className="block text-[10px] text-faint">3. LANDING</span>
                   <span>{landingTime > 0 ? `${landingTime.toFixed(3)}s` : 'Set Time'}</span>
                 </button>
               </div>
@@ -394,13 +369,13 @@ export default function RSICalculator({
 
       {/* Results HUD in Acid Volt */}
       {showResults && (
-        <div className="bento-card p-6 border-[#D4FF00]/40 space-y-6">
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div className="bento-card p-6 border-accent/40 space-y-6">
+          <div className="flex items-center justify-between border-b border-border pb-3">
             <div>
               <h4 className="text-base font-heading font-black text-white">
                 Biomechanical RSI Telemetry Output
               </h4>
-              <p className="text-xs text-zinc-400 font-mono">
+              <p className="text-xs text-muted font-mono">
                 Formula: {rsiMethod === 'height_gct' ? 'Height(m) / GCT(s)' : 'Flight(s) / GCT(s)'}
               </p>
             </div>
@@ -413,30 +388,30 @@ export default function RSICalculator({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center font-mono">
-            <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800">
-              <span className="text-[10px] text-zinc-500 block uppercase">{t.rsiConsole.rsiScore}</span>
-              <span className="text-4xl font-black text-[#D4FF00] block my-1">
+            <div className="p-4 rounded-2xl bg-surface-2/60 border border-border">
+              <span className="text-[10px] text-faint block uppercase">{t.rsiConsole.rsiScore}</span>
+              <span className="text-4xl font-black text-accent block my-1">
                 {stats.rsi}
               </span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800">
-              <span className="text-[10px] text-zinc-500 block uppercase">{t.rsiConsole.contactTime}</span>
+            <div className="p-4 rounded-2xl bg-surface-2/60 border border-border">
+              <span className="text-[10px] text-faint block uppercase">{t.rsiConsole.contactTime}</span>
               <span className="text-3xl font-black text-white block my-1">
                 {(parseFloat(stats.contactTime) * 1000).toFixed(0)} ms
               </span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800">
-              <span className="text-[10px] text-zinc-500 block uppercase">{t.rsiConsole.jumpHeight}</span>
+            <div className="p-4 rounded-2xl bg-surface-2/60 border border-border">
+              <span className="text-[10px] text-faint block uppercase">{t.rsiConsole.jumpHeight}</span>
               <span className="text-3xl font-black text-white block my-1">
                 {stats.heightCm} cm
               </span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800">
-              <span className="text-[10px] text-zinc-500 block uppercase">Leg Stiffness</span>
-              <span className="text-3xl font-black text-[#FF5500] block my-1">
+            <div className="p-4 rounded-2xl bg-surface-2/60 border border-border">
+              <span className="text-[10px] text-faint block uppercase">Leg Stiffness</span>
+              <span className="text-3xl font-black text-accent block my-1">
                 {stats.legStiffness}{stats.legStiffness !== '—' && ' kN/m'}
               </span>
             </div>
@@ -454,7 +429,7 @@ export default function RSICalculator({
           </div>
 
           {saveSuccess && (
-            <div className="p-3 rounded-xl bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] font-bold text-center text-xs flex items-center justify-center gap-2 font-sans">
+            <div className="p-3 rounded-xl bg-success/15 border border-success/30 text-success font-bold text-center text-xs flex items-center justify-center gap-2 font-sans">
               <Check size={16} />
               <span>{t.common.success} — Saved to Athlete Dossier!</span>
             </div>

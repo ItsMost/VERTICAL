@@ -17,6 +17,10 @@ interface DataContextType {
   allMeasurements: JumpMeasurement[];
   dataVersion: number;
   isSyncing: boolean;
+  /** true until the first load finishes */
+  isLoading: boolean;
+  /** Arabic message when the last load failed */
+  loadError: string | null;
   lastSyncedAt: Date | null;
   language: Language;
   setLanguage: (lang: Language) => void;
@@ -58,6 +62,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [...rows].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   const [dataVersion, setDataVersion] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
 
   const [favoritePlayerIds, setFavoritePlayerIds] = useState<string[]>(() => {
@@ -121,11 +127,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
       setLastSyncedAt(new Date());
       setDataVersion(v => v + 1);
+      setLoadError(null);
     } catch (err) {
       console.error('Error refreshing central data:', err);
+      setLoadError(supabaseErrorAr(err, 'تحميل البيانات'));
       toast.error(supabaseErrorAr(err, 'تحميل البيانات'));
     } finally {
       setIsSyncing(false);
+      setIsLoading(false);
     }
   }, []);
 
@@ -473,6 +482,8 @@ const VALID_MEASUREMENT_KEYS = new Set([
         allMeasurements,
         dataVersion,
         isSyncing,
+        isLoading,
+        loadError,
         lastSyncedAt,
         language,
         setLanguage,

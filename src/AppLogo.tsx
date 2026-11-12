@@ -17,13 +17,13 @@ export default function AppLogo({ className = '', size = 40, showGlow = true }: 
     >
       {showGlow && (
         <div 
-          className="absolute inset-0 rounded-2xl bg-[#D4FF00] opacity-30 blur-md pointer-events-none"
+          className="absolute inset-0 rounded-2xl bg-accent opacity-30 blur-md pointer-events-none"
         />
       )}
 
       {/* Main Rounded Badge Container in Carbon & Acid Volt */}
       <div 
-        className="relative w-full h-full rounded-2xl bg-[#121215] border border-[#D4FF00]/50 flex items-center justify-center overflow-hidden shadow-[0_0_15px_rgba(212,255,0,0.2)]"
+        className="relative w-full h-full rounded-2xl bg-surface border border-accent/50 flex items-center justify-center overflow-hidden"
       >
         {/* Kinetic Energy Laboratory Flask SVG Icon */}
         <svg 
@@ -35,7 +35,7 @@ export default function AppLogo({ className = '', size = 40, showGlow = true }: 
           {/* Fluid Level in Acid Volt & Blaze Orange */}
           <path 
             d="M 24 34 Q 32 37 40 34 L 40 50 C 40 54 36 57 32 57 C 28 57 24 54 24 50 Z" 
-            fill="#D4FF00" 
+            fill="#D97757" 
             opacity="0.95"
           />
           {/* Flask Contours */}
@@ -54,10 +54,10 @@ export default function AppLogo({ className = '', size = 40, showGlow = true }: 
             strokeLinecap="round" 
           />
           {/* Measurement Tick Lines in Blaze Orange */}
-          <line x1="39" y1="22" x2="33" y2="22" stroke="#FF5500" strokeWidth="3" strokeLinecap="round" />
-          <line x1="39" y1="28" x2="35" y2="28" stroke="#FF5500" strokeWidth="3" strokeLinecap="round" />
-          <line x1="39" y1="34" x2="33" y2="34" stroke="#FF5500" strokeWidth="3" strokeLinecap="round" />
-          <line x1="39" y1="40" x2="35" y2="40" stroke="#FF5500" strokeWidth="3" strokeLinecap="round" />
+          <line x1="39" y1="22" x2="33" y2="22" stroke="#D97757" strokeWidth="3" strokeLinecap="round" />
+          <line x1="39" y1="28" x2="35" y2="28" stroke="#D97757" strokeWidth="3" strokeLinecap="round" />
+          <line x1="39" y1="34" x2="33" y2="34" stroke="#D97757" strokeWidth="3" strokeLinecap="round" />
+          <line x1="39" y1="40" x2="35" y2="40" stroke="#D97757" strokeWidth="3" strokeLinecap="round" />
         </svg>
       </div>
     </div>

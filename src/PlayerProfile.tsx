@@ -65,14 +65,14 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
   if (!activePlayer) {
     return (
-      <div className="bento-card p-12 text-center text-zinc-400 space-y-4 max-w-xl mx-auto my-12">
-        <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto text-[#D4FF00]">
+      <div className="bento-card p-12 text-center text-muted space-y-4 max-w-xl mx-auto my-12">
+        <div className="w-16 h-16 rounded-2xl bg-surface-2 border border-border flex items-center justify-center mx-auto text-accent">
           <User size={32} />
         </div>
         <h3 className="text-xl font-heading font-bold text-white">
           {t.profile.noAthleteTitle}
         </h3>
-        <p className="text-sm text-zinc-400 max-w-sm mx-auto">
+        <p className="text-sm text-muted max-w-sm mx-auto">
           {t.profile.noAthleteDesc}
         </p>
         {onNavigateTab && (
@@ -311,14 +311,14 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
       {/* =========================================================================
           HERO ATHLETE BANNER (BENTO INDUSTRIAL HEADER)
       ========================================================================= */}
-      <section className="bento-card relative bg-[#121215] border border-[#27272A] p-6 lg:p-8 rounded-3xl overflow-hidden shadow-2xl">
+      <section className="bento-card relative bg-surface border border-border p-6 lg:p-8 rounded-3xl overflow-hidden shadow-2xl">
         {/* Subtle Diagonal Technical Pattern Accent */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-[radial-gradient(#D4FF0008_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
         
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           {/* Athlete Identity */}
           <div className="flex items-center gap-5">
-            <div className="w-20 h-20 rounded-2xl bg-[#D4FF00] text-[#09090B] font-mono font-black text-3xl flex items-center justify-center shadow-[0_0_25px_rgba(212,255,0,0.35)] shrink-0 select-none">
+            <div className="w-20 h-20 rounded-2xl bg-accent text-accent-ink font-mono font-black text-3xl flex items-center justify-center shrink-0 select-none">
               {activePlayer.full_name ? activePlayer.full_name.charAt(0).toUpperCase() : 'A'}
             </div>
 
@@ -336,23 +336,23 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                   </span>
                 )}
               </div>
-              <p className="text-xs text-zinc-400 mt-1 font-sans">
+              <p className="text-xs text-muted mt-1 font-sans">
                 {t.profile.athleteDossier} • ID: <span className="font-mono text-zinc-300">{String(activePlayer.id).slice(0, 8)}</span>
               </p>
 
               {/* Anthropometrics Quick Pills */}
               <div className="flex items-center gap-2 mt-3 flex-wrap font-mono text-xs">
-                <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-3 py-1 rounded-lg">
-                  <strong className="text-zinc-400">{t.profile.massKg}</strong> {mass > 0 ? `${mass} kg` : '—'}
+                <span className="bg-surface-2 border border-border text-zinc-300 px-3 py-1 rounded-lg">
+                  <strong className="text-muted">{t.profile.massKg}</strong> {mass > 0 ? `${mass} kg` : '—'}
                 </span>
-                <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-3 py-1 rounded-lg">
-                  <strong className="text-zinc-400">{t.profile.statureCm}</strong> {playerHeight ? `${playerHeight} cm` : '—'}
+                <span className="bg-surface-2 border border-border text-zinc-300 px-3 py-1 rounded-lg">
+                  <strong className="text-muted">{t.profile.statureCm}</strong> {playerHeight ? `${playerHeight} cm` : '—'}
                 </span>
-                <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-3 py-1 rounded-lg">
-                  <strong className="text-zinc-400">{t.profile.reachCm}</strong> {standingReach ? `${standingReach} cm` : '—'}
+                <span className="bg-surface-2 border border-border text-zinc-300 px-3 py-1 rounded-lg">
+                  <strong className="text-muted">{t.profile.reachCm}</strong> {standingReach ? `${standingReach} cm` : '—'}
                 </span>
-                <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-3 py-1 rounded-lg">
-                  <strong className="text-zinc-400">{t.profile.legLengthM}</strong> {legLengthM ? `${legLengthM} m` : '—'}
+                <span className="bg-surface-2 border border-border text-zinc-300 px-3 py-1 rounded-lg">
+                  <strong className="text-muted">{t.profile.legLengthM}</strong> {legLengthM ? `${legLengthM} m` : '—'}
                 </span>
               </div>
             </div>
@@ -371,7 +371,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
             <button
               onClick={() => setIsPrintModalOpen(true)}
-              className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-zinc-500 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              className="bg-surface-2 hover:bg-zinc-800 text-zinc-200 border border-border hover:border-zinc-500 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
               title={t.profile.printReportTitle}
             >
               <Printer size={15} />
@@ -381,7 +381,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
             {onEditPlayer && (
               <button
                 onClick={() => onEditPlayer(activePlayer)}
-                className="bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-zinc-500 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                className="bg-surface-2 hover:bg-zinc-800 text-zinc-200 border border-border hover:border-zinc-500 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                 title={t.profile.editAthlete}
               >
                 <Edit3 size={15} />
@@ -392,7 +392,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
             {onNavigateTab && (
               <button
                 onClick={() => onNavigateTab('manual')}
-                className="bg-[#FF5500] hover:bg-[#ff6a1f] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-md"
+                className="bg-accent hover:bg-accent text-accent-ink px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-md"
                 title={t.profile.newTest}
               >
                 <Plus size={15} />
@@ -408,10 +408,10 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
       ========================================================================= */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1: CMJ with Arms */}
-        <div className="bento-card flex flex-col justify-between border-t-2 border-t-[#D4FF00]">
-          <div className="flex items-center justify-between text-xs text-zinc-400 font-bold mb-2">
+        <div className="bento-card flex flex-col justify-between border-t-2 border-t-accent">
+          <div className="flex items-center justify-between text-xs text-muted font-bold mb-2">
             <span className="flex items-center gap-1.5 text-white">
-              <Activity size={14} className="text-[#D4FF00]" />
+              <Activity size={14} className="text-accent" />
               {t.profile.cmjWithArms}
             </span>
             <span className="badge-volt text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">
@@ -420,11 +420,11 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
           </div>
 
           <div className="my-2">
-            <div className="text-4xl lg:text-5xl font-mono font-black text-[#D4FF00] tracking-tight tabular-nums">
+            <div className="text-4xl lg:text-5xl font-mono font-black text-accent tracking-tight tabular-nums">
               {maxCmj > 0 ? maxCmj.toFixed(1) : '—'}
-              <span className="text-sm font-sans text-zinc-400 font-bold ml-1.5">cm</span>
+              <span className="text-sm font-sans text-muted font-bold ml-1.5">cm</span>
             </div>
-            <p className="text-[11px] text-zinc-400 font-mono mt-1 flex items-center justify-between">
+            <p className="text-[11px] text-muted font-mono mt-1 flex items-center justify-between">
               <span>{t.profile.peakApproach}:</span>
               <strong className="text-white">{maxApproach > 0 ? `${maxApproach.toFixed(1)} cm` : '—'}</strong>
             </p>
@@ -432,17 +432,17 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
           <div className="w-full bg-zinc-800/80 rounded-full h-1.5 overflow-hidden mt-2">
             <div
-              className="bg-[#D4FF00] h-full rounded-full transition-all duration-500"
+              className="bg-accent h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, Math.max(15, (maxCmj / 95) * 100))}%` }}
             />
           </div>
         </div>
 
         {/* KPI 2: CMJ No Arms (Hands on Hips) */}
-        <div className="bento-card flex flex-col justify-between border-t-2 border-t-[#D4FF00]">
-          <div className="flex items-center justify-between text-xs text-zinc-400 font-bold mb-2">
+        <div className="bento-card flex flex-col justify-between border-t-2 border-t-accent">
+          <div className="flex items-center justify-between text-xs text-muted font-bold mb-2">
             <span className="flex items-center gap-1.5 text-white">
-              <Zap size={14} className="text-[#D4FF00]" />
+              <Zap size={14} className="text-accent" />
               {t.profile.cmjNoArms}
             </span>
             <span className="badge-volt text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">
@@ -453,11 +453,11 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
           <div className="my-2">
             <div className="text-4xl lg:text-5xl font-mono font-black text-white tracking-tight tabular-nums">
               {maxCmjNoArms > 0 ? maxCmjNoArms.toFixed(1) : '—'}
-              <span className="text-sm font-sans text-zinc-400 font-bold ml-1.5">cm</span>
+              <span className="text-sm font-sans text-muted font-bold ml-1.5">cm</span>
             </div>
-            <p className="text-[11px] text-zinc-400 font-mono mt-1 flex items-center justify-between">
+            <p className="text-[11px] text-muted font-mono mt-1 flex items-center justify-between">
               <span>{t.profile.armGain}:</span>
-              <strong className={armSwingGain >= 10 ? 'text-[#10B981]' : armSwingGain > 0 ? 'text-[#D4FF00]' : 'text-zinc-400'}>
+              <strong className={armSwingGain >= 10 ? 'text-success' : armSwingGain > 0 ? 'text-accent' : 'text-muted'}>
                 {armSwingGain > 0 ? `+${armSwingGain.toFixed(1)}%` : '—'}
               </strong>
             </p>
@@ -472,10 +472,10 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
         </div>
 
         {/* KPI 3: Squat Jump (SJ - 90° Static) */}
-        <div className="bento-card flex flex-col justify-between border-t-2 border-t-[#D4FF00]">
-          <div className="flex items-center justify-between text-xs text-zinc-400 font-bold mb-2">
+        <div className="bento-card flex flex-col justify-between border-t-2 border-t-accent">
+          <div className="flex items-center justify-between text-xs text-muted font-bold mb-2">
             <span className="flex items-center gap-1.5 text-white">
-              <Scale size={14} className="text-[#D4FF00]" />
+              <Scale size={14} className="text-accent" />
               {t.profile.squatJump}
             </span>
             <span className="badge-volt text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">
@@ -486,12 +486,12 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
           <div className="my-2">
             <div className="text-4xl lg:text-5xl font-mono font-black text-white tracking-tight tabular-nums">
               {maxSjNoArms > 0 ? maxSjNoArms.toFixed(1) : '—'}
-              <span className="text-sm font-sans text-zinc-400 font-bold ml-1.5">cm</span>
+              <span className="text-sm font-sans text-muted font-bold ml-1.5">cm</span>
             </div>
-            <p className="text-[11px] text-zinc-400 font-mono mt-1 flex items-center justify-between">
+            <p className="text-[11px] text-muted font-mono mt-1 flex items-center justify-between">
               <span>{t.profile.eurRatio}:</span>
-              <strong className="text-[#D4FF00]">
-                {eur > 0 ? `${eur.toFixed(2)} (${eur > 1.15 ? (isEn ? 'Elastic' : 'مطاطي') : eur < 1.05 ? (isEn ? 'Strength' : 'عضلي') : (isEn ? 'Balanced' : 'متوازن')})` : '—'}
+              <strong className="text-accent">
+                {eur > 0 ? `${eur.toFixed(2)} (${eur > 1.15 ? (t.ui.ppElastic) : eur < 1.05 ? (t.ui.ppStrength) : (t.ui.ppBalanced)})` : '—'}
               </strong>
             </p>
           </div>
@@ -505,10 +505,10 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
         </div>
 
         {/* KPI 4: Peak RSI (Drop Jump & Contact Time) */}
-        <div className="bento-card flex flex-col justify-between border-t-2 border-t-[#D4FF00]">
-          <div className="flex items-center justify-between text-xs text-zinc-400 font-bold mb-2">
+        <div className="bento-card flex flex-col justify-between border-t-2 border-t-accent">
+          <div className="flex items-center justify-between text-xs text-muted font-bold mb-2">
             <span className="flex items-center gap-1.5 text-white">
-              <Zap size={14} className="text-[#D4FF00]" />
+              <Zap size={14} className="text-accent" />
               {t.profile.peakRsi}
             </span>
             <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
@@ -519,10 +519,10 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
           </div>
 
           <div className="my-2">
-            <div className="text-4xl lg:text-5xl font-mono font-black text-[#D4FF00] tracking-tight tabular-nums">
+            <div className="text-4xl lg:text-5xl font-mono font-black text-accent tracking-tight tabular-nums">
               {maxRsi > 0 ? maxRsi.toFixed(2) : '—'}
             </div>
-            <p className="text-[11px] text-zinc-400 font-mono mt-1 flex items-center justify-between">
+            <p className="text-[11px] text-muted font-mono mt-1 flex items-center justify-between">
               <span>{t.profile.contactTime}:</span>
               <strong className="text-white">{gctMs > 0 ? `${gctMs} ms` : '—'}</strong>
             </p>
@@ -530,7 +530,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
           <div className="w-full bg-zinc-800/80 rounded-full h-1.5 overflow-hidden mt-2">
             <div
-              className="bg-[#D4FF00] h-full rounded-full transition-all duration-500"
+              className="bg-accent h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, Math.max(15, (maxRsi / 3.5) * 100))}%` }}
             />
           </div>
@@ -542,12 +542,12 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
       ========================================================================= */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* CNS Readiness Monitor */}
-        <div className="bento-card flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#121215] border border-[#27272A]">
+        <div className="bento-card flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface border border-border">
           {readiness.ok ? (
             <>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck size={16} className={readiness.status === 'optimal' ? 'text-[#10B981]' : readiness.status === 'moderate_fatigue' ? 'text-[#F59E0B]' : 'text-[#F43F5E]'} />
+                  <ShieldCheck size={16} className={readiness.status === 'optimal' ? 'text-success' : readiness.status === 'moderate_fatigue' ? 'text-warning' : 'text-danger'} />
                   <span className="text-xs font-bold text-white">{t.profile.cnsReadiness}</span>
                   <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
                     readiness.status === 'optimal' ? 'badge-emerald' : readiness.status === 'moderate_fatigue' ? 'badge-amber' : 'badge-rose'
@@ -555,17 +555,17 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                     {readiness.status === 'optimal' ? t.profile.optimalReadiness : readiness.status === 'moderate_fatigue' ? t.profile.moderateFatigue : t.profile.highFatigue}
                   </span>
                 </div>
-                <p className="text-[11px] text-zinc-400 max-w-sm font-mono tabular-nums">
+                <p className="text-[11px] text-muted max-w-sm font-mono tabular-nums">
                   {t.profile.readinessBaseline}: {readiness.baselineMean.toFixed(1)} ± {readiness.baselineSd.toFixed(1)} cm (n = {readiness.baselineN}) · {readiness.referenceDay}
                 </p>
               </div>
               <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-0">
                 <div className={`text-3xl font-mono font-black tabular-nums ${
-                  readiness.status === 'optimal' ? 'text-[#10B981]' : readiness.status === 'moderate_fatigue' ? 'text-[#F59E0B]' : 'text-[#F43F5E]'
+                  readiness.status === 'optimal' ? 'text-success' : readiness.status === 'moderate_fatigue' ? 'text-warning' : 'text-danger'
                 }`} dir="ltr">
                   {readiness.percentChange >= 0 ? '+' : ''}{readiness.percentChange.toFixed(1)}%
                 </div>
-                <span className="text-[10px] text-zinc-500 font-mono tabular-nums" dir="ltr">
+                <span className="text-[10px] text-faint font-mono tabular-nums" dir="ltr">
                   {readiness.todayValue.toFixed(1)} cm{readiness.zScore !== null ? ` · z ${readiness.zScore.toFixed(2)}` : ''}
                 </span>
               </div>
@@ -573,11 +573,11 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
           ) : (
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <ShieldCheck size={16} className="text-zinc-500" />
+                <ShieldCheck size={16} className="text-faint" />
                 <span className="text-xs font-bold text-white">{t.profile.cnsReadiness}</span>
-                <span className="text-lg font-mono text-zinc-500">—</span>
+                <span className="text-lg font-mono text-faint">—</span>
               </div>
-              <p className="text-[11px] text-zinc-400 max-w-sm">
+              <p className="text-[11px] text-muted max-w-sm">
                 {t.profile.readinessNotEnough} ({readiness.baselineN}/3)
               </p>
             </div>
@@ -585,23 +585,23 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
         </div>
 
         {/* F-V Profile & Samozino Balance */}
-        <div className="bento-card flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#121215] border border-[#27272A]">
+        <div className="bento-card flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface border border-border">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <BarChart3 size={16} className="text-[#FF5500]" />
+              <BarChart3 size={16} className="text-accent" />
               <span className="text-xs font-bold text-white">{t.profile.fvpStatus} (Samozino)</span>
               <span className="badge-blaze text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">
                 EUR {eur > 0 ? eur.toFixed(2) : '—'}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 max-w-sm">
+            <p className="text-[11px] text-muted max-w-sm">
               {eur > 1.15
                 ? t.profile.velocityDeficit
                 : (eur < 1.05 && eur > 0)
                   ? t.profile.forceDeficit
                   : eur >= 1.05
                     ? t.profile.balancedProfile
-                    : (isEn ? 'Requires CMJ (No Arms) & SJ tests' : 'يتطلب تسجيل اختبار CMJ بدون أذرع و SJ')}
+                    : (t.ui.ppRequiresCmjNoArms)}
             </p>
           </div>
           <div className="text-right sm:text-left">
@@ -612,9 +612,9 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                   ? t.profile.strengthDominant
                   : eur >= 1.05
                     ? t.profile.wellBalanced
-                    : (isEn ? 'Uncalibrated' : 'غير مكتمل')}
+                    : (t.ui.ppUncalibrated)}
             </div>
-            <span className="text-[10px] text-zinc-500 font-mono">
+            <span className="text-[10px] text-faint font-mono">
               {eur > 1.15 ? 'Velocity Prioritized' : (eur < 1.05 && eur > 0) ? 'Force / Squat Prioritized' : eur >= 1.05 ? 'Optimal Balance' : '—'}
             </span>
           </div>
@@ -630,15 +630,15 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
         <div className="lg:col-span-8 bento-card p-6 flex flex-col gap-6">
           
           {/* Sub-Tabs Navigation Rail */}
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-3 flex-wrap gap-2">
-            <div className="flex items-center gap-1.5 bg-zinc-900/80 p-1 rounded-xl border border-zinc-800">
+          <div className="flex items-center justify-between border-b border-border pb-3 flex-wrap gap-2">
+            <div className="flex items-center gap-1.5 bg-surface-2/80 p-1 rounded-xl border border-border">
               <button
                 type="button"
                 onClick={() => setActiveVisualizerTab('progression')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeVisualizerTab === 'progression'
-                    ? 'bg-[#D4FF00] text-[#09090B] shadow-sm font-black'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-accent text-accent-ink shadow-sm font-black'
+                    : 'text-muted hover:text-accent-ink'
                 }`}
               >
                 <TrendingUp size={14} />
@@ -650,8 +650,8 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 onClick={() => setActiveVisualizerTab('elasticity')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeVisualizerTab === 'elasticity'
-                    ? 'bg-[#D4FF00] text-[#09090B] shadow-sm font-black'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-accent text-accent-ink shadow-sm font-black'
+                    : 'text-muted hover:text-accent-ink'
                 }`}
               >
                 <Zap size={14} />
@@ -663,8 +663,8 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 onClick={() => setActiveVisualizerTab('strength')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeVisualizerTab === 'strength'
-                    ? 'bg-[#D4FF00] text-[#09090B] shadow-sm font-black'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-accent text-accent-ink shadow-sm font-black'
+                    : 'text-muted hover:text-accent-ink'
                 }`}
               >
                 <Layers size={14} />
@@ -672,7 +672,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               </button>
             </div>
 
-            <span className="text-[11px] font-mono text-zinc-500 font-bold">
+            <span className="text-[11px] font-mono text-faint font-bold">
               {playerHistory.length} Total Sessions
             </span>
           </div>
@@ -685,11 +685,11 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                   <h3 className="text-sm font-bold text-white font-heading">
                     {t.profile.jumpHeightTrend}
                   </h3>
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-xs text-muted">
                     Chronological progression across testing sessions
                   </p>
                 </div>
-                <div className="text-xs font-mono text-[#D4FF00] font-bold">
+                <div className="text-xs font-mono text-accent font-bold">
                   Peak: {peakHeightCm.toFixed(1)} cm
                 </div>
               </div>
@@ -700,13 +700,13 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                     <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="voltArea" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#D4FF00" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="#D4FF00" stopOpacity={0.0} />
+                          <stop offset="5%" stopColor="#D97757" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#D97757" stopOpacity={0.0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#27272A" />
-                      <XAxis dataKey="date" stroke="#71717A" fontSize={11} tickLine={false} />
-                      <YAxis stroke="#71717A" fontSize={11} domain={['dataMin - 5', 'dataMax + 5']} tickLine={false} />
+                      <XAxis dataKey="date" stroke="#71717A" tick={{ fill: '#A1A1AA', fontSize: 12 }} tickLine={false} axisLine={{ stroke: '#27272A' }} minTickGap={16} reversed={!isEn} />
+                      <YAxis stroke="#71717A" tick={{ fill: '#A1A1AA', fontSize: 12 }} width={36} domain={['dataMin - 5', 'dataMax + 5']} tickLine={false} axisLine={false} orientation={isEn ? 'left' : 'right'} />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: '#121215',
@@ -720,7 +720,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                       <Area
                         type="monotone"
                         dataKey="height"
-                        stroke="#D4FF00"
+                        stroke="#D97757"
                         strokeWidth={2.5}
                         fillOpacity={1}
                         fill="url(#voltArea)"
@@ -729,25 +729,25 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-48 rounded-2xl bg-zinc-900/40 border border-zinc-800 flex items-center justify-center text-xs text-zinc-500 font-mono">
+                <div className="h-48 rounded-2xl bg-surface-2/40 border border-border flex items-center justify-center text-xs text-faint font-mono">
                   {t.common.noData} (Requires at least 2 sessions to render progression trend)
                 </div>
               )}
 
               {/* Power Metrics Quick Banner */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3 border-t border-zinc-800 font-mono text-xs">
-                <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
-                  <span className="text-zinc-500 block text-[10px]">Peak Power (Sayers 1999)</span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3 border-t border-border font-mono text-xs">
+                <div className="p-3 rounded-xl bg-surface-2/60 border border-border">
+                  <span className="text-faint block text-[10px]">Peak Power (Sayers 1999)</span>
                   <span className="text-white font-bold text-sm">{sayersPeak > 0 ? `${Math.round(sayersPeak)} W` : '—'}</span>
-                  {harmanPeak !== null && <span className="text-zinc-500 block text-[10px]">Harman (1991): {Math.round(harmanPeak)} W</span>}
+                  {harmanPeak !== null && <span className="text-faint block text-[10px]">Harman (1991): {Math.round(harmanPeak)} W</span>}
                 </div>
-                <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
-                  <span className="text-zinc-500 block text-[10px]">Relative Power</span>
-                  <span className="text-[#D4FF00] font-bold text-sm">{relativePower > 0 ? `${relativePower.toFixed(1)} W/kg` : '—'}</span>
+                <div className="p-3 rounded-xl bg-surface-2/60 border border-border">
+                  <span className="text-faint block text-[10px]">Relative Power</span>
+                  <span className="text-accent font-bold text-sm">{relativePower > 0 ? `${relativePower.toFixed(1)} W/kg` : '—'}</span>
                 </div>
-                <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 col-span-2 sm:col-span-1">
-                  <span className="text-zinc-500 block text-[10px]">Approach Advantage</span>
-                  <span className="text-[#FF5500] font-bold text-sm">
+                <div className="p-3 rounded-xl bg-surface-2/60 border border-border col-span-2 sm:col-span-1">
+                  <span className="text-faint block text-[10px]">Approach Advantage</span>
+                  <span className="text-accent font-bold text-sm">
                     {maxApproach > peakHeightCm ? `+${(maxApproach - peakHeightCm).toFixed(1)} cm` : '0 cm'}
                   </span>
                 </div>
@@ -762,7 +762,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 <h3 className="text-sm font-bold text-white font-heading">
                   {t.profile.eurTitle}
                 </h3>
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-muted">
                   {t.profile.eurFormula}
                 </p>
               </div>
@@ -771,56 +771,56 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-sans">
                 <div className={`p-4 rounded-2xl border transition-all ${
                   eur > 1.15
-                    ? 'bg-[#D4FF00]/10 border-[#D4FF00] shadow-[0_0_15px_rgba(212,255,0,0.15)]'
-                    : 'bg-zinc-900/40 border-zinc-800 opacity-60'
+                    ? 'bg-accent/10 border-accent'
+                    : 'bg-surface-2/40 border-border opacity-60'
                 }`}>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-bold text-white">{t.profile.elasticDominant}</span>
                     <span className="badge-volt text-[10px] font-mono px-2 py-0.5 rounded">EUR &gt; 1.15</span>
                   </div>
-                  <p className="text-[11px] text-zinc-400">
+                  <p className="text-[11px] text-muted">
                     {t.profile.elasticDominantDesc}
                   </p>
                 </div>
 
                 <div className={`p-4 rounded-2xl border transition-all ${
                   eur < 1.05 && eur > 0
-                    ? 'bg-[#FF5500]/10 border-[#FF5500] shadow-[0_0_15px_rgba(255,85,0,0.15)]'
-                    : 'bg-zinc-900/40 border-zinc-800 opacity-60'
+                    ? 'bg-accent/10 border-accent'
+                    : 'bg-surface-2/40 border-border opacity-60'
                 }`}>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-bold text-white">{t.profile.strengthDominant}</span>
                     <span className="badge-blaze text-[10px] font-mono px-2 py-0.5 rounded">EUR &lt; 1.05</span>
                   </div>
-                  <p className="text-[11px] text-zinc-400">
+                  <p className="text-[11px] text-muted">
                     {t.profile.strengthDominantDesc}
                   </p>
                 </div>
 
                 <div className={`p-4 rounded-2xl border transition-all ${
                   eur >= 1.05 && eur <= 1.15
-                    ? 'bg-[#10B981]/10 border-[#10B981] shadow-[0_0_15px_rgba(16,185,129,0.15)]'
-                    : 'bg-zinc-900/40 border-zinc-800 opacity-60'
+                    ? 'bg-success/10 border-success'
+                    : 'bg-surface-2/40 border-border opacity-60'
                 }`}>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-bold text-white">{t.profile.wellBalanced}</span>
                     <span className="badge-emerald text-[10px] font-mono px-2 py-0.5 rounded">EUR 1.05 - 1.15</span>
                   </div>
-                  <p className="text-[11px] text-zinc-400">
+                  <p className="text-[11px] text-muted">
                     {t.profile.wellBalancedDesc}
                   </p>
                 </div>
 
                 <div className={`p-4 rounded-2xl border transition-all ${
                   eur === 0
-                    ? 'bg-zinc-800/40 border-zinc-700'
-                    : 'bg-zinc-900/40 border-zinc-800 opacity-60'
+                    ? 'bg-zinc-800/40 border-border'
+                    : 'bg-surface-2/40 border-border opacity-60'
                 }`}>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-bold text-white">{t.profile.generalDeficit}</span>
-                    <span className="text-[10px] font-mono text-zinc-500">Uncalibrated</span>
+                    <span className="text-[10px] font-mono text-faint">Uncalibrated</span>
                   </div>
-                  <p className="text-[11px] text-zinc-400">
+                  <p className="text-[11px] text-muted">
                     {t.profile.generalDeficitDesc}
                   </p>
                 </div>
@@ -836,7 +836,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                   <h3 className="text-sm font-bold text-white font-heading">
                     {t.profile.strength1rmTitle}
                   </h3>
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-xs text-muted">
                     Maximal absolute and relative strength benchmarks
                   </p>
                 </div>
@@ -851,38 +851,38 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="bento-card bg-zinc-900/60 p-4 border border-zinc-800">
-                  <span className="text-xs font-bold text-zinc-400 block mb-1">
+                <div className="bento-card bg-surface-2/60 p-4 border border-border">
+                  <span className="text-xs font-bold text-muted block mb-1">
                     {t.profile.fullSquat1rm}
                   </span>
-                  <div className="text-3xl font-mono font-black text-[#D4FF00]">
+                  <div className="text-3xl font-mono font-black text-accent">
                     {maxFullSquat > 0 ? `${maxFullSquat} kg` : '—'}
                   </div>
-                  <span className="text-[11px] font-mono text-zinc-400 mt-1 block">
+                  <span className="text-[11px] font-mono text-muted mt-1 block">
                     {t.profile.bwRatio} <strong className="text-white">{maxFullSquat > 0 ? `${(maxFullSquat / mass).toFixed(2)}x` : '—'}</strong>
                   </span>
                 </div>
 
-                <div className="bento-card bg-zinc-900/60 p-4 border border-zinc-800">
-                  <span className="text-xs font-bold text-zinc-400 block mb-1">
+                <div className="bento-card bg-surface-2/60 p-4 border border-border">
+                  <span className="text-xs font-bold text-muted block mb-1">
                     {t.profile.benchPress1rm}
                   </span>
-                  <div className="text-3xl font-mono font-black text-[#D4FF00]">
+                  <div className="text-3xl font-mono font-black text-accent">
                     {maxBenchPress > 0 ? `${maxBenchPress} kg` : '—'}
                   </div>
-                  <span className="text-[11px] font-mono text-zinc-400 mt-1 block">
+                  <span className="text-[11px] font-mono text-muted mt-1 block">
                     {t.profile.bwRatio} <strong className="text-white">{maxBenchPress > 0 ? `${(maxBenchPress / mass).toFixed(2)}x` : '—'}</strong>
                   </span>
                 </div>
 
-                <div className="bento-card bg-zinc-900/60 p-4 border border-zinc-800">
-                  <span className="text-xs font-bold text-zinc-400 block mb-1">
+                <div className="bento-card bg-surface-2/60 p-4 border border-border">
+                  <span className="text-xs font-bold text-muted block mb-1">
                     {t.profile.powerClean1rm}
                   </span>
-                  <div className="text-3xl font-mono font-black text-[#D4FF00]">
+                  <div className="text-3xl font-mono font-black text-accent">
                     {maxPowerClean > 0 ? `${maxPowerClean} kg` : '—'}
                   </div>
-                  <span className="text-[11px] font-mono text-zinc-400 mt-1 block">
+                  <span className="text-[11px] font-mono text-muted mt-1 block">
                     {t.profile.bwRatio} <strong className="text-white">{maxPowerClean > 0 ? `${(maxPowerClean / mass).toFixed(2)}x` : '—'}</strong>
                   </span>
                 </div>
@@ -897,20 +897,20 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
             <h3 className="text-sm font-bold text-white font-heading">
               {t.profile.radarTitle}
             </h3>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-muted">
               Vertical reach projections and sport-specific margins
             </p>
           </div>
 
           {/* Reach Totals */}
-          <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 space-y-3 font-mono">
+          <div className="p-4 rounded-2xl bg-surface-2/80 border border-border space-y-3 font-mono">
             <div className="flex justify-between items-center text-xs">
-              <span className="text-zinc-400">Total Touch Reach:</span>
+              <span className="text-muted">Total Touch Reach:</span>
               <span className="text-lg font-bold text-white">{hasReach ? `${totalTouchReachCm.toFixed(1)} cm` : '—'}</span>
             </div>
             <div className="w-full bg-zinc-800 h-1 rounded-full overflow-hidden">
               <div
-                className="bg-[#D4FF00] h-full rounded-full"
+                className="bg-accent h-full rounded-full"
                 style={{ width: `${Math.min(100, (totalTouchReachCm / 360) * 100)}%` }}
               />
             </div>
@@ -918,32 +918,32 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
           {/* Volleyball & Basketball Specific Telemetry */}
           <div className="space-y-3 font-mono text-xs">
-            <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 flex justify-between items-center">
+            <div className="p-3 rounded-xl bg-surface-2/60 border border-border flex justify-between items-center">
               <div>
-                <span className="text-zinc-400 block">{t.profile.volleyballClearance}</span>
-                <span className="text-[10px] text-zinc-500">Net: {vballNetHeightCm} cm</span>
+                <span className="text-muted block">{t.profile.volleyballClearance}</span>
+                <span className="text-[10px] text-faint">Net: {vballNetHeightCm} cm</span>
               </div>
-              <span className={`font-bold text-sm ${vballClearanceCm >= 0 ? 'text-[#10B981]' : 'text-[#F43F5E]'}`}>
+              <span className={`font-bold text-sm ${vballClearanceCm >= 0 ? 'text-success' : 'text-danger'}`}>
                 {signedCm(vballClearanceCm)}
               </span>
             </div>
 
-            <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 flex justify-between items-center">
+            <div className="p-3 rounded-xl bg-surface-2/60 border border-border flex justify-between items-center">
               <div>
-                <span className="text-zinc-400 block">{t.profile.dunkMargin}</span>
-                <span className="text-[10px] text-zinc-500">Dunk Target: 315 cm</span>
+                <span className="text-muted block">{t.profile.dunkMargin}</span>
+                <span className="text-[10px] text-faint">Dunk Target: 315 cm</span>
               </div>
-              <span className={`font-bold text-sm ${dunkMarginCm >= 0 ? 'text-[#D4FF00]' : 'text-[#F43F5E]'}`}>
+              <span className={`font-bold text-sm ${dunkMarginCm >= 0 ? 'text-accent' : 'text-danger'}`}>
                 {signedCm(dunkMarginCm)}
               </span>
             </div>
 
-            <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 flex justify-between items-center">
+            <div className="p-3 rounded-xl bg-surface-2/60 border border-border flex justify-between items-center">
               <div>
-                <span className="text-zinc-400 block">{t.profile.rimMargin}</span>
-                <span className="text-[10px] text-zinc-500">Rim Height: 305 cm</span>
+                <span className="text-muted block">{t.profile.rimMargin}</span>
+                <span className="text-[10px] text-faint">Rim Height: 305 cm</span>
               </div>
-              <span className={`font-bold text-sm ${rimMarginCm >= 0 ? 'text-[#10B981]' : 'text-zinc-500'}`}>
+              <span className={`font-bold text-sm ${rimMarginCm >= 0 ? 'text-success' : 'text-faint'}`}>
                 {signedCm(rimMarginCm)}
               </span>
             </div>
@@ -960,38 +960,38 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
             <h3 className="text-base font-bold text-white font-heading">
               {t.profile.testHistoryTitle}
             </h3>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-muted">
               Filterable session history with real-time editing and deletion
             </p>
           </div>
 
           {/* Primary Filter Pills */}
-          <div className="flex items-center gap-1.5 bg-zinc-900/80 p-1 rounded-xl border border-zinc-800 text-xs font-bold flex-wrap">
+          <div className="flex items-center gap-1.5 bg-surface-2/80 p-1 rounded-xl border border-border text-xs font-bold flex-wrap">
             <button
               type="button"
               onClick={() => setHistoryFilter('all')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${historyFilter === 'all' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${historyFilter === 'all' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
             >
               {t.profile.filterAll}
             </button>
             <button
               type="button"
               onClick={() => setHistoryFilter('cmj')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${historyFilter === 'cmj' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${historyFilter === 'cmj' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
             >
               {t.profile.filterCmj}
             </button>
             <button
               type="button"
               onClick={() => setHistoryFilter('rsi')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${historyFilter === 'rsi' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${historyFilter === 'rsi' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
             >
               {t.profile.filterRsi}
             </button>
             <button
               type="button"
               onClick={() => setHistoryFilter('strength')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${historyFilter === 'strength' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${historyFilter === 'strength' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
             >
               {t.profile.filterStrength}
             </button>
@@ -1000,9 +1000,9 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
         {/* Vertical Jump Specific Sub-Filter Pills */}
         {historyFilter === 'cmj' && (
-          <div className="flex items-center gap-1.5 flex-wrap pt-2.5 pb-1 border-t border-zinc-800/80 text-xs font-mono">
-            <span className="text-[11px] text-zinc-400 font-bold mr-1 rtl:ml-1 rtl:mr-0">
-              {isEn ? 'Filter Jump Type:' : 'تصفية نوع القفزة:'}
+          <div className="flex items-center gap-1.5 flex-wrap pt-2.5 pb-1 border-t border-border/80 text-xs font-mono">
+            <span className="text-[11px] text-muted font-bold mr-1 rtl:ml-1 rtl:mr-0">
+              {t.ui.ppFilterJumpType}
             </span>
             <button
               type="button"
@@ -1010,7 +1010,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 verticalSubFilter === 'all'
                   ? 'bg-white text-zinc-950 font-black shadow-sm'
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                  : 'bg-surface-2 text-muted hover:text-white border border-border'
               }`}
             >
               {t.profile.subfilterAll}
@@ -1020,8 +1020,8 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               onClick={() => setVerticalSubFilter('cmj_arms')}
               className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 verticalSubFilter === 'cmj_arms'
-                  ? 'bg-[#D4FF00] text-[#09090B] font-black shadow-sm'
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                  ? 'bg-accent text-accent-ink font-black shadow-sm'
+                  : 'bg-surface-2 text-muted hover:text-accent-ink border border-border'
               }`}
             >
               {t.profile.subfilterCmjArms}
@@ -1031,8 +1031,8 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               onClick={() => setVerticalSubFilter('cmj_no_arms')}
               className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 verticalSubFilter === 'cmj_no_arms'
-                  ? 'bg-[#D4FF00] text-[#09090B] font-black shadow-sm'
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                  ? 'bg-accent text-accent-ink font-black shadow-sm'
+                  : 'bg-surface-2 text-muted hover:text-accent-ink border border-border'
               }`}
             >
               {t.profile.subfilterCmjNoArms}
@@ -1042,8 +1042,8 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               onClick={() => setVerticalSubFilter('sj')}
               className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 verticalSubFilter === 'sj'
-                  ? 'bg-[#D4FF00] text-[#09090B] font-black shadow-sm'
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                  ? 'bg-accent text-accent-ink font-black shadow-sm'
+                  : 'bg-surface-2 text-muted hover:text-accent-ink border border-border'
               }`}
             >
               {t.profile.subfilterSquatJump}
@@ -1053,8 +1053,8 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               onClick={() => setVerticalSubFilter('approach')}
               className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 verticalSubFilter === 'approach'
-                  ? 'bg-[#D4FF00] text-[#09090B] font-black shadow-sm'
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                  ? 'bg-accent text-accent-ink font-black shadow-sm'
+                  : 'bg-surface-2 text-muted hover:text-accent-ink border border-border'
               }`}
             >
               {t.profile.subfilterApproach}
@@ -1068,9 +1068,9 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
             <table className="w-full text-left rtl:text-right border-collapse text-xs">
               <thead>
                 {historyFilter === 'rsi' ? (
-                  <tr className="border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-mono text-[10px]">
+                  <tr className="border-b border-border text-muted uppercase tracking-wider font-mono text-[10px]">
                     <th className="py-3 px-3">{t.profile.testTypeCol}</th>
-                    <th className="py-3 px-3 text-[#D4FF00] font-black">{t.profile.rsiScoreCol}</th>
+                    <th className="py-3 px-3 text-accent font-black">{t.profile.rsiScoreCol}</th>
                     <th className="py-3 px-3">{t.profile.contactTimeCol}</th>
                     <th className="py-3 px-3">{t.profile.flightTimeCol}</th>
                     <th className="py-3 px-3">{t.profile.jumpHeightCol}</th>
@@ -1079,25 +1079,25 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                     <th className="py-3 px-3 text-right rtl:text-left">{t.common.actions}</th>
                   </tr>
                 ) : historyFilter === 'cmj' ? (
-                  <tr className="border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-mono text-[10px]">
+                  <tr className="border-b border-border text-muted uppercase tracking-wider font-mono text-[10px]">
                     <th className="py-3 px-3">{t.profile.testTypeCol}</th>
-                    <th className="py-3 px-3 text-[#D4FF00] font-black">{t.profile.jumpHeightCol}</th>
+                    <th className="py-3 px-3 text-accent font-black">{t.profile.jumpHeightCol}</th>
                     <th className="py-3 px-3">{t.profile.flightTimeCol}</th>
                     <th className="py-3 px-3">{t.profile.powerCol}</th>
                     <th className="py-3 px-3">{t.profile.dateCol}</th>
                     <th className="py-3 px-3 text-right rtl:text-left">{t.common.actions}</th>
                   </tr>
                 ) : historyFilter === 'strength' ? (
-                  <tr className="border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-mono text-[10px]">
+                  <tr className="border-b border-border text-muted uppercase tracking-wider font-mono text-[10px]">
                     <th className="py-3 px-3">{t.profile.testTypeCol}</th>
-                    <th className="py-3 px-3 text-[#D4FF00] font-black">{t.profile.editCleanWeightLabel}</th>
+                    <th className="py-3 px-3 text-accent font-black">{t.profile.editCleanWeightLabel}</th>
                     <th className="py-3 px-3">{t.profile.repsCount}</th>
                     <th className="py-3 px-3">{t.profile.bwRatio}</th>
                     <th className="py-3 px-3">{t.profile.dateCol}</th>
                     <th className="py-3 px-3 text-right rtl:text-left">{t.common.actions}</th>
                   </tr>
                 ) : (
-                  <tr className="border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-mono text-[10px]">
+                  <tr className="border-b border-border text-muted uppercase tracking-wider font-mono text-[10px]">
                     <th className="py-3 px-3">{t.profile.testTypeCol}</th>
                     <th className="py-3 px-3">{t.profile.scoreCol}</th>
                     <th className="py-3 px-3">{t.profile.contactTimeCol}</th>
@@ -1107,7 +1107,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                   </tr>
                 )}
               </thead>
-              <tbody className="divide-y divide-zinc-800/60 font-mono">
+              <tbody className="divide-y divide-border/60 font-mono">
                 {filteredHistory.slice().reverse().map((record) => {
                   const isRsiRec = normalizeTestType(record.test_type) === TEST_TYPES.DROP_JUMP || normalizeTestType(record.test_type) === TEST_TYPES.DROP_JUMP;
                   const isPr = (parseFloat(String(record.jump_height_cm)) === peakHeightCm && peakHeightCm > 0) ||
@@ -1123,7 +1123,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                     return (
                       <tr
                         key={record.id}
-                        className={`hover:bg-zinc-900/60 transition-colors ${isPr ? 'bg-[#D4FF00]/5' : ''}`}
+                        className={`hover:bg-surface-2/60 transition-colors ${isPr ? 'bg-accent/5' : ''}`}
                       >
                         <td className="py-3 px-3 font-bold text-white flex items-center gap-2">
                           <span className="uppercase">{record.test_type}</span>
@@ -1133,7 +1133,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             </span>
                           )}
                         </td>
-                        <td className="py-3 px-3 font-black text-[#D4FF00] text-base tabular-nums">
+                        <td className="py-3 px-3 font-black text-accent text-base tabular-nums">
                           {record.rsi_score ? Number(record.rsi_score).toFixed(2) : '—'}
                         </td>
                         <td className="py-3 px-3 text-zinc-300">
@@ -1154,10 +1154,10 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                         <td className="py-3 px-3 font-bold text-white tabular-nums">
                           {record.jump_height_cm ? `${Number(record.jump_height_cm).toFixed(1)} cm` : '—'}
                         </td>
-                        <td className="py-3 px-3 text-zinc-400">
+                        <td className="py-3 px-3 text-muted">
                           {record.peak_power_watts ? `${record.peak_power_watts} W` : '—'}
                         </td>
-                        <td className="py-3 px-3 text-zinc-400 text-[11px]">
+                        <td className="py-3 px-3 text-muted text-[11px]">
                           {record.created_at ? String(record.created_at).substring(0, 10) : '—'}
                         </td>
                         <td className="py-3 px-3 text-right rtl:text-left">
@@ -1165,7 +1165,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             <button
                               type="button"
                               onClick={() => handleOpenEdit(record)}
-                              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-muted hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
                               title={t.common.edit}
                             >
                               <Edit3 size={14} />
@@ -1173,7 +1173,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             <button
                               type="button"
                               onClick={() => handleDeleteRecord(record.id)}
-                              className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-faint hover:text-danger hover:bg-surface-2/20 transition-colors cursor-pointer"
                               title={t.common.delete}
                             >
                               <Trash2 size={14} />
@@ -1189,7 +1189,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                     return (
                       <tr
                         key={record.id}
-                        className={`hover:bg-zinc-900/60 transition-colors ${isPr ? 'bg-[#D4FF00]/5' : ''}`}
+                        className={`hover:bg-surface-2/60 transition-colors ${isPr ? 'bg-accent/5' : ''}`}
                       >
                         <td className="py-3 px-3 font-bold text-white flex items-center gap-2">
                           <span className="uppercase">{record.test_type}</span>
@@ -1199,16 +1199,16 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             </span>
                           )}
                         </td>
-                        <td className="py-3 px-3 font-black text-[#D4FF00] text-base tabular-nums">
+                        <td className="py-3 px-3 font-black text-accent text-base tabular-nums">
                           {record.jump_height_cm ? `${Number(record.jump_height_cm).toFixed(1)} cm` : '—'}
                         </td>
                         <td className="py-3 px-3 text-zinc-300 tabular-nums font-bold">
                           {record.flight_time_sec ? `${Number(record.flight_time_sec).toFixed(3)} s` : '—'}
                         </td>
-                        <td className="py-3 px-3 text-zinc-400">
+                        <td className="py-3 px-3 text-muted">
                           {record.peak_power_watts ? `${record.peak_power_watts} W` : '—'}
                         </td>
-                        <td className="py-3 px-3 text-zinc-400 text-[11px]">
+                        <td className="py-3 px-3 text-muted text-[11px]">
                           {record.created_at ? String(record.created_at).substring(0, 10) : '—'}
                         </td>
                         <td className="py-3 px-3 text-right rtl:text-left">
@@ -1216,7 +1216,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             <button
                               type="button"
                               onClick={() => handleOpenEdit(record)}
-                              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-muted hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
                               title={t.common.edit}
                             >
                               <Edit3 size={14} />
@@ -1224,7 +1224,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             <button
                               type="button"
                               onClick={() => handleDeleteRecord(record.id)}
-                              className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-faint hover:text-danger hover:bg-surface-2/20 transition-colors cursor-pointer"
                               title={t.common.delete}
                             >
                               <Trash2 size={14} />
@@ -1240,21 +1240,21 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                     return (
                       <tr
                         key={record.id}
-                        className="hover:bg-zinc-900/60 transition-colors"
+                        className="hover:bg-surface-2/60 transition-colors"
                       >
                         <td className="py-3 px-3 font-bold text-white flex items-center gap-2">
                           <span className="uppercase">{record.test_type}</span>
                         </td>
-                        <td className="py-3 px-3 font-black text-[#D4FF00] text-base tabular-nums">
+                        <td className="py-3 px-3 font-black text-accent text-base tabular-nums">
                           {record.clean_weight_kg ? `${record.clean_weight_kg} kg` : '—'}
                         </td>
                         <td className="py-3 px-3 text-zinc-300 font-bold">
                           {record.reps_count || 1} reps
                         </td>
-                        <td className="py-3 px-3 text-zinc-400">
+                        <td className="py-3 px-3 text-muted">
                           {record.clean_bw_ratio ? `${record.clean_bw_ratio}x BW` : '—'}
                         </td>
-                        <td className="py-3 px-3 text-zinc-400 text-[11px]">
+                        <td className="py-3 px-3 text-muted text-[11px]">
                           {record.created_at ? String(record.created_at).substring(0, 10) : '—'}
                         </td>
                         <td className="py-3 px-3 text-right rtl:text-left">
@@ -1262,7 +1262,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             <button
                               type="button"
                               onClick={() => handleOpenEdit(record)}
-                              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-muted hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
                               title={t.common.edit}
                             >
                               <Edit3 size={14} />
@@ -1270,7 +1270,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             <button
                               type="button"
                               onClick={() => handleDeleteRecord(record.id)}
-                              className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-faint hover:text-danger hover:bg-surface-2/20 transition-colors cursor-pointer"
                               title={t.common.delete}
                             >
                               <Trash2 size={14} />
@@ -1285,7 +1285,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                   return (
                     <tr
                       key={record.id}
-                      className={`hover:bg-zinc-900/60 transition-colors ${isPr ? 'bg-[#D4FF00]/5' : ''}`}
+                      className={`hover:bg-surface-2/60 transition-colors ${isPr ? 'bg-accent/5' : ''}`}
                     >
                       <td className="py-3 px-3 font-bold text-white flex items-center gap-2">
                         <span className="uppercase">{record.test_type}</span>
@@ -1295,14 +1295,14 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-3 font-bold text-[#D4FF00] text-sm tabular-nums">
+                      <td className="py-3 px-3 font-bold text-accent text-sm tabular-nums">
                         {isRsiRec ? (
                           <div className="flex flex-col">
-                            <span className="font-black text-[#D4FF00]">
+                            <span className="font-black text-accent">
                               RSI: {record.rsi_score ? Number(record.rsi_score).toFixed(2) : '—'}
                             </span>
                             {record.jump_height_cm && (
-                              <span className="text-[10px] text-zinc-400">
+                              <span className="text-[10px] text-muted">
                                 {Number(record.jump_height_cm).toFixed(1)} cm
                               </span>
                             )}
@@ -1331,10 +1331,10 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                           '—'
                         )}
                       </td>
-                      <td className="py-3 px-3 text-zinc-400">
+                      <td className="py-3 px-3 text-muted">
                         {record.peak_power_watts ? `${record.peak_power_watts} W` : record.reps_count ? `${record.reps_count} reps` : '—'}
                       </td>
-                      <td className="py-3 px-3 text-zinc-400 text-[11px]">
+                      <td className="py-3 px-3 text-muted text-[11px]">
                         {record.created_at ? String(record.created_at).substring(0, 10) : '—'}
                       </td>
                       <td className="py-3 px-3 text-right rtl:text-left">
@@ -1342,7 +1342,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                           <button
                             type="button"
                             onClick={() => handleOpenEdit(record)}
-                            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-muted hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
                             title={t.common.edit}
                           >
                             <Edit3 size={14} />
@@ -1350,7 +1350,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                           <button
                             type="button"
                             onClick={() => handleDeleteRecord(record.id)}
-                            className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-faint hover:text-danger hover:bg-surface-2/20 transition-colors cursor-pointer"
                             title={t.common.delete}
                           >
                             <Trash2 size={14} />
@@ -1364,7 +1364,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
             </table>
           </div>
         ) : (
-          <div className="py-8 text-center text-xs text-zinc-500 font-mono">
+          <div className="py-8 text-center text-xs text-faint font-mono">
             {t.common.noData}
           </div>
         )}
@@ -1380,11 +1380,11 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bento-card bg-[#121215] border border-[#27272A] p-6 w-full max-w-lg rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+              className="bento-card bg-surface border border-border p-6 w-full max-w-lg rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
-              <div className="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4">
+              <div className="flex justify-between items-center border-b border-border pb-3 mb-4">
                 <div className="flex items-center gap-2">
-                  <Edit3 size={18} className="text-[#D4FF00]" />
+                  <Edit3 size={18} className="text-accent" />
                   <h3 className="font-heading font-bold text-white text-base">
                     {t.profile.editRecordTitle}
                   </h3>
@@ -1392,7 +1392,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 <button
                   type="button"
                   onClick={() => setEditingRecord(null)}
-                  className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition-colors"
+                  className="p-1.5 text-muted hover:text-white rounded-lg hover:bg-zinc-800 transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -1402,41 +1402,41 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                 {/* ROW 1: TEST TYPE & TEST DATE (EDITABLE FOR ALL) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-mono text-[11px] font-bold">
+                    <label className="text-muted block mb-1 font-mono text-[11px] font-bold">
                       {t.profile.editTestTypeLabel}
                     </label>
                     <select
                       value={editForm.test_type}
                       onChange={(e) => setEditForm({ ...editForm, test_type: e.target.value })}
-                      className="glass-input w-full font-mono text-xs font-bold text-white bg-[#0A0B0F] border border-[#27272A] rounded-xl px-3 py-2.5 outline-none focus:border-[#D4FF00]"
+                      className="glass-input w-full font-mono text-xs font-bold text-white bg-bg border border-border rounded-xl px-3 py-2.5 outline-none focus:border-accent"
                     >
-                      <optgroup label={isEn ? "Vertical Jumps" : "الوثب الرأسي"}>
-                        <option value="cmj_arms">CMJ (with arms / بالأذرع)</option>
-                        <option value="cmj_no_arms">CMJ (no arms / بدون أذرع)</option>
-                        <option value="sj_no_arms">Squat Jump (SJ - 90° Static)</option>
-                        <option value="sj_arms">Squat Jump (with arms / بالأذرع)</option>
-                        <option value="approach">Approach Jump (قفزة اقتراب)</option>
+                      <optgroup label={t.ui.ppVerticalJumps}>
+                        <option value="cmj_arms">{t.testTypes.cmj_arms}</option>
+                        <option value="cmj_no_arms">{t.testTypes.cmj_no_arms}</option>
+                        <option value="sj_no_arms">{t.testTypes.sj_no_arms}</option>
+                        <option value="sj_arms">{t.testTypes.sj_arms}</option>
+                        <option value="approach">{t.testTypes.approach}</option>
                       </optgroup>
-                      <optgroup label={isEn ? "Reactive Strength (RSI)" : "القوة التفاعلية (RSI)"}>
-                        <option value="rsi">Drop Jump / RSI</option>
+                      <optgroup label={t.ui.ppReactiveStrengthRsi}>
+                        <option value="rsi">{t.testTypes.rsi}</option>
                       </optgroup>
-                      <optgroup label={isEn ? "Maximum Strength 1RM" : "تمارين القوة القصوى 1RM"}>
-                        <option value="full_squat">Full Squat (سكوات كامل)</option>
-                        <option value="bench_press">Bench Press (بنش برس)</option>
-                        <option value="power_clean">Power Clean (باور كلين)</option>
+                      <optgroup label={t.ui.ppMaximumStrength1rm}>
+                        <option value="full_squat">{t.testTypes.full_squat}</option>
+                        <option value="bench_press">{t.testTypes.bench_press}</option>
+                        <option value="power_clean">{t.testTypes.power_clean}</option>
                       </optgroup>
                     </select>
                   </div>
 
                   <div>
-                    <label className="text-zinc-400 block mb-1 font-mono text-[11px] font-bold">
+                    <label className="text-muted block mb-1 font-mono text-[11px] font-bold">
                       {t.profile.editDateLabel}
                     </label>
                     <input
                       type="date"
                       value={editForm.created_at}
                       onChange={(e) => setEditForm({ ...editForm, created_at: e.target.value })}
-                      className="glass-input w-full font-mono text-xs text-white bg-[#0A0B0F] border border-[#27272A] rounded-xl px-3 py-2 outline-none focus:border-[#D4FF00]"
+                      className="glass-input w-full font-mono text-xs text-white bg-bg border border-border rounded-xl px-3 py-2 outline-none focus:border-accent"
                       required
                     />
                   </div>
@@ -1444,19 +1444,19 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
                 {/* DYNAMIC FIELDS: RSI MODE */}
                 {(normalizeTestType(editForm.test_type) === TEST_TYPES.DROP_JUMP || normalizeTestType(editForm.test_type) === TEST_TYPES.DROP_JUMP) && (
-                  <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-[#D4FF00]/30 space-y-3">
+                  <div className="p-3.5 rounded-2xl bg-surface-2/60 border border-accent/30 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#D4FF00] font-mono">
-                        {isEn ? '⚡ RSI Reactive Strength Inputs' : '⚡ مدخلات قفزة الهبوط ومؤشر RSI'}
+                      <span className="text-xs font-bold text-accent font-mono">
+                        {t.ui.ppRsiReactiveStrengthInputs}
                       </span>
-                      <span className="text-[10px] text-zinc-400 font-mono">
+                      <span className="text-[10px] text-muted font-mono">
                         Drop Box: {editForm.box_height_cm || '30'} cm
                       </span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                        <label className="text-muted block mb-1 font-mono text-[10px]">
                           {t.profile.editRsiScoreLabel}
                         </label>
                         <input
@@ -1465,12 +1465,12 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                           placeholder="2.40"
                           value={editForm.rsi_score}
                           onChange={(e) => setEditForm({ ...editForm, rsi_score: e.target.value })}
-                          className="glass-input w-full font-mono text-sm font-black text-[#D4FF00]"
+                          className="glass-input w-full font-mono text-sm font-black text-accent"
                           required
                         />
                       </div>
                       <div>
-                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                        <label className="text-muted block mb-1 font-mono text-[10px]">
                           {t.profile.editContactTimeLabel}
                         </label>
                         <input
@@ -1485,7 +1485,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                        <label className="text-muted block mb-1 font-mono text-[10px]">
                           {t.profile.editFlightTimeLabel}
                         </label>
                         <input
@@ -1505,7 +1505,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                         />
                       </div>
                       <div>
-                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                        <label className="text-muted block mb-1 font-mono text-[10px]">
                           {t.profile.editJumpHeightLabel}
                         </label>
                         <input
@@ -1525,7 +1525,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                         />
                       </div>
                       <div>
-                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                        <label className="text-muted block mb-1 font-mono text-[10px]">
                           {t.profile.editBoxHeightLabel}
                         </label>
                         <input
@@ -1552,9 +1552,9 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             setEditForm(prev => ({ ...prev, rsi_score: (hM / ctSec).toFixed(2) }));
                           }
                         }}
-                        className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-[#D4FF00] font-mono text-[10px] font-bold cursor-pointer"
+                        className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-accent font-mono text-[10px] font-bold cursor-pointer"
                       >
-                        ⚡ {isEn ? 'Recalc RSI: Height(m) ÷ GCT(s)' : 'حساب: الارتفاع ÷ التلامس'}
+                        ⚡ {t.ui.ppRecalcRsiHeightM}
                       </button>
                       <button
                         type="button"
@@ -1566,9 +1566,9 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             setEditForm(prev => ({ ...prev, rsi_score: (ft / ctSec).toFixed(2) }));
                           }
                         }}
-                        className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-cyan-400 font-mono text-[10px] font-bold cursor-pointer"
+                        className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-accent font-mono text-[10px] font-bold cursor-pointer"
                       >
-                        ⚡ {isEn ? 'Recalc RSI: Flight(s) ÷ GCT(s)' : 'حساب: الطيران ÷ التلامس'}
+                        ⚡ {t.ui.ppRecalcRsiFlightS}
                       </button>
                     </div>
                   </div>
@@ -1576,16 +1576,16 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
                 {/* DYNAMIC FIELDS: VERTICAL JUMP MODE */}
                 {(normalizeTestType(editForm.test_type) === TEST_TYPES.CMJ_ARMS || normalizeTestType(editForm.test_type) === TEST_TYPES.CMJ_NO_ARMS || normalizeTestType(editForm.test_type) === TEST_TYPES.SJ_NO_ARMS || normalizeTestType(editForm.test_type) === TEST_TYPES.APPROACH) && (
-                  <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-3">
+                  <div className="p-3.5 rounded-2xl bg-surface-2/60 border border-border space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white font-mono">
-                        {isEn ? '📈 Vertical Jump Kinematics' : '📈 قياسات الوثب الرأسي والكينماتيكا'}
+                        {t.ui.ppVerticalJumpKinematics}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                        <label className="text-muted block mb-1 font-mono text-[10px]">
                           {t.profile.editJumpHeightLabel}
                         </label>
                         <input
@@ -1606,12 +1606,12 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                             }
                             setEditForm(updated);
                           }}
-                          className="glass-input w-full font-mono text-sm font-black text-[#D4FF00]"
+                          className="glass-input w-full font-mono text-sm font-black text-accent"
                           required
                         />
                       </div>
                       <div>
-                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                        <label className="text-muted block mb-1 font-mono text-[10px]">
                           {t.profile.editFlightTimeLabel}
                         </label>
                         <input
@@ -1627,7 +1627,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                        <label className="text-muted block mb-1 font-mono text-[10px]">
                           {t.profile.editTakeoffVelocityLabel}
                         </label>
                         <input
@@ -1640,7 +1640,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                         />
                       </div>
                       <div>
-                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                        <label className="text-muted block mb-1 font-mono text-[10px]">
                           {t.profile.editPeakPowerLabel}
                         </label>
                         <input
@@ -1658,16 +1658,16 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
                 {/* DYNAMIC FIELDS: MAXIMUM STRENGTH 1RM MODE */}
                 {(normalizeTestType(editForm.test_type) === TEST_TYPES.FULL_SQUAT || normalizeTestType(editForm.test_type) === TEST_TYPES.BENCH_PRESS || normalizeTestType(editForm.test_type) === TEST_TYPES.POWER_CLEAN) && (
-                  <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-3">
+                  <div className="p-3.5 rounded-2xl bg-surface-2/60 border border-border space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white font-mono">
-                        {isEn ? '🏋️ Strength 1RM Parameters' : '🏋️ معايير القوة القصوى 1RM'}
+                        {t.ui.ppStrength1rmParameters}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-3">
                       <div>
-                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                        <label className="text-muted block mb-1 font-mono text-[10px]">
                           {t.profile.editCleanWeightLabel}
                         </label>
                         <input
@@ -1676,12 +1676,12 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                           placeholder="140"
                           value={editForm.clean_weight_kg}
                           onChange={(e) => setEditForm({ ...editForm, clean_weight_kg: e.target.value })}
-                          className="glass-input w-full font-mono text-sm font-black text-[#D4FF00]"
+                          className="glass-input w-full font-mono text-sm font-black text-accent"
                           required
                         />
                       </div>
                       <div>
-                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                        <label className="text-muted block mb-1 font-mono text-[10px]">
                           {t.profile.editRepsCountLabel}
                         </label>
                         <input
@@ -1695,7 +1695,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                         />
                       </div>
                       <div>
-                        <label className="text-zinc-400 block mb-1 font-mono text-[10px]">
+                        <label className="text-muted block mb-1 font-mono text-[10px]">
                           {t.profile.editWeekNumberLabel}
                         </label>
                         <input
@@ -1713,13 +1713,13 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
 
                 {/* COACH NOTES */}
                 <div>
-                  <label className="text-zinc-400 block mb-1 font-mono text-[11px] font-bold">
+                  <label className="text-muted block mb-1 font-mono text-[11px] font-bold">
                     {t.common.notes}
                   </label>
                   <textarea
                     value={editForm.notes}
                     onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                    placeholder={isEn ? "Coaching observations, technique cues..." : "ملاحظات فنية أو توصيات تدريبية..."}
+                    placeholder={t.ui.ppCoachingObservationsTechniqueCues}
                     className="glass-input w-full h-20 text-xs text-white"
                   />
                 </div>
@@ -1736,7 +1736,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                   <button
                     type="button"
                     onClick={() => setEditingRecord(null)}
-                    className="px-4 py-2.5 rounded-xl bg-zinc-900 text-zinc-400 hover:text-white font-bold cursor-pointer transition-colors"
+                    className="px-4 py-2.5 rounded-xl bg-surface-2 text-muted hover:text-white font-bold cursor-pointer transition-colors"
                   >
                     {t.common.cancel}
                   </button>
@@ -1757,31 +1757,31 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bento-card bg-[#121215] border border-[#27272A] p-6 w-full max-w-md rounded-2xl shadow-2xl relative"
+              className="bento-card bg-surface border border-border p-6 w-full max-w-md rounded-2xl shadow-2xl relative"
             >
-              <div className="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4">
+              <div className="flex justify-between items-center border-b border-border pb-3 mb-4">
                 <h3 className="font-heading font-bold text-white text-base">
                   {t.profile.printReportTitle}
                 </h3>
                 <button
                   onClick={() => setIsPrintModalOpen(false)}
-                  className="p-1 text-zinc-400 hover:text-white rounded-lg"
+                  className="p-1 text-muted hover:text-white rounded-lg"
                 >
                   <X size={16} />
                 </button>
               </div>
 
               <div className="space-y-4 text-xs font-sans">
-                <label className="flex items-center gap-3 p-3 rounded-xl bg-zinc-900 border border-zinc-800 cursor-pointer">
+                <label className="flex items-center gap-3 p-3 rounded-xl bg-surface-2 border border-border cursor-pointer">
                   <input
                     type="checkbox"
                     checked={includeStrengthInPrint}
                     onChange={(e) => setIncludeStrengthInPrint(e.target.checked)}
-                    className="accent-[#D4FF00] w-4 h-4"
+                    className="accent-accent w-4 h-4"
                   />
                   <div>
                     <span className="text-white font-bold block">{t.profile.includeStrengthOption}</span>
-                    <span className="text-[11px] text-zinc-400">Full Squat, Bench Press, Power Clean</span>
+                    <span className="text-[11px] text-muted">Full Squat, Bench Press, Power Clean</span>
                   </div>
                 </label>
 
@@ -1797,7 +1797,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                   </button>
                   <button
                     onClick={() => setIsPrintModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl bg-zinc-900 text-zinc-400 hover:text-white font-bold"
+                    className="px-4 py-2.5 rounded-xl bg-surface-2 text-muted hover:text-white font-bold"
                   >
                     {t.common.cancel}
                   </button>

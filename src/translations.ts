@@ -1,6 +1,41 @@
 export type Language = 'ar' | 'en';
 
 export interface TranslationDictionary {
+  jumpConsole: {
+    exportingTitle: string;
+    exportingHint: string;
+  };
+  media: {
+    athlete: string;
+    stopAnimation: string;
+    playAnimation: string;
+    downloadImage: string;
+    recordingVideo: string;
+    startRecording: string;
+    buildingFrames: string;
+    videoReady: string;
+    downloadVideo: string;
+    livePreview: string;
+    years: string;
+    xBodyWeight: string;
+    processingVideo: string;
+    generateVideo: string;
+    downloadWebm: string;
+    capturingFrames: string;
+    encodingWebm: string;
+    close: string;
+  };
+  testTypes: {
+    cmj_arms: string;
+    cmj_no_arms: string;
+    sj_no_arms: string;
+    sj_arms: string;
+    approach: string;
+    rsi: string;
+    power_clean: string;
+    full_squat: string;
+    bench_press: string;
+  };
   nav: {
     roster: string;
     rosterShort: string;
@@ -29,6 +64,9 @@ export interface TranslationDictionary {
     syncing: string;
   };
   common: {
+    loadingData: string;
+    retry: string;
+    loadFailedTitle: string;
     save: string;
     saving: string;
     cancel: string;
@@ -326,10 +364,221 @@ export interface TranslationDictionary {
     podiumSilver: string;
     podiumBronze: string;
   };
+  ui: {
+    lbOlympicElite: string;
+    lbExcellent: string;
+    lbVeryGood: string;
+    lbFair: string;
+    lbBelowAverage: string;
+    lbReactiveElite: string;
+    lbGoodSsc: string;
+    lbFairSsc: string;
+    lbLowStiffness: string;
+    lbCm: string;
+    lbFullTelemetryStandings: string;
+    lbGender: string;
+    lbRating: string;
+    lbAction: string;
+    lbViewProfile: string;
+    meDirectScore: string;
+    meMeasurementLoggedAndSaved: string;
+    meFailedToSaveMeasurement: string;
+    meDirectManualEntryOf: string;
+    meValdForcedecksStandardJump: string;
+    meContactMatMyjumpStandard: string;
+    meDirectIndexOutputFrom: string;
+    meAcceptsBothSeconds0: string;
+    meOptionalCoachingObservations: string;
+    meLiveBiomechanicalReadout: string;
+    meInstantTelemetryValidationBefore: string;
+    meActiveRsiScore: string;
+    meContactTimeGct: string;
+    meSscZone: string;
+    meJumpHeight: string;
+    meFlightDuration: string;
+    meSayersPeakPower: string;
+    meRelativePower: string;
+    meWeightLifted: string;
+    meBodyweightMultiplier: string;
+    meReps: string;
+    ppElastic: string;
+    ppStrength: string;
+    ppBalanced: string;
+    ppRequiresCmjNoArms: string;
+    ppUncalibrated: string;
+    ppFilterJumpType: string;
+    ppVerticalJumps: string;
+    ppReactiveStrengthRsi: string;
+    ppMaximumStrength1rm: string;
+    ppRsiReactiveStrengthInputs: string;
+    ppRecalcRsiHeightM: string;
+    ppRecalcRsiFlightS: string;
+    ppVerticalJumpKinematics: string;
+    ppStrength1rmParameters: string;
+    ppCoachingObservationsTechniqueCues: string;
+    mg60fpsMotionGraphicVideo: string;
+    mgGeneratePlayableHdStory: string;
+    vgErrorGeneratingVideoClip: string;
+    vg3dVideoStoryGenerator: string;
+    vgGenerateAndDownloadAn: string;
+    vgVideoGeneratedSuccessfullyPreview: string;
+    vgAthleteDossierCardTemplate: string;
+    vgYrs: string;
+    vgAthleteId: string;
+    vgRecentTelemetryLogs: string;
+    jcJumpTestResultSaved: string;
+    jcErrorSavingMeasurement: string;
+    jcAthlete: string;
+    jcPeakforceLabJumpAnalysis: string;
+    jcYourBrowserDoesNot: string;
+    jcPreparingVideoPlayer: string;
+    jcSeekingToStartPosition: string;
+    jcInitializingRecorder: string;
+    jcCanvasCapturestreamIsNot: string;
+    jcStartingVideoPlayback: string;
+    jcKneeL: string;
+    jcKneeR: string;
+    jcHeight: string;
+    jcLiveHeight: string;
+    jcPeakJump: string;
+    jcMaxHeight: string;
+    jcAthlete2: string;
+    jcWeight: string;
+    jcDate: string;
+    jcTestType: string;
+    jcVideoExportedSuccessfully: string;
+    jcYourVideoAnalysisIs: string;
+    jcShareVideo: string;
+    jcSaveVideo: string;
+    jcIphoneIpadUsersTo: string;
+  };
 }
 
 export const translations: Record<Language, TranslationDictionary> = {
   ar: {
+    jumpConsole: {
+      exportingTitle: 'جاري تصدير فيديو التحليل 🎥',
+      exportingHint: 'استنى شوية بنركّب شريط الارتفاع والمنحنى على الفيديو…',
+    },
+    media: {
+      athlete: 'اللاعب',
+      stopAnimation: 'إيقاف الحركة',
+      playAnimation: 'تشغيل الحركة',
+      downloadImage: '📸 تحميل صورة HD',
+      recordingVideo: 'جاري تسجيل الفيديو',
+      startRecording: '🎬 بدء تسجيل وتوليد الفيديو 60FPS',
+      buildingFrames: 'جاري بناء ورسم إطارات الفيديو (6 ثوانٍ كاملة)...',
+      videoReady: 'تم استخراج الفيديو المتحرك بنجاح (6 ثوانٍ كاملة WebM HD)!',
+      downloadVideo: '⬇️ تحميل ملف الفيديو فوراً',
+      livePreview: '📌 معاينة بطاقة الموشن جرافيك الحية:',
+      years: 'سنة',
+      xBodyWeight: 'ضعف وزن الجسم',
+      processingVideo: 'جاري معالجة وتوليد الفيديو',
+      generateVideo: '🎬 بدء توليد مقطع الفيديو',
+      downloadWebm: '⬇️ تحميل فيديو WebM للحفظ',
+      capturingFrames: 'جاري التقاط إطارات الحركة...',
+      encodingWebm: 'جاري تجميع الفيديو بصيغة WebM...',
+      close: 'إغلاق',
+    },
+    testTypes: {
+      cmj_arms: 'CMJ بالذراعين',
+      cmj_no_arms: 'CMJ بدون ذراعين',
+      sj_no_arms: 'وثبة ثبات (بدون ذراعين، 90°)',
+      sj_arms: 'وثبة ثبات بالذراعين',
+      approach: 'وثبة الاقتراب',
+      rsi: 'وثبة السقوط / RSI',
+      power_clean: 'باور كلين',
+      full_squat: 'سكوات كامل',
+      bench_press: 'بنش برس',
+    },
+    ui: {
+      lbOlympicElite: 'نخبة أولمبية 👑',
+      lbExcellent: 'ممتاز 🏆',
+      lbVeryGood: 'جيد جداً ⭐',
+      lbFair: 'مقبول ⚡',
+      lbBelowAverage: 'تحت المتوسط ⚠️',
+      lbReactiveElite: 'نخبة تفاعلية 👑',
+      lbGoodSsc: 'تفاعل جيد ⭐',
+      lbFairSsc: 'تفاعل مقبول ⚡',
+      lbLowStiffness: 'صلابة منخفضة ⚠️',
+      lbCm: 'سم',
+      lbFullTelemetryStandings: 'بقية الترتيب العام في القائمة',
+      lbGender: 'النوع',
+      lbRating: 'التقييم المعياري',
+      lbAction: 'الملف الشخصي',
+      lbViewProfile: 'عرض الملف',
+      meDirectScore: 'قيمة مباشرة',
+      meMeasurementLoggedAndSaved: '✅ تم حفظ القياس بنجاح وتحديث ملف اللاعب فورياً!',
+      meFailedToSaveMeasurement: 'تعذر حفظ القياس، يرجى التأكد من اختيار اللاعب وصحة الأرقام.',
+      meDirectManualEntryOf: '✍️ اكتب رقم الـ RSI الظاهر على شاشة جهازك أو التطبيق مباشرة دون أي معادلة.',
+      meValdForcedecksStandardJump: '📐 معيار فاليد (VALD / ForceDecks): الارتفاع بالمتر ÷ زمن التلامس بالثواني (المعيار الرسمي للأبحاث ومنصات القوة).',
+      meContactMatMyjumpStandard: '⏱️ معيار سجادات التلامس وتطبيق MyJump: زمن الطيران ÷ زمن التلامس (يعطي رقماً أعلى بحوالي 25% لنفس القفزة).',
+      meDirectIndexOutputFrom: 'أدخل رقم RSI الصادر من بساط القفز أو التطبيق مباشرة',
+      meAcceptsBothSeconds0: 'يدعم كتابة الثواني (0.180) أو المللي ثانية (180) تلقائياً',
+      meOptionalCoachingObservations: 'ملاحظات وتوجيهات تدريبية اختيارية...',
+      meLiveBiomechanicalReadout: 'شاشة القراءات البيوميكانيكية المباشرة',
+      meInstantTelemetryValidationBefore: 'تحليل فوري للمؤشرات قبل اعتماد الحفظ',
+      meActiveRsiScore: 'مؤشر RSI النهائي:',
+      meContactTimeGct: 'زمن التلامس (GCT):',
+      meSscZone: 'تصنيف الاستطالة:',
+      meJumpHeight: 'ارتفاع الوثب:',
+      meFlightDuration: 'زمن الطيران:',
+      meSayersPeakPower: 'القدرة القصوى (Sayers):',
+      meRelativePower: 'القدرة النسبية:',
+      meWeightLifted: 'الوزن المرفوع:',
+      meBodyweightMultiplier: 'مضاعف وزن الجسم:',
+      meReps: 'التكرارات:',
+      ppElastic: 'مطاطي',
+      ppStrength: 'عضلي',
+      ppBalanced: 'متوازن',
+      ppRequiresCmjNoArms: 'يتطلب تسجيل اختبار CMJ بدون أذرع و SJ',
+      ppUncalibrated: 'غير مكتمل',
+      ppFilterJumpType: 'تصفية نوع القفزة:',
+      ppVerticalJumps: 'الوثب الرأسي',
+      ppReactiveStrengthRsi: 'القوة التفاعلية (RSI)',
+      ppMaximumStrength1rm: 'تمارين القوة القصوى 1RM',
+      ppRsiReactiveStrengthInputs: '⚡ مدخلات قفزة الهبوط ومؤشر RSI',
+      ppRecalcRsiHeightM: 'حساب: الارتفاع ÷ التلامس',
+      ppRecalcRsiFlightS: 'حساب: الطيران ÷ التلامس',
+      ppVerticalJumpKinematics: '📈 قياسات الوثب الرأسي والكينماتيكا',
+      ppStrength1rmParameters: '🏋️ معايير القوة القصوى 1RM',
+      ppCoachingObservationsTechniqueCues: 'ملاحظات فنية أو توصيات تدريبية...',
+      mg60fpsMotionGraphicVideo: 'محرك فيديو الموشن جرافيك 60FPS الحقيقي',
+      mgGeneratePlayableHdStory: 'استخراج واستبدال فيديو متحرك حقيقي قابل للتشغيل بمدّة كاملة وصور عالية الدقة',
+      vgErrorGeneratingVideoClip: 'حدث خطأ أثناء استخراج الفيديو، يمكنك تحميل الصورة عالية الدقة بدلاً من ذلك.',
+      vg3dVideoStoryGenerator: 'مولد ومستخرج فيديو البطاقة الـ 3D',
+      vgGenerateAndDownloadAn: 'استخراج وتحميل مقطع فيديو متحرك لبطاقة اللاعب لمشاركته على إنستجرام وتيك توك',
+      vgVideoGeneratedSuccessfullyPreview: 'تم استخراج وتوليد مقطع الفيديو بنجاح! معاينة التشغيل:',
+      vgAthleteDossierCardTemplate: 'بطاقة اللاعب الرسمية (محتوى الفيديو المستخرج):',
+      vgYrs: 'سنة',
+      vgAthleteId: 'معرف اللاعب',
+      vgRecentTelemetryLogs: 'آخر القياسات المسجلة:',
+      jcJumpTestResultSaved: '✅ تم حفظ نتيجة القفزة بنجاح في ملف اللاعب!',
+      jcErrorSavingMeasurement: 'خطأ في حفظ القياس',
+      jcAthlete: 'اللاعب',
+      jcPeakforceLabJumpAnalysis: 'PeakForce Lab - تحليل الوثب',
+      jcYourBrowserDoesNot: 'متصفحك لا يدعم مشاركة ملفات الفيديو مباشرة. يرجى حفظ الفيديو ومشاركته يدوياً.',
+      jcPreparingVideoPlayer: 'جاري تهيئة مشغل الفيديو...',
+      jcSeekingToStartPosition: 'جاري الانتقال إلى موضع البدء...',
+      jcInitializingRecorder: 'جاري تهيئة مسجل الفيديو...',
+      jcCanvasCapturestreamIsNot: 'خاصية التقاط الفيديو غير مدعومة في هذا المتصفح.',
+      jcStartingVideoPlayback: 'جاري تشغيل الفيديو...',
+      jcKneeL: 'ركبة L:',
+      jcKneeR: 'ركبة R:',
+      jcHeight: 'الارتفاع',
+      jcLiveHeight: 'الارتفاع المباشر',
+      jcPeakJump: 'الارتقاء الأقصى 👑',
+      jcMaxHeight: 'الارتقاء الأقصى 👑',
+      jcAthlete2: 'اللاعب',
+      jcWeight: 'الوزن',
+      jcDate: 'التاريخ',
+      jcTestType: 'نوع الاختبار',
+      jcVideoExportedSuccessfully: 'تم تصدير الفيديو بنجاح! 🎉',
+      jcYourVideoAnalysisIs: 'فيديو التحليل الخاص بك جاهز الآن. يمكنك معاينته بالأسفل، مشاركته مباشرة، أو تحميله على جهازك.',
+      jcShareVideo: 'مشاركة الفيديو',
+      jcSaveVideo: 'حفظ الفيديو',
+      jcIphoneIpadUsersTo: '💡 لمستخدمي الآيفون والآيباد: لحفظ الفيديو مباشرة في ألبوم الصور (الاستوديو)، اضغط على "مشاركة الفيديو" ثم اختر "حفظ الفيديو" (Save Video) من القائمة.',
+    },
     nav: {
       roster: 'لوحة اللاعبين',
       rosterShort: 'اللاعبين',
@@ -358,6 +607,9 @@ export const translations: Record<Language, TranslationDictionary> = {
       syncing: 'جاري التحديث...',
     },
     common: {
+      loadingData: 'جاري تحميل البيانات…',
+      retry: 'حاول تاني',
+      loadFailedTitle: 'مقدرناش نحمّل البيانات',
       save: 'حفظ',
       saving: 'جاري الحفظ...',
       cancel: 'إلغاء',
@@ -657,6 +909,129 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
   },
   en: {
+    jumpConsole: {
+      exportingTitle: 'Exporting analysis video 🎥',
+      exportingHint: 'Hold on while the height bar and curve are drawn onto your video…',
+    },
+    media: {
+      athlete: 'Athlete',
+      stopAnimation: 'Pause animation',
+      playAnimation: 'Play animation',
+      downloadImage: '📸 Download HD image',
+      recordingVideo: 'Recording video',
+      startRecording: '🎬 Record 60 FPS video',
+      buildingFrames: 'Rendering video frames (6 seconds)...',
+      videoReady: 'Video ready (6 s, WebM HD)!',
+      downloadVideo: '⬇️ Download video',
+      livePreview: '📌 Live card preview:',
+      years: 'yrs',
+      xBodyWeight: 'x body weight',
+      processingVideo: 'Generating video',
+      generateVideo: '🎬 Generate video clip',
+      downloadWebm: '⬇️ Download WebM video',
+      capturingFrames: 'Capturing frames...',
+      encodingWebm: 'Encoding WebM video...',
+      close: 'Close',
+    },
+    testTypes: {
+      cmj_arms: 'CMJ (with arms)',
+      cmj_no_arms: 'CMJ (no arms / hands on hips)',
+      sj_no_arms: 'Squat Jump (no arms, 90°)',
+      sj_arms: 'Squat Jump (with arms)',
+      approach: 'Approach jump',
+      rsi: 'Drop jump / RSI',
+      power_clean: 'Power clean',
+      full_squat: 'Full squat',
+      bench_press: 'Bench press',
+    },
+    ui: {
+      lbOlympicElite: 'Olympic Elite 👑',
+      lbExcellent: 'Excellent 🏆',
+      lbVeryGood: 'Very Good ⭐',
+      lbFair: 'Fair ⚡',
+      lbBelowAverage: 'Below Average ⚠️',
+      lbReactiveElite: 'Reactive Elite 👑',
+      lbGoodSsc: 'Good SSC ⭐',
+      lbFairSsc: 'Fair SSC ⚡',
+      lbLowStiffness: 'Low Stiffness ⚠️',
+      lbCm: 'cm',
+      lbFullTelemetryStandings: 'Full Telemetry Standings',
+      lbGender: 'Gender',
+      lbRating: 'Rating',
+      lbAction: 'Action',
+      lbViewProfile: 'View Profile',
+      meDirectScore: 'Direct Score',
+      meMeasurementLoggedAndSaved: '✅ Measurement logged and saved to athlete profile!',
+      meFailedToSaveMeasurement: 'Failed to save measurement. Please check athlete and values.',
+      meDirectManualEntryOf: '✍️ Direct manual entry of the RSI number from your device.',
+      meValdForcedecksStandardJump: '📐 VALD / ForceDecks standard: Jump Height (m) ÷ Contact Time (s).',
+      meContactMatMyjumpStandard: '⏱️ Contact Mat / MyJump standard: Flight Time (s) ÷ Contact Time (s) (~25% higher index).',
+      meDirectIndexOutputFrom: 'Direct index output from jump mat / telemetry device',
+      meAcceptsBothSeconds0: 'Accepts both seconds (0.180) and milliseconds (180)',
+      meOptionalCoachingObservations: 'Optional coaching observations...',
+      meLiveBiomechanicalReadout: 'Live Biomechanical Readout',
+      meInstantTelemetryValidationBefore: 'Instant telemetry validation before recording',
+      meActiveRsiScore: 'Active RSI Score:',
+      meContactTimeGct: 'Contact Time (GCT):',
+      meSscZone: 'SSC Zone:',
+      meJumpHeight: 'Jump Height:',
+      meFlightDuration: 'Flight Duration:',
+      meSayersPeakPower: 'Sayers Peak Power:',
+      meRelativePower: 'Relative Power:',
+      meWeightLifted: 'Weight Lifted:',
+      meBodyweightMultiplier: 'Bodyweight Multiplier:',
+      meReps: 'Reps:',
+      ppElastic: 'Elastic',
+      ppStrength: 'Strength',
+      ppBalanced: 'Balanced',
+      ppRequiresCmjNoArms: 'Requires CMJ (No Arms) & SJ tests',
+      ppUncalibrated: 'Uncalibrated',
+      ppFilterJumpType: 'Filter Jump Type:',
+      ppVerticalJumps: 'Vertical Jumps',
+      ppReactiveStrengthRsi: 'Reactive Strength (RSI)',
+      ppMaximumStrength1rm: 'Maximum Strength 1RM',
+      ppRsiReactiveStrengthInputs: '⚡ RSI Reactive Strength Inputs',
+      ppRecalcRsiHeightM: 'Recalc RSI: Height(m) ÷ GCT(s)',
+      ppRecalcRsiFlightS: 'Recalc RSI: Flight(s) ÷ GCT(s)',
+      ppVerticalJumpKinematics: '📈 Vertical Jump Kinematics',
+      ppStrength1rmParameters: '🏋️ Strength 1RM Parameters',
+      ppCoachingObservationsTechniqueCues: 'Coaching observations, technique cues...',
+      mg60fpsMotionGraphicVideo: '60FPS Motion Graphic Video Engine',
+      mgGeneratePlayableHdStory: 'Generate playable HD story videos & screenshots for athlete stats',
+      vgErrorGeneratingVideoClip: 'Error generating video clip.',
+      vg3dVideoStoryGenerator: '3D Video Story Generator',
+      vgGenerateAndDownloadAn: 'Generate and download an animated 3D video clip for Instagram & TikTok stories',
+      vgVideoGeneratedSuccessfullyPreview: 'Video Generated Successfully! Preview below:',
+      vgAthleteDossierCardTemplate: 'Athlete Dossier Card Template (To be animated):',
+      vgYrs: 'yrs',
+      vgAthleteId: 'Athlete ID',
+      vgRecentTelemetryLogs: 'Recent Telemetry Logs:',
+      jcJumpTestResultSaved: '✅ Jump test result saved successfully to athlete profile!',
+      jcErrorSavingMeasurement: 'Error saving measurement',
+      jcAthlete: 'Athlete',
+      jcPeakforceLabJumpAnalysis: 'PeakForce Lab - Jump Analysis',
+      jcYourBrowserDoesNot: 'Your browser does not support direct sharing of video files. Please download the video and share it manually.',
+      jcPreparingVideoPlayer: 'Preparing video player...',
+      jcSeekingToStartPosition: 'Seeking to start position...',
+      jcInitializingRecorder: 'Initializing recorder...',
+      jcCanvasCapturestreamIsNot: 'Canvas captureStream is not supported by this browser.',
+      jcStartingVideoPlayback: 'Starting video playback...',
+      jcKneeL: 'Knee L:',
+      jcKneeR: 'Knee R:',
+      jcHeight: 'HEIGHT',
+      jcLiveHeight: 'LIVE HEIGHT',
+      jcPeakJump: 'PEAK JUMP 👑',
+      jcMaxHeight: 'MAX HEIGHT 👑',
+      jcAthlete2: 'ATHLETE',
+      jcWeight: 'WEIGHT',
+      jcDate: 'DATE',
+      jcTestType: 'TEST TYPE',
+      jcVideoExportedSuccessfully: 'Video Exported Successfully! 🎉',
+      jcYourVideoAnalysisIs: 'Your video analysis is ready. Preview it below, share it directly, or download it to your device.',
+      jcShareVideo: 'Share Video',
+      jcSaveVideo: 'Save Video',
+      jcIphoneIpadUsersTo: '💡 iPhone/iPad Users: To save the video directly to your Photos App (Gallery), click "Share Video" then select "Save Video" from the options list.',
+    },
     nav: {
       roster: 'Roster Dashboard',
       rosterShort: 'Roster',
@@ -685,6 +1060,9 @@ export const translations: Record<Language, TranslationDictionary> = {
       syncing: 'SYNCING...',
     },
     common: {
+      loadingData: 'Loading data…',
+      retry: 'Try again',
+      loadFailedTitle: 'Could not load data',
       save: 'Save',
       saving: 'Saving...',
       cancel: 'Cancel',

@@ -9,7 +9,9 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test:e2e": "vitest run",
-    "test:e2e:watch": "vitest"
+    "test:e2e:watch": "vitest",
+    "dev:mock": "vite --mode mock",
+    "test": "vitest run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.104.0",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.2.4",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.6.1",

@@ -32,7 +32,7 @@ export const toast = Object.assign((message: string) => push('info', message), {
 
 const ICON = { success: CheckCircle2, error: AlertTriangle, info: Info };
 
-export function Toaster() {
+export function Toaster({ closeLabel = 'Close' }: { closeLabel?: string }) {
   const [list, setList] = useState<ToastItem[]>(items);
   useEffect(() => {
     listeners.add(setList);
@@ -46,7 +46,7 @@ export function Toaster() {
           <div key={t.id} className={`toast toast-${t.kind}`} role={t.kind === 'error' ? 'alert' : undefined}>
             <Icon size={18} className="shrink-0" aria-hidden />
             <p className="flex-1 text-sm leading-snug">{t.message}</p>
-            <button className="toast-close" onClick={() => dismiss(t.id)} aria-label="إغلاق">
+            <button className="toast-close" onClick={() => dismiss(t.id)} aria-label={closeLabel}>
               <X size={16} />
             </button>
           </div>

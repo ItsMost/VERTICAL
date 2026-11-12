@@ -4,7 +4,6 @@ import {
   Users, Award, ChevronDown, Activity, Zap, Play, BookOpen,
   User, X, Edit3, Grid, List, Search, ArrowUpRight
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from './context/DataContext';
 import { getPlayerAge } from './lib/utils';
 import type { Player } from './types/athletics';
@@ -137,7 +136,7 @@ export default function TeamDashboard({
 
   const getStatusBadge = (heightCm: number | null, type: 'cmj' | 'approach' | 'rsi', gender: string, age: number) => {
     if (!heightCm || isNaN(heightCm) || heightCm <= 0) {
-      return <span className="text-[10px] font-mono text-zinc-500">—</span>;
+      return <span className="text-[10px] font-mono text-faint">—</span>;
     }
 
     const isYouth = age < 17;
@@ -183,14 +182,14 @@ export default function TeamDashboard({
       {/* Top Banner & Control HUD */}
       <div className="bento-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#D4FF00] text-[#09090B] flex items-center justify-center font-bold shadow-[0_0_15px_rgba(212,255,0,0.3)]">
+          <div className="w-12 h-12 rounded-2xl bg-accent text-accent-ink flex items-center justify-center font-bold">
             <Users size={22} />
           </div>
           <div>
             <h2 className="text-xl font-heading font-black text-white">
               {t.roster.title}
             </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
+            <p className="text-xs text-muted mt-0.5">
               {t.roster.subtitle}
             </p>
           </div>
@@ -200,9 +199,9 @@ export default function TeamDashboard({
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
             onClick={() => setShowHandbookModal(true)}
-            className="px-3.5 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2.5 bg-surface-2 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-border rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <BookOpen size={14} className="text-[#D4FF00]" />
+            <BookOpen size={14} className="text-accent" />
             <span>{t.roster.handbookBtn}</span>
           </button>
 
@@ -211,7 +210,7 @@ export default function TeamDashboard({
             <button
               type="button"
               onClick={() => setIsCoachDropdownOpen(!isCoachDropdownOpen)}
-              className="bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-800 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer min-w-[12rem] justify-between"
+              className="bg-surface-2 hover:bg-zinc-800 text-white border border-border px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer min-w-[12rem] justify-between"
             >
               <span className="truncate">
                 {selectedCoachId === 'all'
@@ -220,28 +219,28 @@ export default function TeamDashboard({
                     ? t.roster.unassigned
                     : (coaches.find(c => c.id === selectedCoachId)?.full_name || t.roster.coachFilter)}
               </span>
-              <ChevronDown size={14} className={`text-zinc-400 transition-transform ${isCoachDropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-muted transition-transform ${isCoachDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            <AnimatePresence>
+            <>
               {isCoachDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setIsCoachDropdownOpen(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="absolute right-0 rtl:right-auto rtl:left-0 z-50 mt-1.5 w-60 bg-[#121215] border border-[#27272A] rounded-2xl shadow-2xl overflow-hidden py-1 text-xs font-bold"
+                  <div
+                   
+                   
+                   
+                    className="absolute right-0 rtl:right-auto rtl:left-0 z-50 mt-1.5 w-60 bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden py-1 text-xs font-bold"
                   >
                     <button
                       onClick={() => { setSelectedCoachId('all'); setIsCoachDropdownOpen(false); }}
-                      className={`w-full text-left rtl:text-right px-4 py-2 hover:bg-[#D4FF00]/15 ${selectedCoachId === 'all' ? 'text-[#D4FF00] font-black' : 'text-zinc-300'}`}
+                      className={`w-full text-left rtl:text-right px-4 py-2 hover:bg-accent/15 ${selectedCoachId === 'all' ? 'text-accent font-black' : 'text-zinc-300'}`}
                     >
                       {t.roster.allCoaches}
                     </button>
                     <button
                       onClick={() => { setSelectedCoachId('unassigned'); setIsCoachDropdownOpen(false); }}
-                      className={`w-full text-left rtl:text-right px-4 py-2 hover:bg-[#D4FF00]/15 ${selectedCoachId === 'unassigned' ? 'text-[#D4FF00] font-black' : 'text-zinc-300'}`}
+                      className={`w-full text-left rtl:text-right px-4 py-2 hover:bg-accent/15 ${selectedCoachId === 'unassigned' ? 'text-accent font-black' : 'text-zinc-300'}`}
                     >
                       {t.roster.unassigned}
                     </button>
@@ -249,15 +248,15 @@ export default function TeamDashboard({
                       <button
                         key={c.id}
                         onClick={() => { setSelectedCoachId(c.id); setIsCoachDropdownOpen(false); }}
-                        className={`w-full text-left rtl:text-right px-4 py-2 hover:bg-[#D4FF00]/15 ${selectedCoachId === c.id ? 'text-[#D4FF00] font-black' : 'text-zinc-300'}`}
+                        className={`w-full text-left rtl:text-right px-4 py-2 hover:bg-accent/15 ${selectedCoachId === c.id ? 'text-accent font-black' : 'text-zinc-300'}`}
                       >
                         {c.full_name}
                       </button>
                     ))}
-                  </motion.div>
+                  </div>
                 </>
               )}
-            </AnimatePresence>
+            </>
           </div>
         </div>
       </div>
@@ -266,7 +265,7 @@ export default function TeamDashboard({
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
-          <Search size={15} className="absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <Search size={15} className="absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-faint" />
           <input
             type="text"
             placeholder={t.roster.searchPlaceholder}
@@ -278,37 +277,37 @@ export default function TeamDashboard({
 
         {/* Gender Filter & View Mode */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center bg-zinc-900 p-1 rounded-xl border border-zinc-800 font-bold">
+          <div className="flex items-center bg-surface-2 p-1 rounded-xl border border-border font-bold">
             <button
               onClick={() => setGenderFilter('all')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${genderFilter === 'all' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${genderFilter === 'all' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
             >
               {t.roster.allGenders}
             </button>
             <button
               onClick={() => setGenderFilter('male')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${genderFilter === 'male' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${genderFilter === 'male' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
             >
               {t.roster.malesOnly}
             </button>
             <button
               onClick={() => setGenderFilter('female')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${genderFilter === 'female' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${genderFilter === 'female' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
             >
               {t.roster.femalesOnly}
             </button>
           </div>
 
-          <div className="flex items-center bg-zinc-900 p-1 rounded-xl border border-zinc-800">
+          <div className="flex items-center bg-surface-2 p-1 rounded-xl border border-border">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-lg transition-all cursor-pointer ${viewMode === 'grid' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${viewMode === 'grid' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
             >
               <Grid size={15} />
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-lg transition-all cursor-pointer ${viewMode === 'table' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${viewMode === 'table' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
             >
               <List size={15} />
             </button>
@@ -330,41 +329,41 @@ export default function TeamDashboard({
               return (
                 <div
                   key={player.id}
-                  className="bento-card p-5 flex flex-col justify-between hover:border-[#D4FF00]/50 transition-all cursor-pointer group"
+                  className="bento-card p-5 flex flex-col justify-between hover:border-accent/50 transition-all cursor-pointer group"
                   onClick={() => handleSelectAthlete(player)}
                 >
                   <div>
                     {/* Header: Name, Age, Status */}
                     <div className="flex items-center justify-between gap-3 mb-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-zinc-900 group-hover:bg-[#D4FF00] text-zinc-300 group-hover:text-[#09090B] font-mono font-bold flex items-center justify-center text-xs transition-colors border border-zinc-800">
+                        <div className="w-9 h-9 rounded-xl bg-surface-2 group-hover:bg-accent text-zinc-300 group-hover:text-accent-ink font-mono font-bold flex items-center justify-center text-xs transition-colors border border-border">
                           {player.full_name ? player.full_name.charAt(0).toUpperCase() : 'P'}
                         </div>
                         <div>
-                          <h4 className="text-sm font-bold text-white group-hover:text-[#D4FF00] transition-colors">
+                          <h4 className="text-sm font-bold text-white group-hover:text-accent transition-colors">
                             {player.full_name}
                           </h4>
-                          <span className="text-[10px] text-zinc-500 font-mono">
+                          <span className="text-[10px] text-faint font-mono">
                             {player.gender === 'female' ? t.common.female : t.common.male} • {player.weight_kg} kg • {age} {t.roster.years}
                           </span>
                         </div>
                       </div>
 
-                      <ArrowUpRight size={16} className="text-zinc-600 group-hover:text-[#D4FF00] transition-colors" />
+                      <ArrowUpRight size={16} className="rtl-flip text-faint group-hover:text-accent transition-colors" />
                     </div>
 
                     {/* Scores Grid */}
-                    <div className="grid grid-cols-3 gap-2 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/80 font-mono text-center my-3">
+                    <div className="grid grid-cols-3 gap-2 bg-surface-2/60 p-3 rounded-xl border border-border/80 font-mono text-center my-3">
                       <div>
-                        <span className="text-[9px] text-zinc-500 block uppercase">{t.roster.cmjStatic}</span>
-                        <span className="text-sm font-bold text-[#D4FF00]">
+                        <span className="text-[9px] text-faint block uppercase">{t.roster.cmjStatic}</span>
+                        <span className="text-sm font-bold text-accent">
                           {cmjVal ? `${cmjVal.toFixed(1)}` : '—'}
                         </span>
                         <div className="mt-1">{getStatusBadge(cmjVal, 'cmj', player.gender, age)}</div>
                       </div>
 
                       <div>
-                        <span className="text-[9px] text-zinc-500 block uppercase">{t.roster.approachDynamic}</span>
+                        <span className="text-[9px] text-faint block uppercase">{t.roster.approachDynamic}</span>
                         <span className="text-sm font-bold text-white">
                           {approachVal ? `${approachVal.toFixed(1)}` : '—'}
                         </span>
@@ -372,8 +371,8 @@ export default function TeamDashboard({
                       </div>
 
                       <div>
-                        <span className="text-[9px] text-zinc-500 block uppercase">{t.roster.rsiReactive}</span>
-                        <span className="text-sm font-bold text-[#FF5500]">
+                        <span className="text-[9px] text-faint block uppercase">{t.roster.rsiReactive}</span>
+                        <span className="text-sm font-bold text-accent">
                           {rsiVal ? `${rsiVal.toFixed(2)}` : '—'}
                         </span>
                         <div className="mt-1">{getStatusBadge(rsiVal, 'rsi', player.gender, age)}</div>
@@ -382,11 +381,11 @@ export default function TeamDashboard({
                   </div>
 
                   {/* Footer actions */}
-                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 text-xs">
-                    <span className="text-[10px] text-zinc-500 font-mono">
+                  <div className="flex items-center justify-between pt-2 border-t border-border/60 text-xs">
+                    <span className="text-[10px] text-faint font-mono">
                       Reach: {player.standing_reach_cm ? `${player.standing_reach_cm} cm` : '—'}
                     </span>
-                    <span className="text-[11px] font-bold text-[#D4FF00] group-hover:underline">
+                    <span className="text-[11px] font-bold text-accent group-hover:underline">
                       {t.roster.viewProfile} →
                     </span>
                   </div>
@@ -398,7 +397,7 @@ export default function TeamDashboard({
           <div className="bento-card p-6 overflow-x-auto custom-scrollbar">
             <table className="w-full text-left rtl:text-right border-collapse text-xs">
               <thead>
-                <tr className="border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-mono text-[10px]">
+                <tr className="border-b border-border text-muted uppercase tracking-wider font-mono text-[10px]">
                   <th className="py-3 px-3">Athlete</th>
                   <th className="py-3 px-3">Category</th>
                   <th className="py-3 px-3">{t.roster.cmjStatic}</th>
@@ -407,7 +406,7 @@ export default function TeamDashboard({
                   <th className="py-3 px-3 text-right rtl:text-left">{t.common.actions}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/60 font-mono">
+              <tbody className="divide-y divide-border/60 font-mono">
                 {filteredPlayers.map(player => {
                   const age = getPlayerAge(player);
                   const score = latestScores[player.id] || { cmj: null, approach: null, rsi: null };
@@ -419,25 +418,25 @@ export default function TeamDashboard({
                     <tr
                       key={player.id}
                       onClick={() => handleSelectAthlete(player)}
-                      className="hover:bg-zinc-900/60 cursor-pointer transition-colors"
+                      className="hover:bg-surface-2/60 cursor-pointer transition-colors"
                     >
                       <td className="py-3 px-3 font-bold text-white">
                         {player.full_name}
                       </td>
-                      <td className="py-3 px-3 text-zinc-400">
+                      <td className="py-3 px-3 text-muted">
                         {player.gender === 'female' ? t.common.female : t.common.male} • {player.weight_kg} kg
                       </td>
-                      <td className="py-3 px-3 font-bold text-[#D4FF00]">
+                      <td className="py-3 px-3 font-bold text-accent">
                         {cmjVal ? `${cmjVal.toFixed(1)} cm` : '—'}
                       </td>
                       <td className="py-3 px-3 font-bold text-white">
                         {approachVal ? `${approachVal.toFixed(1)} cm` : '—'}
                       </td>
-                      <td className="py-3 px-3 font-bold text-[#FF5500]">
+                      <td className="py-3 px-3 font-bold text-accent">
                         {rsiVal ? rsiVal.toFixed(2) : '—'}
                       </td>
                       <td className="py-3 px-3 text-right rtl:text-left font-sans">
-                        <button className="text-[11px] font-bold text-[#D4FF00] hover:underline">
+                        <button className="text-[11px] font-bold text-accent hover:underline">
                           {t.roster.viewProfile}
                         </button>
                       </td>
@@ -449,7 +448,7 @@ export default function TeamDashboard({
           </div>
         )
       ) : (
-        <div className="bento-card p-12 text-center text-zinc-500 font-mono text-xs">
+        <div className="bento-card p-12 text-center text-faint font-mono text-xs">
           {t.roster.emptyDesc}
         </div>
       )}
@@ -457,51 +456,51 @@ export default function TeamDashboard({
       {/* =========================================================================
           HANDBOOK MODAL (EGYPTIAN & INTERNATIONAL STANDARDS)
       ========================================================================= */}
-      <AnimatePresence>
+      <>
         {showHandbookModal && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bento-card bg-[#121215] border border-[#27272A] p-6 w-full max-w-2xl rounded-3xl shadow-2xl relative max-h-[85vh] overflow-y-auto custom-scrollbar"
+            <div
+             
+             
+             
+              className="bento-card bg-surface border border-border p-6 w-full max-w-2xl rounded-3xl shadow-2xl relative max-h-[85vh] overflow-y-auto custom-scrollbar"
             >
-              <div className="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4">
+              <div className="flex justify-between items-center border-b border-border pb-3 mb-4">
                 <h3 className="text-lg font-heading font-black text-white flex items-center gap-2">
-                  <BookOpen size={20} className="text-[#D4FF00]" />
+                  <BookOpen size={20} className="text-accent" />
                   {t.roster.handbookTitle}
                 </h3>
                 <button
                   onClick={() => setShowHandbookModal(false)}
-                  className="p-1.5 text-zinc-400 hover:text-white rounded-lg bg-zinc-900"
+                  className="p-1.5 text-muted hover:text-white rounded-lg bg-surface-2"
                 >
                   <X size={16} />
                 </button>
               </div>
 
               {/* Handbook Tabs */}
-              <div className="flex items-center gap-1.5 bg-zinc-900 p-1 rounded-xl border border-zinc-800 text-xs font-bold mb-4 font-mono">
+              <div className="flex items-center gap-1.5 bg-surface-2 p-1 rounded-xl border border-border text-xs font-bold mb-4 font-mono">
                 <button
                   onClick={() => setActiveHandbookTab('men')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${activeHandbookTab === 'men' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${activeHandbookTab === 'men' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
                 >
                   {t.roster.menTab}
                 </button>
                 <button
                   onClick={() => setActiveHandbookTab('women')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${activeHandbookTab === 'women' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${activeHandbookTab === 'women' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
                 >
                   {t.roster.womenTab}
                 </button>
                 <button
                   onClick={() => setActiveHandbookTab('rsi')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${activeHandbookTab === 'rsi' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${activeHandbookTab === 'rsi' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
                 >
                   {t.roster.rsiTab}
                 </button>
                 <button
                   onClick={() => setActiveHandbookTab('juniors')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${activeHandbookTab === 'juniors' ? 'bg-[#D4FF00] text-[#09090B]' : 'text-zinc-400 hover:text-white'}`}
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${activeHandbookTab === 'juniors' ? 'bg-accent text-accent-ink' : 'text-muted hover:text-accent-ink'}`}
                 >
                   {t.roster.juniorsTab}
                 </button>
@@ -511,84 +510,84 @@ export default function TeamDashboard({
               <div className="space-y-3 text-xs">
                 {activeHandbookTab === 'men' && (
                   <div className="space-y-2.5 font-mono">
-                    <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                    <div className="p-3 rounded-xl bg-surface-2/60 border border-border">
                       <span className="badge-volt text-[10px] px-2 py-0.5 rounded font-bold">ELITE 🏆</span>
                       <p className="text-white font-bold text-sm mt-1">&gt; 34 inches (86.4+ cm)</p>
-                      <p className="text-zinc-400 text-[11px] font-sans mt-0.5">International Olympics & Premier League elite volleyball/basketball jump standard.</p>
+                      <p className="text-muted text-[11px] font-sans mt-0.5">International Olympics & Premier League elite volleyball/basketball jump standard.</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                    <div className="p-3 rounded-xl bg-surface-2/60 border border-border">
                       <span className="badge-emerald text-[10px] px-2 py-0.5 rounded font-bold">EXCELLENT ⭐</span>
                       <p className="text-white font-bold text-sm mt-1">30 to 33.9 inches (76.2 - 86.1 cm)</p>
-                      <p className="text-zinc-400 text-[11px] font-sans mt-0.5">High professional national league caliber (Al Ahly, Zamalek, Sporting starters).</p>
+                      <p className="text-muted text-[11px] font-sans mt-0.5">High professional national league caliber (Al Ahly, Zamalek, Sporting starters).</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                    <div className="p-3 rounded-xl bg-surface-2/60 border border-border">
                       <span className="badge-amber text-[10px] px-2 py-0.5 rounded font-bold">GOOD ⚡</span>
                       <p className="text-white font-bold text-sm mt-1">26 to 29.9 inches (66.0 - 75.9 cm)</p>
-                      <p className="text-zinc-400 text-[11px] font-sans mt-0.5">Standard acceptable benchmark for competitive team sport athletes.</p>
+                      <p className="text-muted text-[11px] font-sans mt-0.5">Standard acceptable benchmark for competitive team sport athletes.</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                    <div className="p-3 rounded-xl bg-surface-2/60 border border-border">
                       <span className="badge-rose text-[10px] px-2 py-0.5 rounded font-bold">DEVELOPMENT ⚠️</span>
                       <p className="text-white font-bold text-sm mt-1">&lt; 26 inches (&lt; 66 cm)</p>
-                      <p className="text-zinc-400 text-[11px] font-sans mt-0.5">Requires prioritized RFD and triple extension explosive strength training.</p>
+                      <p className="text-muted text-[11px] font-sans mt-0.5">Requires prioritized RFD and triple extension explosive strength training.</p>
                     </div>
                   </div>
                 )}
 
                 {activeHandbookTab === 'women' && (
                   <div className="space-y-2.5 font-mono">
-                    <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                    <div className="p-3 rounded-xl bg-surface-2/60 border border-border">
                       <span className="badge-volt text-[10px] px-2 py-0.5 rounded font-bold">ELITE 🏆</span>
                       <p className="text-white font-bold text-sm mt-1">&gt; 26 inches (66.0+ cm)</p>
-                      <p className="text-zinc-400 text-[11px] font-sans mt-0.5">Olympic level and international elite female athletes.</p>
+                      <p className="text-muted text-[11px] font-sans mt-0.5">Olympic level and international elite female athletes.</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                    <div className="p-3 rounded-xl bg-surface-2/60 border border-border">
                       <span className="badge-emerald text-[10px] px-2 py-0.5 rounded font-bold">EXCELLENT ⭐</span>
                       <p className="text-white font-bold text-sm mt-1">22 to 25.9 inches (55.8 - 65.7 cm)</p>
-                      <p className="text-zinc-400 text-[11px] font-sans mt-0.5">Elite national league starters.</p>
+                      <p className="text-muted text-[11px] font-sans mt-0.5">Elite national league starters.</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                    <div className="p-3 rounded-xl bg-surface-2/60 border border-border">
                       <span className="badge-amber text-[10px] px-2 py-0.5 rounded font-bold">GOOD ⚡</span>
                       <p className="text-white font-bold text-sm mt-1">18 to 21.9 inches (45.7 - 55.6 cm)</p>
-                      <p className="text-zinc-400 text-[11px] font-sans mt-0.5">Standard competitive benchmark.</p>
+                      <p className="text-muted text-[11px] font-sans mt-0.5">Standard competitive benchmark.</p>
                     </div>
                   </div>
                 )}
 
                 {activeHandbookTab === 'rsi' && (
                   <div className="space-y-2.5 font-mono">
-                    <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                    <div className="p-3 rounded-xl bg-surface-2/60 border border-border">
                       <span className="badge-volt text-[10px] px-2 py-0.5 rounded font-bold">ELITE 🏆</span>
                       <p className="text-white font-bold text-sm mt-1">RSI &gt; 3.0</p>
-                      <p className="text-zinc-400 text-[11px] font-sans mt-0.5">Extremely fast ground contact (&lt;170ms) with elite tendon stiffness recoil.</p>
+                      <p className="text-muted text-[11px] font-sans mt-0.5">Extremely fast ground contact (&lt;170ms) with elite tendon stiffness recoil.</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                    <div className="p-3 rounded-xl bg-surface-2/60 border border-border">
                       <span className="badge-emerald text-[10px] px-2 py-0.5 rounded font-bold">EXCELLENT ⭐</span>
                       <p className="text-white font-bold text-sm mt-1">RSI 2.5 to 2.99</p>
-                      <p className="text-zinc-400 text-[11px] font-sans mt-0.5">Rapid elastic energy storage and release.</p>
+                      <p className="text-muted text-[11px] font-sans mt-0.5">Rapid elastic energy storage and release.</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                    <div className="p-3 rounded-xl bg-surface-2/60 border border-border">
                       <span className="badge-amber text-[10px] px-2 py-0.5 rounded font-bold">GOOD ⚡</span>
                       <p className="text-white font-bold text-sm mt-1">RSI 2.0 to 2.49</p>
-                      <p className="text-zinc-400 text-[11px] font-sans mt-0.5">Balanced contact time.</p>
+                      <p className="text-muted text-[11px] font-sans mt-0.5">Balanced contact time.</p>
                     </div>
                   </div>
                 )}
 
                 {activeHandbookTab === 'juniors' && (
-                  <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 font-sans space-y-2 text-zinc-300">
+                  <div className="p-4 rounded-xl bg-surface-2 border border-border font-sans space-y-2 text-zinc-300">
                     <p className="font-bold text-white text-sm">
                       {t.roster.juniorFlag}
                     </p>
-                    <p className="text-[11px] leading-relaxed text-zinc-400">
+                    <p className="text-[11px] leading-relaxed text-muted">
                       Athletes under 17 years old automatically receive an age-maturity normalization factor of 0.85 (15% reduction in difficult threshold ceilings) to accurately evaluate their biological growth stage without penalizing developing tendons.
                     </p>
                   </div>
                 )}
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
+      </>
     </div>
   );
 }
