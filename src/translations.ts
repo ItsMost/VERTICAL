@@ -27,49 +27,25 @@ export interface TranslationDictionary {
     systemOnline: string;
     synced: string;
     syncing: string;
-    offlineMode: string;
   };
   common: {
     save: string;
     saving: string;
     cancel: string;
     delete: string;
-    deleting: string;
     edit: string;
-    add: string;
-    search: string;
     filter: string;
-    all: string;
     male: string;
     female: string;
-    cm: string;
-    inches: string;
-    kg: string;
-    sec: string;
-    ms: string;
-    watts: string;
-    wattsPerKg: string;
-    metersPerSec: string;
-    date: string;
     actions: string;
-    loading: string;
     error: string;
     success: string;
     confirm: string;
     confirmDelete: string;
     noData: string;
-    pr: string;
-    personalBest: string;
-    optimal: string;
-    warning: string;
-    fatigue: string;
-    elite: string;
     status: string;
     notes: string;
     close: string;
-    back: string;
-    view: string;
-    export: string;
     print: string;
   };
   hud: {
@@ -85,8 +61,6 @@ export interface TranslationDictionary {
     noMatchingAthletes: string;
     noActiveAthlete: string;
     selectAthleteHint: string;
-    themeDark: string;
-    themeLight: string;
     registerCoachTitle: string;
     coachFullName: string;
     coachPlaceholder: string;
@@ -107,7 +81,6 @@ export interface TranslationDictionary {
     hpoEstimatedBadge: string;
     assignedCoach: string;
     saveAthlete: string;
-    deleteAthlete: string;
     noCoach: string;
   };
   roster: {
@@ -124,13 +97,10 @@ export interface TranslationDictionary {
     cmjStatic: string;
     approachDynamic: string;
     rsiReactive: string;
-    notMeasured: string;
-    reach: string;
     weight: string;
     height: string;
     age: string;
     years: string;
-    startTesting: string;
     viewProfile: string;
     juniorFlag: string;
     emptyTitle: string;
@@ -148,12 +118,10 @@ export interface TranslationDictionary {
     exportCard: string;
     editAthlete: string;
     newTest: string;
-    ageYears: string;
     massKg: string;
     statureCm: string;
     legLengthM: string;
     reachCm: string;
-    peakCmj: string;
     cmjWithArms: string;
     cmjNoArms: string;
     squatJump: string;
@@ -166,28 +134,19 @@ export interface TranslationDictionary {
     cnsReadiness: string;
     contactTime: string;
     flightTime: string;
-    vsAvg: string;
     optimalReadiness: string;
     moderateFatigue: string;
     highFatigue: string;
-    fastSsc: string;
-    moderateSsc: string;
-    slowSsc: string;
     forceDeficit: string;
     velocityDeficit: string;
     balancedProfile: string;
     progressionTab: string;
     elasticityTab: string;
     strengthTab: string;
-    radarTab: string;
-    historyTab: string;
     jumpHeightTrend: string;
-    powerTrend: string;
     eurTitle: string;
     eurFormula: string;
-    eurScore: string;
     eurRatio: string;
-    reactiveIndex: string;
     elasticDominant: string;
     elasticDominantDesc: string;
     strengthDominant: string;
@@ -202,7 +161,6 @@ export interface TranslationDictionary {
     powerClean1rm: string;
     bwRatio: string;
     repsCount: string;
-    weekBlock: string;
     radarTitle: string;
     volleyballClearance: string;
     dunkMargin: string;
@@ -234,8 +192,6 @@ export interface TranslationDictionary {
     editCleanWeightLabel: string;
     editRepsCountLabel: string;
     editWeekNumberLabel: string;
-    autoRecalcRsi: string;
-    syncFlightFromHeight: string;
     subfilterAll: string;
     subfilterCmjArms: string;
     subfilterCmjNoArms: string;
@@ -250,20 +206,7 @@ export interface TranslationDictionary {
     subtitle: string;
     selectVideo: string;
     openCamera: string;
-    playbackControls: string;
-    autoDetect: string;
-    detecting: string;
-    takeoffPoint: string;
-    landingPoint: string;
-    touchdownPoint: string;
-    flightDuration: string;
-    calculatedHeight: string;
-    takeoffVel: string;
     peakPower: string;
-    saveTestResult: string;
-    testTypeTag: string;
-    slowMoPreset: string;
-    frameByFrame: string;
   };
   manualEntry: {
     title: string;
@@ -279,48 +222,32 @@ export interface TranslationDictionary {
     rsiModeToggle: string;
     rsiModeDirect: string;
     rsiModeAutoHeight: string;
-    rsiModeAutoHeightDesc: string;
     rsiModeAutoFlight: string;
-    rsiModeAutoFlightDesc: string;
-    gctMillisecondsHint: string;
     boxHeightInput: string;
-    addedLoadInput: string;
     strengthLiftLabel: string;
     weightLiftedInput: string;
     weekNumberLabel: string;
     repsCountLabel: string;
-    bwRatioLabel: string;
     notesLabel: string;
     saveMeasurement: string;
-    printInfographic: string;
     recentLoggedTitle: string;
-    estimated1rm: string;
   };
   rsiConsole: {
     title: string;
     subtitle: string;
-    methodToggle: string;
     heightGctMethod: string;
     flightGctMethod: string;
-    boxHeight: string;
     contactTime: string;
     flightTime: string;
     jumpHeight: string;
     rsiScore: string;
-    gctClassification: string;
-    fastSscDesc: string;
-    moderateSscDesc: string;
-    slowSscDesc: string;
     saveRsiTest: string;
-    liveFeedback: string;
   };
   fvpConsole: {
     title: string;
     subtitle: string;
     methodDesc: string;
-    jumpInputsTitle: string;
     bodyMass: string;
-    pushOffDistance: string;
     loadTrial: string;
     jumpHeightCm: string;
     f0Force: string;
@@ -330,10 +257,6 @@ export interface TranslationDictionary {
     sfvOptSlope: string;
     imbalancePercent: string;
     actualVsOptCurve: string;
-    trainingPrescription: string;
-    highForceDeficitPresc: string;
-    highVelocityDeficitPresc: string;
-    balancedPresc: string;
     flightTimeS: string;
     trial: string;
     addTrial: string;
@@ -396,7 +319,6 @@ export interface TranslationDictionary {
     rankCol: string;
     athleteCol: string;
     scoreCol: string;
-    categoryCol: string;
     dateCol: string;
     emptyTitle: string;
     emptyDesc: string;
@@ -434,49 +356,25 @@ export const translations: Record<Language, TranslationDictionary> = {
       systemOnline: 'النظام متصل',
       synced: 'مزامنة فورية',
       syncing: 'جاري التحديث...',
-      offlineMode: 'وضع عدم الاتصال',
     },
     common: {
       save: 'حفظ',
       saving: 'جاري الحفظ...',
       cancel: 'إلغاء',
       delete: 'حذف',
-      deleting: 'جاري الحذف...',
       edit: 'تعديل',
-      add: 'إضافة',
-      search: 'بحث...',
       filter: 'تصفية',
-      all: 'الكل',
       male: 'ذكر',
       female: 'أنثى',
-      cm: 'سم',
-      inches: 'إنش',
-      kg: 'كجم',
-      sec: 'ثانية',
-      ms: 'مللي ثانية',
-      watts: 'واط',
-      wattsPerKg: 'واط/كجم',
-      metersPerSec: 'م/ث',
-      date: 'التاريخ',
       actions: 'إجراءات',
-      loading: 'جاري التحميل...',
       error: 'حدث خطأ',
       success: 'تم بنجاح',
       confirm: 'تأكيد',
       confirmDelete: 'هل أنت متأكد من الحذف؟',
       noData: 'لا توجد بيانات مسجلة',
-      pr: 'رقم قياسي',
-      personalBest: 'أفضل رقم شخصي',
-      optimal: 'مثالي',
-      warning: 'تحذير',
-      fatigue: 'إجهاد عصبي',
-      elite: 'نخبة',
       status: 'الحالة',
       notes: 'ملاحظات',
       close: 'إغلاق',
-      back: 'رجوع',
-      view: 'عرض',
-      export: 'تصدير',
       print: 'طباعة التقرير',
     },
     hud: {
@@ -492,8 +390,6 @@ export const translations: Record<Language, TranslationDictionary> = {
       noMatchingAthletes: 'لم يتم العثور على لاعبين مطابقين',
       noActiveAthlete: 'لم يتم تحديد لاعب',
       selectAthleteHint: 'اختر لاعباً للبدء',
-      themeDark: 'داكن',
-      themeLight: 'مضيء',
       registerCoachTitle: 'تسجيل مدرب جديد',
       coachFullName: 'اسم المدرب الكامل',
       coachPlaceholder: 'مثال: الكابتن أحمد علي',
@@ -514,7 +410,6 @@ export const translations: Record<Language, TranslationDictionary> = {
       hpoEstimatedBadge: 'hPO تقديري',
       assignedCoach: 'المدرب المسؤول',
       saveAthlete: 'حفظ بيانات اللاعب',
-      deleteAthlete: 'حذف اللاعب',
       noCoach: '-- بدون مدرب --',
     },
     roster: {
@@ -531,13 +426,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       cmjStatic: 'CMJ ثبات',
       approachDynamic: 'Approach حركي',
       rsiReactive: 'RSI ارتداد',
-      notMeasured: 'لم يقاس',
-      reach: 'الوصول:',
       weight: 'الوزن:',
       height: 'الطول:',
       age: 'العمر:',
       years: 'سنة',
-      startTesting: 'بدء القياسات ⏱️',
       viewProfile: 'عرض الملف الكامل 📊',
       juniorFlag: 'معامل ناشئين مفعّل (خصم 15% من الحدود)',
       emptyTitle: 'لا يوجد لاعبين مطبقين',
@@ -555,12 +447,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       exportCard: 'بطاقة المشاركة ⚡',
       editAthlete: 'تعديل البيانات',
       newTest: 'تسجيل اختبار جديد',
-      ageYears: 'العمر:',
       massKg: 'الوزن:',
       statureCm: 'الطول:',
       legLengthM: 'طول الطرف:',
       reachCm: 'الوصول من الثبات:',
-      peakCmj: 'أعلى وثب CMJ',
       cmjWithArms: 'أعلى وثب بالذراعين (CMJ)',
       cmjNoArms: 'وثب بدون ذراعين (CMJ No Arms)',
       squatJump: 'وثب من الثبات (Squat Jump SJ)',
@@ -573,28 +463,19 @@ export const translations: Record<Language, TranslationDictionary> = {
       cnsReadiness: 'جاهزية الجهاز العصبي CNS',
       contactTime: 'زمن التلامس GCT',
       flightTime: 'زمن الطيران',
-      vsAvg: 'مقارنة بالمعدل',
       optimalReadiness: 'جاهزية مثالية ⚡',
       moderateFatigue: 'إجهاد عصبي متوسط ⚠️',
       highFatigue: 'إجهاد عصبي عالي 🔴',
-      fastSsc: 'Fast SSC (مرونة ارتدادية فائقة)',
-      moderateSsc: 'Moderate SSC (كفاءة ارتدادية متوسطة)',
-      slowSsc: 'Slow SSC (اعتماد عضلي على القوة)',
       forceDeficit: 'عجز في القوة القصوى (Force Deficit)',
       velocityDeficit: 'عجز في السرعة القصوى (Velocity Deficit)',
       balancedProfile: 'توازن مثالي بين القوة والسرعة',
       progressionTab: 'الارتقاء والتطور 📈',
       elasticityTab: 'مصفوفة المرونة والقوة ⚡',
       strengthTab: 'سجلات القوة 1RM 🏋️',
-      radarTab: 'رادار القدرات البدنية 🕸️',
-      historyTab: 'سجل الاختبارات والتاريخ 📋',
       jumpHeightTrend: 'مسار تطور ارتفاع الوثب (سم)',
-      powerTrend: 'مسار تطور القدرة الانفجارية (واط)',
       eurTitle: 'نسبة الاستفادة اللامركزية (EUR Ratio)',
       eurFormula: 'EUR = CMJ (بدون ذراعين) ÷ SJ (من الثبات)',
-      eurScore: 'قيمة مؤشر EUR',
       eurRatio: 'معدل الاستغلال اللامركزي (EUR)',
-      reactiveIndex: 'مؤشر الارتداد (DJ / CMJ)',
       elasticDominant: 'نمط مرن مطاطي ارتدادي (Elastic-Dominant)',
       elasticDominantDesc: 'استغلال عالي جداً لمنعكس الاستطالة؛ الأوتار مطاطية وتتطلب تمارين أوزان ثقيلة لرفع القوة العضلية البحتة (F0).',
       strengthDominant: 'نمط عضلي انقباضي بطيء (Muscle-Dominant)',
@@ -609,7 +490,6 @@ export const translations: Record<Language, TranslationDictionary> = {
       powerClean1rm: 'باور كلين (Power Clean)',
       bwRatio: 'نسبة الوزن للجسم:',
       repsCount: 'التكرارات:',
-      weekBlock: 'الأسبوع:',
       radarTitle: 'رادار التقييم البيوميكانيكي الشامل',
       volleyballClearance: 'فارق شبكة الطائرة (سم)',
       dunkMargin: 'فارق الدنك المريح (سم)',
@@ -641,8 +521,6 @@ export const translations: Record<Language, TranslationDictionary> = {
       editCleanWeightLabel: 'الوزن المرفوع (كجم)',
       editRepsCountLabel: 'عدد التكرارات',
       editWeekNumberLabel: 'رقم الأسبوع التدريبي',
-      autoRecalcRsi: 'إعادة حساب RSI آلياً',
-      syncFlightFromHeight: 'مزامنة زمن الطيران من الارتفاع',
       subfilterAll: 'جميع الوثب الرأسي',
       subfilterCmjArms: 'CMJ بالأذرع (with arms)',
       subfilterCmjNoArms: 'CMJ بدون أذرع (no arms)',
@@ -657,20 +535,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       subtitle: 'تحليل دقيق بالفيديو وبمعدل إطارات مرتفع مع كشف آلي لنقاط الإقلاع والهبوط',
       selectVideo: 'اختر فيديو من الجهاز',
       openCamera: 'تسجيل بالكاميرا المباشرة',
-      playbackControls: 'أدوات التحكم بالإطارات والبطء',
-      autoDetect: 'كشف آلي للقفزة 🤖',
-      detecting: 'جاري التحليل الحركي...',
-      takeoffPoint: 'لحظة الإقلاع (Takeoff)',
-      landingPoint: 'لحظة الهبوط (Landing)',
-      touchdownPoint: 'لحظة ملامسة الصندوق (DJ)',
-      flightDuration: 'زمن الطيران المحسوب',
-      calculatedHeight: 'ارتفاع الوثب النهائي',
-      takeoffVel: 'السرعة الابتدائية للإقلاع',
       peakPower: 'القدرة الانفجارية القصوى',
-      saveTestResult: 'حفظ النتيجة في ملف اللاعب 💾',
-      testTypeTag: 'نوع الوثب المحلل:',
-      slowMoPreset: 'سرعة العرض / الفريمات:',
-      frameByFrame: 'تحريك إطار بإطار:',
     },
     manualEntry: {
       title: 'وحدة الإدخال اليدوي السريع',
@@ -686,48 +551,32 @@ export const translations: Record<Language, TranslationDictionary> = {
       rsiModeToggle: 'طريقة إدخال الـ RSI:',
       rsiModeDirect: 'إدخال رقم RSI يدوياً ✍️',
       rsiModeAutoHeight: 'حساب تلقائي (الارتفاع ÷ التلامس)',
-      rsiModeAutoHeightDesc: 'معيار فاليد VALD ومنصات القوة: الارتفاع (م) ÷ التلامس (ث) - أدق علمياً',
       rsiModeAutoFlight: 'حساب تلقائي (زمن الطيران ÷ التلامس)',
-      rsiModeAutoFlightDesc: 'معيار سجادات التلامس وتطبيق MyJump: زمن الطيران (ث) ÷ التلامس (ث) - أعلى بـ 25%',
-      gctMillisecondsHint: 'بالمللي ثانية (ms) أو بالثواني (s)',
       boxHeightInput: 'ارتفاع صندوق السقوط (سم):',
-      addedLoadInput: 'الوزن الإضافي المرفوع (كجم):',
       strengthLiftLabel: 'التمرين المحدد:',
       weightLiftedInput: 'الوزن المرفوع (كجم):',
       weekNumberLabel: 'رقم الأسبوع التدريبي:',
       repsCountLabel: 'عدد التكرارات المنجزة:',
-      bwRatioLabel: 'معامل وزن الجسم:',
       notesLabel: 'ملاحظات الكابتن:',
       saveMeasurement: 'حفظ النتيجة في ملف اللاعب 💾',
-      printInfographic: 'طباعة إنفوجرافيك الإدخال 🖨️',
       recentLoggedTitle: 'آخر القياسات المسجلة للاعب',
-      estimated1rm: 'القوة القصوى المقدرة 1RM:',
     },
     rsiConsole: {
       title: 'حاسبة ومحلل مؤشر القوة التفاعلية (RSI)',
       subtitle: 'تقييم كفاءة دورة التمدد والتقصير (Stretch-Shortening Cycle) وزمن التلامس مع الأرض',
-      methodToggle: 'طريقة الحساب المعتمدة:',
       heightGctMethod: 'الارتفاع (م) ÷ زمن التلامس (ث) [القياسي]',
       flightGctMethod: 'زمن الطيران (ث) ÷ زمن التلامس (ث)',
-      boxHeight: 'ارتفاع الصندوق المستخدم:',
       contactTime: 'زمن التلامس بالأرض (GCT):',
       flightTime: 'زمن الطيران (Flight Time):',
       jumpHeight: 'ارتفاع الوثبة الناتج:',
       rsiScore: 'مؤشر القوة التفاعلية RSI النهائي:',
-      gctClassification: 'تصنيف زمن التلامس الحركي:',
-      fastSscDesc: 'أقل من 170ms: كفاءة مرنة استثنائية (Fast SSC)',
-      moderateSscDesc: '170ms إلى 250ms: كفاءة متوسطة متوازنة (Moderate SSC)',
-      slowSscDesc: 'أكثر من 250ms: اعتماد بطيء على القوة العضلية (Slow SSC)',
       saveRsiTest: 'حفظ نتيجة RSI للاعب 💾',
-      liveFeedback: 'التشخيص الحركي الفوري:',
     },
     fvpConsole: {
       title: 'منحنى القوة والسرعة (Force-Velocity Profile)',
       subtitle: 'تحليل ميكانيكي دقيق وفق طريقة البروفيسور ساموزينو لتحديد العجز التدريبي بدقة',
       methodDesc: 'أدخل 4 محاولات قفز بأوزان تدريجية مختلفة لحساب القوة القصوى والسرعة المثالية',
-      jumpInputsTitle: 'بيانات القفزات الأربع المحملة بالأوزان:',
       bodyMass: 'كتلة جسم اللاعب (كجم):',
-      pushOffDistance: 'مسافة الدفع الحركي (متر):',
       loadTrial: 'محاولة قفز',
       jumpHeightCm: 'الارتفاع (سم)',
       f0Force: 'القوة النظرية القصوى F₀:',
@@ -737,10 +586,6 @@ export const translations: Record<Language, TranslationDictionary> = {
       sfvOptSlope: 'الميل المثالي المطلوب Sfv(opt):',
       imbalancePercent: 'نسبة الخلل الميكانيكي FV-imb%:',
       actualVsOptCurve: 'مقارنة المنحنى الحالي بالمنحنى المثالي',
-      trainingPrescription: 'التوصية والبروتوكول التدريبي المعتمد:',
-      highForceDeficitPresc: 'عجز حاد في القوة -> التركيز على أوزان ثقيلة وسكوات بطيء لرفع F₀',
-      highVelocityDeficitPresc: 'عجز حاد في السرعة -> التركيز على بليومتريك سريع ومساعد لرفع V₀',
-      balancedPresc: 'ملف متوازن ومثالي -> الحفاظ على التدريب التبادلي المشترك للقدرة',
       flightTimeS: 'زمن الطيران (ث)',
       trial: 'المحاولة',
       addTrial: 'إضافة محاولة',
@@ -803,7 +648,6 @@ export const translations: Record<Language, TranslationDictionary> = {
       rankCol: 'المركز',
       athleteCol: 'اسم اللاعب',
       scoreCol: 'أفضل رقم مسجل',
-      categoryCol: 'الفئة',
       dateCol: 'التاريخ',
       emptyTitle: 'لا توجد أرقام مسجلة حالياً',
       emptyDesc: 'سجل قفزات واختبارات للاعبي الفريق للظهور في لوحة الشرف.',
@@ -839,49 +683,25 @@ export const translations: Record<Language, TranslationDictionary> = {
       systemOnline: 'ONLINE',
       synced: 'SYNCED',
       syncing: 'SYNCING...',
-      offlineMode: 'OFFLINE MODE',
     },
     common: {
       save: 'Save',
       saving: 'Saving...',
       cancel: 'Cancel',
       delete: 'Delete',
-      deleting: 'Deleting...',
       edit: 'Edit',
-      add: 'Add',
-      search: 'Search...',
       filter: 'Filter',
-      all: 'All',
       male: 'Male',
       female: 'Female',
-      cm: 'cm',
-      inches: 'in',
-      kg: 'kg',
-      sec: 's',
-      ms: 'ms',
-      watts: 'W',
-      wattsPerKg: 'W/kg',
-      metersPerSec: 'm/s',
-      date: 'Date',
       actions: 'Actions',
-      loading: 'Loading...',
       error: 'An error occurred',
       success: 'Operation completed successfully',
       confirm: 'Confirm',
       confirmDelete: 'Are you sure you want to delete this record?',
       noData: 'No records found',
-      pr: 'PR',
-      personalBest: 'Personal Best',
-      optimal: 'Optimal',
-      warning: 'Warning',
-      fatigue: 'CNS Fatigue',
-      elite: 'Elite',
       status: 'Status',
       notes: 'Notes',
       close: 'Close',
-      back: 'Back',
-      view: 'View',
-      export: 'Export',
       print: 'Print Report',
     },
     hud: {
@@ -897,8 +717,6 @@ export const translations: Record<Language, TranslationDictionary> = {
       noMatchingAthletes: 'No matching athletes found',
       noActiveAthlete: 'No Active Athlete',
       selectAthleteHint: 'Select Athlete',
-      themeDark: 'Dark',
-      themeLight: 'Light',
       registerCoachTitle: 'Register New Coach',
       coachFullName: 'Coach Full Name',
       coachPlaceholder: 'e.g. Coach Ahmed Ali',
@@ -919,7 +737,6 @@ export const translations: Record<Language, TranslationDictionary> = {
       hpoEstimatedBadge: 'estimated hPO',
       assignedCoach: 'Assigned Coach',
       saveAthlete: 'Save Athlete',
-      deleteAthlete: 'Delete Athlete',
       noCoach: '-- No Coach --',
     },
     roster: {
@@ -936,13 +753,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       cmjStatic: 'CMJ Static',
       approachDynamic: 'Approach Jump',
       rsiReactive: 'RSI Reactive',
-      notMeasured: 'Not Tested',
-      reach: 'Reach:',
       weight: 'Weight:',
       height: 'Height:',
       age: 'Age:',
       years: 'yrs',
-      startTesting: 'Start Testing ⏱️',
       viewProfile: 'Full Dossier 📊',
       juniorFlag: 'Junior Factor Active (15% Threshold Discount)',
       emptyTitle: 'No Matching Athletes',
@@ -960,12 +774,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       exportCard: 'Export Card ⚡',
       editAthlete: 'Edit Athlete',
       newTest: 'Log New Test',
-      ageYears: 'Age:',
       massKg: 'Mass:',
       statureCm: 'Height:',
       legLengthM: 'Leg Length:',
       reachCm: 'Standing Reach:',
-      peakCmj: 'Peak CMJ Height',
       cmjWithArms: 'CMJ (with Arms)',
       cmjNoArms: 'CMJ (No Arms)',
       squatJump: 'Squat Jump (SJ Static)',
@@ -978,28 +790,19 @@ export const translations: Record<Language, TranslationDictionary> = {
       cnsReadiness: 'CNS Readiness Score',
       contactTime: 'Contact Time (GCT)',
       flightTime: 'Flight Duration',
-      vsAvg: 'vs Average',
       optimalReadiness: 'Optimal Readiness ⚡',
       moderateFatigue: 'Moderate Fatigue ⚠️',
       highFatigue: 'High CNS Fatigue 🔴',
-      fastSsc: 'Fast SSC (Elite Elasticity)',
-      moderateSsc: 'Moderate SSC (Balanced)',
-      slowSsc: 'Slow SSC (Strength Dependent)',
       forceDeficit: 'High Force Deficit',
       velocityDeficit: 'High Velocity Deficit',
       balancedProfile: 'Well-Balanced Profile',
       progressionTab: 'Progression 📈',
       elasticityTab: 'Elasticity vs Strength ⚡',
       strengthTab: 'Strength 1RM Records 🏋️',
-      radarTab: 'Capacity Radar 🕸️',
-      historyTab: 'Test Session Log 📋',
       jumpHeightTrend: 'Jump Height Progression Trend (cm)',
-      powerTrend: 'Explosive Peak Power Trend (Watts)',
       eurTitle: 'Eccentric Utilization Ratio (EUR)',
       eurFormula: 'EUR = CMJ (no arms) ÷ Squat Jump (SJ)',
-      eurScore: 'EUR Index Value',
       eurRatio: 'EUR Ratio',
-      reactiveIndex: 'Reactive Index (DJ / CMJ)',
       elasticDominant: 'Elastic-Dominant (High Tendon Recoil)',
       elasticDominantDesc: 'High tendon compliance and stretch recoil. Athlete needs heavy slow resistance (F0) to balance strength.',
       strengthDominant: 'Muscle-Dominant (Slow Force Production)',
@@ -1014,7 +817,6 @@ export const translations: Record<Language, TranslationDictionary> = {
       powerClean1rm: 'Power Clean 1RM',
       bwRatio: 'Bodyweight Ratio:',
       repsCount: 'Reps:',
-      weekBlock: 'Week:',
       radarTitle: 'Biomechanical Capacity Matrix',
       volleyballClearance: 'Volleyball Net Margin (cm)',
       dunkMargin: 'Basketball Dunk Margin (cm)',
@@ -1046,8 +848,6 @@ export const translations: Record<Language, TranslationDictionary> = {
       editCleanWeightLabel: 'Lifted Weight (kg)',
       editRepsCountLabel: 'Reps Count',
       editWeekNumberLabel: 'Training Week Number',
-      autoRecalcRsi: 'Auto Recalculate RSI',
-      syncFlightFromHeight: 'Sync Flight Time from Height',
       subfilterAll: 'All Vertical Jumps',
       subfilterCmjArms: 'CMJ (with arms)',
       subfilterCmjNoArms: 'CMJ (no arms)',
@@ -1062,20 +862,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       subtitle: 'High-frame-rate video analysis with automated takeoff and landing phase recognition',
       selectVideo: 'Choose Video File',
       openCamera: 'Live Camera Capture',
-      playbackControls: 'Playback & Slow Motion Controls',
-      autoDetect: 'AI Auto Phase Detection 🤖',
-      detecting: 'Analyzing kinematics...',
-      takeoffPoint: 'Takeoff Frame',
-      landingPoint: 'Landing Frame',
-      touchdownPoint: 'Box Touchdown (DJ)',
-      flightDuration: 'Calculated Flight Duration',
-      calculatedHeight: 'Final Jump Height',
-      takeoffVel: 'Takeoff Velocity',
       peakPower: 'Peak Mechanical Power',
-      saveTestResult: 'Save Result to Athlete Dossier 💾',
-      testTypeTag: 'Jump Category:',
-      slowMoPreset: 'Playback Frame Speed:',
-      frameByFrame: 'Step Frame-by-Frame:',
     },
     manualEntry: {
       title: 'Rapid Telemetry Entry Console',
@@ -1091,48 +878,32 @@ export const translations: Record<Language, TranslationDictionary> = {
       rsiModeToggle: 'RSI Calculation Mode:',
       rsiModeDirect: 'Direct Manual RSI ✍️',
       rsiModeAutoHeight: 'Auto (Height / GCT)',
-      rsiModeAutoHeightDesc: 'VALD / ForceDecks standard: Jump Height (m) ÷ GCT (s) - scientific research benchmark',
       rsiModeAutoFlight: 'Auto (Flight / GCT)',
-      rsiModeAutoFlightDesc: 'Contact Mat / MyJump standard: Flight Time (s) ÷ GCT (s) - produces ~25% higher index',
-      gctMillisecondsHint: 'in milliseconds (ms) or seconds (s)',
       boxHeightInput: 'Drop Box Height (cm):',
-      addedLoadInput: 'Added Load (kg):',
       strengthLiftLabel: 'Strength Exercise:',
       weightLiftedInput: 'Weight Lifted (kg):',
       weekNumberLabel: 'Training Week Block:',
       repsCountLabel: 'Completed Repetitions:',
-      bwRatioLabel: 'Bodyweight Multiplier:',
       notesLabel: 'Coach Notes:',
       saveMeasurement: 'Save Measurement to Dossier 💾',
-      printInfographic: 'Print Manual Infographic 🖨️',
       recentLoggedTitle: 'Recent Logged Records',
-      estimated1rm: 'Estimated 1RM Benchmark:',
     },
     rsiConsole: {
       title: 'Reactive Strength Index (RSI) Analyzer',
       subtitle: 'Evaluate Stretch-Shortening Cycle (SSC) efficiency and ground contact time dynamics',
-      methodToggle: 'Calculation Methodology:',
       heightGctMethod: 'Jump Height (m) ÷ Contact Time (s) [Standard]',
       flightGctMethod: 'Flight Time (s) ÷ Contact Time (s)',
-      boxHeight: 'Drop Box Height:',
       contactTime: 'Ground Contact Time (GCT):',
       flightTime: 'Flight Duration (s):',
       jumpHeight: 'Resulting Jump Height:',
       rsiScore: 'Final RSI Index Score:',
-      gctClassification: 'Ground Contact Classification:',
-      fastSscDesc: '< 170ms: Elite Elastic SSC Recoil',
-      moderateSscDesc: '170ms - 250ms: Moderate Dynamic SSC',
-      slowSscDesc: '> 250ms: Slow Muscle-Dependent SSC',
       saveRsiTest: 'Save RSI Record to Dossier 💾',
-      liveFeedback: 'Biomechanical Diagnostic:',
     },
     fvpConsole: {
       title: 'Force-Velocity Profiling (F-V Curve)',
       subtitle: 'Precise Samozino method evaluation to pinpoint mechanical deficits and prescribe training',
       methodDesc: 'Input 4 loaded squat jump trials to calculate theoretical maximum force and optimal velocity',
-      jumpInputsTitle: 'Progressive Loaded Jump Inputs:',
       bodyMass: 'Athlete Body Mass (kg):',
-      pushOffDistance: 'Push-Off Distance h₀ (m):',
       loadTrial: 'Loaded Trial',
       jumpHeightCm: 'Jump Height (cm)',
       f0Force: 'Theoretical Max Force F₀:',
@@ -1142,10 +913,6 @@ export const translations: Record<Language, TranslationDictionary> = {
       sfvOptSlope: 'Optimal Required Slope Sfv(opt):',
       imbalancePercent: 'Mechanical Imbalance FV-imb%:',
       actualVsOptCurve: 'Current vs Optimal Slope Comparison',
-      trainingPrescription: 'Prescribed Training Protocol:',
-      highForceDeficitPresc: 'Severe Force Deficit -> Prioritize heavy slow resistance and deep squats to raise F₀',
-      highVelocityDeficitPresc: 'Severe Velocity Deficit -> Prioritize high-speed ballistics and assisted jumps to raise V₀',
-      balancedPresc: 'Well-Balanced Profile -> Maintain combined contrast and power training',
       flightTimeS: 'Flight time (s)',
       trial: 'Trial',
       addTrial: 'Add trial',
@@ -1208,7 +975,6 @@ export const translations: Record<Language, TranslationDictionary> = {
       rankCol: 'Rank',
       athleteCol: 'Athlete',
       scoreCol: 'Top Score',
-      categoryCol: 'Category',
       dateCol: 'Date',
       emptyTitle: 'No Records Logged Yet',
       emptyDesc: 'Perform jump tests or log manual measurements to establish team rankings.',

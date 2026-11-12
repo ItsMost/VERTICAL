@@ -119,35 +119,6 @@ export interface FVPProfile {
   rSquared: number;
 }
 
-// Velocity-Based Training (VBT)
-export type VBTZoneName = 
-  | 'absolute_strength' 
-  | 'accelerative_strength' 
-  | 'strength_speed' 
-  | 'speed_strength' 
-  | 'starting_strength';
-
-export interface VBTZoneInfo {
-  zone: VBTZoneName;
-  minVel: number;
-  maxVel: number;
-  labelAr: string;
-  labelEn: string;
-  color: string;
-  targetAdaptationAr: string;
-  targetAdaptationEn: string;
-}
-
-export interface VBTRep {
-  repNumber: number;
-  meanVelocity: number; // m/s
-  peakVelocity: number; // m/s
-  zone: VBTZoneInfo;
-  velocityLossPercent: number; // % drop from first rep or peak rep
-  isFatigueThresholdExceeded: boolean; // > 10% or > 20%
-  timestamp: number;
-}
-
 // CNS Fatigue & Readiness
 export type CNSStatus = 'optimal' | 'moderate_fatigue' | 'high_cns_fatigue';
 
@@ -191,7 +162,5 @@ export type ActiveTabType =
   | 'manual' 
   | 'rsi' 
   | 'fvp' 
-  | 'sprint' 
-  | 'vbt' 
   | 'profile' 
   | 'leaderboard';
