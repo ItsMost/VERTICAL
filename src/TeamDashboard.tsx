@@ -1,9 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { TEST_TYPES, normalizeTestType } from './lib/testTypes';
-import {
-  Users, Award, ChevronDown, Activity, Zap, Play, BookOpen,
-  User, X, Edit3, Grid, List, Search, ArrowUpRight
-} from 'lucide-react';
+import { Users, ChevronDown, BookOpen, X, Grid, List, Search, ArrowUpRight } from 'lucide-react';
 import { useData } from './context/DataContext';
 import { getPlayerAge } from './lib/utils';
 import type { Player } from './types/athletics';
@@ -359,7 +356,7 @@ export default function TeamDashboard({
                         <span className="text-sm font-bold text-accent">
                           {cmjVal ? `${cmjVal.toFixed(1)}` : '—'}
                         </span>
-                        <div className="mt-1">{getStatusBadge(cmjVal, 'cmj', player.gender, age)}</div>
+                        <div className="mt-1">{getStatusBadge(cmjVal, 'cmj', player.gender || 'male', age)}</div>
                       </div>
 
                       <div>
@@ -367,7 +364,7 @@ export default function TeamDashboard({
                         <span className="text-sm font-bold text-white">
                           {approachVal ? `${approachVal.toFixed(1)}` : '—'}
                         </span>
-                        <div className="mt-1">{getStatusBadge(approachVal, 'approach', player.gender, age)}</div>
+                        <div className="mt-1">{getStatusBadge(approachVal, 'approach', player.gender || 'male', age)}</div>
                       </div>
 
                       <div>
@@ -375,7 +372,7 @@ export default function TeamDashboard({
                         <span className="text-sm font-bold text-accent">
                           {rsiVal ? `${rsiVal.toFixed(2)}` : '—'}
                         </span>
-                        <div className="mt-1">{getStatusBadge(rsiVal, 'rsi', player.gender, age)}</div>
+                        <div className="mt-1">{getStatusBadge(rsiVal, 'rsi', player.gender || 'male', age)}</div>
                       </div>
                     </div>
                   </div>

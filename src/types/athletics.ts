@@ -26,6 +26,7 @@ export interface Player {
   standing_reach_cm?: number | null;
   coach_id?: string | null;
   created_at?: string;
+  is_favorite?: boolean | null;
   // Extended UI helper properties
   bestCmj?: number;
   bestRsi?: number;

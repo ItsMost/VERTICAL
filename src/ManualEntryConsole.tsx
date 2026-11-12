@@ -1,13 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from './components/Toast';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Edit3, Save, Printer, User, Trash2, Check,
-  Activity, Zap, Scale, Calendar, FileText, Layers,
-  Calculator, CheckCircle2, Info, Gauge, ArrowRightLeft
-} from 'lucide-react';
+import { Edit3, Save, Trash2, Activity, Zap, Calendar, Layers, CheckCircle2, Gauge } from 'lucide-react';
 import { useData } from './context/DataContext';
-import AppLogo from './AppLogo';
 import { classifyGCT } from './useJumpMechanics';
 import { TEST_TYPES, normalizeTestType, supportsStandingJumpModels } from './lib/testTypes';
 import { sayersPeakPowerW, samozinoMeanPowerW, samozinoMeanForceN, takeoffVelocityFromJumpHeight, flightTimeFromJumpHeight, jumpHeightFromFlightTime, rsiFromHeight, rsiFromFlightTime, resolveHpo } from './lib/biomechanics';

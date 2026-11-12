@@ -1,15 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from './components/Toast';
-import { supabase } from './supabaseClient';
 import useJumpMechanics from './useJumpMechanics';
 import AnimatedCounter from './components/AnimatedCounter';
 import { ExportProgressOverlay, ExportSuccessModal } from './components/jump-console/ExportOverlays';
 import { supportsStandingJumpModels } from './lib/testTypes';
 import { useData } from './context/DataContext';
-import { 
-  Activity, Zap, ScanEye, X, Play, Pause, Focus, Save, Award, HelpCircle, Scaling, Video,
-  Share2, CheckCircle, Download
-} from 'lucide-react';
+import type { Player, JumpMeasurement } from './types/athletics';
+import { Activity, ScanEye, X, Play, Pause, Focus, Save, Video } from 'lucide-react';
 
 export default function JumpTestingConsole({ 
   activePlayer, 
@@ -19,6 +16,14 @@ export default function JumpTestingConsole({
   setDisplayUnit,
   language = 'ar',
   playerHistory
+}: {
+  activePlayer: Player | null;
+  selectedPlayerId: string;
+  onSaveSuccess?: (m: JumpMeasurement) => void;
+  displayUnit?: string;
+  setDisplayUnit?: (u: string) => void;
+  language?: string;
+  playerHistory?: JumpMeasurement[];
 }) {
   const { addMeasurement, updatePlayerFields, t: tr } = useData();
   // Video & Playback States
@@ -26,13 +31,13 @@ export default function JumpTestingConsole({
   const [cameraFps, setCameraFps] = useState(240);
   const [videoFps, setVideoFps] = useState(30);
   const [isFpsAutoDetected, setIsFpsAutoDetected] = useState(false);
-  const [aiDetectedFrameDuration, setAiDetectedFrameDuration] = useState(null);
+  const [aiDetectedFrameDuration, setAiDetectedFrameDuration] = useState<any>(null);
   
   const [takeoffTime, setTakeoffTime] = useState(0);
   const [landingTime, setLandingTime] = useState(0);
   const [bodyMass, setBodyMass] = useState(72);
   const [legLength, setLegLength] = useState(1.0);
-  const [videoSrc, setVideoSrc] = useState(null);
+  const [videoSrc, setVideoSrc] = useState<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -56,18 +61,18 @@ export default function JumpTestingConsole({
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportStatus, setExportStatus] = useState('');
-  const [exportedVideoUrl, setExportedVideoUrl] = useState(null);
-  const [exportedVideoBlob, setExportedVideoBlob] = useState(null);
+  const [exportedVideoUrl, setExportedVideoUrl] = useState<any>(null);
+  const [exportedVideoBlob, setExportedVideoBlob] = useState<any>(null);
   const [exportedVideoName, setExportedVideoName] = useState('');
 
   const [landingCorrectionMode, setLandingCorrectionMode] = useState('none');
-  const [jumpPhases, setJumpPhases] = useState(null);
+  const [jumpPhases, setJumpPhases] = useState<any>(null);
   
   // MediaPipe AI tracking states
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(true);
-  const poseRef = useRef(null);
-  const flightDataRef = useRef([]);
+  const poseRef = useRef<any>(null);
+  const flightDataRef = useRef<any[]>([]);
   
   // FPS auto-detection state
   const [isFpsDetectionActive, setIsFpsDetectionActive] = useState(false);
@@ -79,32 +84,32 @@ export default function JumpTestingConsole({
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationStep, setCalibrationStep] = useState(0);
   const [referenceLength, setReferenceLength] = useState(0.90);
-  const [pixelsPerMeter, setPixelsPerMeter] = useState(null);
-  const [trackedJumpHeight, setTrackedJumpHeight] = useState(null);
-  const calibrationClicksRef = useRef([]);
+  const [pixelsPerMeter, setPixelsPerMeter] = useState<any>(null);
+  const [trackedJumpHeight, setTrackedJumpHeight] = useState<any>(null);
+  const calibrationClicksRef = useRef<any[]>([]);
 
   // Jog Wheel States & Refs
-  const jogWheelRef = useRef(null);
+  const jogWheelRef = useRef<any>(null);
   const [jogAngle, setJogAngle] = useState(0);
   const isDraggingJog = useRef(false);
   const lastAngle = useRef(0);
 
-  const canvasRef = useRef(null);
-  const videoRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const cameraInputRef = useRef(null);
-  const reqRef = useRef(null);
+  const canvasRef = useRef<any>(null);
+  const videoRef = useRef<any>(null);
+  const fileInputRef = useRef<any>(null);
+  const cameraInputRef = useRef<any>(null);
+  const reqRef = useRef<any>(null);
   const lastSeekTimeRef = useRef(0);
   const isSeekingRef = useRef(false);
-  const seekTimeoutRef = useRef(null);
-  const pendingSeekTimeRef = useRef(null);
+  const seekTimeoutRef = useRef<any>(null);
+  const pendingSeekTimeRef = useRef<any>(null);
   const [isSeeking, setIsSeeking] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
-  const currentTimeMobileRef = useRef(null);
-  const currentFrameMobileRef = useRef(null);
-  const currentTimeDesktopRef = useRef(null);
-  const currentFrameDesktopRef = useRef(null);
+  const currentTimeMobileRef = useRef<any>(null);
+  const currentFrameMobileRef = useRef<any>(null);
+  const currentTimeDesktopRef = useRef<any>(null);
+  const currentFrameDesktopRef = useRef<any>(null);
 
   // Sync with activePlayer when changed
   useEffect(() => {
@@ -126,7 +131,7 @@ export default function JumpTestingConsole({
 
   // Load MediaPipe scripts on mount
   useEffect(() => {
-    const loadScript = (src) => {
+    const loadScript = (src: any) => {
       return new Promise((resolve) => {
         if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
         const script = document.createElement('script'); script.src = src; script.crossOrigin = "anonymous"; script.onload = resolve;
@@ -144,7 +149,7 @@ export default function JumpTestingConsole({
             setScriptsLoaded(true);
           }
         }, 100);
-      } catch (error) { console.error(error); }
+      } catch (error: any) { console.error(error); }
     };
     loadMediaPipe();
   }, []);
@@ -153,10 +158,10 @@ export default function JumpTestingConsole({
   useEffect(() => {
     if (!scriptsLoaded) return;
     const { Pose, POSE_CONNECTIONS, drawConnectors, drawLandmarks } = window;
-    const pose = new Pose({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
+    const pose = new Pose({ locateFile: (file: any) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
     pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
     
-    pose.onResults((results) => {
+    pose.onResults((results: any) => {
       const canvasCtx = canvasRef.current?.getContext('2d');
       if (!canvasCtx || !canvasRef.current) return;
       
@@ -209,7 +214,7 @@ export default function JumpTestingConsole({
         let leftHipAngle = 180;
         let rightHipAngle = 180;
 
-        const calculateAngle = (a, b, c) => {
+        const calculateAngle = (a: any, b: any, c: any) => {
           const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
           let angle = Math.abs((radians * 180.0) / Math.PI);
           if (angle > 180.0) angle = 360.0 - angle;
@@ -336,7 +341,7 @@ export default function JumpTestingConsole({
   }, [videoSrc]);
 
   // Seek and update tracking frame
-  const performSeek = (time) => {
+  const performSeek = (time: any) => {
     const video = videoRef.current;
     if (!video) return;
 
@@ -357,7 +362,7 @@ export default function JumpTestingConsole({
 
     try {
       video.currentTime = safeTime;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Seeking error:", err);
       isSeekingRef.current = false;
       setIsSeeking(false);
@@ -388,7 +393,7 @@ export default function JumpTestingConsole({
     }
   };
 
-  const detectVideoFps = (videoEl) => {
+  const detectVideoFps = (videoEl: any) => {
     if (!videoEl || !videoEl.duration) return;
     
     if (videoEl.requestVideoFrameCallback) {
@@ -397,7 +402,7 @@ export default function JumpTestingConsole({
       let lastMediaTime = null;
       const frameDiffs = [];
       
-      const callback = (now, metadata) => {
+      const callback = (now: any, metadata: any) => {
         if (startTime === null) {
           startTime = now;
           lastMediaTime = metadata.mediaTime;
@@ -459,7 +464,7 @@ export default function JumpTestingConsole({
     }
   };
 
-  const handleFileUpload = (e) => { 
+  const handleFileUpload = (e: any) => { 
     const file = e.target.files[0]; 
     if (file) { 
       setVideoSrc(URL.createObjectURL(file)); 
@@ -487,7 +492,7 @@ export default function JumpTestingConsole({
     const data = flightDataRef.current;
     if (data.length < 15) return toast.info("يرجى تشغيل الفيديو بالكامل مع تفعيل الذكاء الاصطناعي لجمع إحداثيات القفزة.");
     
-    const getAvgKneeAngleAt = (frameData) => {
+    const getAvgKneeAngleAt = (frameData: any) => {
       if (!frameData) return 180;
       const leftValid = frameData.leftKnee > 0 && frameData.leftKnee < 180;
       const rightValid = frameData.rightKnee > 0 && frameData.rightKnee < 180;
@@ -690,7 +695,7 @@ export default function JumpTestingConsole({
     const data = flightDataRef.current;
     if (data.length < 5) return;
     
-    const getAvgKneeAngleAt = (frameData) => {
+    const getAvgKneeAngleAt = (frameData: any) => {
       if (!frameData) return 180;
       const leftValid = frameData.leftKnee > 0 && frameData.leftKnee < 180;
       const rightValid = frameData.rightKnee > 0 && frameData.rightKnee < 180;
@@ -838,7 +843,7 @@ export default function JumpTestingConsole({
     }
   };
 
-  const stepFrames = async (frames) => {
+  const stepFrames = async (frames: any) => {
     if (!videoRef.current || duration <= 0) return;
     
     const video = videoRef.current;
@@ -863,7 +868,7 @@ export default function JumpTestingConsole({
           if (videoRef.current) videoRef.current.pause();
         }).catch(() => {});
       }
-    } catch (err) {}
+    } catch (err: any) {}
   };
 
   const drawCalibrationPoints = (clicksList = null) => {
@@ -896,7 +901,7 @@ export default function JumpTestingConsole({
     }
   };
 
-  const handleCanvasClick = (e) => {
+  const handleCanvasClick = (e: any) => {
     if (!isCalibrating) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const scaleX = canvasRef.current.width / rect.width;
@@ -932,7 +937,7 @@ export default function JumpTestingConsole({
   };
 
   // Jog Wheel Handlers
-  const handleJogStart = (e) => {
+  const handleJogStart = (e: any) => {
     if (!videoRef.current || duration <= 0) return;
     e.preventDefault();
     
@@ -957,7 +962,7 @@ export default function JumpTestingConsole({
     document.addEventListener('touchend', handleJogEnd);
   };
 
-  const handleJogMove = (e) => {
+  const handleJogMove = (e: any) => {
     if (!isDraggingJog.current || !videoRef.current) return;
     
     const clientX = e.clientX || (e.touches && e.touches[0].clientX);
@@ -1136,8 +1141,8 @@ export default function JumpTestingConsole({
   };
 
   // Saved to lab_players, debounced so sliders don't write on every step
-  const saveTimers = useRef({});
-  const persistPlayerField = (field, val) => {
+  const saveTimers = useRef<Record<string, any>>({});
+  const persistPlayerField = (field: any, val: any) => {
     if (!selectedPlayerId) return;
     clearTimeout(saveTimers.current[field]);
     saveTimers.current[field] = setTimeout(() => {
@@ -1145,12 +1150,12 @@ export default function JumpTestingConsole({
     }, 800);
   };
 
-  const handleHeightChange = (val) => {
+  const handleHeightChange = (val: any) => {
     setPlayerHeight(val);
     persistPlayerField('height_cm', val);
   };
 
-  const handleStandingReachChange = (val) => {
+  const handleStandingReachChange = (val: any) => {
     setStandingReach(val);
     persistPlayerField('standing_reach_cm', val);
   };
@@ -1173,7 +1178,7 @@ export default function JumpTestingConsole({
           title: tr.ui.jcPeakforceLabJumpAnalysis,
           text: shareText,
         });
-      } catch (err) {
+      } catch (err: any) {
         if (err.name !== 'AbortError') {
           toast.error(language === 'en' ? 'Sharing failed: ' + err.message : 'فشلت المشاركة: ' + err.message);
         }
@@ -1232,6 +1237,7 @@ export default function JumpTestingConsole({
       document.body.appendChild(canvasElement);
 
       const ctx = canvasElement.getContext('2d');
+      if (!ctx) throw new Error('Canvas 2D context unavailable');
 
       const jumpHeight = parseFloat(stats.heightCm) || 0;
       const flightTime = parseFloat(stats.flightTime) || 0.5;
@@ -1301,7 +1307,7 @@ export default function JumpTestingConsole({
           ...options,
           videoBitsPerSecond: 8000000 
         });
-      } catch (e) {
+      } catch (e: any) {
         console.warn("MediaRecorder creation with bitrate failed, falling back to default:", e);
         recorder = new MediaRecorder(stream, options);
       }
@@ -1366,7 +1372,7 @@ export default function JumpTestingConsole({
       const barHeight = groundY - topY;
       const maxScaleCm = Math.max(50, Math.ceil((jumpHeight + 20) / 10) * 10);
 
-      const getYForHeight = (heightVal) => {
+      const getYForHeight = (heightVal: any) => {
         return groundY - (heightVal / maxScaleCm) * barHeight;
       };
 
@@ -1424,7 +1430,7 @@ export default function JumpTestingConsole({
             const rightKnee = lm[26];
             const rightAnkle = lm[28];
 
-            const calculateAngle = (p1, p2, p3) => {
+            const calculateAngle = (p1: any, p2: any, p3: any) => {
               const rad = Math.atan2(p3.y - p2.y, p3.x - p2.x) - Math.atan2(p1.y - p2.y, p1.x - p2.x);
               let angle = Math.abs((rad * 180) / Math.PI);
               if (angle > 180) angle = 360 - angle;
@@ -1812,7 +1818,7 @@ export default function JumpTestingConsole({
 
       setTimeout(drawOverlay, 1000 / 30);
 
-    } catch (err) {
+    } catch (err: any) {
       toast.error("حدث خطأ أثناء تصدير الفيديو: " + err.message);
       
       isRecordingActive = false;
@@ -2602,9 +2608,9 @@ export default function JumpTestingConsole({
                     <line x1="0" y1="80" x2="100" y2="80" stroke="#27272A" strokeWidth="0.5" strokeDasharray="3,3" />
                     {(() => {
                       const pts = jumpPhases.points;
-                      const displacements = pts.map(p => Math.abs(p.displacement));
+                      const displacements = pts.map((p: any) => Math.abs(p.displacement));
                       const maxCm = Math.max(...displacements) || 1;
-                      const d = pts.map((p, idx) => {
+                      const d = pts.map((p: any, idx: any) => {
                         const x = (idx / (pts.length - 1)) * 100;
                         const y = 80 - (p.displacement / maxCm) * 60;
                         return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
@@ -2615,8 +2621,8 @@ export default function JumpTestingConsole({
                     })()}
                     {(() => {
                       const pts = jumpPhases.points;
-                      const maxCm = Math.max(...pts.map(p => Math.abs(p.displacement))) || 1;
-                      const drawCircle = (index, color, label) => {
+                      const maxCm = Math.max(...pts.map((p: any) => Math.abs(p.displacement))) || 1;
+                      const drawCircle = (index: any, color: any, label: any) => {
                         if (index === undefined || index === -1 || index >= pts.length) return null;
                         const x = (index / (pts.length - 1)) * 100;
                         const y = 80 - (pts[index].displacement / maxCm) * 60;

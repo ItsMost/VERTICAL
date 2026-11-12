@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from './components/Toast';
-import {
-  Zap, Play, Pause, X, Save, Info, Sparkles, Clock, ArrowUpCircle,
-  Award, Video, Sliders, Check
-} from 'lucide-react';
+import { Zap, Play, Pause, X, Save, Check } from 'lucide-react';
 import { useData } from './context/DataContext';
 import { classifyGCT } from './useJumpMechanics';
 import { jumpHeightFromFlightTime, rsiFromHeight, rsiFromFlightTime, legStiffnessDalleau, takeoffVelocityFromJumpHeight, realDurationFromVideo } from './lib/biomechanics';
-import type { JumpMeasurement, GCTAnalysis } from './types/athletics';
+import type { GCTAnalysis } from './types/athletics';
 
 interface RSIStats {
   contactTime: string;

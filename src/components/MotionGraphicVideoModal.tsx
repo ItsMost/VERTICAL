@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useData } from '../context/DataContext';
+import type { Player, JumpMeasurement } from '../types/athletics';
 import { TEST_TYPES, normalizeTestType } from '../lib/testTypes';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Video, Download, Play, Pause, RotateCcw, X, Film, Check, Sparkles, Award, Image as ImageIcon } from 'lucide-react';
+import { Video, Download, Play, Pause, X, Film, Check, Award, Image as ImageIcon } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import AppLogo from '../AppLogo';
 
@@ -12,11 +13,16 @@ export default function MotionGraphicVideoModal({
   isOpen,
   onClose,
   language = 'ar'
+}: {
+  activePlayer: Player | null;
+  playerHistory?: JumpMeasurement[];
+  isOpen: boolean;
+  onClose: () => void;
+  language?: string;
 }) {
   const { t: tx } = useData();
-  const isEn = language === 'en';
-  const previewRef = useRef(null);
-  const animCanvasRef = useRef(null);
+  const previewRef = useRef<any>(null);
+  const animCanvasRef = useRef<any>(null);
 
   // Motion phase states for UI preview
   const [motionPhase, setMotionPhase] = useState(0);
@@ -25,38 +31,38 @@ export default function MotionGraphicVideoModal({
   // Recording states
   const [isRecording, setIsRecording] = useState(false);
   const [recordProgress, setRecordProgress] = useState(0);
-  const [videoUrl, setVideoUrl] = useState(null);
-  const [recordedBlob, setRecordedBlob] = useState(null);
+  const [videoUrl, setVideoUrl] = useState<any>(null);
+  const [recordedBlob, setRecordedBlob] = useState<any>(null);
 
   // Player Stats
   const playerName = activePlayer?.full_name || tx.media.athlete;
-  const mass = parseFloat(activePlayer?.weight_kg) || 72;
-  const playerHeight = parseFloat(activePlayer?.height_cm) || 178;
+  const mass = parseFloat(String(activePlayer?.weight_kg)) || 72;
+  const playerHeight = parseFloat(String(activePlayer?.height_cm)) || 178;
   const age = activePlayer?.age || 24;
 
   // Calculate All-time Personal Bests (PBs) from full history
   const cmjJumps = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.CMJ_ARMS || normalizeTestType(r.test_type) === TEST_TYPES.CMJ_ARMS);
-  const maxCmj = cmjJumps.length > 0 ? Math.max(...cmjJumps.map(j => parseFloat(j.jump_height_cm) || 0)) : 0;
-  const bestCmjRecord = cmjJumps.find(j => parseFloat(j.jump_height_cm) === maxCmj);
-  const cmjFlightTime = bestCmjRecord ? parseFloat(bestCmjRecord.flight_time_sec) || 0 : (maxCmj > 0 ? Math.sqrt((8 * (maxCmj / 100)) / 9.81) : 0);
+  const maxCmj = cmjJumps.length > 0 ? Math.max(...cmjJumps.map(j => parseFloat(String(j.jump_height_cm)) || 0)) : 0;
+  const bestCmjRecord = cmjJumps.find(j => parseFloat(String(j.jump_height_cm)) === maxCmj);
+  const cmjFlightTime = bestCmjRecord ? parseFloat(String(bestCmjRecord.flight_time_sec)) || 0 : (maxCmj > 0 ? Math.sqrt((8 * (maxCmj / 100)) / 9.81) : 0);
 
   const rsiJumps = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.DROP_JUMP);
-  const maxRsi = rsiJumps.length > 0 ? Math.max(...rsiJumps.map(j => parseFloat(j.rsi_score) || 0)) : 0;
-  const bestRsiRecord = rsiJumps.find(j => parseFloat(j.rsi_score) === maxRsi);
+  const maxRsi = rsiJumps.length > 0 ? Math.max(...rsiJumps.map(j => parseFloat(String(j.rsi_score)) || 0)) : 0;
+  const bestRsiRecord = rsiJumps.find(j => parseFloat(String(j.rsi_score)) === maxRsi);
   const boxHeight = bestRsiRecord?.box_height_cm || 30;
 
   const squatRecords = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.FULL_SQUAT);
-  const squatWeight = squatRecords.length > 0 ? Math.max(...squatRecords.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
+  const squatWeight = squatRecords.length > 0 ? Math.max(...squatRecords.map(j => parseFloat(String(j.clean_weight_kg)) || 0)) : 0;
 
   const benchRecords = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.BENCH_PRESS);
-  const benchWeight = benchRecords.length > 0 ? Math.max(...benchRecords.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
+  const benchWeight = benchRecords.length > 0 ? Math.max(...benchRecords.map(j => parseFloat(String(j.clean_weight_kg)) || 0)) : 0;
 
-  const cleanRecords = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.POWER_CLEAN || (parseFloat(r.clean_weight_kg) > 0 && normalizeTestType(r.test_type) !== TEST_TYPES.FULL_SQUAT && normalizeTestType(r.test_type) !== TEST_TYPES.BENCH_PRESS));
-  const cleanWeight = cleanRecords.length > 0 ? Math.max(...cleanRecords.map(j => parseFloat(j.clean_weight_kg) || 0)) : 0;
+  const cleanRecords = playerHistory.filter(r => normalizeTestType(r.test_type) === TEST_TYPES.POWER_CLEAN || (parseFloat(String(r.clean_weight_kg)) > 0 && normalizeTestType(r.test_type) !== TEST_TYPES.FULL_SQUAT && normalizeTestType(r.test_type) !== TEST_TYPES.BENCH_PRESS));
+  const cleanWeight = cleanRecords.length > 0 ? Math.max(...cleanRecords.map(j => parseFloat(String(j.clean_weight_kg)) || 0)) : 0;
 
   // Auto-switch preview phases every 2.5 seconds
   useEffect(() => {
-    let interval;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (isPlaying && isOpen && !isRecording) {
       interval = setInterval(() => {
         setMotionPhase((prev) => (prev + 1) % 4);
@@ -107,7 +113,7 @@ export default function MotionGraphicVideoModal({
       mimeType = 'video/webm';
     }
 
-    const chunks = [];
+    const chunks: Blob[] = [];
     const mediaRecorder = new MediaRecorder(stream, {
       mimeType,
       videoBitsPerSecond: 5000000 // 5 Mbps High Quality
@@ -312,8 +318,8 @@ export default function MotionGraphicVideoModal({
 
         ctx.fillStyle = '#22C55E';
         ctx.font = 'bold 14px monospace';
-        const squatBwRatio = (squatWeight > 0 && mass > 0) ? (squatWeight / mass).toFixed(2) : 0;
-        ctx.fillText(squatBwRatio > 0 ? `🏋️ ${squatBwRatio}x Bodyweight` : '🏋️ Max Strength', 510, 440);
+        const squatBwRatio = squatWeight > 0 && mass > 0 ? (squatWeight / mass).toFixed(2) : '';
+        ctx.fillText(squatBwRatio ? `🏋️ ${squatBwRatio}x Bodyweight` : '🏋️ Max Strength', 510, 440);
       }
 
       // FOOTER

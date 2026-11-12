@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useData } from '../context/DataContext';
+import type { Player, JumpMeasurement } from '../types/athletics';
 import { toast } from './Toast';
 import { TEST_TYPES, normalizeTestType } from '../lib/testTypes';
 import { Video, Download, Check, X, Film } from 'lucide-react';
@@ -12,27 +13,32 @@ export default function VideoGeneratorModal({
   isOpen,
   onClose,
   language = 'ar'
+}: {
+  activePlayer: Player | null;
+  playerHistory?: JumpMeasurement[];
+  isOpen: boolean;
+  onClose: () => void;
+  language?: string;
 }) {
   const { t: tx } = useData();
-  const isEn = language === 'en';
-  const cardRef = useRef(null);
+  const cardRef = useRef<any>(null);
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [videoUrl, setVideoUrl] = useState(null);
+  const [videoUrl, setVideoUrl] = useState<any>(null);
   const [frameStep, setFrameStep] = useState(0);
 
   // Measurements
-  const mass = parseFloat(activePlayer?.weight_kg) || 72;
-  const playerHeight = parseFloat(activePlayer?.height_cm) || 178;
+  const mass = parseFloat(String(activePlayer?.weight_kg)) || 72;
+  const playerHeight = parseFloat(String(activePlayer?.height_cm)) || 178;
   const age = activePlayer?.age || 24;
 
   const maxCmjRecord = playerHistory.find(r => normalizeTestType(r.test_type) === TEST_TYPES.CMJ_ARMS || normalizeTestType(r.test_type) === TEST_TYPES.CMJ_ARMS);
-  const maxCmj = maxCmjRecord ? parseFloat(maxCmjRecord.jump_height_cm) || 0 : 0;
-  const cmjFlightTime = maxCmjRecord ? parseFloat(maxCmjRecord.flight_time_sec) || 0 : 0;
+  const maxCmj = maxCmjRecord ? parseFloat(String(maxCmjRecord.jump_height_cm)) || 0 : 0;
+  const cmjFlightTime = maxCmjRecord ? parseFloat(String(maxCmjRecord.flight_time_sec)) || 0 : 0;
 
   const maxRsiRecord = playerHistory.find(r => normalizeTestType(r.test_type) === TEST_TYPES.DROP_JUMP);
-  const maxRsi = maxRsiRecord ? parseFloat(maxRsiRecord.rsi_score) || 0 : 0;
+  const maxRsi = maxRsiRecord ? parseFloat(String(maxRsiRecord.rsi_score)) || 0 : 0;
 
   // Handle Video Generation using MediaRecorder over HTML Canvas
   const generateVideo = async () => {
@@ -64,7 +70,7 @@ export default function VideoGeneratorModal({
           : 'video/webm'
       });
 
-      const chunks = [];
+      const chunks: Blob[] = [];
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunks.push(e.data);
       };
@@ -268,7 +274,7 @@ export default function VideoGeneratorModal({
                     {jump.test_type}
                   </span>
                   <span className="text-white font-bold">
-                    {parseFloat(jump.jump_height_cm) > 0 ? `${parseFloat(jump.jump_height_cm).toFixed(1)} cm` : (jump.clean_weight_kg ? `${jump.clean_weight_kg} kg` : '—')}
+                    {parseFloat(String(jump.jump_height_cm)) > 0 ? `${parseFloat(String(jump.jump_height_cm)).toFixed(1)} cm` : (jump.clean_weight_kg ? `${jump.clean_weight_kg} kg` : '—')}
                   </span>
                   <span className="text-muted text-[10px]">
                     {new Date(jump.created_at).toLocaleDateString('ar-EG')}

@@ -1,8 +1,5 @@
 import React, { useState, lazy, Suspense } from 'react';
-import {
-  Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X,
-  Save, ChevronDown, Moon, Sun, Users, Trophy, Globe, Star, Sparkles
-} from 'lucide-react';
+import { Activity, Zap, LineChart, ScanEye, UserCircle, Edit3, Trash2, Plus, X, Save, ChevronDown, Users, Trophy, Star } from 'lucide-react';
 import { useData } from './context/DataContext';
 import { getBirthYear } from './lib/utils';
 import TeamDashboard from './TeamDashboard';

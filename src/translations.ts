@@ -1,10 +1,6 @@
 export type Language = 'ar' | 'en';
 
 export interface TranslationDictionary {
-  jumpConsole: {
-    exportingTitle: string;
-    exportingHint: string;
-  };
   media: {
     athlete: string;
     stopAnimation: string;
@@ -240,6 +236,8 @@ export interface TranslationDictionary {
     generatePdf: string;
   };
   jumpConsole: {
+    exportingTitle: string;
+    exportingHint: string;
     title: string;
     subtitle: string;
     selectVideo: string;
@@ -456,10 +454,6 @@ export interface TranslationDictionary {
 
 export const translations: Record<Language, TranslationDictionary> = {
   ar: {
-    jumpConsole: {
-      exportingTitle: 'جاري تصدير فيديو التحليل 🎥',
-      exportingHint: 'استنى شوية بنركّب شريط الارتفاع والمنحنى على الفيديو…',
-    },
     media: {
       athlete: 'اللاعب',
       stopAnimation: 'إيقاف الحركة',
@@ -783,6 +777,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       generatePdf: 'تحميل وطباعة التقرير 📄',
     },
     jumpConsole: {
+      exportingTitle: 'جاري تصدير فيديو التحليل 🎥',
+      exportingHint: 'استنى شوية بنركّب شريط الارتفاع والمنحنى على الفيديو…',
       title: 'منصة قياس وتحليل الوثب الرأسي',
       subtitle: 'تحليل دقيق بالفيديو وبمعدل إطارات مرتفع مع كشف آلي لنقاط الإقلاع والهبوط',
       selectVideo: 'اختر فيديو من الجهاز',
@@ -909,10 +905,6 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
   },
   en: {
-    jumpConsole: {
-      exportingTitle: 'Exporting analysis video 🎥',
-      exportingHint: 'Hold on while the height bar and curve are drawn onto your video…',
-    },
     media: {
       athlete: 'Athlete',
       stopAnimation: 'Pause animation',
@@ -1236,6 +1228,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       generatePdf: 'Download PDF Report 📄',
     },
     jumpConsole: {
+      exportingTitle: 'Exporting analysis video 🎥',
+      exportingHint: 'Hold on while the height bar and curve are drawn onto your video…',
       title: 'Vertical Jump Video Telemetry',
       subtitle: 'High-frame-rate video analysis with automated takeoff and landing phase recognition',
       selectVideo: 'Choose Video File',

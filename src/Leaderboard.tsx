@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { TEST_TYPES, normalizeTestType } from './lib/testTypes';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Award, Flame, Zap } from 'lucide-react';
+import { Trophy, Flame } from 'lucide-react';
 import { useData } from './context/DataContext';
 import type { Player, ActiveTabType } from './types/athletics';
 

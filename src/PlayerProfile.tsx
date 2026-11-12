@@ -1,16 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { TEST_TYPES, normalizeTestType } from './lib/testTypes';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Download, Zap, TrendingUp, Clock, Scale, Calendar, Trophy,
-  FileText, Plus, Trash2, Edit3, ShieldCheck, Sparkles, Printer,
-  Activity, X, ChevronRight, ChevronLeft, Target, Award, User,
-  CheckCircle2, AlertTriangle, ArrowUpRight, BarChart3, Layers
-} from 'lucide-react';
+import { Zap, TrendingUp, Scale, Plus, Trash2, Edit3, ShieldCheck, Sparkles, Printer, Activity, X, User, BarChart3, Layers } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useData } from './context/DataContext';
 import { getPlayerAge } from './lib/utils';
-import AppLogo from './AppLogo';
 import MotionGraphicVideoModal from './components/MotionGraphicVideoModal';
 import { classifyGCT, calculateElasticityQuadrant } from './useJumpMechanics';
 import { cnsReadiness as computeReadiness, sayersPeakPowerW, harmanPeakPowerW, flightTimeFromJumpHeight, takeoffVelocityFromJumpHeight } from './lib/biomechanics';
@@ -328,7 +322,7 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
                   {activePlayer.full_name}
                 </h1>
                 <span className="badge-volt text-[10px] font-mono font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">
-                  {activePlayer.gender === 'female' ? t.common.female : t.common.male} • {age} {t.common.years || 'yrs'}
+                  {activePlayer.gender === 'female' ? t.common.female : t.common.male} • {age} {t.media.years}
                 </span>
                 {activePlayer.is_favorite && (
                   <span className="badge-blaze text-[10px] font-mono font-bold px-2 py-0.5 rounded-md">
@@ -1813,16 +1807,10 @@ export default function PlayerProfile({ onEditPlayer, onNavigateTab }: PlayerPro
       ========================================================================= */}
       {isMotionVideoOpen && (
         <MotionGraphicVideoModal
-          player={activePlayer}
-          stats={{
-            heightCm: peakHeightCm > 0 ? peakHeightCm.toFixed(1) : '—',
-            flightTime: '—',
-            takeoffVelocity: '—',
-            harmanPeakPower: sayersPeak > 0 ? sayersPeak.toFixed(0) : '—',
-            meanPower: '—',
-            peakVelocity: '—',
-            rsiScore: maxRsi > 0 ? maxRsi.toFixed(2) : '—',
-          }}
+          activePlayer={activePlayer}
+          playerHistory={playerHistory}
+          isOpen={isMotionVideoOpen}
+          language={language}
           onClose={() => setIsMotionVideoOpen(false)}
         />
       )}

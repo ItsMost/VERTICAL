@@ -1,4 +1,3 @@
-import React from 'react';
 import { DataProvider, useData } from './context/DataContext';
 import JumpCalculator from './JumpCalculator';
 import AuthGate from './AuthGate';
