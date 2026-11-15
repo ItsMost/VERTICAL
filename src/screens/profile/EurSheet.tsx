@@ -1,7 +1,7 @@
 import { AlertTriangle } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { EUR_BAND } from '../../lib/biomechanics';
-import type { EurPair } from '../../lib/athleteStats';
+import { EUR_MAX_DAYS_APART, type EurPair } from '../../lib/athleteStats';
 import { fill } from '../../i18n/screens';
 import { Sheet, MiniStat, Pill, shortDate } from '../../ui';
 
@@ -36,8 +36,10 @@ export default function EurSheet({ open, onClose, pair }: { open: boolean; onClo
         <Pill tone={tone}>{typeLabel}</Pill>
       </div>
 
-      {!pair.sameDay && (
-        <p className="flex gap-2 text-xs text-warning"><AlertTriangle size={14} className="shrink-0 mt-0.5" />{t.s.eurNotSameDay}</p>
+      <p className="text-xs text-faint -mt-2">{t.s.eurWhichJumps}</p>
+
+      {pair.daysApart > EUR_MAX_DAYS_APART && (
+        <p className="flex gap-2 text-xs text-warning"><AlertTriangle size={14} className="shrink-0 mt-0.5" />{fill(t.s.eurNotSameDay, { days: pair.daysApart })}</p>
       )}
 
       {/* scale */}

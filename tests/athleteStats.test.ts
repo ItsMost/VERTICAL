@@ -96,33 +96,37 @@ describe('levels', () => {
 });
 
 describe('EUR pair and gap', () => {
-  it('uses the latest day that has both jumps, ignores loaded SJ', () => {
+  it('uses the best of each jump in the last 30 days, ignores loaded SJ and old pairs', () => {
+    // mirrors a real profile: an old same-day pair (56 / 52) must not win over newer bests
     const h = [
-      m('cmj_no_arms', 46, '2026-09-01'), m('sj_no_arms', 40, '2026-09-01'),
-      m('cmj_no_arms', 42, '2026-10-01'), m('sj_no_arms', 41, '2026-10-01'), m('sj_no_arms', 30, '2026-10-01', { added_load_kg: 20 }),
-      m('cmj_no_arms', 50, '2026-10-20'),
+      m('cmj_no_arms', 56, '2026-07-22'), m('sj_no_arms', 52, '2026-07-22'),
+      m('sj_no_arms', 65.5, '2026-08-08'),
+      m('sj_no_arms', 66.5, '2026-10-24'), m('sj_no_arms', 30, '2026-10-24', { added_load_kg: 20 }),
+      m('cmj_no_arms', 70, '2026-10-27'), m('cmj_no_arms', 69, '2026-11-15'),
     ];
     const s = computeAthleteStats(player, h);
-    expect(s.eurPair?.sameDay).toBe(true);
-    expect(s.eurPair?.cmjCm).toBe(42);
-    expect(s.eurPair?.sjCm).toBe(41);
-    expect(s.eur).toBeCloseTo(42 / 41, 6);
-    // below 1.05 → CMJ is short: needs 41 × 1.05 = 43.05 cm
+    expect(s.eurPair?.cmjCm).toBe(70);
+    expect(s.eurPair?.sjCm).toBe(66.5);
+    expect(s.eurPair?.daysApart).toBe(3);
+    expect(s.eur).toBeCloseTo(70 / 66.5, 6);
+    expect(s.eurPair?.gap.limiting).toBeNull(); // 1.053 is inside 1.05–1.15
+  });
+
+  it('below the band → CMJ is short by SJ × 1.05 − CMJ', () => {
+    const s = computeAthleteStats(player, [m('cmj_no_arms', 42, '2026-10-01'), m('sj_no_arms', 41, '2026-10-01')]);
     expect(s.eurPair?.gap.limiting).toBe('cmj');
     expect(s.eurPair?.gap.targetCm).toBeCloseTo(43.05, 6);
     expect(s.eurPair?.gap.gapCm).toBeCloseTo(1.05, 6);
   });
 
-  it('falls back to bests when no shared day, and flags it', () => {
-    const s = computeAthleteStats(player, [m('cmj_no_arms', 50, '2026-10-01'), m('sj_no_arms', 40, '2026-10-02')]);
-    expect(s.eurPair?.sameDay).toBe(false);
-    // 1.25 > 1.15 → SJ is short: needs 50 / 1.15
+  it('above the band → SJ is short by CMJ / 1.15 − SJ; days apart reported', () => {
+    const s = computeAthleteStats(player, [m('cmj_no_arms', 50, '2026-10-01'), m('sj_no_arms', 40, '2026-08-01')]);
+    expect(s.eurPair?.daysApart).toBe(61);
     expect(s.eurPair?.gap.limiting).toBe('sj');
     expect(s.eurPair?.gap.gapCm).toBeCloseTo(50 / 1.15 - 40, 6);
   });
 
-  it('no gap inside the band; null without both jumps', () => {
-    expect(computeAthleteStats(player, [m('cmj_no_arms', 44, '2026-10-01'), m('sj_no_arms', 40, '2026-10-01')]).eurPair?.gap.limiting).toBeNull();
+  it('null without both jumps', () => {
     expect(computeAthleteStats(player, [m('cmj_no_arms', 44, '2026-10-01')]).eurPair).toBeNull();
   });
 });

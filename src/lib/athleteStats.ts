@@ -73,28 +73,39 @@ export interface EurPair {
   sjCm: number;
   cmjAt: string;
   sjAt: string;
-  /** both jumps come from the same test day (the honest way to compute EUR) */
-  sameDay: boolean;
+  /** whole days between the two jumps used */
+  daysApart: number;
   gap: EurGap;
 }
 
+const DAY_MS = 86400000;
+/** window (days) back from an athlete's latest test of a type that counts as "current form" */
+export const EUR_WINDOW_DAYS = 30;
+/** jumps further apart than this get a warning in the EUR sheet */
+export const EUR_MAX_DAYS_APART = 30;
+
+/** Best row within EUR_WINDOW_DAYS of the latest row (rows sorted by date). */
+function recentBest(rows: JumpMeasurement[]): JumpMeasurement | null {
+  if (!rows.length) return null;
+  const from = time(rows[rows.length - 1]) - EUR_WINDOW_DAYS * DAY_MS;
+  return best(rows.filter(r => time(r) >= from), 'jump_height_cm');
+}
+
 /**
- * CMJ (no arms) and unloaded SJ (no arms) used for EUR: the best of each on the
- * latest day that has both; if no day has both, the best of each overall
- * (flagged `sameDay: false`).
+ * CMJ (no arms, hands on hips) and unloaded SJ (no arms, 90° hold) used for
+ * EUR: for each, the best jump in the 30 days up to its latest test, so the
+ * ratio reflects current form and uses the athlete's real best, not an old pair.
  */
 export function eurPair(history: JumpMeasurement[]): EurPair | null {
-  const cmj = ofType(history, TEST_TYPES.CMJ_NO_ARMS).filter(r => num(r.jump_height_cm) > 0);
-  const sj = ofType(history, TEST_TYPES.SJ_NO_ARMS).filter(r => num(r.jump_height_cm) > 0 && !(num(r.added_load_kg) > 0));
-  if (!cmj.length || !sj.length) return null;
-  const sjDays = new Set(sj.map(r => dayOf(r.created_at)));
-  const shared = [...new Set(cmj.map(r => dayOf(r.created_at)))].filter(d => sjDays.has(d)).sort();
-  const day = shared.length ? shared[shared.length - 1] : null;
-  const c = best(day ? cmj.filter(r => dayOf(r.created_at) === day) : cmj, 'jump_height_cm')!;
-  const s = best(day ? sj.filter(r => dayOf(r.created_at) === day) : sj, 'jump_height_cm')!;
+  const c = recentBest(ofType(history, TEST_TYPES.CMJ_NO_ARMS).filter(r => num(r.jump_height_cm) > 0));
+  const s = recentBest(ofType(history, TEST_TYPES.SJ_NO_ARMS).filter(r => num(r.jump_height_cm) > 0 && !(num(r.added_load_kg) > 0)));
+  if (!c || !s) return null;
   const gap = eurGap(num(c.jump_height_cm), num(s.jump_height_cm));
   if (!gap) return null;
-  return { cmjCm: num(c.jump_height_cm), sjCm: num(s.jump_height_cm), cmjAt: c.created_at, sjAt: s.created_at, sameDay: day !== null, gap };
+  return {
+    cmjCm: num(c.jump_height_cm), sjCm: num(s.jump_height_cm), cmjAt: c.created_at, sjAt: s.created_at,
+    daysApart: Math.round(Math.abs(time(c) - time(s)) / DAY_MS), gap,
+  };
 }
 
 export interface StrengthStat { kg: number | null; xBw: number | null; record: JumpMeasurement | null }
