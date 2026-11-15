@@ -7,8 +7,8 @@ import type { JumpMeasurement, Player } from '../types/athletics';
 import {
   cnsReadiness,
   type ReadinessResult,
-  eccentricUtilizationRatio,
-  eurQuadrant,
+  eurGap,
+  type EurGap,
   type EurQuadrant,
   reactiveIndex,
   gctCategory,
@@ -68,6 +68,35 @@ function heightStat(rows: JumpMeasurement[]): HeightStat {
   };
 }
 
+export interface EurPair {
+  cmjCm: number;
+  sjCm: number;
+  cmjAt: string;
+  sjAt: string;
+  /** both jumps come from the same test day (the honest way to compute EUR) */
+  sameDay: boolean;
+  gap: EurGap;
+}
+
+/**
+ * CMJ (no arms) and unloaded SJ (no arms) used for EUR: the best of each on the
+ * latest day that has both; if no day has both, the best of each overall
+ * (flagged `sameDay: false`).
+ */
+export function eurPair(history: JumpMeasurement[]): EurPair | null {
+  const cmj = ofType(history, TEST_TYPES.CMJ_NO_ARMS).filter(r => num(r.jump_height_cm) > 0);
+  const sj = ofType(history, TEST_TYPES.SJ_NO_ARMS).filter(r => num(r.jump_height_cm) > 0 && !(num(r.added_load_kg) > 0));
+  if (!cmj.length || !sj.length) return null;
+  const sjDays = new Set(sj.map(r => dayOf(r.created_at)));
+  const shared = [...new Set(cmj.map(r => dayOf(r.created_at)))].filter(d => sjDays.has(d)).sort();
+  const day = shared.length ? shared[shared.length - 1] : null;
+  const c = best(day ? cmj.filter(r => dayOf(r.created_at) === day) : cmj, 'jump_height_cm')!;
+  const s = best(day ? sj.filter(r => dayOf(r.created_at) === day) : sj, 'jump_height_cm')!;
+  const gap = eurGap(num(c.jump_height_cm), num(s.jump_height_cm));
+  if (!gap) return null;
+  return { cmjCm: num(c.jump_height_cm), sjCm: num(s.jump_height_cm), cmjAt: c.created_at, sjAt: s.created_at, sameDay: day !== null, gap };
+}
+
 export interface StrengthStat { kg: number | null; xBw: number | null; record: JumpMeasurement | null }
 
 function strengthStat(rows: JumpMeasurement[], bodyMass: number): StrengthStat {
@@ -109,6 +138,7 @@ export interface AthleteStats {
   rsi: { best: number | null; record: JumpMeasurement | null; contactMs: number | null; gct: GctCategory | null; latest: number | null; count: number };
   eur: number | null;
   eurType: EurQuadrant | null;
+  eurPair: EurPair | null;
   armSwingGainPct: number | null;
   reactiveIndex: number | null;
   /** highest standing jump used for power (CMJ arms → CMJ no arms → SJ) */
@@ -150,7 +180,8 @@ export function computeAthleteStats(player: Player, history: JumpMeasurement[]):
   const contactSec = contact >= 1 ? contact / 1000 : contact;
   const rsiValid = djRows.filter(r => num(r.rsi_score) > 0);
 
-  const eur = eccentricUtilizationRatio(cmjNoArms.best ?? 0, sj.best ?? 0);
+  const eurInfo = eurPair(history);
+  const eur = eurInfo ? eurInfo.gap.eur : null;
   const powerJumpCm = cmj.best ?? cmjNoArms.best ?? sj.best ?? null;
   const sayersW = powerJumpCm ? sayersPeakPowerW(powerJumpCm, bodyMass) : null;
 
@@ -173,7 +204,8 @@ export function computeAthleteStats(player: Player, history: JumpMeasurement[]):
       count: rsiValid.length,
     },
     eur,
-    eurType: eurQuadrant(eur),
+    eurType: eurInfo ? eurInfo.gap.type : null,
+    eurPair: eurInfo,
     armSwingGainPct: cmj.best && cmjNoArms.best ? ((cmj.best - cmjNoArms.best) / cmjNoArms.best) * 100 : null,
     reactiveIndex: reactiveIndex(dropJump.best ?? 0, cmjNoArms.best ?? 0),
     powerJumpCm,

@@ -361,11 +361,51 @@ export function reactiveIndex(djHeightCm: number, cmjNoArmsCm: number): number |
 
 export type EurQuadrant = 'elastic_dominant' | 'strength_dominant' | 'well_balanced_elite';
 
+/** Balanced EUR band used by the app (CMJ about 5–15 % higher than SJ). */
+export const EUR_BAND = { low: 1.05, high: 1.15 } as const;
+
 export function eurQuadrant(eur: number | null): EurQuadrant | null {
   if (eur === null) return null;
-  if (eur > 1.15) return 'elastic_dominant';
-  if (eur < 1.05) return 'strength_dominant';
+  if (eur > EUR_BAND.high) return 'elastic_dominant';
+  if (eur < EUR_BAND.low) return 'strength_dominant';
   return 'well_balanced_elite';
+}
+
+export interface EurGap {
+  eur: number;
+  type: EurQuadrant;
+  /** which jump has to improve to reach the balanced band, or null when already inside it */
+  limiting: 'cmj' | 'sj' | null;
+  /** current height of the limiting jump (cm) */
+  currentCm: number | null;
+  /** height that jump would need for EUR to reach the nearest edge of the band (cm) */
+  targetCm: number | null;
+  /** targetCm − currentCm (cm), > 0 */
+  gapCm: number | null;
+  /** gap as % of the current height */
+  gapPct: number | null;
+}
+
+/**
+ * How far an athlete is from the balanced EUR band, holding the other jump fixed.
+ * EUR below the band → the CMJ (elastic / stretch-shortening use) is short;
+ * EUR above the band → the SJ (concentric strength) is short.
+ */
+export function eurGap(cmjNoArmsCm: number, sjNoArmsCm: number): EurGap | null {
+  const eur = eccentricUtilizationRatio(cmjNoArmsCm, sjNoArmsCm);
+  if (eur === null) return null;
+  const type = eurQuadrant(eur)!;
+  if (type === 'strength_dominant') {
+    const target = sjNoArmsCm * EUR_BAND.low;
+    const gap = target - cmjNoArmsCm;
+    return { eur, type, limiting: 'cmj', currentCm: cmjNoArmsCm, targetCm: target, gapCm: gap, gapPct: (gap / cmjNoArmsCm) * 100 };
+  }
+  if (type === 'elastic_dominant') {
+    const target = cmjNoArmsCm / EUR_BAND.high;
+    const gap = target - sjNoArmsCm;
+    return { eur, type, limiting: 'sj', currentCm: sjNoArmsCm, targetCm: target, gapCm: gap, gapPct: (gap / sjNoArmsCm) * 100 };
+  }
+  return { eur, type, limiting: null, currentCm: null, targetCm: null, gapCm: null, gapPct: null };
 }
 
 // ---------------------------------------------------------------------------

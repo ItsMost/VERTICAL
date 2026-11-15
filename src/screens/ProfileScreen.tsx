@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 import {
   Plus, Pencil, Sparkles, Printer, TrendingUp, TrendingDown, Minus, ShieldCheck, Zap, Ruler, Dumbbell,
-  Gauge, ChevronDown, Trash2, Activity,
+  Gauge, ChevronDown, ChevronLeft, Trash2, Activity,
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useData } from '../context/DataContext';
@@ -16,6 +16,7 @@ import TestFields, { formToPayload, recordToForm, type TestForm } from './test/T
 import type { JumpMeasurement } from '../types/athletics';
 
 const ShareCard = lazy(() => import('../components/MotionGraphicVideoModal'));
+const EurSheet = lazy(() => import('./profile/EurSheet'));
 
 const CHART = { accent: '#D97757', grid: '#3D3C38', tick: '#ABA79D', surface: '#2A2927', text: '#F5F4ED' };
 
@@ -29,6 +30,7 @@ export default function ProfileScreen({ onNewTest, onRecordFv }: { onNewTest: ()
   const [printOpen, setPrintOpen] = useState(false);
   const [printStrength, setPrintStrength] = useState(true);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [eurOpen, setEurOpen] = useState(false);
   const [metric, setMetric] = useState<ChartMetric>('cmj_arms');
   const [filter, setFilter] = useState<HistoryFilter>('all');
   const [editing, setEditing] = useState<JumpMeasurement | null>(null);
@@ -184,18 +186,25 @@ export default function ProfileScreen({ onNewTest, onRecordFv }: { onNewTest: ()
       {/* ------------------------------------------------ secondary */}
       <div className="grid gap-3 md:grid-cols-3">
         <Card title={t.s.eurTitle} icon={<Gauge size={16} />}>
-          {stats.eur !== null ? (
-            <>
-              <div className="flex items-end justify-between gap-2">
-                <p className="font-mono tabular-nums text-3xl font-bold" dir="ltr">{stats.eur.toFixed(2)}</p>
-                <Pill tone={stats.eurType === 'well_balanced_elite' ? 'success' : 'accent'}>
+          {stats.eurPair ? (
+            <button type="button" onClick={() => setEurOpen(true)} className="block w-full text-start -m-2 p-2 rounded-[var(--radius-control)] hover:bg-surface-2 transition-colors">
+              <span className="flex items-end justify-between gap-2">
+                <span className="font-mono tabular-nums text-3xl font-bold" dir="ltr">{stats.eurPair.gap.eur.toFixed(2)}</span>
+                <Pill tone={stats.eurType === 'well_balanced_elite' ? 'success' : stats.eurType === 'strength_dominant' ? 'warning' : 'accent'}>
                   {stats.eurType === 'elastic_dominant' ? t.s.eurElastic : stats.eurType === 'strength_dominant' ? t.s.eurStrength : t.s.eurBalanced}
                 </Pill>
-              </div>
-              <p className="text-sm text-muted mt-2">
+              </span>
+              <span className="grid grid-cols-2 gap-3 mt-3">
+                <MiniStat label="CMJ" value={stats.eurPair.cmjCm.toFixed(1)} unit="cm" />
+                <MiniStat label="SJ" value={stats.eurPair.sjCm.toFixed(1)} unit="cm" />
+              </span>
+              <span className="block text-sm text-muted mt-2">
                 {stats.eurType === 'elastic_dominant' ? t.s.eurElasticAdvice : stats.eurType === 'strength_dominant' ? t.s.eurStrengthAdvice : t.s.eurBalancedAdvice}
-              </p>
-            </>
+              </span>
+              <span className="flex items-center gap-1 text-xs font-semibold text-accent mt-2">
+                {t.s.eurExplain}<ChevronLeft size={14} className="ltr:rotate-180" aria-hidden />
+              </span>
+            </button>
           ) : (
             <p className="text-sm text-muted">{t.s.eurNeeds}</p>
           )}
@@ -420,6 +429,11 @@ export default function ProfileScreen({ onNewTest, onRecordFv }: { onNewTest: ()
       {share && (
         <Suspense fallback={null}>
           <ShareCard activePlayer={p} playerHistory={playerHistory} isOpen={share} onClose={() => setShare(false)} language={language} />
+        </Suspense>
+      )}
+      {eurOpen && stats.eurPair && (
+        <Suspense fallback={null}>
+          <EurSheet open onClose={() => setEurOpen(false)} pair={stats.eurPair} />
         </Suspense>
       )}
     </div>

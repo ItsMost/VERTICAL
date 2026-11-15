@@ -94,3 +94,35 @@ describe('levels', () => {
     expect(ageOf({ date_of_birth: `${y}-01-01` })).toBe(20);
   });
 });
+
+describe('EUR pair and gap', () => {
+  it('uses the latest day that has both jumps, ignores loaded SJ', () => {
+    const h = [
+      m('cmj_no_arms', 46, '2026-09-01'), m('sj_no_arms', 40, '2026-09-01'),
+      m('cmj_no_arms', 42, '2026-10-01'), m('sj_no_arms', 41, '2026-10-01'), m('sj_no_arms', 30, '2026-10-01', { added_load_kg: 20 }),
+      m('cmj_no_arms', 50, '2026-10-20'),
+    ];
+    const s = computeAthleteStats(player, h);
+    expect(s.eurPair?.sameDay).toBe(true);
+    expect(s.eurPair?.cmjCm).toBe(42);
+    expect(s.eurPair?.sjCm).toBe(41);
+    expect(s.eur).toBeCloseTo(42 / 41, 6);
+    // below 1.05 → CMJ is short: needs 41 × 1.05 = 43.05 cm
+    expect(s.eurPair?.gap.limiting).toBe('cmj');
+    expect(s.eurPair?.gap.targetCm).toBeCloseTo(43.05, 6);
+    expect(s.eurPair?.gap.gapCm).toBeCloseTo(1.05, 6);
+  });
+
+  it('falls back to bests when no shared day, and flags it', () => {
+    const s = computeAthleteStats(player, [m('cmj_no_arms', 50, '2026-10-01'), m('sj_no_arms', 40, '2026-10-02')]);
+    expect(s.eurPair?.sameDay).toBe(false);
+    // 1.25 > 1.15 → SJ is short: needs 50 / 1.15
+    expect(s.eurPair?.gap.limiting).toBe('sj');
+    expect(s.eurPair?.gap.gapCm).toBeCloseTo(50 / 1.15 - 40, 6);
+  });
+
+  it('no gap inside the band; null without both jumps', () => {
+    expect(computeAthleteStats(player, [m('cmj_no_arms', 44, '2026-10-01'), m('sj_no_arms', 40, '2026-10-01')]).eurPair?.gap.limiting).toBeNull();
+    expect(computeAthleteStats(player, [m('cmj_no_arms', 44, '2026-10-01')]).eurPair).toBeNull();
+  });
+});
